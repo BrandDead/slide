@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dealt/Slide - Complete Asset Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-darkest: #050505;
+      --bg-dark: #0a0a0a;
+      --bg-card: #121212;
+      --bg-elevated: #1a1a1a;
+      --accent-green: #00ff88;
+      --accent-red: #ff4444;
+      --accent-blue: #0088ff;
+      --accent-yellow: #ffcc00;
+      --accent-purple: #9966ff;
+      --text-primary: #ffffff;
+      --text-secondary: #888888;
+      --border: #333333;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-darkest);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    
+    .app-container {
+      display: flex;
+      height: 100vh;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-dark);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .sidebar-header h1 {
+      font-size: 1.2rem;
+      color: var(--accent-green);
+      margin-bottom: 4px;
+    }
+    
+    .sidebar-header p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .category-list {
+      padding: 10px;
+    }
+    
+    .category-item {
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    
+    .category-item:hover { background: var(--bg-elevated); }
+    .category-item.active { background: var(--accent-green); color: #000; }
+    
+    .category-icon { font-size: 1.2rem; }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .content-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-dark);
+    }
+    
+    .content-header h2 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    
+    .content-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px;
+    }
+    
+    /* Form Sections */
+    .form-section {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .form-section h3 {
+      color: var(--accent-green);
+      margin-bottom: 16px;
+      font-size: 1rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    select, input, textarea {
+      padding: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+    
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    /* File Upload */
+    .file-upload {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .file-upload:hover {
+      border-color: var(--accent-green);
+      background: rgba(0, 255, 136, 0.05);
+    }
+    
+    .file-upload.has-file {
+      border-color: var(--accent-green);
+      background: rgba(0, 255, 136, 0.1);
+    }
+    
+    .file-upload input { display: none; }
+    
+    .file-upload-icon {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    
+    .file-preview {
+      max-width: 200px;
+      max-height: 200px;
+      margin: 10px auto;
+      border-radius: 8px;
+    }
+    
+    /* Buttons */
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-green), #00cc6a);
+      color: #000;
+    }
+    
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3); }
+    
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-danger {
+      background: var(--accent-red);
+      color: white;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    /* Prompt Output */
+    .prompt-output {
+      background: var(--bg-darkest);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    /* Image Generation Panel */
+    .image-gen-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 500px;
+      height: 100vh;
+      background: var(--bg-dark);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .image-gen-panel.open { transform: translateX(0); }
+    
+    .image-gen-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .image-gen-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .generated-image {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    .generated-image img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent-green);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .image-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .image-actions .btn {
+      flex: 1;
+    }
+    
+    /* Asset Library */
+    .asset-library {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .asset-item {
+      background: var(--bg-elevated);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .asset-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .asset-item img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+    }
+    
+    .asset-item-info {
+      padding: 8px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    /* Subcategory Pills */
+    .subcategory-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .pill {
+      padding: 8px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .pill:hover { border-color: var(--accent-green); }
+    .pill.active { background: var(--accent-green); color: #000; border-color: var(--accent-green); }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      background: var(--accent-green);
+      color: #000;
+      border-radius: 8px;
+      font-weight: 600;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 2000;
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    /* API Key Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+    
+    .modal-overlay.show { display: flex; }
+    
+    .modal {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+    }
+    
+    .modal h3 {
+      margin-bottom: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .sidebar { width: 60px; }
+      .sidebar-header h1, .sidebar-header p, .category-item span { display: none; }
+      .category-item { justify-content: center; padding: 12px; }
+      .image-gen-panel { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>🎮 Asset Generator</h1>
+        <p>Dealt/Slide Design Studio</p>
+      </div>
+      
+      <div class="category-list">
+        <div class="category-item active" data-category="characters">
+          <span class="category-icon">👤</span>
+          <span>Characters</span>
+        </div>
+        <div class="category-item" data-category="weapons">
+          <span class="category-icon">🔫</span>
+          <span>Weapons</span>
+        </div>
+        <div class="category-item" data-category="vehicles">
+          <span class="category-icon">🚗</span>
+          <span>Vehicles</span>
+        </div>
+        <div class="category-item" data-category="drugs">
+          <span class="category-icon">💊</span>
+          <span>Drugs</span>
+        </div>
+        <div class="category-item" data-category="blocks">
+          <span class="category-icon">🏙️</span>
+          <span>Blocks</span>
+        </div>
+        <div class="category-item" data-category="effects">
+          <span class="category-icon">✨</span>
+          <span>Effects</span>
+        </div>
+        <div class="category-item" data-category="npcs">
+          <span class="category-icon">🚶</span>
+          <span>NPCs</span>
+        </div>
+        <div class="category-item" data-category="clothing">
+          <span class="category-icon">👕</span>
+          <span>Clothing</span>
+        </div>
+        <div class="category-item" data-category="armor">
+          <span class="category-icon">🛡️</span>
+          <span>Armor</span>
+        </div>
+        <div class="category-item" data-category="library">
+          <span class="category-icon">📁</span>
+          <span>Asset Library</span>
+        </div>
+        <div class="category-item" data-category="settings">
+          <span class="category-icon">⚙️</span>
+          <span>API Settings</span>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="content-header">
+        <h2 id="content-title">Character Generator</h2>
+        <p id="content-subtitle">Create gang members, shooters, dealers, and more</p>
+      </header>
+      
+      <div class="content-body" id="content-body">
+        <!-- Content loaded dynamically -->
+      </div>
+    </main>
+    
+    <!-- Image Generation Panel -->
+    <aside class="image-gen-panel" id="imageGenPanel">
+      <div class="image-gen-header">
+        <h3>Generate Asset</h3>
+        <button class="btn btn-secondary" onclick="closeImagePanel()">✕</button>
+      </div>
+      <div class="image-gen-body">
+        <div class="generated-image" id="generatedImage">
+          <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+          <span id="imagePlaceholder">Image will appear here</span>
+          <img id="previewImage" style="display: none;">
+        </div>
+        
+        <div class="prompt-output" id="currentPrompt" style="margin-bottom: 20px; max-height: 150px;">
+          No prompt generated yet...
+        </div>
+        
+        <div class="image-actions">
+          <button class="btn btn-secondary" onclick="editPrompt()">✏️ Edit</button>
+          <button class="btn btn-primary" onclick="regenerateImage()">🔄 Regen</button>
+          <button class="btn btn-danger" onclick="closeImagePanel()">✕ Cancel</button>
+          <button class="btn btn-primary" onclick="approveAsset()">✓ Save</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal">
+      <h3>🔑 API Configuration</h3>
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label>Banana Nano API Key</label>
+        <input type="password" id="bananaApiKey" placeholder="Enter your API key">
+      </div>
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label>Model ID (optional)</label>
+        <input type="text" id="bananaModelId" placeholder="Leave blank for default">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="closeApiModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveApiKey()">Save</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Toast -->
+  <div class="toast" id="toast">Asset saved!</div>
+
+  <script>
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    
+    const state = {
+      currentCategory: 'characters',
+      currentSubcategory: null,
+      generatedPrompt: '',
+      referenceImage: null,
+      savedAssets: JSON.parse(localStorage.getItem('dealtSlideAssets') || '[]'),
+      apiKey: localStorage.getItem('bananaApiKey') || '',
+      modelId: localStorage.getItem('bananaModelId') || ''
+    };
+    
+    // ============================================
+    // CATEGORY DATA
+    // ============================================
+    
+    const categories = {
+      characters: {
+        title: 'Character Generator',
+        subtitle: 'Create gang members, shooters, dealers, and more',
+        subcategories: ['Gang Members', 'Customers', 'NPCs', 'Other'],
+        fields: {
+          'Gang Members': [
+            { id: 'role', label: 'Role', type: 'select', options: ['Shooter', 'Dealer', 'Enforcer', 'Lookout', 'Driver', 'Boss', 'Lieutenant', 'Other'] },
+            { id: 'region', label: 'Regional Style', type: 'select', options: ['Detroit', 'Los Angeles', 'Miami', 'Chicago', 'New York', 'Atlanta', 'Houston', 'Baltimore', 'Philadelphia', 'Oakland', 'Other'] },
+            { id: 'pose', label: 'Pose', type: 'select', options: ['Idle', 'Walking', 'Shooting', 'Hit/Wounded', 'Dead', 'Running', 'Crouching', 'Other'] },
+            { id: 'gender', label: 'Gender', type: 'select', options: ['Male', 'Female'] },
+            { id: 'ethnicity', label: 'Ethnicity', type: 'select', options: ['Black', 'Hispanic', 'White', 'Asian', 'Mixed', 'Other'] },
+            { id: 'hairStyle', label: 'Hair Style', type: 'select', options: ['Bald', 'Waves', 'Dreads', 'Braids', 'Afro', 'Fade', 'Cornrows', 'Long', 'Ponytail', 'Other'] },
+            { id: 'accessories', label: 'Accessories', type: 'multiselect', options: ['Gold Chain', 'Diamond Chain', 'Face Tattoos', 'Neck Tattoos', 'Arm Tattoos', 'Sunglasses', 'Bandana', 'Durag', 'Fitted Cap', 'Beanie', 'Ski Mask', 'Earrings', 'Grillz', 'Watch', 'Other'] },
+            { id: 'weapon', label: 'Weapon (if any)', type: 'select', options: ['None', 'Pistol', 'SMG/Draco', 'Rifle/AK', 'Shotgun', 'Melee', 'Other'] }
+          ],
+          'Customers': [
+            { id: 'customerType', label: 'Customer Type', type: 'select', options: ['Regular', 'Fiend', 'High Roller', 'Undercover', 'Snitch', 'First Timer', 'Other'] },
+            { id: 'appearance', label: 'Appearance', type: 'select', options: ['Clean', 'Disheveled', 'Business Casual', 'Street Wear', 'Junkie Look', 'Other'] }
+          ]
+        }
+      },
+      
+      weapons: {
+        title: 'Weapon Generator',
+        subtitle: 'Create guns, melee weapons, and explosives',
+        subcategories: ['Handguns', 'SMGs', 'Rifles', 'Shotguns', 'Melee', 'Explosives', 'Other'],
+        fields: {
+          'Handguns': [
+            { id: 'weaponModel', label: 'Model', type: 'select', options: ['Glock 19', 'Glock 17', 'Desert Eagle', 'Beretta 92', '1911', 'Revolver .38', 'Revolver .44 Magnum', 'FN Five-Seven', 'Sig Sauer P320', 'Smith & Wesson M&P', 'Hi-Point', 'Ruger', 'Other'] },
+            { id: 'finish', label: 'Finish', type: 'select', options: ['Matte Black', 'Chrome', 'Gold Plated', 'Diamond Encrusted', 'Two-Tone', 'Camouflage', 'Custom Paint', 'Other'] },
+            { id: 'mods', label: 'Modifications', type: 'multiselect', options: ['Extended Mag', 'Drum Mag', 'Suppressor', 'Laser Sight', 'Red Dot', 'Extended Barrel', 'Compensator', 'Other'] }
+          ],
+          'SMGs': [
+            { id: 'weaponModel', label: 'Model', type: 'select', options: ['MAC-10', 'MAC-11', 'Uzi', 'Mini Uzi', 'Draco', 'Tech-9', 'MP5', 'MP7', 'Scorpion', 'P90', 'Other'] },
+            { id: 'finish', label: 'Finish', type: 'select', options: ['Matte Black', 'Chrome', 'Gold Plated', 'Wood Grip', 'Custom', 'Other'] },
+            { id: 'mods', label: 'Modifications', type: 'multiselect', options: ['Drum Mag', 'Suppressor', 'Foregrip', 'Stock', 'Laser', 'Other'] }
+          ],
+          'Rifles': [
+            { id: 'weaponModel', label: 'Model', type: 'select', options: ['AK-47', 'AK-74', 'AR-15', 'M4', 'M16', 'SKS', 'Hunting Rifle', 'Sniper Rifle', 'Other'] },
+            { id: 'finish', label: 'Finish', type: 'select', options: ['Standard', 'Gold AK', 'Custom Paint', 'Wood Furniture', 'Tactical Black', 'Other'] },
+            { id: 'mods', label: 'Modifications', type: 'multiselect', options: ['Scope', 'Red Dot', 'Drum Mag', 'Suppressor', 'Bipod', 'Foregrip', 'Other'] }
+          ],
+          'Shotguns': [
+            { id: 'weaponModel', label: 'Model', type: 'select', options: ['Mossberg 500', 'Remington 870', 'Sawed-Off', 'Double Barrel', 'SPAS-12', 'AA-12', 'Other'] },
+            { id: 'finish', label: 'Finish', type: 'select', options: ['Standard', 'Chrome', 'Gold', 'Wood', 'Tactical', 'Other'] }
+          ],
+          'Melee': [
+            { id: 'weaponModel', label: 'Weapon', type: 'select', options: ['Baseball Bat', 'Machete', 'Knife', 'Switchblade', 'Brass Knuckles', 'Chain', 'Crowbar', 'Hammer', 'Nunchucks', 'Baton', 'Broken Bottle', 'Box Cutter', 'Other'] },
+            { id: 'material', label: 'Material/Style', type: 'select', options: ['Standard', 'Gold Plated', 'Rusty', 'Bloody', 'Custom Handle', 'Other'] }
+          ],
+          'Explosives': [
+            { id: 'weaponModel', label: 'Type', type: 'select', options: ['Frag Grenade', 'Flashbang', 'Smoke Grenade', 'Molotov Cocktail', 'Pipe Bomb', 'C4', 'Car Bomb', 'IED', 'Dynamite', 'Other'] },
+            { id: 'state', label: 'State', type: 'select', options: ['Unused', 'Armed', 'Exploding', 'Other'] }
+          ]
+        }
+      },
+      
+      vehicles: {
+        title: 'Vehicle Generator',
+        subtitle: 'Create cars, motorcycles, and transport',
+        subcategories: ['Sedans', 'Old School', 'Luxury', 'Exotic', 'SUVs', 'Vans', 'Motorcycles', 'Bicycles', 'Other'],
+        fields: {
+          'Sedans': [
+            { id: 'model', label: 'Model', type: 'select', options: ['Crown Victoria', 'Caprice', 'Impala (New)', 'Charger', 'Challenger', 'Camry', 'Accord', 'Altima', 'Maxima', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Black', 'White', 'Silver', 'Dark Blue', 'Red', 'Burgundy', 'Gray', 'Green', 'Custom', 'Other'] },
+            { id: 'condition', label: 'Condition', type: 'select', options: ['Clean', 'Slightly Damaged', 'Bullet Holes', 'Heavily Damaged', 'Destroyed/Burning', 'Other'] },
+            { id: 'mods', label: 'Modifications', type: 'multiselect', options: ['Tinted Windows', 'Rims', 'Lowered', 'Lifted', 'Spoiler', 'Body Kit', 'Other'] }
+          ],
+          'Old School': [
+            { id: 'model', label: 'Model', type: 'select', options: ['64 Impala', '63 Impala', 'Monte Carlo', 'Cutlass', 'Regal', 'El Camino', 'Cadillac DeVille', 'Lincoln Continental', 'Other'] },
+            { id: 'style', label: 'Style', type: 'select', options: ['Lowrider', 'Donk', 'Original', 'Restored', 'Rat Rod', 'Other'] },
+            { id: 'paint', label: 'Paint', type: 'select', options: ['Candy Red', 'Candy Blue', 'Candy Green', 'Gold', 'Chrome', 'Two-Tone', 'Custom', 'Other'] },
+            { id: 'features', label: 'Features', type: 'multiselect', options: ['Hydraulics', 'Wire Wheels', 'White Walls', 'Chain Steering Wheel', 'Custom Interior', 'Other'] }
+          ],
+          'Luxury': [
+            { id: 'model', label: 'Model', type: 'select', options: ['Mercedes S-Class', 'BMW 7 Series', 'Audi A8', 'Lexus LS', 'Bentley', 'Rolls Royce', 'Maybach', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Black', 'White', 'Silver', 'Champagne', 'Navy', 'Custom', 'Other'] }
+          ],
+          'Exotic': [
+            { id: 'model', label: 'Model', type: 'select', options: ['Lamborghini', 'Ferrari', 'McLaren', 'Porsche', 'Aston Martin', 'Bugatti', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Red', 'Yellow', 'Orange', 'Black', 'White', 'Custom', 'Other'] }
+          ],
+          'Motorcycles': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Sport Bike', 'Cruiser', 'Dirt Bike', 'Chopper', 'Scooter', 'Other'] },
+            { id: 'brand', label: 'Brand', type: 'select', options: ['Honda', 'Yamaha', 'Kawasaki', 'Harley Davidson', 'Ducati', 'BMW', 'Other'] }
+          ]
+        }
+      },
+      
+      drugs: {
+        title: 'Drug Generator',
+        subtitle: 'Create drugs, packaging, and paraphernalia',
+        subcategories: ['Pills', 'Powder', 'Smokeable', 'Drink', 'Packaging', 'Other'],
+        fields: {
+          'Pills': [
+            { id: 'drugType', label: 'Drug Type', type: 'select', options: ['Ecstasy/MDMA', 'Percocet', 'Vicodin', 'Xanax', 'Oxycontin', 'Adderall', 'Fentanyl Pill', 'Other'] },
+            { id: 'shape', label: 'Shape (Ecstasy)', type: 'select', options: ['Round', 'Diamond', 'Heart', 'Star', 'Skull', 'Logo/Brand', 'Custom Shape', 'N/A', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['White', 'Blue', 'Pink', 'Green', 'Yellow', 'Orange', 'Purple', 'Multi-color', 'Other'] },
+            { id: 'imprint', label: 'Imprint/Logo', type: 'text', placeholder: 'Describe logo or leave blank' }
+          ],
+          'Powder': [
+            { id: 'drugType', label: 'Drug Type', type: 'select', options: ['Cocaine', 'Heroin (White)', 'Heroin (Brown)', 'Fentanyl', 'Meth/Crystal', 'Other'] },
+            { id: 'form', label: 'Form', type: 'select', options: ['Powder', 'Rock/Crack', 'Crystal', 'Tar', 'Other'] },
+            { id: 'quality', label: 'Quality Look', type: 'select', options: ['Pure/Fish Scale', 'Cut/Stepped On', 'Raw', 'Other'] }
+          ],
+          'Smokeable': [
+            { id: 'drugType', label: 'Drug Type', type: 'select', options: ['Weed', 'Crack', 'Meth', 'PCP', 'Other'] },
+            { id: 'form', label: 'Form', type: 'select', options: ['Buds', 'Pre-rolled', 'Rock', 'Other'] },
+            { id: 'quality', label: 'Quality', type: 'select', options: ['Top Shelf', 'Mid Grade', 'Low Grade', 'Exotic', 'Other'] }
+          ],
+          'Drink': [
+            { id: 'drugType', label: 'Type', type: 'select', options: ['Lean/Purple Drank', 'Liquor Bottle', 'Beer', 'Other'] },
+            { id: 'container', label: 'Container', type: 'select', options: ['Double Cup (Styrofoam)', 'Prescription Bottle', 'Sprite Bottle', 'Liquor Bottle', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Purple', 'Pink', 'Red', 'Yellow', 'Clear', 'Other'] }
+          ],
+          'Packaging': [
+            { id: 'packType', label: 'Package Type', type: 'select', options: ['Dime Bag', 'Eight Ball Bag', 'Ounce Bag', 'QP Bag', 'Pound Bag', 'Kilo Brick', 'Pill Bottle', 'Stamp Bag', 'Other'] },
+            { id: 'material', label: 'Material', type: 'select', options: ['Clear Plastic', 'Colored Plastic', 'Mylar', 'Vacuum Sealed', 'Tape Wrapped', 'Other'] },
+            { id: 'customLogo', label: 'Custom Logo/Stamp', type: 'text', placeholder: 'Describe your brand logo' },
+            { id: 'stampDesign', label: 'Stamp Design (for bricks)', type: 'text', placeholder: 'Describe stamp design' }
+          ]
+        }
+      },
+      
+      blocks: {
+        title: 'Block Generator',
+        subtitle: 'Create city blocks and territories',
+        subcategories: ['By City', 'By Type', 'Custom', 'Other'],
+        fields: {
+          'By City': [
+            { id: 'city', label: 'City Style', type: 'select', options: ['Detroit', 'Los Angeles', 'Miami', 'Chicago', 'New York', 'Atlanta', 'Baltimore', 'Philadelphia', 'Oakland', 'Houston', 'Memphis', 'New Orleans', 'St. Louis', 'Other'] },
+            { id: 'neighborhood', label: 'Neighborhood Type', type: 'select', options: ['Hood', 'Suburbs', 'Downtown', 'Industrial', 'Projects', 'Gentrified', 'Other'] }
+          ],
+          'By Type': [
+            { id: 'buildingType', label: 'Building Style', type: 'select', options: ['Row Houses', 'Apartments', 'Projects', 'Single Family Homes', 'Trailer Park', 'Commercial Strip', 'Industrial', 'Luxury Homes', 'Mixed Use', 'Other'] },
+            { id: 'era', label: 'Time Period', type: 'select', options: ['Modern', '90s', '80s', '70s', 'Timeless', 'Other'] }
+          ],
+          'Custom': [
+            { id: 'address', label: 'Real Address (optional)', type: 'text', placeholder: 'Enter a real address for reference' },
+            { id: 'description', label: 'Block Description', type: 'textarea', placeholder: 'Describe your custom block...' }
+          ],
+          'common': [
+            { id: 'timeOfDay', label: 'Time of Day', type: 'select', options: ['Day', 'Night', 'Dawn', 'Dusk', 'Other'] },
+            { id: 'weather', label: 'Weather', type: 'select', options: ['Clear', 'Cloudy', 'Rainy', 'Snowy', 'Foggy', 'Hot/Hazy', 'Other'] },
+            { id: 'season', label: 'Season', type: 'select', options: ['Summer', 'Winter', 'Fall', 'Spring', 'Other'] },
+            { id: 'aesthetics', label: 'Special Aesthetics', type: 'multiselect', options: ['Graffiti', 'Trash/Debris', 'Abandoned Cars', 'Police Tape', 'Street Vendors', 'Palm Trees', 'Neon Signs', 'Other'] }
+          ]
+        }
+      },
+      
+      effects: {
+        title: 'Effect Generator',
+        subtitle: 'Create visual effects for combat and actions',
+        subcategories: ['Weapon Effects', 'Damage Effects', 'Death Effects', 'Environmental', 'Other'],
+        fields: {
+          'Weapon Effects': [
+            { id: 'effectType', label: 'Effect Type', type: 'select', options: ['Muzzle Flash', 'Bullet Trail', 'Shell Casings', 'Gun Smoke', 'Explosion', 'Melee Swing', 'Other'] },
+            { id: 'weaponType', label: 'From Weapon', type: 'select', options: ['Pistol', 'SMG', 'Rifle', 'Shotgun', 'Explosive', 'Other'] },
+            { id: 'intensity', label: 'Intensity', type: 'select', options: ['Small', 'Medium', 'Large', 'Massive', 'Other'] }
+          ],
+          'Damage Effects': [
+            { id: 'damageType', label: 'Damage Type', type: 'select', options: ['Bullet Wound', 'Stab Wound', 'Blunt Force', 'Burn', 'Explosion Damage', 'Other'] },
+            { id: 'location', label: 'Hit Location', type: 'select', options: ['Head', 'Chest', 'Back', 'Arm', 'Leg', 'Stomach', 'Other'] },
+            { id: 'severity', label: 'Severity', type: 'select', options: ['Graze', 'Wound', 'Critical', 'Fatal', 'Other'] },
+            { id: 'bloodAmount', label: 'Blood Amount', type: 'select', options: ['Minimal', 'Moderate', 'Heavy', 'Extreme', 'Other'] }
+          ],
+          'Death Effects': [
+            { id: 'deathType', label: 'Death Pose', type: 'select', options: ['Laying Face Down', 'Laying Face Up', 'Slumped Against Wall', 'In Car', 'Other'] },
+            { id: 'injuries', label: 'Visible Injuries', type: 'multiselect', options: ['Head Missing', 'Arm Missing', 'Leg Missing', 'Hole in Chest', 'Hole in Back', 'Multiple Wounds', 'Burned', 'Other'] },
+            { id: 'bloodPool', label: 'Blood Pool', type: 'select', options: ['Small', 'Medium', 'Large', 'Massive', 'Other'] }
+          ],
+          'Environmental': [
+            { id: 'effectType', label: 'Effect Type', type: 'select', options: ['Car Explosion', 'Motorcycle Explosion', 'Building Fire', 'Smoke Cloud', 'Debris', 'Glass Shatter', 'Other'] },
+            { id: 'scale', label: 'Scale', type: 'select', options: ['Small', 'Medium', 'Large', 'Massive', 'Other'] }
+          ]
+        }
+      },
+      
+      npcs: {
+        title: 'NPC Generator',
+        subtitle: 'Create civilians, cops, and other characters',
+        subcategories: ['Civilians', 'Law Enforcement', 'Emergency', 'Club/Entertainment', 'Other'],
+        fields: {
+          'Civilians': [
+            { id: 'type', label: 'Civilian Type', type: 'select', options: ['Random Pedestrian', 'Neighborhood Kid', 'Old Timer', 'Business Person', 'Homeless', 'Tourist', 'Other'] },
+            { id: 'gender', label: 'Gender', type: 'select', options: ['Male', 'Female', 'Other'] },
+            { id: 'activity', label: 'Activity', type: 'select', options: ['Walking', 'Standing', 'Sitting', 'Running/Scared', 'On Phone', 'Other'] }
+          ],
+          'Law Enforcement': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Beat Cop', 'Detective', 'SWAT', 'DEA', 'FBI', 'Undercover', 'Sheriff', 'State Trooper', 'Other'] },
+            { id: 'pose', label: 'Pose', type: 'select', options: ['Standing', 'Aiming Weapon', 'Arresting', 'In Car', 'Running', 'Other'] },
+            { id: 'equipment', label: 'Equipment', type: 'multiselect', options: ['Pistol', 'Rifle', 'Shotgun', 'Taser', 'Baton', 'Shield', 'Body Cam', 'Other'] }
+          ],
+          'Emergency': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Firefighter', 'Paramedic', 'EMT', 'Doctor', 'Nurse', 'Coroner', 'Other'] },
+            { id: 'pose', label: 'Pose', type: 'select', options: ['Working', 'Standing', 'Running', 'With Patient', 'Other'] }
+          ],
+          'Club/Entertainment': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Stripper', 'Bartender', 'Bouncer', 'DJ', 'Waitress', 'Dancer', 'Escort', 'Other'] },
+            { id: 'gender', label: 'Gender', type: 'select', options: ['Male', 'Female', 'Other'] },
+            { id: 'outfit', label: 'Outfit Style', type: 'select', options: ['Revealing', 'Formal', 'Casual', 'Uniform', 'Custom', 'Other'] }
+          ]
+        }
+      },
+      
+      clothing: {
+        title: 'Clothing Generator',
+        subtitle: 'Create outfits and fashion items',
+        subcategories: ['Tops', 'Bottoms', 'Footwear', 'Headwear', 'Full Outfits', 'Other'],
+        fields: {
+          'Tops': [
+            { id: 'type', label: 'Type', type: 'select', options: ['T-Shirt', 'Hoodie', 'Jacket', 'Tank Top', 'Button Up', 'Polo', 'Jersey', 'Flannel', 'Vest', 'Other'] },
+            { id: 'style', label: 'Style', type: 'select', options: ['Plain', 'Graphic', 'Designer', 'Sports', 'Custom Print', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Black', 'White', 'Red', 'Blue', 'Gray', 'Custom', 'Other'] },
+            { id: 'brand', label: 'Brand Style', type: 'select', options: ['Generic', 'Nike', 'Adidas', 'Gucci', 'Louis Vuitton', 'Supreme', 'Carhartt', 'Polo', 'Other'] }
+          ],
+          'Bottoms': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Jeans', 'Joggers', 'Shorts', 'Khakis', 'Dickies', 'Dress Pants', 'Other'] },
+            { id: 'fit', label: 'Fit', type: 'select', options: ['Baggy', 'Slim', 'Sagging', 'Regular', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Blue Denim', 'Black', 'Khaki', 'Gray', 'Other'] }
+          ],
+          'Footwear': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Jordans', 'Air Force 1s', 'Nike', 'Adidas', 'Timberlands', 'Dress Shoes', 'Slides', 'Boots', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['White', 'Black', 'Red', 'Blue', 'Custom', 'Other'] }
+          ],
+          'Headwear': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Fitted Cap', 'Snapback', 'Beanie', 'Durag', 'Bandana', 'Bucket Hat', 'Ski Mask', 'Other'] },
+            { id: 'team', label: 'Team/Logo', type: 'text', placeholder: 'Sports team or logo' }
+          ]
+        }
+      },
+      
+      armor: {
+        title: 'Armor Generator',
+        subtitle: 'Create protective gear and equipment',
+        subcategories: ['Body Armor', 'Helmets', 'Vehicle Armor', 'Other'],
+        fields: {
+          'Body Armor': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Bulletproof Vest', 'Plate Carrier', 'Kevlar Vest', 'Full Body Armor', 'Concealed Vest', 'Other'] },
+            { id: 'level', label: 'Protection Level', type: 'select', options: ['Level I', 'Level II', 'Level IIIA', 'Level III', 'Level IV', 'Other'] },
+            { id: 'color', label: 'Color', type: 'select', options: ['Black', 'Tan', 'OD Green', 'Navy', 'Other'] }
+          ],
+          'Helmets': [
+            { id: 'type', label: 'Type', type: 'select', options: ['Ballistic Helmet', 'SWAT Helmet', 'Motorcycle Helmet', 'Other'] },
+            { id: 'features', label: 'Features', type: 'multiselect', options: ['Face Shield', 'Night Vision Mount', 'Camo Cover', 'Other'] }
+          ]
+        }
+      }
+    };
+    
+    // ============================================
+    // STYLE CONSTANTS FOR PROMPTS
+    // ============================================
+    
+    const STYLE_CONSTANTS = `isometric top-down view, 45 degree camera angle,
+semi-realistic stylized game art, muted urban color palette,
+clean silhouettes, detailed textures,
+soft drop shadows, consistent lighting from top-left,
+video game sprite asset style,
+transparent PNG background`;
+    
+    const REGIONAL_STYLES = {
+      'Detroit': { clothing: 'Carhartt jacket, baggy jeans, Timberland boots', accessories: 'ski mask, gold chain, Detroit Tigers cap', palette: 'browns, blacks, grays' },
+      'Los Angeles': { clothing: 'white tank top, flannel shirt, khaki Dickies', accessories: 'bandana, Nike Cortez, Raiders cap', palette: 'blue or red, black, white, khaki' },
+      'Miami': { clothing: 'guayabera shirt, linen pants, designer sneakers', accessories: 'gold jewelry, sunglasses, Heat gear', palette: 'white, gold, teal, bright colors' },
+      'Chicago': { clothing: 'North Face jacket, True Religion jeans, Jordans', accessories: 'Bulls cap, dreads', palette: 'red, black, white' },
+      'New York': { clothing: 'black hoodie, baggy jeans, Timberlands', accessories: 'Yankees cap, durag, bubble jacket', palette: 'navy, black, white, gray' },
+      'Atlanta': { clothing: 'designer clothes, flashy jewelry', accessories: 'Falcons gear, dreads, chains', palette: 'red, black, gold' },
+      'Houston': { clothing: 'oversized clothes, grillz', accessories: 'Astros cap, candy paint colors', palette: 'purple, orange, custom' },
+      'Baltimore': { clothing: 'hoodies, track suits', accessories: 'Ravens gear', palette: 'purple, black, white' },
+      'Philadelphia': { clothing: 'athletic wear, Timbs', accessories: 'Eagles gear, fitted cap', palette: 'green, black, white' },
+      'Oakland': { clothing: 'black everything, hoodies', accessories: 'Raiders gear, dreads', palette: 'black, silver' }
+    };
+    
+    // ============================================
+    // UI RENDERING
+    // ============================================
+    
+    function renderCategory(categoryId) {
+      const category = categories[categoryId];
+      if (!category) {
+        // Handle special categories
+        if (categoryId === 'library') return renderLibrary();
+        if (categoryId === 'settings') return renderSettings();
+        return;
+      }
+      
+      state.currentCategory = categoryId;
+      document.getElementById('content-title').textContent = category.title;
+      document.getElementById('content-subtitle').textContent = category.subtitle;
+      
+      let html = '';
+      
+      // Subcategory pills
+      if (category.subcategories) {
+        html += '<div class="subcategory-pills">';
+        category.subcategories.forEach((sub, i) => {
+          html += `<div class="pill ${i === 0 ? 'active' : ''}" data-sub="${sub}" onclick="selectSubcategory('${sub}')">${sub}</div>`;
+        });
+        html += '</div>';
+      }
+      
+      // Form sections
+      html += '<div class="form-section">';
+      html += '<h3>Asset Configuration</h3>';
+      html += '<div id="dynamic-fields"></div>';
+      html += '</div>';
+      
+      // Reference image upload
+      html += `
+        <div class="form-section">
+          <h3>Reference Image (Optional)</h3>
+          <div class="file-upload" id="fileUpload" onclick="document.getElementById('fileInput').click()">
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileUpload(event)">
+            <div class="file-upload-icon">📷</div>
+            <p>Click to upload a reference image</p>
+            <p style="color: var(--text-secondary); font-size: 0.8rem;">Use this to match a specific style or create custom assets</p>
+          </div>
+          <img id="filePreview" class="file-preview" style="display: none;">
+        </div>
+      `;
+      
+      // Custom description
+      html += `
+        <div class="form-section">
+          <h3>Additional Details / Custom Description</h3>
+          <textarea id="customDescription" placeholder="Add any custom details, describe unique features, or provide specific instructions for the asset..."></textarea>
+        </div>
+      `;
+      
+      // Action buttons
+      html += `
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="generatePrompt()">✨ Generate Prompt</button>
+          <button class="btn btn-secondary" onclick="clearForm()">🗑️ Clear</button>
+        </div>
+      `;
+      
+      // Prompt output
+      html += `
+        <div class="form-section" style="margin-top: 30px;">
+          <h3>Generated Prompt</h3>
+          <div class="prompt-output" id="promptOutput">Select options and click "Generate Prompt"...</div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="copyPrompt()">📋 Copy Prompt</button>
+            <button class="btn btn-primary" onclick="openImageGen()">🖼️ Generate Image</button>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('content-body').innerHTML = html;
+      
+      // Render first subcategory fields
+      if (category.subcategories && category.subcategories.length > 0) {
+        selectSubcategory(category.subcategories[0]);
+      }
+    }
+    
+    function selectSubcategory(sub) {
+      state.currentSubcategory = sub;
+      
+      // Update pills
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      document.querySelector(`[data-sub="${sub}"]`)?.classList.add('active');
+      
+      // Render fields
+      const category = categories[state.currentCategory];
+      const fields = category.fields[sub] || [];
+      const commonFields = category.fields['common'] || [];
+      
+      let html = '<div class="form-row">';
+      
+      [...fields, ...commonFields].forEach(field => {
+        html += `<div class="form-group">`;
+        html += `<label>${field.label}</label>`;
+        
+        if (field.type === 'select') {
+          html += `<select id="${field.id}">`;
+          field.options.forEach(opt => {
+            html += `<option value="${opt}">${opt}</option>`;
+          });
+          html += '</select>';
+        } else if (field.type === 'multiselect') {
+          html += `<div class="checkbox-group" id="${field.id}">`;
+          field.options.forEach(opt => {
+            html += `<label style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-elevated); border-radius: 6px; cursor: pointer; font-size: 0.85rem;">`;
+            html += `<input type="checkbox" value="${opt}"> ${opt}`;
+            html += '</label>';
+          });
+          html += '</div>';
+        } else if (field.type === 'text') {
+          html += `<input type="text" id="${field.id}" placeholder="${field.placeholder || ''}">`;
+        } else if (field.type === 'textarea') {
+          html += `<textarea id="${field.id}" placeholder="${field.placeholder || ''}" rows="3"></textarea>`;
+        }
+        
+        html += '</div>';
+      });
+      
+      html += '</div>';
+      
+      document.getElementById('dynamic-fields').innerHTML = html;
+    }
+    
+    function renderLibrary() {
+      document.getElementById('content-title').textContent = 'Asset Library';
+      document.getElementById('content-subtitle').textContent = 'View and manage your saved assets';
+      
+      let html = '<div class="form-section"><h3>Saved Assets (' + state.savedAssets.length + ')</h3>';
+      
+      if (state.savedAssets.length === 0) {
+        html += '<p style="color: var(--text-secondary);">No assets saved yet. Generate some assets to see them here!</p>';
+      } else {
+        html += '<div class="asset-library">';
+        state.savedAssets.forEach((asset, i) => {
+          html += `
+            <div class="asset-item" onclick="viewAsset(${i})">
+              <img src="${asset.image}" alt="${asset.category}">
+              <div class="asset-item-info">
+                <strong>${asset.category}</strong><br>
+                ${asset.subcategory || ''}
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      html += '</div>';
+      
+      html += `
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="exportAssets()">📥 Export All</button>
+          <button class="btn btn-danger" onclick="clearLibrary()">🗑️ Clear Library</button>
+        </div>
+      `;
+      
+      document.getElementById('content-body').innerHTML = html;
+    }
+    
+    function renderSettings() {
+      document.getElementById('content-title').textContent = 'API Settings';
+      document.getElementById('content-subtitle').textContent = 'Configure your image generation API';
+      
+      let html = `
+        <div class="form-section">
+          <h3>🍌 Banana Nano API Configuration</h3>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label>API Key</label>
+            <input type="password" id="settingsApiKey" value="${state.apiKey}" placeholder="Enter your Banana Nano API key">
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label>Model ID (optional)</label>
+            <input type="text" id="settingsModelId" value="${state.modelId}" placeholder="Leave blank for default model">
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label>Default Image Size</label>
+            <select id="settingsImageSize">
+              <option value="256">256x256 (Sprites)</option>
+              <option value="512" selected>512x512 (Standard)</option>
+              <option value="1024">1024x1024 (High Res)</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+        
+        <div class="form-section">
+          <h3>📖 API Documentation</h3>
+          <p style="color: var(--text-secondary); line-height: 1.6;">
+            This generator uses the Banana Nano API for image generation.<br><br>
+            <strong>Get your API key:</strong> Visit <a href="https://banana.dev" target="_blank" style="color: var(--accent-green);">banana.dev</a><br><br>
+            <strong>Supported models:</strong> Stable Diffusion XL, SDXL Turbo, and custom fine-tuned models.<br><br>
+            <strong>Note:</strong> Without an API key, prompts will be generated but images won't be created.
+          </p>
+        </div>
+      `;
+      
+      document.getElementById('content-body').innerHTML = html;
+    }
+    
+    // ============================================
+    // PROMPT GENERATION
+    // ============================================
+    
+    function generatePrompt() {
+      const category = state.currentCategory;
+      const sub = state.currentSubcategory;
+      const customDesc = document.getElementById('customDescription')?.value || '';
+      
+      let prompt = '';
+      
+      // Build prompt based on category
+      switch(category) {
+        case 'characters':
+          prompt = generateCharacterPrompt(sub, customDesc);
+          break;
+        case 'weapons':
+          prompt = generateWeaponPrompt(sub, customDesc);
+          break;
+        case 'vehicles':
+          prompt = generateVehiclePrompt(sub, customDesc);
+          break;
+        case 'drugs':
+          prompt = generateDrugPrompt(sub, customDesc);
+          break;
+        case 'blocks':
+          prompt = generateBlockPrompt(sub, customDesc);
+          break;
+        case 'effects':
+          prompt = generateEffectPrompt(sub, customDesc);
+          break;
+        case 'npcs':
+          prompt = generateNPCPrompt(sub, customDesc);
+          break;
+        case 'clothing':
+          prompt = generateClothingPrompt(sub, customDesc);
+          break;
+        case 'armor':
+          prompt = generateArmorPrompt(sub, customDesc);
+          break;
+        default:
+          prompt = 'Select a category to generate a prompt.';
+      }
+      
+      // Add reference image note if present
+      if (state.referenceImage) {
+        prompt += '\n\n[Reference image provided - match style and composition]';
+      }
+      
+      state.generatedPrompt = prompt;
+      document.getElementById('promptOutput').textContent = prompt;
+    }
+    
+    function generateCharacterPrompt(sub, customDesc) {
+      const role = getVal('role') || 'Gang member';
+      const region = getVal('region') || 'Urban';
+      const pose = getVal('pose') || 'Idle';
+      const gender = getVal('gender') || 'Male';
+      const ethnicity = getVal('ethnicity') || '';
+      const hairStyle = getVal('hairStyle') || '';
+      const accessories = getMultiVal('accessories');
+      const weapon = getVal('weapon');
+      
+      const style = REGIONAL_STYLES[region] || { clothing: 'street clothes', accessories: 'urban accessories', palette: 'urban colors' };
+      
+      let prompt = `${ethnicity} ${gender} ${role}, ${region} street style,
+${STYLE_CONSTANTS},
+${style.clothing},
+${accessories.length > 0 ? accessories.join(', ') + ',' : style.accessories + ','}
+${hairStyle ? hairStyle + ' hairstyle,' : ''}
+${weapon && weapon !== 'None' ? 'holding ' + weapon + ',' : ''}
+${pose.toLowerCase()} pose,
+${style.palette} color palette,
+256x256 pixels, game character sprite`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateWeaponPrompt(sub, customDesc) {
+      const model = getVal('weaponModel') || getVal('type') || 'Weapon';
+      const finish = getVal('finish') || 'standard';
+      const mods = getMultiVal('mods');
+      const material = getVal('material') || '';
+      const weaponState = getVal('state') || '';
+      
+      let prompt = `${model},
+side profile view, slight 45 degree tilt,
+${finish} finish,
+${mods.length > 0 ? mods.join(', ') + ',' : ''}
+${material ? material + ',' : ''}
+${weaponState ? weaponState + ' state,' : ''}
+realistic proportions, stylized rendering,
+clean lines, high detail,
+game inventory icon style,
+transparent PNG background,
+128x128 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateVehiclePrompt(sub, customDesc) {
+      const model = getVal('model') || getVal('type') || getVal('brand') || 'Vehicle';
+      const color = getVal('color') || getVal('paint') || 'black';
+      const condition = getVal('condition') || 'clean';
+      const style = getVal('style') || '';
+      const mods = getMultiVal('mods') || getMultiVal('features') || [];
+      
+      let prompt = `${model},
+top-down bird's eye view, directly overhead,
+${color} exterior,
+${style ? style + ' style,' : ''}
+${condition} condition,
+${mods.length > 0 ? mods.join(', ') + ',' : ''}
+urban street game asset style,
+clean shadows, high detail,
+transparent PNG background,
+512x256 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateDrugPrompt(sub, customDesc) {
+      const drugType = getVal('drugType') || getVal('packType') || 'Drug';
+      const shape = getVal('shape');
+      const color = getVal('color') || '';
+      const form = getVal('form') || '';
+      const quality = getVal('quality') || '';
+      const container = getVal('container') || '';
+      const customLogo = getVal('customLogo') || '';
+      const stampDesign = getVal('stampDesign') || '';
+      const imprint = getVal('imprint') || '';
+      
+      let prompt = `${drugType},
+icon view, centered composition,
+${shape && shape !== 'N/A' ? shape + ' shape,' : ''}
+${color ? color + ' color,' : ''}
+${form ? form + ' form,' : ''}
+${quality ? quality + ' quality appearance,' : ''}
+${container ? 'in ' + container + ',' : ''}
+${customLogo ? 'custom logo: ' + customLogo + ',' : ''}
+${stampDesign ? 'stamp design: ' + stampDesign + ',' : ''}
+${imprint ? 'imprint/marking: ' + imprint + ',' : ''}
+stylized realistic rendering,
+dark gradient background,
+game inventory icon,
+64x64 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateBlockPrompt(sub, customDesc) {
+      const city = getVal('city') || '';
+      const neighborhood = getVal('neighborhood') || '';
+      const buildingType = getVal('buildingType') || '';
+      const era = getVal('era') || '';
+      const timeOfDay = getVal('timeOfDay') || 'Day';
+      const weather = getVal('weather') || 'Clear';
+      const season = getVal('season') || '';
+      const aesthetics = getMultiVal('aesthetics') || [];
+      const address = getVal('address') || '';
+      const description = getVal('description') || '';
+      
+      let prompt = `Urban city block,
+${city ? city + ' style architecture,' : ''}
+${neighborhood ? neighborhood + ' neighborhood,' : ''}
+satellite aerial photograph view, directly overhead,
+${buildingType ? buildingType + ' buildings,' : ''}
+${era ? era + ' time period aesthetic,' : ''}
+two to four lane street running through center,
+concrete sidewalks on both sides,
+${timeOfDay.toLowerCase()} lighting,
+${weather.toLowerCase()} weather,
+${season ? season + ' season,' : ''}
+${aesthetics.length > 0 ? 'featuring ' + aesthetics.join(', ') + ',' : ''}
+${address ? 'based on location: ' + address + ',' : ''}
+${description ? description + ',' : ''}
+realistic satellite imagery style,
+game background asset for grid overlay,
+1024x1024 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateEffectPrompt(sub, customDesc) {
+      const effectType = getVal('effectType') || getVal('damageType') || getVal('deathType') || 'Effect';
+      const weaponType = getVal('weaponType') || '';
+      const intensity = getVal('intensity') || getVal('scale') || 'medium';
+      const location = getVal('location') || '';
+      const severity = getVal('severity') || '';
+      const bloodAmount = getVal('bloodAmount') || '';
+      const injuries = getMultiVal('injuries') || [];
+      const bloodPool = getVal('bloodPool') || '';
+      
+      let prompt = `${effectType} effect sprite,
+${sub === 'Weapon Effects' ? 'VFX animation frames,' : ''}
+${weaponType ? 'from ' + weaponType + ',' : ''}
+${intensity} intensity/scale,
+${location ? 'hit location: ' + location + ',' : ''}
+${severity ? severity + ' severity,' : ''}
+${bloodAmount ? bloodAmount + ' blood amount,' : ''}
+${injuries.length > 0 ? 'visible injuries: ' + injuries.join(', ') + ',' : ''}
+${bloodPool ? bloodPool + ' blood pool,' : ''}
+top-down isometric view,
+stylized game VFX asset,
+transparent background,
+sprite sheet format`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateNPCPrompt(sub, customDesc) {
+      const type = getVal('type') || 'NPC';
+      const gender = getVal('gender') || '';
+      const activity = getVal('activity') || getVal('pose') || 'standing';
+      const equipment = getMultiVal('equipment') || [];
+      const outfit = getVal('outfit') || '';
+      
+      let prompt = `${type} NPC character,
+${STYLE_CONSTANTS},
+${gender ? gender + ',' : ''}
+${activity} pose/activity,
+${equipment.length > 0 ? 'equipped with ' + equipment.join(', ') + ',' : ''}
+${outfit ? outfit + ' outfit style,' : ''}
+detailed uniform/clothing,
+256x256 pixels, game NPC sprite`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateClothingPrompt(sub, customDesc) {
+      const type = getVal('type') || 'Clothing item';
+      const style = getVal('style') || '';
+      const color = getVal('color') || '';
+      const brand = getVal('brand') || '';
+      const fit = getVal('fit') || '';
+      const team = getVal('team') || '';
+      
+      let prompt = `${type} clothing item,
+flat lay view or mannequin display,
+${style ? style + ' style,' : ''}
+${color ? color + ' color,' : ''}
+${brand && brand !== 'Generic' ? brand + ' brand aesthetic,' : ''}
+${fit ? fit + ' fit,' : ''}
+${team ? team + ' team/logo,' : ''}
+stylized game asset,
+clean product shot style,
+transparent background,
+128x128 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    function generateArmorPrompt(sub, customDesc) {
+      const type = getVal('type') || 'Armor';
+      const level = getVal('level') || '';
+      const color = getVal('color') || 'black';
+      const features = getMultiVal('features') || [];
+      
+      let prompt = `${type} protective gear,
+front view display,
+${level ? level + ' protection rating,' : ''}
+${color} color,
+${features.length > 0 ? 'featuring ' + features.join(', ') + ',' : ''}
+tactical military style,
+high detail rendering,
+game equipment icon,
+transparent background,
+128x128 pixels`;
+
+      if (customDesc) prompt += ',\n' + customDesc;
+      
+      return prompt;
+    }
+    
+    // ============================================
+    // IMAGE GENERATION (Banana Nano API)
+    // ============================================
+    
+    function openImageGen() {
+      if (!state.generatedPrompt || state.generatedPrompt.includes('Select')) {
+        showToast('Generate a prompt first!');
+        return;
+      }
+      
+      document.getElementById('imageGenPanel').classList.add('open');
+      document.getElementById('currentPrompt').textContent = state.generatedPrompt;
+      document.getElementById('previewImage').style.display = 'none';
+      document.getElementById('imagePlaceholder').style.display = 'block';
+      
+      // Auto-generate if API key is set
+      if (state.apiKey) {
+        generateImage();
+      }
+    }
+    
+    function closeImagePanel() {
+      document.getElementById('imageGenPanel').classList.remove('open');
+    }
+    
+    async function generateImage() {
+      if (!state.apiKey) {
+        showToast('Please set your API key in Settings');
+        return;
+      }
+      
+      document.getElementById('loadingSpinner').style.display = 'block';
+      document.getElementById('imagePlaceholder').style.display = 'none';
+      document.getElementById('previewImage').style.display = 'none';
+      
+      try {
+        // Banana Nano API call
+        const response = await fetch('https://api.banana.dev/v1/infer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.apiKey}`
+          },
+          body: JSON.stringify({
+            model: state.modelId || 'sdxl',
+            prompt: state.generatedPrompt,
+            negative_prompt: 'blurry, low quality, distorted, ugly, bad anatomy',
+            width: 512,
+            height: 512,
+            num_inference_steps: 30,
+            guidance_scale: 7.5
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('API request failed');
+        }
+        
+        const data = await response.json();
+        const imageUrl = data.image || data.output || data.result;
+        
+        document.getElementById('previewImage').src = imageUrl;
+        document.getElementById('previewImage').style.display = 'block';
+        document.getElementById('loadingSpinner').style.display = 'none';
+        
+      } catch (error) {
+        console.error('Image generation error:', error);
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('imagePlaceholder').textContent = 'Error generating image. Check API key.';
+        document.getElementById('imagePlaceholder').style.display = 'block';
+        
+        // For demo: show placeholder
+        showToast('API Error - Using placeholder for demo');
+        document.getElementById('previewImage').src = `https://via.placeholder.com/512x512/1a1a1a/00ff88?text=${encodeURIComponent(state.currentCategory)}`;
+        document.getElementById('previewImage').style.display = 'block';
+      }
+    }
+    
+    function regenerateImage() {
+      generateImage();
+    }
+    
+    function editPrompt() {
+      closeImagePanel();
+      document.getElementById('customDescription').focus();
+    }
+    
+    function approveAsset() {
+      const image = document.getElementById('previewImage').src;
+      
+      const asset = {
+        id: Date.now(),
+        category: state.currentCategory,
+        subcategory: state.currentSubcategory,
+        prompt: state.generatedPrompt,
+        image: image,
+        createdAt: new Date().toISOString()
+      };
+      
+      state.savedAssets.push(asset);
+      localStorage.setItem('dealtSlideAssets', JSON.stringify(state.savedAssets));
+      
+      showToast('Asset saved to library!');
+      closeImagePanel();
+    }
+    
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
+    function getVal(id) {
+      const el = document.getElementById(id);
+      return el ? el.value : '';
+    }
+    
+    function getMultiVal(id) {
+      const container = document.getElementById(id);
+      if (!container) return [];
+      
+      const checked = container.querySelectorAll('input:checked');
+      return Array.from(checked).map(cb => cb.value);
+    }
+    
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        state.referenceImage = e.target.result;
+        document.getElementById('fileUpload').classList.add('has-file');
+        document.getElementById('filePreview').src = e.target.result;
+        document.getElementById('filePreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    function copyPrompt() {
+      navigator.clipboard.writeText(state.generatedPrompt).then(() => {
+        showToast('Prompt copied!');
+      });
+    }
+    
+    function clearForm() {
+      document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+      document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+      document.querySelectorAll('input[type="text"], textarea').forEach(i => i.value = '');
+      state.referenceImage = null;
+      document.getElementById('fileUpload').classList.remove('has-file');
+      document.getElementById('filePreview').style.display = 'none';
+      document.getElementById('promptOutput').textContent = 'Select options and click "Generate Prompt"...';
+    }
+    
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+    
+    function saveSettings() {
+      state.apiKey = document.getElementById('settingsApiKey').value;
+      state.modelId = document.getElementById('settingsModelId').value;
+      localStorage.setItem('bananaApiKey', state.apiKey);
+      localStorage.setItem('bananaModelId', state.modelId);
+      showToast('Settings saved!');
+    }
+    
+    function exportAssets() {
+      const data = JSON.stringify(state.savedAssets, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dealt-slide-assets.json';
+      a.click();
+    }
+    
+    function clearLibrary() {
+      if (confirm('Are you sure you want to delete all saved assets?')) {
+        state.savedAssets = [];
+        localStorage.setItem('dealtSlideAssets', '[]');
+        renderLibrary();
+        showToast('Library cleared!');
+      }
+    }
+    
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
+    
+    document.querySelectorAll('.category-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        renderCategory(item.dataset.category);
+      });
+    });
+    
+    // Initialize
+    renderCategory('characters');
+  </script>
+</body>
+</html>

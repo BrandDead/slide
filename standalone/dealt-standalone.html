@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DEALT/SLIDE - Street Empire</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --cyan: #00F0FF; --magenta: #FF006E; --lime: #00FF88; --red: #FF3333; --gold: #FFD700; }
+    html, body { height: 100%; background: #0D0D0D; font-family: -apple-system, sans-serif; overflow: hidden; user-select: none; }
+    .screen { display: none; height: 100%; flex-direction: column; }
+    .screen.active { display: flex; }
+    .status-bar { display: flex; justify-content: space-between; padding: 8px 24px; background: rgba(0,0,0,0.8); color: #fff; font-size: 14px; }
+    #home-screen { background: linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%); padding: 30px 20px; overflow-y: auto; }
+    .home-title { text-align: center; font-size: 28px; font-weight: 800; background: linear-gradient(135deg, var(--cyan), var(--magenta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; margin: 20px 0; }
+    .stats-bar { display: flex; justify-content: space-around; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 16px; margin-bottom: 24px; }
+    .stat-value { font-size: 18px; font-weight: 700; color: #fff; text-align: center; }
+    .stat-value.money { color: var(--lime); }
+    .stat-value.heat { color: var(--red); }
+    .stat-label { font-size: 10px; color: rgba(255,255,255,0.4); text-align: center; }
+    #app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 0 10px; }
+    .app-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+    .app-icon.locked { opacity: 0.4; pointer-events: none; }
+    .icon-container { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; position: relative; }
+    .icon-dealt { background: linear-gradient(135deg, #FF006E, #FF4081); }
+    .icon-slide { background: linear-gradient(135deg, #00F0FF, #0080FF); }
+    .icon-map { background: linear-gradient(135deg, #00FF88, #00CC6A); }
+    .icon-crew { background: linear-gradient(135deg, #FFD700, #FFA500); }
+    .icon-cook { background: linear-gradient(135deg, #9C27B0, #7B1FA2); }
+    .icon-settings { background: linear-gradient(135deg, #9E9E9E, #757575); }
+    .lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .icon-label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    #dealt-screen { background: linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%); }
+    .dealt-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(0,0,0,0.5); }
+    .back-btn { background: none; border: none; color: var(--cyan); font-size: 14px; cursor: pointer; }
+    .dealt-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+    .dealt-stats { display: flex; gap: 12px; font-size: 13px; font-weight: 600; }
+    .card-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; position: relative; }
+    .client-card { width: 100%; max-width: 340px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; position: relative; transition: transform 0.3s, opacity 0.3s; }
+    .client-card.swiping-left { transform: translateX(-100%) rotate(-20deg); opacity: 0; }
+    .client-card.swiping-right { transform: translateX(100%) rotate(20deg); opacity: 0; }
+    .risk-badge { position: absolute; top: 16px; right: 16px; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+    .risk-badge.low { background: rgba(0,255,136,0.2); color: var(--lime); }
+    .risk-badge.medium { background: rgba(255,215,0,0.2); color: var(--gold); }
+    .risk-badge.high { background: rgba(255,149,0,0.2); color: orange; }
+    .risk-badge.extreme { background: rgba(255,51,51,0.2); color: var(--red); }
+    .client-avatar { width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 16px; }
+    .client-name { text-align: center; font-size: 20px; font-weight: 700; color: #fff; }
+    .client-type { text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
+    .client-desc { text-align: center; font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+    .deal-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .detail-box { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; text-align: center; }
+    .detail-label { font-size: 10px; color: rgba(255,255,255,0.4); }
+    .detail-value { font-size: 18px; font-weight: 700; }
+    .detail-value.payout { color: var(--lime); }
+    .detail-value.heat { color: orange; }
+    .red-flags { background: rgba(255,51,51,0.1); border: 1px solid rgba(255,51,51,0.3); border-radius: 12px; padding: 12px; }
+    .red-flags-title { font-size: 10px; color: var(--red); margin-bottom: 8px; }
+    .red-flag-item { font-size: 12px; color: rgba(255,255,255,0.7); padding: 4px 0; }
+    .outcome-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; z-index: 10; }
+    .outcome-overlay.active { opacity: 1; }
+    .outcome-content { text-align: center; padding: 40px; }
+    .outcome-emoji { font-size: 80px; margin-bottom: 20px; }
+    .outcome-title { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .outcome-title.success { color: var(--lime); }
+    .outcome-title.failure { color: var(--red); }
+    .outcome-message { font-size: 16px; color: rgba(255,255,255,0.7); margin-bottom: 24px; }
+    .outcome-stats { display: flex; justify-content: center; gap: 20px; }
+    .outcome-stat { font-size: 24px; font-weight: 700; }
+    .outcome-stat.positive { color: var(--lime); }
+    .outcome-stat.negative { color: var(--red); }
+    .action-buttons { display: flex; justify-content: center; gap: 40px; padding: 20px; }
+    .action-btn { width: 80px; height: 80px; border-radius: 50%; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+    .reject-btn { background: linear-gradient(145deg, #FF3333, #CC0000); }
+    .accept-btn { background: linear-gradient(145deg, #00FF88, #00CC6A); }
+    .btn-icon { font-size: 28px; font-weight: 800; color: #fff; }
+    .btn-text { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.9); }
+    .money-display { display: flex; justify-content: center; gap: 12px; padding: 16px; background: rgba(0,0,0,0.5); }
+    .money-label { font-size: 14px; color: rgba(255,255,255,0.5); }
+    .money-amount { font-size: 24px; font-weight: 800; color: var(--lime); }
+  </style>
+</head>
+<body>
+  <div class="status-bar"><span id="time">9:41</span><span>📶 📡 🔋</span></div>
+  <div id="home-screen" class="screen active">
+    <h1 class="home-title">DEALT/SLIDE</h1>
+    <div class="stats-bar">
+      <div><div class="stat-value money" id="home-money">$10,000</div><div class="stat-label">Cash</div></div>
+      <div><div class="stat-value heat" id="home-heat">0%</div><div class="stat-label">Heat</div></div>
+      <div><div class="stat-value" id="home-rep">50</div><div class="stat-label">Rep</div></div>
+    </div>
+    <div id="app-grid"></div>
+  </div>
+  <div id="dealt-screen" class="screen">
+    <div class="dealt-header">
+      <button class="back-btn" onclick="showScreen('home')">← Back</button>
+      <span class="dealt-title">DEALT</span>
+      <div class="dealt-stats"><span style="color:#FFD700">🔥 <span id="streak">0</span></span><span style="color:#FF3333">🌡️ <span id="heat">0%</span></span></div>
+    </div>
+    <div class="card-container">
+      <div class="client-card" id="client-card"></div>
+      <div class="outcome-overlay" id="outcome-overlay"><div class="outcome-content" id="outcome-content"></div></div>
+    </div>
+    <div class="action-buttons">
+      <button class="action-btn reject-btn" id="reject-btn"><span class="btn-icon">✗</span><span class="btn-text">PASS</span></button>
+      <button class="action-btn accept-btn" id="accept-btn"><span class="btn-icon">✓</span><span class="btn-text">DEAL</span></button>
+    </div>
+    <div class="money-display"><span class="money-label">Balance</span><span class="money-amount" id="balance">$10,000</span></div>
+  </div>
+  <script>
+    const state = { money: 10000, heat: 0, rep: 50, streak: 0 };
+    const apps = [
+      {id:'dealt',label:'DEALT',icon:'💊',color:'icon-dealt',on:true},
+      {id:'slide',label:'SLIDE',icon:'🎯',color:'icon-slide',on:false},
+      {id:'map',label:'MAP',icon:'🗺️',color:'icon-map',on:false},
+      {id:'crew',label:'CREW',icon:'👥',color:'icon-crew',on:false},
+      {id:'cook',label:'COOK',icon:'🧪',color:'icon-cook',on:false},
+      {id:'settings',label:'SETTINGS',icon:'⚙️',color:'icon-settings',on:false}
+    ];
+    const clients = {
+      regular:{name:'Regular',emoji:'👤',pay:[0.9,1.1],heat:3,risk:10,level:'low',desc:['Steady customer.']},
+      fiend:{name:'Fiend',emoji:'💀',pay:[0.5,0.8],heat:5,risk:30,level:'high',desc:['Desperate.'],flags:['Unpredictable']},
+      celebrity:{name:'Celebrity',emoji:'⭐',pay:[2.0,3.0],heat:8,risk:20,level:'high',desc:['Famous face.'],flags:['Media risk']},
+      undercover:{name:'Undercover',emoji:'🔫',pay:[1.0,1.5],heat:25,risk:100,level:'extreme',desc:['Something off...'],flags:['New shoes','Nervous']},
+      tourist:{name:'Tourist',emoji:'🧳',pay:[1.5,2.5],heat:1,risk:5,level:'low',desc:['Just visiting.']}
+    };
+    let current = null, animating = false;
+    
+    function fmt(n){return '$'+n.toLocaleString();}
+    function pick(a){return a[Math.floor(Math.random()*a.length)];}
+    function rand(a,b){return Math.random()*(b-a)+a;}
+    
+    function genClient(){
+      const types = Object.keys(clients);
+      const type = state.heat > 50 && Math.random() < 0.3 ? 'undercover' : pick(types);
+      const c = clients[type];
+      const amt = Math.floor(rand(2,8));
+      const pay = Math.floor(amt * 100 * rand(c.pay[0],c.pay[1]));
+      current = {type,name:c.name,emoji:c.emoji,desc:pick(c.desc),amt,pay,heat:c.heat,risk:Math.max(5,c.risk-state.streak*3),level:c.level,flags:c.flags||[]};
+      render();
+    }
+    
+    function render(){
+      if(!current)return;
+      document.getElementById('client-card').innerHTML=`
+        <div class="risk-badge ${current.level}">${current.level.toUpperCase()}</div>
+        <div class="client-avatar">${current.emoji}</div>
+        <div class="client-name">${['Marcus','Tyler','Maria','Kevin'][Math.floor(Math.random()*4)]} ${String.fromCharCode(65+Math.floor(Math.random()*26))}.</div>
+        <div class="client-type">${current.name}</div>
+        <div class="client-desc">${current.desc}</div>
+        <div class="deal-details">
+          <div class="detail-box"><div class="detail-label">Payout</div><div class="detail-value payout">${fmt(current.pay)}</div></div>
+          <div class="detail-box"><div class="detail-label">Amount</div><div class="detail-value">${current.amt} units</div></div>
+          <div class="detail-box"><div class="detail-label">Heat</div><div class="detail-value heat">+${current.heat}%</div></div>
+          <div class="detail-box"><div class="detail-label">Risk</div><div class="detail-value" style="color:#FF3333">${current.risk}%</div></div>
+        </div>
+        ${current.flags.length?`<div class="red-flags"><div class="red-flags-title">⚠️ RED FLAGS</div>${current.flags.map(f=>`<div class="red-flag-item">• ${f}</div>`).join('')}</div>`:''}
+      `;
+      document.getElementById('client-card').className='client-card';
+    }
+    
+    function deal(){
+      if(!current||animating)return;
+      animating=true;
+      document.getElementById('client-card').classList.add('swiping-right');
+      setTimeout(()=>{
+        let success=true,msg='Smooth transaction.',emoji='💰',money=current.pay,heat=current.heat;
+        if(current.type==='undercover'){success=false;msg='Undercover! Lawyers took their cut.';emoji='🔫';money=-Math.floor(state.money*0.3);heat=25;}
+        else if(Math.random()*100<current.risk){success=false;msg='Deal went wrong!';emoji='❌';money=-Math.floor(current.pay*0.5);heat=current.heat*2;}
+        state.money=Math.max(0,state.money+money);
+        state.heat=Math.min(100,state.heat+heat);
+        state.streak=success?state.streak+1:0;
+        document.getElementById('outcome-content').innerHTML=`
+          <div class="outcome-emoji">${emoji}</div>
+          <h2 class="outcome-title ${success?'success':'failure'}">${success?'DEAL COMPLETE':'DEAL FAILED'}</h2>
+          <p class="outcome-message">${msg}</p>
+          <div class="outcome-stats">
+            <div class="outcome-stat ${money>=0?'positive':'negative'}">${money>=0?'+':''}${fmt(money)}</div>
+            <div class="outcome-stat" style="color:orange">+${heat}% 🔥</div>
+          </div>
+        `;
+        document.getElementById('outcome-overlay').classList.add('active');
+        updateUI();
+        setTimeout(()=>{document.getElementById('outcome-overlay').classList.remove('active');current=null;genClient();animating=false;},2000);
+      },300);
+    }
+    
+    function pass(){
+      if(!current||animating)return;
+      animating=true;
+      document.getElementById('client-card').classList.add('swiping-left');
+      setTimeout(()=>{current=null;genClient();animating=false;},300);
+    }
+    
+    function updateUI(){
+      document.getElementById('home-money').textContent=fmt(state.money);
+      document.getElementById('home-heat').textContent=state.heat+'%';
+      document.getElementById('home-rep').textContent=state.rep;
+      document.getElementById('streak').textContent=state.streak;
+      document.getElementById('heat').textContent=state.heat+'%';
+      document.getElementById('balance').textContent=fmt(state.money);
+    }
+    
+    function showScreen(id){
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById(id+'-screen').classList.add('active');
+      if(id==='dealt'&&!current)genClient();
+    }
+    
+    document.getElementById('app-grid').innerHTML=apps.map(a=>`
+      <div class="app-icon ${a.on?'':'locked'}" onclick="${a.on?`showScreen('${a.id}')`:''}">
+        <div class="icon-container ${a.color}">${a.icon}${a.on?'':`<div class="lock-overlay">🔒</div>`}</div>
+        <span class="icon-label">${a.label}</span>
+      </div>
+    `).join('');
+    document.getElementById('accept-btn').onclick=deal;
+    document.getElementById('reject-btn').onclick=pass;
+    setInterval(()=>{const d=new Date();document.getElementById('time').textContent=(d.getHours()%12||12)+':'+d.getMinutes().toString().padStart(2,'0');},1000);
+    updateUI();
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SLIDE - Urban Grid Combat</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;background:linear-gradient(135deg,#0a0a0f,#1a1a2e);font-family:'Segoe UI',sans-serif;color:#fff}
+    .game{max-width:1000px;margin:0 auto;padding:1rem}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:1rem;background:rgba(0,0,0,0.5);border-radius:12px;margin-bottom:1rem;flex-wrap:wrap;gap:1rem}
+    .logo{font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#00ff88,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .phase{background:rgba(0,255,136,0.15);padding:0.5rem 1rem;border-radius:20px;font-size:0.875rem;color:#00ff88}
+    .cash{background:rgba(0,255,136,0.1);padding:0.5rem 1rem;border-radius:8px;color:#00ff88;font-weight:700}
+    .message{text-align:center;padding:1rem;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:1rem}
+    .turn{display:inline-block;margin-top:0.5rem;padding:0.25rem 0.75rem;background:rgba(0,255,136,0.2);border-radius:12px;font-size:0.875rem;color:#00ff88}
+    .turn.enemy{background:rgba(255,51,51,0.2);color:#ff3333}
+    .grids{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem}
+    .grid-box{background:rgba(0,0,0,0.4);border-radius:16px;padding:1rem}
+    .grid-title{text-align:center;margin-bottom:0.75rem;font-size:1rem}
+    .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;background:rgba(0,255,136,0.1);padding:3px;border-radius:8px}
+    .cell{width:36px;height:36px;background:rgba(20,20,40,0.8);border:1px solid rgba(0,255,136,0.15);border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;transition:all 0.2s}
+    .cell:hover{background:rgba(0,255,136,0.1)}
+    .cell.hit{background:rgba(255,51,51,0.4);border-color:#ff3333}
+    .cell.miss{background:rgba(100,100,100,0.3)}
+    .cell.miss::after{content:'•';color:rgba(255,255,255,0.4);font-size:1.2rem}
+    .cell.fog{background:rgba(50,50,80,0.6)}
+    .cell.valid{background:rgba(0,255,136,0.15);border-color:rgba(0,255,136,0.5)}
+    .inventory{display:flex;justify-content:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+    .unit-btn{display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:0.75rem 1rem;background:rgba(0,0,0,0.4);border:2px solid rgba(255,255,255,0.1);border-radius:12px;cursor:pointer;min-width:80px;transition:all 0.2s}
+    .unit-btn:hover{border-color:rgba(0,255,136,0.5)}
+    .unit-btn.selected{border-color:#00ff88;background:rgba(0,255,136,0.2)}
+    .unit-btn.depleted{opacity:0.4;pointer-events:none}
+    .unit-icon{font-size:1.75rem}
+    .unit-name{font-size:0.7rem;color:rgba(255,255,255,0.7)}
+    .unit-count{font-size:0.8rem;color:#00ff88;font-weight:700}
+    .controls{display:flex;justify-content:center;gap:1rem;margin-bottom:1rem}
+    .btn{padding:0.75rem 1.5rem;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:1rem;cursor:pointer}
+    .btn:hover{background:rgba(0,255,136,0.1)}
+    .btn.primary{background:linear-gradient(135deg,#00ff88,#00ccff);border:none;color:#000;font-weight:700}
+    .btn:disabled{opacity:0.4;pointer-events:none}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:100}
+    .overlay.hidden{display:none}
+    .results{text-align:center;padding:3rem}
+    .results h1{font-size:3rem;font-weight:900;margin-bottom:1rem}
+    .results h1.victory{background:linear-gradient(135deg,#00ff88,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .results h1.defeat{background:linear-gradient(135deg,#ff3333,#ff006e);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .stats{display:flex;justify-content:center;gap:3rem;margin:2rem 0}
+    .stat-val{font-size:2.5rem;font-weight:700;color:#00ff88}
+    .stat-lbl{font-size:0.875rem;color:rgba(255,255,255,0.6)}
+    .replay{padding:1rem 3rem;background:linear-gradient(135deg,#00ff88,#00ccff);border:none;border-radius:25px;color:#000;font-size:1rem;font-weight:700;cursor:pointer}
+    @media(max-width:700px){.grids{flex-direction:column;align-items:center}.cell{width:32px;height:32px;font-size:1rem}}
+  </style>
+</head>
+<body>
+  <div class="game">
+    <header class="header">
+      <div class="logo">🎯 SLIDE</div>
+      <div class="phase" id="phase">📍 DEPLOY</div>
+      <div class="cash" id="cash">💵 $5,000</div>
+    </header>
+    <div class="message">
+      <div id="msg">Select a unit and place it on YOUR BLOCK</div>
+      <div class="turn hidden" id="turn">🟢 YOUR TURN</div>
+    </div>
+    <div class="grids">
+      <div class="grid-box"><h3 class="grid-title">🏠 YOUR BLOCK</h3><div class="grid" id="player-grid"></div></div>
+      <div class="grid-box"><h3 class="grid-title">💀 ENEMY TURF</h3><div class="grid" id="enemy-grid"></div></div>
+    </div>
+    <div class="inventory" id="inventory"></div>
+    <div class="controls" id="controls">
+      <button class="btn" id="rotate-btn">↻ Rotate</button>
+      <button class="btn primary" id="start-btn" disabled>⚔️ START BATTLE</button>
+    </div>
+  </div>
+  <div class="overlay hidden" id="overlay">
+    <div class="results">
+      <h1 id="result-title">VICTORY!</h1>
+      <div class="stats">
+        <div><div class="stat-val" id="stat-hits">0</div><div class="stat-lbl">Hits</div></div>
+        <div><div class="stat-val" id="stat-misses">0</div><div class="stat-lbl">Misses</div></div>
+        <div><div class="stat-val" id="stat-cash">$0</div><div class="stat-lbl">Earned</div></div>
+      </div>
+      <button class="replay" onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+  </div>
+  <script>
+    const SIZE=8;
+    const UNITS={shooter:{emoji:'🔫',size:1,hp:1,count:3},whip:{emoji:'🚗',size:2,hp:2,count:2},dealer:{emoji:'💊',size:1,hp:1,count:2},enforcer:{emoji:'💪',size:1,hp:2,count:1}};
+    let state={phase:'placement',playerGrid:[],enemyGrid:[],selected:null,inventory:[],horizontal:true,turn:'player',cash:5000,stats:{hits:0,misses:0,earned:0}};
+    
+    function createGrid(){return Array(SIZE).fill(null).map(()=>Array(SIZE).fill(null).map(()=>({unit:null,hit:false,revealed:false})));}
+    
+    function placeAI(grid){
+      Object.entries(UNITS).forEach(([type,cfg])=>{
+        for(let i=0;i<cfg.count;i++){
+          let placed=false,attempts=0;
+          while(!placed&&attempts<100){
+            const h=Math.random()>0.5,x=Math.floor(Math.random()*SIZE),y=Math.floor(Math.random()*SIZE);
+            const pos=[];let valid=true;
+            for(let s=0;s<cfg.size;s++){
+              const cx=h?x+s:x,cy=h?y:y+s;
+              if(cx>=SIZE||cy>=SIZE||grid[cy][cx].unit){valid=false;break;}
+              pos.push({x:cx,y:cy});
+            }
+            if(valid){
+              const id=`enemy_${type}_${i}`;
+              pos.forEach((p,idx)=>grid[p.y][p.x].unit={id,type,hp:cfg.hp,seg:idx});
+              placed=true;
+            }
+            attempts++;
+          }
+        }
+      });
+      return grid;
+    }
+    
+    function init(){
+      state.playerGrid=createGrid();
+      state.enemyGrid=placeAI(createGrid());
+      state.inventory=Object.entries(UNITS).map(([type,cfg])=>({type,...cfg,remaining:cfg.count}));
+      renderInventory();
+      renderGrids();
+    }
+    
+    function renderInventory(){
+      document.getElementById('inventory').innerHTML=state.inventory.map(u=>`
+        <div class="unit-btn ${state.selected?.type===u.type?'selected':''} ${u.remaining<=0?'depleted':''}" onclick="selectUnit('${u.type}')">
+          <span class="unit-icon">${u.emoji}</span>
+          <span class="unit-name">${u.type.toUpperCase()}</span>
+          <span class="unit-count">${u.remaining}/${u.count}</span>
+        </div>
+      `).join('');
+    }
+    
+    function renderGrids(){
+      renderGrid('player-grid',state.playerGrid,true);
+      renderGrid('enemy-grid',state.enemyGrid,false);
+    }
+    
+    function renderGrid(id,grid,isPlayer){
+      const el=document.getElementById(id);
+      el.innerHTML='';
+      for(let y=0;y<SIZE;y++){
+        for(let x=0;x<SIZE;x++){
+          const cell=grid[y][x];
+          const div=document.createElement('div');
+          div.className='cell';
+          if(cell.hit)div.classList.add(cell.unit?'hit':'miss');
+          if(!isPlayer&&state.phase==='battle'&&!cell.revealed)div.classList.add('fog');
+          if(cell.unit&&(isPlayer||cell.revealed)){
+            const cfg=UNITS[cell.unit.type];
+            div.textContent=cfg.emoji;
+            if(cell.unit.hp<=0)div.style.opacity='0.4';
+          }
+          div.onclick=()=>handleClick(x,y,isPlayer);
+          el.appendChild(div);
+        }
+      }
+    }
+    
+    function selectUnit(type){
+      if(state.phase!=='placement')return;
+      const item=state.inventory.find(u=>u.type===type);
+      if(!item||item.remaining<=0)return;
+      state.selected=item;
+      renderInventory();
+    }
+    
+    function handleClick(x,y,isPlayer){
+      if(state.phase==='placement'&&isPlayer)placeUnit(x,y);
+      else if(state.phase==='battle'&&!isPlayer&&state.turn==='player')attack(x,y);
+    }
+    
+    function placeUnit(x,y){
+      if(!state.selected)return;
+      const cfg=UNITS[state.selected.type];
+      const pos=[];
+      for(let s=0;s<cfg.size;s++){
+        const cx=state.horizontal?x+s:x,cy=state.horizontal?y:y+s;
+        if(cx>=SIZE||cy>=SIZE||state.playerGrid[cy][cx].unit)return;
+        pos.push({x:cx,y:cy});
+      }
+      const id=`player_${state.selected.type}_${state.selected.count-state.selected.remaining}`;
+      pos.forEach((p,idx)=>state.playerGrid[p.y][p.x].unit={id,type:state.selected.type,hp:cfg.hp,seg:idx});
+      state.selected.remaining--;
+      if(state.selected.remaining<=0)state.selected=null;
+      renderInventory();
+      renderGrids();
+      document.getElementById('start-btn').disabled=!state.inventory.every(u=>u.remaining===0);
+    }
+    
+    function startBattle(){
+      state.phase='battle';
+      state.turn='player';
+      document.getElementById('phase').textContent='⚔️ BATTLE';
+      document.getElementById('msg').textContent='Click on enemy turf to attack!';
+      document.getElementById('turn').classList.remove('hidden');
+      document.getElementById('inventory').classList.add('hidden');
+      document.getElementById('controls').classList.add('hidden');
+      renderGrids();
+    }
+    
+    function attack(x,y){
+      if(state.turn!=='player')return;
+      const cell=state.enemyGrid[y][x];
+      if(cell.hit)return;
+      cell.hit=true;cell.revealed=true;
+      if(cell.unit){
+        cell.unit.hp--;
+        state.stats.hits++;
+        const bounty=Math.floor(Math.random()*200)+100;
+        state.cash+=bounty;
+        state.stats.earned+=bounty;
+        document.getElementById('cash').textContent='💵 $'+state.cash.toLocaleString();
+        if(checkWin())return;
+      }else{state.stats.misses++;}
+      renderGrids();
+      state.turn='enemy';
+      document.getElementById('turn').textContent='🔴 ENEMY TURN';
+      document.getElementById('turn').classList.add('enemy');
+      document.getElementById('msg').textContent='Enemy is attacking...';
+      setTimeout(enemyTurn,1000);
+    }
+    
+    function enemyTurn(){
+      let tx,ty,attempts=0;
+      do{tx=Math.floor(Math.random()*SIZE);ty=Math.floor(Math.random()*SIZE);attempts++;}
+      while(state.playerGrid[ty][tx].hit&&attempts<100);
+      const cell=state.playerGrid[ty][tx];
+      cell.hit=true;
+      if(cell.unit){cell.unit.hp--;if(checkLose())return;}
+      renderGrids();
+      state.turn='player';
+      document.getElementById('turn').textContent='🟢 YOUR TURN';
+      document.getElementById('turn').classList.remove('enemy');
+      document.getElementById('msg').textContent='Click on enemy turf to attack!';
+    }
+    
+    function checkWin(){
+      const alive=state.enemyGrid.flat().some(c=>c.unit&&c.unit.hp>0);
+      if(!alive){showResults(true);return true;}
+      return false;
+    }
+    
+    function checkLose(){
+      const alive=state.playerGrid.flat().some(c=>c.unit&&c.unit.hp>0);
+      if(!alive){showResults(false);return true;}
+      return false;
+    }
+    
+    function showResults(victory){
+      state.phase='results';
+      document.getElementById('result-title').textContent=victory?'VICTORY!':'DEFEAT';
+      document.getElementById('result-title').className=victory?'victory':'defeat';
+      document.getElementById('stat-hits').textContent=state.stats.hits;
+      document.getElementById('stat-misses').textContent=state.stats.misses;
+      document.getElementById('stat-cash').textContent='$'+state.stats.earned.toLocaleString();
+      document.getElementById('overlay').classList.remove('hidden');
+    }
+    
+    document.getElementById('rotate-btn').onclick=()=>{state.horizontal=!state.horizontal;};
+    document.getElementById('start-btn').onclick=startBattle;
+    init();
+  </script>
+</body>
+</html>

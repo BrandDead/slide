@@ -1,0 +1,334 @@
+/* DEALT Mode - Tinder-Style Drug Dealing */
+
+.dealt-mode {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header */
+.dealt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+}
+
+.dealt-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-icon { font-size: 24px; }
+.title-text {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #af52de, #ff006e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heat-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 68, 68, 0.2);
+  border-radius: 20px;
+}
+
+.heat-icon { font-size: 16px; }
+.heat-value { font-size: 14px; font-weight: 600; color: #ff4444; }
+
+/* Streak */
+.streak-display {
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  background: rgba(255, 100, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 100, 0, 0.3);
+}
+
+.streak-flames { font-size: 24px; }
+.streak-count { font-size: 32px; font-weight: 900; color: #ff6400; }
+.streak-label { font-size: 10px; color: #888; text-transform: uppercase; }
+
+/* Card Container */
+.card-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+/* Client Card */
+.client-card {
+  width: 100%;
+  max-width: 320px;
+  background: linear-gradient(145deg, #1e1e2e, #252538);
+  border-radius: 24px;
+  padding: 24px;
+  position: relative;
+  cursor: grab;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Swipe Indicators */
+.swipe-indicator {
+  position: absolute;
+  top: 20px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.swipe-indicator.accept {
+  right: 20px;
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  border: 2px solid #00ff88;
+}
+
+.swipe-indicator.reject {
+  left: 20px;
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 2px solid #ff4444;
+}
+
+/* Client Avatar */
+.client-avatar {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-emoji { font-size: 48px; }
+
+/* Client Info */
+.client-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.client-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.client-type {
+  font-size: 12px;
+  color: #888;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.client-description {
+  font-size: 14px;
+  color: #aaa;
+  font-style: italic;
+}
+
+/* Deal Details */
+.deal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+}
+
+.deal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deal-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.deal-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.deal-value.drug { color: #af52de; }
+.deal-value.money { color: #00ff88; }
+.deal-value.market { color: #888; }
+
+/* Risk Indicator */
+.risk-indicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 2px solid;
+  margin-bottom: 16px;
+}
+
+.risk-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.risk-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Red Flags */
+.red-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.flags-label {
+  font-size: 12px;
+  color: #ff4444;
+}
+
+.flag-item {
+  font-size: 11px;
+  padding: 4px 8px;
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff6666;
+  border-radius: 4px;
+}
+
+/* Outcome Display */
+.outcome-display {
+  width: 100%;
+  max-width: 320px;
+  padding: 40px 24px;
+  border-radius: 24px;
+  text-align: center;
+}
+
+.outcome-display.success {
+  background: linear-gradient(145deg, #0a2a1a, #143d26);
+  border: 2px solid #00ff88;
+}
+
+.outcome-display.failure {
+  background: linear-gradient(145deg, #2a0a0a, #3d1414);
+  border: 2px solid #ff4444;
+}
+
+.outcome-icon { font-size: 64px; margin-bottom: 16px; }
+
+.outcome-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.outcome-message {
+  font-size: 14px;
+  color: #aaa;
+  margin-bottom: 24px;
+}
+
+.outcome-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.outcome-stat {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.outcome-stat.positive { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+.outcome-stat.negative { background: rgba(255, 68, 68, 0.2); color: #ff4444; }
+.outcome-stat.heat { background: rgba(255, 100, 0, 0.2); color: #ff6400; }
+.outcome-stat.xp { background: rgba(0, 240, 255, 0.2); color: #00f0ff; }
+.outcome-stat.streak { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px;
+}
+
+.action-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reject-btn {
+  background: linear-gradient(145deg, #ff4444, #cc0000);
+  box-shadow: 0 8px 24px rgba(255, 68, 68, 0.3);
+}
+
+.accept-btn {
+  background: linear-gradient(145deg, #00ff88, #00cc6a);
+  box-shadow: 0 8px 24px rgba(0, 255, 136, 0.3);
+}
+
+.btn-icon { font-size: 28px; color: #fff; }
+.btn-text { font-size: 10px; color: #fff; font-weight: 600; margin-top: 2px; }
+
+/* Money Display */
+.money-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.money-label { font-size: 12px; color: #666; text-transform: uppercase; }
+.money-amount { font-size: 28px; font-weight: 700; color: #00ff88; }
