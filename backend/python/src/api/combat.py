@@ -123,7 +123,7 @@ def get_combat(combat_id: str):
 
 @combat_bp.route('/<combat_id>/action', methods=['POST'])
 @jwt_required()
-def submit_action():
+def submit_action(combat_id: str):
     """
     Submit a combat action
     
@@ -137,7 +137,6 @@ def submit_action():
     """
     user_id = get_jwt_identity()
     data = request.get_json()
-    combat_id = request.view_args['combat_id']
     
     action = data.get('action')
     unit_id = data.get('unitId')

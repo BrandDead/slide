@@ -265,7 +265,7 @@ class BlockGrid:
             'width': self.width,
             'height': self.height,
             'tiles': [[tile.to_dict() for tile in row] for row in self.tiles],
-            'streetRow': self.street_rows,
+            'streetRows': self.street_rows,
             'sidewalkRows': {
                 'top': self.sidewalk_rows_top,
                 'bottom': self.sidewalk_rows_bottom,
