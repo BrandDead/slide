@@ -20,6 +20,10 @@ app.config.update(
     MAPBOX_TOKEN=os.getenv('MAPBOX_TOKEN', ''),
 )
 
+# Initialize extensions
+from extensions import db
+db.init_app(app)
+
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 jwt = JWTManager(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', message_queue=app.config['REDIS_URL'])

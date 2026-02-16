@@ -8,8 +8,13 @@ from functools import wraps
 from typing import Optional
 import logging
 
+import sys
+import os
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
+
 from services.geocoding_service import get_geocoding_service, GeocodingService
-from services.grid_generator import generate_block_grid, GridConfig
+from src.engines.block_generator import generate_block_grid, GridConfig
 from models.block import Block, SUPPORTED_CITIES
 
 logger = logging.getLogger(__name__)
