@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DRIVE-BY - Urban Warfare FPS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0d0d0d, #1a1a2e);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+    .game-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ff006e, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9rem;
+    }
+    .stat { display: flex; align-items: center; gap: 5px; }
+    .stat-value { font-weight: 700; }
+    .stat-value.money { color: #00ff88; }
+    .stat-value.health { color: #00f0ff; }
+    .stat-value.heat { color: #ff3333; }
+    .stat-value.ammo { color: #ffd700; }
+    
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: 12px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .overlay.hidden { display: none; }
+    .overlay h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 10px;
+      text-shadow: 0 0 30px currentColor;
+    }
+    .overlay h1.victory { color: #00ff88; }
+    .overlay h1.defeat { color: #ff3333; }
+    .overlay h1.title {
+      background: linear-gradient(135deg, #ff006e, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .overlay p { font-size: 1.2rem; color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+    .instructions {
+      text-align: left;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      line-height: 1.8;
+    }
+    .instructions span { color: #00f0ff; font-weight: 600; }
+    .results {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .result-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; }
+    .result-value { font-size: 1.8rem; font-weight: 700; color: #00ff88; }
+    .result-label { font-size: 0.8rem; color: rgba(255,255,255,0.5); }
+    
+    .btn {
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin: 5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover { transform: scale(1.05); }
+    .btn:active { transform: scale(0.95); }
+    .btn-primary {
+      background: linear-gradient(135deg, #00ff88, #00f0ff);
+      color: #000;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    @media (max-width: 600px) {
+      .header { flex-direction: column; gap: 10px; }
+      .stats { flex-wrap: wrap; justify-content: center; }
+      .overlay h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrapper">
+    <div class="header">
+      <div class="logo">🚗 DRIVE-BY</div>
+      <div class="stats">
+        <div class="stat">💰 <span class="stat-value money" id="score">$0</span></div>
+        <div class="stat">🚗 <span class="stat-value health" id="health">100%</span></div>
+        <div class="stat">🔥 <span class="stat-value heat" id="heat">0%</span></div>
+        <div class="stat">🔫 <span class="stat-value ammo" id="ammo">30/30</span></div>
+        <div class="stat">📍 <span id="block">Block 1/10</span></div>
+      </div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+  </div>
+
+  <!-- Menu Overlay -->
+  <div class="overlay" id="menuOverlay">
+    <h1 class="title">🚗 DRIVE-BY</h1>
+    <p>First-Person Shooter from the Passenger Seat</p>
+    <div class="instructions">
+      <p>🎯 <span>Move</span> your cursor/finger to aim</p>
+      <p>🔫 <span>Click/Tap</span> to shoot</p>
+      <p>💀 <span>Red markers</span> = Gang members (SHOOT THEM)</p>
+      <p>👔 <span>No markers</span> = Civilians (DON'T SHOOT)</p>
+      <p>🔥 <span>Heat 100%</span> = Block gets RAIDED, you lose</p>
+      <p>🚗 <span>Car destroyed</span> = Mission failed</p>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">START MISSION</button>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay hidden" id="gameOverOverlay">
+    <h1 class="defeat">MISSION FAILED</h1>
+    <p id="failReason">Your car was destroyed!</p>
+    <div class="results">
+      <div class="result-item"><div class="result-value" id="finalScore">$0</div><div class="result-label">Score</div></div>
+      <div class="result-item"><div class="result-value" id="finalKills">0</div><div class="result-label">Kills</div></div>
+      <div class="result-item"><div class="result-value" id="finalCivilians">0</div><div class="result-label">Civilians Hit</div></div>
+      <div class="result-item"><div class="result-value" id="finalAccuracy">0%</div><div class="result-label">Accuracy</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">TRY AGAIN</button>
+  </div>
+
+  <!-- Victory Overlay -->
+  <div class="overlay hidden" id="victoryOverlay">
+    <h1 class="victory">MISSION COMPLETE!</h1>
+    <p>All blocks cleared successfully!</p>
+    <div class="results">
+      <div class="result-item"><div class="result-value" id="victoryScore">$0</div><div class="result-label">Total Earned</div></div>
+      <div class="result-item"><div class="result-value" id="victoryKills">0</div><div class="result-label">Total Kills</div></div>
+      <div class="result-item"><div class="result-value" id="victoryBlocks">0</div><div class="result-label">Blocks Cleared</div></div>
+      <div class="result-item"><div class="result-value" id="victoryAccuracy">0%</div><div class="result-label">Accuracy</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">PLAY AGAIN</button>
+  </div>
+
+  <script>
+    // ============ GAME STATE ============
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let gameState = 'menu';
+    let score = 0;
+    let carHealth = 100;
+    let heat = 0;
+    let ammo = 30;
+    const MAX_AMMO = 30;
+    
+    let currentBlock = 0;
+    let totalBlocks = 10;
+    let blockPosition = 0;
+    const BLOCK_LENGTH = 2500;
+    
+    let targets = [];
+    let bullets = [];
+    let particles = [];
+    
+    let crosshair = { x: 400, y: 250 };
+    let lastShot = 0;
+    const SHOT_COOLDOWN = 200;
+    
+    let stats = { kills: 0, civilianHits: 0, shotsFired: 0, shotsHit: 0 };
+    
+    let parallax = { bg: 0, mid: 0, fg: 0 };
+    const CAR_SPEED = 3;
+    
+    // Block configurations
+    const blockTypes = [
+      { type: 'empty', gangMin: 3, gangMax: 5, civMin: 1, civMax: 3 },
+      { type: 'normal', gangMin: 8, gangMax: 12, civMin: 4, civMax: 7 },
+      { type: 'hot', gangMin: 15, gangMax: 22, civMin: 6, civMax: 10 }
+    ];
+    
+    const GANG_EMOJIS = ['🔫', '💀', '😈', '👊', '🗡️'];
+    const CIVILIAN_EMOJIS = ['👔', '👩', '🧓', '🏃', '🚶', '👨‍💼', '👩‍🦳'];
+    
+    // ============ AUDIO ============
+    let audioCtx = null;
+    
+    function playSound(type) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      switch(type) {
+        case 'shoot':
+          osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+          osc.type = 'sawtooth';
+          break;
+        case 'hit':
+          osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          osc.type = 'square';
+          break;
+        case 'death':
+          osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+          osc.type = 'sawtooth';
+          break;
+        case 'damage':
+          osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          osc.type = 'sine';
+          break;
+      }
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+    
+    // ============ SPAWN TARGETS ============
+    function spawnTargets() {
+      targets = [];
+      
+      // Determine block type based on progression
+      const difficulty = Math.min(currentBlock / totalBlocks, 0.8);
+      const typeRoll = Math.random();
+      let blockConfig;
+      
+      if (typeRoll < 0.2 - difficulty * 0.15) {
+        blockConfig = blockTypes[0]; // empty
+      } else if (typeRoll < 0.6) {
+        blockConfig = blockTypes[1]; // normal
+      } else {
+        blockConfig = blockTypes[2]; // hot
+      }
+      
+      const gangCount = Math.floor(Math.random() * (blockConfig.gangMax - blockConfig.gangMin + 1)) + blockConfig.gangMin;
+      const civCount = Math.floor(Math.random() * (blockConfig.civMax - blockConfig.civMin + 1)) + blockConfig.civMin;
+      
+      // Spawn gang members
+      for (let i = 0; i < gangCount; i++) {
+        const isLeader = i === 0 && Math.random() < 0.15;
+        targets.push({
+          id: Date.now() + i,
+          type: isLeader ? 'leader' : 'gang',
+          x: Math.random() * 650 + 75,
+          y: 180 + Math.random() * 120,
+          width: 45,
+          height: 65,
+          health: isLeader ? 120 : 50,
+          maxHealth: isLeader ? 120 : 50,
+          bounty: isLeader ? 500 : Math.floor(Math.random() * 150) + 50,
+          vx: (Math.random() - 0.5) * 2,
+          emoji: isLeader ? '👑' : GANG_EMOJIS[Math.floor(Math.random() * GANG_EMOJIS.length)],
+          lastShot: 0,
+          shooting: false
+        });
+      }
+      
+      // Spawn civilians
+      for (let i = 0; i < civCount; i++) {
+        targets.push({
+          id: Date.now() + gangCount + i,
+          type: 'civilian',
+          x: Math.random() * 650 + 75,
+          y: 190 + Math.random() * 100,
+          width: 40,
+          height: 55,
+          health: 30,
+          maxHealth: 30,
+          bounty: -500,
+          vx: (Math.random() - 0.5) * 3,
+          emoji: CIVILIAN_EMOJIS[Math.floor(Math.random() * CIVILIAN_EMOJIS.length)],
+          lastShot: 0,
+          shooting: false
+        });
+      }
+    }
+    
+    // ============ GAME FUNCTIONS ============
+    function startGame() {
+      document.getElementById('menuOverlay').classList.add('hidden');
+      document.getElementById('gameOverOverlay').classList.add('hidden');
+      document.getElementById('victoryOverlay').classList.add('hidden');
+      
+      gameState = 'playing';
+      score = 0;
+      carHealth = 100;
+      heat = 0;
+      ammo = MAX_AMMO;
+      currentBlock = 0;
+      blockPosition = 0;
+      targets = [];
+      bullets = [];
+      particles = [];
+      stats = { kills: 0, civilianHits: 0, shotsFired: 0, shotsHit: 0 };
+      parallax = { bg: 0, mid: 0, fg: 0 };
+      
+      spawnTargets();
+      updateUI();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    function endGame(victory) {
+      gameState = victory ? 'victory' : 'gameover';
+      
+      const accuracy = stats.shotsFired > 0 ? Math.round((stats.shotsHit / stats.shotsFired) * 100) : 0;
+      
+      if (victory) {
+        document.getElementById('victoryOverlay').classList.remove('hidden');
+        document.getElementById('victoryScore').textContent = '$' + score.toLocaleString();
+        document.getElementById('victoryKills').textContent = stats.kills;
+        document.getElementById('victoryBlocks').textContent = currentBlock;
+        document.getElementById('victoryAccuracy').textContent = accuracy + '%';
+      } else {
+        document.getElementById('gameOverOverlay').classList.remove('hidden');
+        document.getElementById('failReason').textContent = heat >= 100 ? 'Block was RAIDED!' : 'Your car was destroyed!';
+        document.getElementById('finalScore').textContent = '$' + score.toLocaleString();
+        document.getElementById('finalKills').textContent = stats.kills;
+        document.getElementById('finalCivilians').textContent = stats.civilianHits;
+        document.getElementById('finalAccuracy').textContent = accuracy + '%';
+      }
+    }
+    
+    function shoot(x, y) {
+      if (gameState !== 'playing' || ammo <= 0) return;
+      
+      const now = Date.now();
+      if (now - lastShot < SHOT_COOLDOWN) return;
+      
+      lastShot = now;
+      ammo--;
+      stats.shotsFired++;
+      playSound('shoot');
+      
+      bullets.push({
+        x: 550,
+        y: 380,
+        targetX: x,
+        targetY: y,
+        speed: 18,
+        isPlayer: true
+      });
+      
+      // Muzzle flash particles
+      for (let i = 0; i < 5; i++) {
+        particles.push({
+          x: 550,
+          y: 380,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          life: 0,
+          maxLife: 15,
+          color: '#ffff00'
+        });
+      }
+      
+      updateUI();
+    }
+    
+    function updateUI() {
+      document.getElementById('score').textContent = '$' + score.toLocaleString();
+      document.getElementById('health').textContent = carHealth + '%';
+      document.getElementById('heat').textContent = heat + '%';
+      document.getElementById('ammo').textContent = ammo + '/' + MAX_AMMO;
+      document.getElementById('block').textContent = 'Block ' + (currentBlock + 1) + '/' + totalBlocks;
+    }
+    
+    // ============ GAME LOOP ============
+    function gameLoop() {
+      if (gameState !== 'playing') return;
+      
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    function update() {
+      // Update parallax
+      parallax.bg += CAR_SPEED * 0.3;
+      parallax.mid += CAR_SPEED * 0.6;
+      parallax.fg += CAR_SPEED;
+      blockPosition += CAR_SPEED;
+      
+      // Check block transition
+      if (blockPosition >= BLOCK_LENGTH) {
+        blockPosition = 0;
+        currentBlock++;
+        
+        if (currentBlock >= totalBlocks) {
+          endGame(true);
+          return;
+        }
+        
+        ammo = MAX_AMMO; // Reload between blocks
+        spawnTargets();
+        updateUI();
+      }
+      
+      // Update targets
+      const now = Date.now();
+      targets.forEach(target => {
+        // Movement
+        target.x += target.vx;
+        if (target.x < 60 || target.x > 740) target.vx *= -1;
+        
+        // Gang members shoot back
+        if (target.type !== 'civilian' && Math.random() < 0.015) {
+          if (now - target.lastShot > 1500) {
+            target.lastShot = now;
+            bullets.push({
+              x: target.x + target.width / 2,
+              y: target.y + target.height / 2,
+              targetX: 400 + (Math.random() - 0.5) * 200,
+              targetY: 420,
+              speed: 10,
+              isPlayer: false
+            });
+          }
+        }
+      });
+      
+      // Update bullets
+      bullets = bullets.filter(bullet => {
+        const dx = bullet.targetX - bullet.x;
+        const dy = bullet.targetY - bullet.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist < bullet.speed) {
+          // Bullet reached destination
+          if (bullet.isPlayer) {
+            // Check target hits
+            for (let i = targets.length - 1; i >= 0; i--) {
+              const target = targets[i];
+              if (bullet.targetX > target.x && bullet.targetX < target.x + target.width &&
+                  bullet.targetY > target.y && bullet.targetY < target.y + target.height) {
+                
+                const isHeadshot = bullet.targetY < target.y + target.height * 0.3;
+                const damage = isHeadshot ? 80 : 40;
+                target.health -= damage;
+                stats.shotsHit++;
+                
+                // Hit particles
+                for (let j = 0; j < 8; j++) {
+                  particles.push({
+                    x: bullet.targetX,
+                    y: bullet.targetY,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 0,
+                    maxLife: 25,
+                    color: target.type === 'civilian' ? '#ff0000' : '#00ff88'
+                  });
+                }
+                
+                if (target.health <= 0) {
+                  playSound('death');
+                  if (target.type === 'civilian') {
+                    heat = Math.min(100, heat + 15);
+                    stats.civilianHits++;
+                    score -= 500;
+                  } else {
+                    score += target.bounty;
+                    stats.kills++;
+                  }
+                  targets.splice(i, 1);
+                  updateUI();
+                  
+                  if (heat >= 100) {
+                    endGame(false);
+                    return;
+                  }
+                } else {
+                  playSound('hit');
+                }
+                break;
+              }
+            }
+          } else {
+            // Enemy bullet hits car
+            carHealth -= 8;
+            playSound('damage');
+            updateUI();
+            
+            // Damage particles
+            for (let j = 0; j < 5; j++) {
+              particles.push({
+                x: bullet.targetX,
+                y: bullet.targetY,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3,
+                life: 0,
+                maxLife: 20,
+                color: '#ff3333'
+              });
+            }
+            
+            if (carHealth <= 0) {
+              endGame(false);
+              return;
+            }
+          }
+          return false;
+        }
+        
+        // Move bullet
+        bullet.x += (dx / dist) * bullet.speed;
+        bullet.y += (dy / dist) * bullet.speed;
+        return true;
+      });
+      
+      // Update particles
+      particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2;
+        p.life++;
+        return p.life < p.maxLife;
+      });
+    }
+    
+    function render() {
+      const W = canvas.width;
+      const H = canvas.height;
+      
+      // Clear
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, W, H);
+      
+      // Sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.4);
+      skyGrad.addColorStop(0, '#0f0f23');
+      skyGrad.addColorStop(1, '#1a1a2e');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, H * 0.4);
+      
+      // Background buildings
+      ctx.fillStyle = '#2d2d44';
+      for (let i = 0; i < 15; i++) {
+        const x = ((i * 80) - (parallax.bg % 80) + W) % (W + 80) - 40;
+        const h = 80 + Math.sin(i * 0.7) * 30;
+        ctx.fillRect(x, H * 0.32 - h, 60, h + H * 0.1);
+        
+        // Windows
+        ctx.fillStyle = i % 2 === 0 ? '#ff006e' : '#00f0ff';
+        for (let w = 0; w < 3; w++) {
+          for (let wh = 0; wh < 2; wh++) {
+            if (Math.sin(i + w + wh) > 0) {
+              ctx.fillRect(x + 8 + w * 18, H * 0.32 - h + 12 + wh * 20, 8, 10);
+            }
+          }
+        }
+        ctx.fillStyle = '#2d2d44';
+      }
+      
+      // Mid-ground (parked cars)
+      ctx.fillStyle = '#3d3d5c';
+      for (let i = 0; i < 12; i++) {
+        const x = ((i * 100) - (parallax.mid % 100) + W) % (W + 100) - 50;
+        ctx.fillRect(x, H * 0.48, 55, 28);
+        ctx.fillStyle = '#222';
+        ctx.fillRect(x + 8, H * 0.48 + 4, 40, 16);
+        ctx.fillStyle = '#3d3d5c';
+      }
+      
+      // Foreground sidewalk
+      ctx.fillStyle = '#4a4a6a';
+      ctx.fillRect(0, H * 0.54, W, H * 0.46);
+      
+      // Sidewalk lines
+      ctx.fillStyle = '#3a3a5a';
+      for (let i = 0; i < 25; i++) {
+        const x = ((i * 45) - (parallax.fg % 45) + W) % (W + 45) - 20;
+        ctx.fillRect(x, H * 0.54, 25, 3);
+      }
+      
+      // Draw targets
+      targets.forEach(target => {
+        // Health bar
+        if (target.health < target.maxHealth) {
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(target.x, target.y - 10, target.width, 5);
+          ctx.fillStyle = '#00ff88';
+          ctx.fillRect(target.x, target.y - 10, (target.width * target.health) / target.maxHealth, 5);
+        }
+        
+        // Target body
+        ctx.font = (target.height * 0.65) + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(target.emoji, target.x + target.width / 2, target.y + target.height * 0.7);
+        
+        // Gang member indicator
+        if (target.type !== 'civilian') {
+          ctx.fillStyle = target.type === 'leader' ? '#ffd700' : '#ff3333';
+          ctx.beginPath();
+          ctx.arc(target.x + target.width / 2, target.y - 18, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      
+      // Draw bullets
+      bullets.forEach(bullet => {
+        ctx.fillStyle = bullet.isPlayer ? '#ffff00' : '#ff0000';
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Trail
+        ctx.strokeStyle = bullet.isPlayer ? 'rgba(255,255,0,0.4)' : 'rgba(255,0,0,0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bullet.x, bullet.y);
+        const dx = bullet.targetX - bullet.x;
+        const dy = bullet.targetY - bullet.y;
+        ctx.lineTo(bullet.x - dx * 0.2, bullet.y - dy * 0.2);
+        ctx.stroke();
+      });
+      
+      // Draw particles
+      particles.forEach(p => {
+        ctx.globalAlpha = 1 - (p.life / p.maxLife);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      
+      // Car interior overlay
+      ctx.fillStyle = 'rgba(0,0,0,0.75)';
+      ctx.fillRect(0, 0, W * 0.12, H);
+      ctx.fillRect(W * 0.88, 0, W * 0.12, H);
+      ctx.fillRect(0, H * 0.78, W, H * 0.22);
+      
+      // Dashboard
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, H * 0.82, W, H * 0.18);
+      
+      // Gun
+      ctx.fillStyle = '#333';
+      ctx.fillRect(W * 0.62, H * 0.7, 90, 14);
+      ctx.fillRect(W * 0.7, H * 0.62, 14, 22);
+      
+      // Crosshair
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(crosshair.x - 18, crosshair.y);
+      ctx.lineTo(crosshair.x + 18, crosshair.y);
+      ctx.moveTo(crosshair.x, crosshair.y - 18);
+      ctx.lineTo(crosshair.x, crosshair.y + 18);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(crosshair.x, crosshair.y, 22, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Heat bar
+      ctx.fillStyle = '#333';
+      ctx.fillRect(W - 180, 15, 160, 20);
+      ctx.fillStyle = heat > 80 ? '#ff0000' : heat > 50 ? '#ff9900' : '#00ff88';
+      ctx.fillRect(W - 180, 15, (heat / 100) * 160, 20);
+      ctx.strokeStyle = '#fff';
+      ctx.strokeRect(W - 180, 15, 160, 20);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'right';
+      ctx.fillText('🔥 HEAT ' + heat + '%', W - 25, 30);
+    }
+    
+    // ============ EVENT LISTENERS ============
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      crosshair.x = (e.clientX - rect.left) * scaleX;
+      crosshair.y = (e.clientY - rect.top) * scaleY;
+    });
+    
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      shoot(x, y);
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      crosshair.x = (touch.clientX - rect.left) * scaleX;
+      crosshair.y = (touch.clientY - rect.top) * scaleY;
+    });
+    
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (touch.clientX - rect.left) * scaleX;
+      const y = (touch.clientY - rect.top) * scaleY;
+      crosshair.x = x;
+      crosshair.y = y;
+      shoot(x, y);
+    });
+  </script>
+</body>
+</html>

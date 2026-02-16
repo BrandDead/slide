@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0D0D0D">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>DEALT/SLIDE - Street Empire</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --black: #0D0D0D;
+      --dark-navy: #1A1A2E;
+      --dark-purple: #16213E;
+      --cyan: #00F0FF;
+      --magenta: #FF006E;
+      --gold: #FFD700;
+      --lime: #00FF88;
+      --red: #FF3333;
+      --orange: #FF9500;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--black);
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      user-select: none;
+    }
+    
+    #app {
+      width: 100%;
+      height: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 50%, #16213E 100%);
+      position: relative;
+    }
+    
+    /* Grid overlay */
+    #app::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .screen { display: none; flex-direction: column; height: 100%; position: relative; z-index: 1; }
+    .screen.active { display: flex; animation: fadeIn 0.3s ease; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px var(--cyan); } 50% { box-shadow: 0 0 40px var(--cyan); } }
+    
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    .status-bar .time { font-size: 14px; font-weight: 600; color: #fff; }
+    .status-bar .title {
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+    }
+    .status-icons { display: flex; gap: 12px; font-size: 12px; color: #888; }
+    .heat-indicator { font-weight: 600; text-shadow: 0 0 10px currentColor; }
+    
+    /* ===== QUICK STATS ===== */
+    .quick-stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 16px 20px;
+      background: rgba(26, 26, 46, 0.8);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+      animation: slideUp 0.5s ease;
+    }
+    .stat { display: flex; align-items: center; gap: 6px; }
+    .stat-icon { font-size: 16px; }
+    .stat-value { font-size: 14px; font-weight: 600; color: #fff; }
+    
+    /* ===== APP GRID ===== */
+    .app-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 30px 20px;
+      align-content: start;
+      overflow-y: auto;
+    }
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .app-icon:active { transform: scale(0.95); }
+    .app-icon.locked { opacity: 0.4; cursor: not-allowed; }
+    .app-icon.locked:active { transform: none; }
+    
+    .icon-container {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 240, 255, 0.1);
+      transition: box-shadow 0.2s ease;
+    }
+    .app-icon:not(.locked):hover .icon-container {
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.3), 0 0 0 1px rgba(0, 240, 255, 0.3);
+    }
+    .icon-emoji { font-size: 32px; }
+    .lock-overlay {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      font-size: 14px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .app-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: linear-gradient(135deg, var(--magenta), #FF3366);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 8px;
+      animation: pulse 2s infinite;
+    }
+    .icon-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* ===== BOTTOM DOCK ===== */
+    .bottom-dock {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    .dock-notifications { display: flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.7); font-size: 13px; }
+    .dock-divider { color: rgba(255, 255, 255, 0.2); }
+    .dock-info { display: flex; align-items: center; gap: 10px; color: rgba(255, 255, 255, 0.7); font-size: 13px; }
+    .xp-bar { width: 80px; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; }
+    .xp-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--magenta)); border-radius: 3px; transition: width 0.3s ease; }
+    
+    .hint-text {
+      position: absolute;
+      bottom: 80px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: rgba(0, 240, 255, 0.6);
+      font-size: 14px;
+      font-weight: 500;
+      animation: pulse 3s infinite;
+    }
+    
+    /* ===== DEALT MODE ===== */
+    .dealt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--cyan);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+    .dealt-title {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 3px;
+    }
+    
+    .dealt-stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 15px;
+      background: rgba(26, 26, 46, 0.8);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.05);
+    }
+    .dealt-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .dealt-stat-label { font-size: 10px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
+    .dealt-stat-value { font-size: 16px; font-weight: 700; color: #fff; }
+    .dealt-stat-value.money { color: var(--lime); }
+    .dealt-stat-value.streak { color: var(--orange); }
+    
+    /* Card Container */
+    .card-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+    
+    /* Client Card */
+    .client-card {
+      width: 100%;
+      max-width: 340px;
+      background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 240, 255, 0.1);
+      position: relative;
+      transition: transform 0.3s ease;
+      touch-action: pan-y;
+    }
+    .client-card.swiping-right { transform: translateX(50px) rotate(5deg); }
+    .client-card.swiping-left { transform: translateX(-50px) rotate(-5deg); }
+    .client-card.exit-right { transform: translateX(400px) rotate(30deg); opacity: 0; transition: all 0.3s ease; }
+    .client-card.exit-left { transform: translateX(-400px) rotate(-30deg); opacity: 0; transition: all 0.3s ease; }
+    
+    .swipe-indicator {
+      position: absolute;
+      top: 20px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .swipe-indicator.accept { right: 20px; background: rgba(0, 255, 136, 0.2); border: 3px solid var(--lime); color: var(--lime); transform: rotate(15deg); }
+    .swipe-indicator.reject { left: 20px; background: rgba(255, 51, 51, 0.2); border: 3px solid var(--red); color: var(--red); transform: rotate(-15deg); }
+    .client-card.swiping-right .swipe-indicator.accept { opacity: 1; }
+    .client-card.swiping-left .swipe-indicator.reject { opacity: 1; }
+    
+    .card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .client-avatar {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(255, 0, 110, 0.2));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+    }
+    .client-info { flex: 1; }
+    .client-name { font-size: 22px; font-weight: 700; color: #fff; margin: 0 0 4px 0; }
+    .client-location { font-size: 13px; color: rgba(255, 255, 255, 0.6); margin: 0; }
+    .risk-badge { padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; color: #000; letter-spacing: 1px; }
+    
+    .card-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.3), transparent); margin: 16px 0; }
+    
+    .deal-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+    }
+    .detail-label { font-size: 12px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; }
+    .detail-value { font-size: 14px; font-weight: 600; color: #fff; }
+    .detail-value.money { color: var(--lime); }
+    .detail-value.heat { color: var(--orange); }
+    
+    .client-description { font-size: 14px; color: rgba(255, 255, 255, 0.7); font-style: italic; text-align: center; margin: 0; padding: 0 10px; }
+    
+    .red-flags { margin-top: 16px; padding: 12px; background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.3); border-radius: 12px; }
+    .flags-label { display: block; font-size: 11px; color: var(--red); margin-bottom: 8px; font-weight: 600; }
+    .flag-tag { display: inline-block; padding: 4px 10px; background: rgba(255, 51, 51, 0.2); border-radius: 12px; font-size: 11px; color: #FF6666; margin: 2px 4px 2px 0; }
+    
+    .inventory-check { margin-top: 16px; text-align: center; }
+    .in-stock { color: var(--lime); font-size: 13px; font-weight: 600; }
+    .out-of-stock { color: var(--red); font-size: 13px; font-weight: 600; }
+    
+    /* Outcome Card */
+    .outcome-card {
+      width: 100%;
+      max-width: 300px;
+      padding: 40px 30px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.3s ease;
+    }
+    .outcome-card.success { background: linear-gradient(145deg, rgba(0, 255, 136, 0.1), rgba(0, 100, 50, 0.2)); border: 2px solid rgba(0, 255, 136, 0.5); }
+    .outcome-card.failure { background: linear-gradient(145deg, rgba(255, 51, 51, 0.1), rgba(100, 0, 0, 0.2)); border: 2px solid rgba(255, 51, 51, 0.5); }
+    .outcome-emoji { font-size: 64px; margin-bottom: 16px; }
+    .outcome-title { font-size: 24px; font-weight: 800; margin: 0 0 12px 0; letter-spacing: 2px; }
+    .outcome-card.success .outcome-title { color: var(--lime); }
+    .outcome-card.failure .outcome-title { color: var(--red); }
+    .outcome-message { font-size: 16px; color: rgba(255, 255, 255, 0.8); margin: 0 0 20px 0; }
+    .outcome-stats { display: flex; justify-content: center; gap: 20px; }
+    .outcome-stat { font-size: 20px; font-weight: 700; padding: 8px 16px; border-radius: 12px; }
+    .outcome-stat.positive { color: var(--lime); background: rgba(0, 255, 136, 0.1); }
+    .outcome-stat.negative { color: var(--red); background: rgba(255, 51, 51, 0.1); }
+    .outcome-stat.heat { color: var(--orange); background: rgba(255, 149, 0, 0.1); }
+    
+    /* Action Buttons */
+    .action-buttons { display: flex; justify-content: center; gap: 40px; padding: 20px; }
+    .action-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .action-btn:active { transform: scale(0.95); }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .reject-btn { background: linear-gradient(145deg, var(--red), #CC0000); }
+    .accept-btn { background: linear-gradient(145deg, var(--lime), #00CC6A); }
+    .btn-icon { font-size: 28px; font-weight: 800; color: #fff; }
+    .btn-text { font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.9); letter-spacing: 1px; }
+    
+    /* Money Display */
+    .money-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid rgba(0, 240, 255, 0.1);
+    }
+    .money-label { font-size: 14px; color: rgba(255, 255, 255, 0.5); }
+    .money-amount { font-size: 24px; font-weight: 800; color: var(--lime); text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- HOME SCREEN -->
+    <div id="home-screen" class="screen active">
+      <div class="status-bar">
+        <span class="time" id="clock">12:00 PM</span>
+        <span class="title">DEALT/SLIDE</span>
+        <div class="status-icons">
+          <span>🔋 78%</span>
+          <span class="heat-indicator" id="home-heat" style="color: #00FF88;">❄️ 0</span>
+        </div>
+      </div>
+      
+      <div class="quick-stats">
+        <div class="stat"><span class="stat-icon">💰</span><span class="stat-value" id="home-money">$10,000</span></div>
+        <div class="stat"><span class="stat-icon">🏆</span><span class="stat-value" id="home-rep">50%</span></div>
+        <div class="stat"><span class="stat-icon">👥</span><span class="stat-value" id="home-crew">2</span></div>
+        <div class="stat"><span class="stat-icon">🏠</span><span class="stat-value" id="home-blocks">1</span></div>
+      </div>
+      
+      <div class="app-grid" id="app-grid"></div>
+      
+      <div class="hint-text">Tap DEALT to start making money 💸</div>
+      
+      <div class="bottom-dock">
+        <div class="dock-notifications"><span>📬</span><span id="notif-count">1 alert</span></div>
+        <div class="dock-divider">|</div>
+        <div class="dock-info">
+          <span>Level <span id="home-level">1</span></span>
+          <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width: 0%"></div></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- DEALT MODE -->
+    <div id="dealt-screen" class="screen">
+      <div class="dealt-header">
+        <button class="back-btn" onclick="showScreen('home')">← Back</button>
+        <span class="dealt-title">DEALT</span>
+        <span class="heat-indicator" id="dealt-heat" style="color: #00FF88;">❄️ 0</span>
+      </div>
+      
+      <div class="dealt-stats">
+        <div class="dealt-stat"><span class="dealt-stat-label">Today</span><span class="dealt-stat-value" id="deals-today">0</span></div>
+        <div class="dealt-stat"><span class="dealt-stat-label">Success</span><span class="dealt-stat-value" id="success-rate">100%</span></div>
+        <div class="dealt-stat"><span class="dealt-stat-label">Streak</span><span class="dealt-stat-value streak" id="streak">🔥 x0</span></div>
+        <div class="dealt-stat"><span class="dealt-stat-label">Earned</span><span class="dealt-stat-value money" id="total-earned">$0</span></div>
+      </div>
+      
+      <div class="card-container" id="card-container"></div>
+      
+      <div class="action-buttons">
+        <button class="action-btn reject-btn" id="reject-btn" onclick="rejectDeal()">
+          <span class="btn-icon">✗</span>
+          <span class="btn-text">PASS</span>
+        </button>
+        <button class="action-btn accept-btn" id="accept-btn" onclick="acceptDeal()">
+          <span class="btn-icon">✓</span>
+          <span class="btn-text">DEAL</span>
+        </button>
+      </div>
+      
+      <div class="money-display">
+        <span class="money-label">Balance</span>
+        <span class="money-amount" id="dealt-money">$10,000</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== GAME STATE =====
+    const gameState = {
+      money: 10000,
+      reputation: 50,
+      heat: 0,
+      level: 1,
+      xp: 0,
+      crewSize: 2,
+      blocksOwned: 1,
+      dealsToday: 0,
+      successfulDeals: 0,
+      streak: 0,
+      totalEarned: 0,
+      inventory: {
+        weed: 50,
+        coke: 20,
+        crack: 30,
+        meth: 10,
+        pills: 25,
+        lean: 15
+      }
+    };
+    
+    let currentClient = null;
+    let isAnimating = false;
+    
+    // ===== CLIENT TYPES =====
+    const CLIENT_TYPES = {
+      regular: { name: 'Regular', emoji: '👤', buyRange: [2, 5], payMult: [0.9, 1.1], heat: 3, risk: 10, outcomes: ['success', 'robbery'], riskLevel: 'low', descriptions: ['Steady customer.', 'Needs their fix.', 'Been around.'], redFlags: [] },
+      fiend: { name: 'Fiend', emoji: '💀', buyRange: [5, 10], payMult: [0.5, 0.8], heat: 5, risk: 30, outcomes: ['success', 'robbery', 'overdose'], riskLevel: 'high', descriptions: ['Desperate.', 'Shaking hands.', 'Been up for days.'], redFlags: ['Unpredictable', 'Might try something'] },
+      prep_kid: { name: 'Prep Kid', emoji: '🎒', buyRange: [2, 4], payMult: [1.3, 1.8], heat: 2, risk: 15, outcomes: ['success', 'snitch'], riskLevel: 'medium', descriptions: ['Rich kid.', 'Designer clothes.', 'First time buyer.'], redFlags: ['Might snitch'] },
+      celebrity: { name: 'Celebrity', emoji: '⭐', buyRange: [10, 20], payMult: [2.0, 3.5], heat: 0, risk: 5, outcomes: ['success'], riskLevel: 'low', descriptions: ['Famous face.', 'Local rapper.', 'Influencer.'], redFlags: [] },
+      undercover: { name: 'Undercover', emoji: '👮', buyRange: [5, 15], payMult: [1.0, 1.2], heat: 40, risk: 95, outcomes: ['undercover'], riskLevel: 'extreme', descriptions: ['Something feels off.', 'Too many questions.', 'New face, big order.'], redFlags: ['Brand new phone', 'Asking about suppliers', 'Cop shoes', 'Wire bulge'] },
+      tourist: { name: 'Tourist', emoji: '📸', buyRange: [1, 3], payMult: [1.5, 2.5], heat: 1, risk: 8, outcomes: ['success'], riskLevel: 'low', descriptions: ['Just visiting.', 'Vacation mode.', 'Clueless pricing.'], redFlags: [] },
+      armed: { name: 'Armed Buyer', emoji: '🔫', buyRange: [8, 15], payMult: [0.8, 1.0], heat: 15, risk: 40, outcomes: ['success', 'robbery'], riskLevel: 'high', descriptions: ['Visibly strapped.', 'Gang affiliated.', 'Respect required.'], redFlags: ['Visible weapon', 'Brought friends'] },
+      college: { name: 'College Kid', emoji: '📚', buyRange: [2, 5], payMult: [1.1, 1.4], heat: 2, risk: 12, outcomes: ['success', 'snitch'], riskLevel: 'low', descriptions: ['Finals week.', 'Frat party.', 'Study drugs.'], redFlags: [] }
+    };
+    
+    const DRUG_PRICES = { weed: 50, coke: 200, crack: 150, meth: 180, pills: 80, lean: 100 };
+    const DRUGS = Object.keys(DRUG_PRICES);
+    const LOCATIONS = ['Downtown', 'Southside', 'Westend', 'The Heights', 'Midtown', 'The Projects', 'University District'];
+    const NAMES = ['Marcus', 'DeShawn', 'Tyler', 'Brandon', 'Aaliyah', 'Diamond', 'Crystal', 'Miguel', 'Carlos', 'Sofia', 'Chad', 'Hunter', 'Madison', 'Dmitri', 'Wei'];
+    
+    // ===== APP ICONS =====
+    const appIcons = [
+      { id: 'map', icon: '🗺️', label: 'MAP', available: false },
+      { id: 'dealt', icon: '💰', label: 'DEALT', available: true, badge: 'NEW' },
+      { id: 'slide', icon: '⚔️', label: 'SLIDE', available: false },
+      { id: 'drive', icon: '🚗', label: 'DRIVE', available: false },
+      { id: 'cook', icon: '⚗️', label: 'COOK', available: false },
+      { id: 'crew', icon: '👥', label: 'CREW', available: false },
+      { id: 'battle', icon: '💊', label: 'BATTLE', available: false },
+      { id: 'casino', icon: '🎰', label: 'CASINO', available: false },
+      { id: 'phone', icon: '📱', label: 'PHONE', available: false },
+      { id: 'market', icon: '🏪', label: 'MARKET', available: false },
+      { id: 'stats', icon: '📊', label: 'STATS', available: false },
+      { id: 'settings', icon: '⚙️', label: 'SETTINGS', available: false }
+    ];
+    
+    // ===== UTILITY FUNCTIONS =====
+    const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const randFloat = (min, max) => Math.random() * (max - min) + min;
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const formatMoney = n => n >= 1000000 ? `$${(n/1000000).toFixed(1)}M` : n >= 1000 ? `$${(n/1000).toFixed(1)}K` : `$${n.toLocaleString()}`;
+    
+    function getHeatInfo(heat) {
+      if (heat < 20) return { label: 'Cool', color: '#00FF88', emoji: '❄️' };
+      if (heat < 40) return { label: 'Warm', color: '#FFD700', emoji: '🌡️' };
+      if (heat < 60) return { label: 'Hot', color: '#FF9500', emoji: '🔥' };
+      if (heat < 80) return { label: 'Blazing', color: '#FF3333', emoji: '🔥🔥' };
+      return { label: 'WANTED', color: '#FF0000', emoji: '🚨' };
+    }
+    
+    function getRiskColor(level) {
+      return { low: '#00FF88', medium: '#FFD700', high: '#FF9500', extreme: '#FF3333' }[level] || '#FFFFFF';
+    }
+    
+    // ===== UI UPDATES =====
+    function updateUI() {
+      const heat = getHeatInfo(gameState.heat);
+      
+      // Home screen
+      document.getElementById('home-money').textContent = formatMoney(gameState.money);
+      document.getElementById('home-rep').textContent = gameState.reputation + '%';
+      document.getElementById('home-crew').textContent = gameState.crewSize;
+      document.getElementById('home-blocks').textContent = gameState.blocksOwned;
+      document.getElementById('home-level').textContent = gameState.level;
+      document.getElementById('home-heat').style.color = heat.color;
+      document.getElementById('home-heat').textContent = `${heat.emoji} ${gameState.heat}`;
+      document.getElementById('xp-fill').style.width = `${(gameState.xp / (gameState.level * 1000)) * 100}%`;
+      
+      // Dealt screen
+      document.getElementById('dealt-money').textContent = formatMoney(gameState.money);
+      document.getElementById('dealt-heat').style.color = heat.color;
+      document.getElementById('dealt-heat').textContent = `${heat.emoji} ${gameState.heat}`;
+      document.getElementById('deals-today').textContent = gameState.dealsToday;
+      document.getElementById('success-rate').textContent = gameState.dealsToday > 0 ? Math.round((gameState.successfulDeals / gameState.dealsToday) * 100) + '%' : '100%';
+      document.getElementById('streak').textContent = `🔥 x${gameState.streak}`;
+      document.getElementById('total-earned').textContent = formatMoney(gameState.totalEarned);
+    }
+    
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+    
+    // ===== SCREEN NAVIGATION =====
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId + '-screen').classList.add('active');
+      
+      if (screenId === 'dealt' && !currentClient) {
+        generateClient();
+      }
+    }
+    
+    // ===== CLIENT GENERATION =====
+    function selectClientType() {
+      const weights = [
+        { type: 'regular', weight: 25 },
+        { type: 'fiend', weight: 15 },
+        { type: 'prep_kid', weight: 12 },
+        { type: 'celebrity', weight: 5 },
+        { type: 'tourist', weight: 10 },
+        { type: 'armed', weight: 10 },
+        { type: 'college', weight: 12 },
+        { type: 'undercover', weight: Math.floor(3 + gameState.heat * 0.15) }
+      ];
+      
+      const total = weights.reduce((sum, w) => sum + w.weight, 0);
+      let r = Math.random() * total;
+      
+      for (const { type, weight } of weights) {
+        r -= weight;
+        if (r <= 0) return type;
+      }
+      return 'regular';
+    }
+    
+    function generateClient() {
+      const typeKey = selectClientType();
+      const type = CLIENT_TYPES[typeKey];
+      const drug = pick(DRUGS);
+      const amount = rand(type.buyRange[0], type.buyRange[1]);
+      const price = Math.floor(DRUG_PRICES[drug] * amount * randFloat(type.payMult[0], type.payMult[1]));
+      
+      currentClient = {
+        type: typeKey,
+        config: type,
+        name: pick(NAMES),
+        location: pick(LOCATIONS),
+        drug,
+        amount,
+        price,
+        redFlags: type.redFlags.slice(0, rand(1, Math.min(3, type.redFlags.length)))
+      };
+      
+      renderClient();
+    }
+    
+    function renderClient() {
+      if (!currentClient) return;
+      
+      const c = currentClient;
+      const t = c.config;
+      const hasStock = gameState.inventory[c.drug] >= c.amount;
+      
+      document.getElementById('card-container').innerHTML = `
+        <div class="client-card" id="client-card">
+          <div class="swipe-indicator accept">DEAL ✓</div>
+          <div class="swipe-indicator reject">PASS ✗</div>
+          
+          <div class="card-header">
+            <div class="client-avatar">${t.emoji}</div>
+            <div class="client-info">
+              <h2 class="client-name">${c.name}</h2>
+              <p class="client-location">📍 ${c.location}</p>
+            </div>
+            <div class="risk-badge" style="background: ${getRiskColor(t.riskLevel)}; box-shadow: 0 0 15px ${getRiskColor(t.riskLevel)}40;">${t.riskLevel.toUpperCase()}</div>
+          </div>
+          
+          <div class="card-divider"></div>
+          
+          <div class="deal-details">
+            <div class="detail-row"><span class="detail-label">Wants</span><span class="detail-value">${c.amount}g ${c.drug.toUpperCase()}</span></div>
+            <div class="detail-row"><span class="detail-label">Offers</span><span class="detail-value money">${formatMoney(c.price)}</span></div>
+            <div class="detail-row"><span class="detail-label">Risk</span><span class="detail-value" style="color: ${getRiskColor(t.riskLevel)}">${t.risk}%</span></div>
+            <div class="detail-row"><span class="detail-label">Heat</span><span class="detail-value heat">+${t.heat} 🔥</span></div>
+          </div>
+          
+          <div class="card-divider"></div>
+          
+          <p class="client-description">"${pick(t.descriptions)}"</p>
+          
+          ${c.redFlags.length > 0 ? `
+            <div class="red-flags">
+              <span class="flags-label">⚠️ Red Flags:</span>
+              ${c.redFlags.map(f => `<span class="flag-tag">${f}</span>`).join('')}
+            </div>
+          ` : ''}
+          
+          <div class="inventory-check">
+            ${hasStock ? '<span class="in-stock">✓ In Stock</span>' : '<span class="out-of-stock">✗ Not Enough Product</span>'}
+          </div>
+        </div>
+      `;
+      
+      setupSwipeHandlers();
+    }
+    
+    // ===== SWIPE HANDLERS =====
+    function setupSwipeHandlers() {
+      const card = document.getElementById('client-card');
+      if (!card) return;
+      
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      
+      card.addEventListener('touchstart', e => {
+        if (isAnimating) return;
+        startX = e.touches[0].clientX;
+        isDragging = true;
+      });
+      
+      card.addEventListener('touchmove', e => {
+        if (!isDragging || isAnimating) return;
+        currentX = e.touches[0].clientX - startX;
+        
+        card.classList.remove('swiping-left', 'swiping-right');
+        if (currentX > 50) card.classList.add('swiping-right');
+        else if (currentX < -50) card.classList.add('swiping-left');
+      });
+      
+      card.addEventListener('touchend', () => {
+        if (!isDragging || isAnimating) return;
+        isDragging = false;
+        
+        if (currentX > 100) acceptDeal();
+        else if (currentX < -100) rejectDeal();
+        else card.classList.remove('swiping-left', 'swiping-right');
+        
+        currentX = 0;
+      });
+    }
+    
+    // ===== DEAL HANDLING =====
+    function acceptDeal() {
+      if (!currentClient || isAnimating) return;
+      
+      const c = currentClient;
+      const t = c.config;
+      
+      // Check inventory
+      if (gameState.inventory[c.drug] < c.amount) {
+        showOutcome(false, '❌', 'NO PRODUCT', 'Not enough stock!', 0, 0);
+        return;
+      }
+      
+      isAnimating = true;
+      const card = document.getElementById('client-card');
+      card.classList.add('exit-right');
+      
+      setTimeout(() => {
+        // Remove product
+        gameState.inventory[c.drug] -= c.amount;
+        
+        // Calculate outcome
+        const streakBonus = Math.min(gameState.streak * 2, 15);
+        const effectiveRisk = Math.max(5, t.risk - streakBonus);
+        const roll = Math.random() * 100;
+        
+        let success, emoji, title, message, moneyChange, heatChange;
+        
+        if (roll < effectiveRisk) {
+          // Bad outcome
+          const badOutcome = t.outcomes.filter(o => o !== 'success')[0] || 'robbery';
+          success = false;
+          
+          switch (badOutcome) {
+            case 'undercover':
+              emoji = '🚔'; title = 'BUSTED!'; message = 'Undercover cop!';
+              moneyChange = 0; heatChange = 40;
+              break;
+            case 'robbery':
+              emoji = '🔫'; title = 'ROBBED!'; message = 'They took your money!';
+              moneyChange = -Math.floor(c.price * 0.5); heatChange = 15;
+              break;
+            case 'snitch':
+              emoji = '🐀'; title = 'SNITCH!'; message = 'They\'re an informant!';
+              moneyChange = c.price; heatChange = 25;
+              break;
+            case 'overdose':
+              emoji = '💀'; title = 'OVERDOSE'; message = 'Customer OD\'d!';
+              moneyChange = c.price; heatChange = 20;
+              break;
+          }
+          
+          gameState.streak = 0;
+        } else {
+          // Success
+          success = true;
+          emoji = '💰';
+          title = 'DEAL COMPLETE';
+          const streakMult = 1 + (gameState.streak * 0.05);
+          moneyChange = Math.floor(c.price * streakMult);
+          heatChange = t.heat;
+          message = gameState.streak >= 3 ? `Streak x${gameState.streak + 1}!` : 'Money secured.';
+          
+          gameState.streak++;
+          gameState.successfulDeals++;
+        }
+        
+        gameState.money = Math.max(0, gameState.money + moneyChange);
+        gameState.heat = Math.min(100, Math.max(0, gameState.heat + heatChange));
+        gameState.dealsToday++;
+        if (moneyChange > 0) gameState.totalEarned += moneyChange;
+        
+        // Add XP
+        gameState.xp += Math.abs(moneyChange) / 10;
+        if (gameState.xp >= gameState.level * 1000) {
+          gameState.xp -= gameState.level * 1000;
+          gameState.level++;
+        }
+        
+        showOutcome(success, emoji, title, message, moneyChange, heatChange);
+      }, 300);
+    }
+    
+    function rejectDeal() {
+      if (!currentClient || isAnimating) return;
+      
+      isAnimating = true;
+      const card = document.getElementById('client-card');
+      card.classList.add('exit-left');
+      
+      gameState.dealsToday++;
+      
+      setTimeout(() => {
+        currentClient = null;
+        generateClient();
+        updateUI();
+        isAnimating = false;
+      }, 300);
+    }
+    
+    function showOutcome(success, emoji, title, message, moneyChange, heatChange) {
+      const container = document.getElementById('card-container');
+      container.innerHTML = `
+        <div class="outcome-card ${success ? 'success' : 'failure'}">
+          <div class="outcome-emoji">${emoji}</div>
+          <h2 class="outcome-title">${title}</h2>
+          <p class="outcome-message">${message}</p>
+          <div class="outcome-stats">
+            <div class="outcome-stat ${moneyChange >= 0 ? 'positive' : 'negative'}">${moneyChange >= 0 ? '+' : ''}${formatMoney(moneyChange)}</div>
+            ${heatChange > 0 ? `<div class="outcome-stat heat">+${heatChange} 🔥</div>` : ''}
+          </div>
+        </div>
+      `;
+      
+      updateUI();
+      
+      setTimeout(() => {
+        currentClient = null;
+        generateClient();
+        isAnimating = false;
+      }, 2000);
+    }
+    
+    // ===== INITIALIZATION =====
+    function init() {
+      // Render app icons
+      const grid = document.getElementById('app-grid');
+      grid.innerHTML = appIcons.map(app => `
+        <div class="app-icon ${!app.available ? 'locked' : ''}" onclick="${app.available ? `showScreen('${app.id}')` : ''}">
+          <div class="icon-container">
+            <span class="icon-emoji">${app.icon}</span>
+            ${!app.available ? '<div class="lock-overlay">🔒</div>' : ''}
+            ${app.badge ? `<div class="app-badge">${app.badge}</div>` : ''}
+          </div>
+          <span class="icon-label">${app.label}</span>
+        </div>
+      `).join('');
+      
+      // Start clock
+      updateClock();
+      setInterval(updateClock, 1000);
+      
+      // Initial UI update
+      updateUI();
+      
+      // Load saved state
+      const saved = localStorage.getItem('dealt-slide-state');
+      if (saved) {
+        Object.assign(gameState, JSON.parse(saved));
+        updateUI();
+      }
+      
+      // Auto-save
+      setInterval(() => {
+        localStorage.setItem('dealt-slide-state', JSON.stringify(gameState));
+      }, 5000);
+    }
+    
+    init();
+  </script>
+</body>
+</html>
