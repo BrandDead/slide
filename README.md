@@ -22,6 +22,18 @@
 
 ---
 
+## Branch: `repo-setup-optimized-v2`
+
+This branch contains the fully optimized repository structure, including all code from the initial setup plus the new additions from the second batch of files. The new additions include:
+
+- **Complete Combat System:** A full-fledged combat engine with types, utilities, a stateful service, a Zustand store, and Supabase Edge Functions for initiating and managing combat.
+- **Gang Member Creator:** A standalone React component for creating and customizing gang members with detailed attributes and AI-powered asset generation prompts.
+- **Advanced Location System:** A comprehensive system for block claiming, including frontend hooks and services, a detailed grid generator, and a Python backend with geocoding and API endpoints.
+- **Supabase Edge Functions:** A full suite of backend functions for handling core game logic like dealing, block claiming, and member recruitment.
+- **New Documentation & Prompts:** Updated design system, AI model assignments, and detailed prompts for generating the economy system and hub UI.
+
+---
+
 ## Repository Structure
 
 ```

@@ -4,9 +4,32 @@ This document outlines the UI components that are still needed to complete the c
 
 ---
 
+## UPDATE — February 16, 2026
+
+The following components have been **added** from the new batch of files:
+
+- **Combat System:** A complete combat system has been added, including types, utils, a service, a Zustand store, and Supabase Edge Functions. This is a major addition and provides a solid foundation for the SLIDE game mode.
+- **Gang Member Creator:** A full-featured gang member creator has been added as a React component. This allows for detailed character customization and generation of AI art prompts.
+- **Location System:** A comprehensive location and block claiming system has been added, including frontend services, hooks, and utilities, as well as a Python backend with geocoding and API endpoints.
+- **Supabase Edge Functions:** A suite of Edge Functions for core game logic (dealing, block claiming, member recruitment) has been added.
+
+### Remaining Missing Components
+
+While the new files provide a significant amount of new functionality, the following components are still missing and need to be built:
+
+- **UI for the new Combat System:** While the logic is in place, the UI for the SLIDE combat mode still needs to be built. The `SlideGame.tsx` component is currently a placeholder.
+- **UI for the new Location System:** The `TerritoryMap.tsx` component is still a placeholder and needs to be updated to use the new `location.service.ts` and `useBlockClaim.ts` hook.
+- **Integration of the Gang Member Creator:** The `GangMemberCreator.jsx` component needs to be integrated into the main application flow, likely within the `Contacts.tsx` or a new `CREW` app component.
+- **Economy System:** The prompt for the economy system has been added, but the code itself still needs to be generated and integrated.
+- **Real-time Multiplayer UI:** The backend for real-time notifications and presence has been added, but the frontend UI components (toasts, notification center, etc.) still need to be built.
+- **Casino Games:** The casino games (Blackjack, Craps, Slots) are still missing.
+- **Missions System:** The missions system is still missing.
+
+---
+
 ## 1. SLIDE Combat UI (`frontend/src/components/slide/`)
 
-**Core Logic Ready:** `dualGrid.ts`, `attackPatterns.ts`, `turnLogic.ts`, `gridFactory.ts`, `slide.types.ts`
+**Core Logic Ready:** `dualGrid.ts`, `attackPatterns.ts`, `turnLogic.ts`, `gridFactory.ts`, `slide.types.ts`, `combatTypes.ts`, `combatUtils.ts`, `combatService.ts`, `combatStore.ts`
 
 ### Components Needed:
 
@@ -37,7 +60,7 @@ This document outlines the UI components that are still needed to complete the c
 
 ## 3. Territory Map UI (`frontend/src/components/map/`)
 
-**Core Logic Ready:** `pasted_content.txt` contains a detailed guide for Mapbox integration.
+**Core Logic Ready:** `location.types.ts`, `location.service.ts`, `useBlockClaim.ts`, `gridGenerator.ts`, `mapbox.config.ts`
 
 ### Components Needed:
 
@@ -52,7 +75,7 @@ This document outlines the UI components that are still needed to complete the c
 
 ## 4. Authentication UI (`frontend/src/components/auth/`)
 
-**Core Logic Ready:** `supabase.ts` contains `authService` for signup and signin.
+**Core Logic Ready:** `authStore.ts`
 
 ### Components Needed:
 
@@ -64,7 +87,7 @@ This document outlines the UI components that are still needed to complete the c
 
 ## 5. Other UI Components
 
-- **Gang Management (`frontend/src/components/gang/`)**: UI to view member cards, stats, level progression, and assign them to blocks.
+- **Gang Management (`frontend/src/components/gang/`)**: UI to view member cards, stats, level progression, and assign them to blocks. `GangMemberCreator.jsx` is a great start.
 - **Economy/Shoebox (`frontend/src/components/economy/`)**: UI to view transactions, pay bail, and manage hospital bills.
 - **Casino Games (`frontend/src/components/casino/`)**: Phaser 3 integration for Blackjack, Craps, etc.
 - **Mission System (`frontend/src/components/missions/`)**: UI to view and track available missions.
@@ -91,6 +114,7 @@ import SlideGame from './components/slide/SlideGame';
 import DriveByEngine from './components/driveby/DriveByEngine';
 import AlchemyLab from './components/alchemy/AlchemyLab';
 import TerritoryMap from './components/map/TerritoryMap';
+import GangMemberCreator from './components/gang/GangMemberCreator';
 
 // Placeholder for other screens
 const PlaceholderScreen: React.FC<{ title: string; icon: string }> = ({ title, icon }) => {
@@ -129,6 +153,8 @@ const App: React.FC = () => {
         return <AlchemyLab key="alchemy" />;
       case 'map':
         return <TerritoryMap key="map" />;
+      case 'crew':
+        return <GangMemberCreator key="crew" />;
       // Add other cases for new components here
       case 'shoebox':
         return <PlaceholderScreen key="shoebox" title="SHOEBOX" icon="💰" />;
@@ -167,4 +193,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+```
 ```
