@@ -1,608 +1,681 @@
-// ============================================================
-// DEALT/SLIDE - Complete Game Type Definitions
-// ============================================================
+// ═══════════════════════════════════════════════════════════════════════════
+// DEALT/SLIDE - Core Game Types
+// ═══════════════════════════════════════════════════════════════════════════
 
-// ============ CORE ENUMS ============
+// ─────────────────────────────────────────────────────────────────────────────
+// REGION & LOCATION TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 
-export type CityRegion = 'miami' | 'nyc' | 'la' | 'chicago' | 'detroit' | 'nola' | 'atlanta' | 'houston';
+export type CityRegion = 'nyc' | 'la' | 'miami' | 'chicago' | 'detroit' | 'nola';
 
-export type MemberRole = 'shooter' | 'dealer' | 'enforcer' | 'driver' | 'lookout' | 'cook';
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
 
-export type MemberStatus = 'active' | 'injured' | 'hospitalized' | 'jailed' | 'dead' | 'defected' | 'backdoored';
-
-export type LoyaltyLevel = 'snake' | 'wavering' | 'neutral' | 'loyal' | 'ride_or_die' | 'blood_in_blood_out';
-
-export type MoraleLevel = 'critical' | 'very_low' | 'low' | 'neutral' | 'high' | 'very_high' | 'ride_or_die';
-
-export type ClientType = 'regular' | 'fiend' | 'prep_kid' | 'hustler' | 'celebrity' | 'undercover' | 'paranoid' | 'high_roller' | 'snitch' | 'robber';
-
-export type DrugType = 'weed' | 'coke' | 'crack' | 'pills' | 'molly' | 'shrooms' | 'lsd' | 'heroin' | 'meth' | 'lean';
-
-export type WeaponType = 'knife' | 'pistol' | 'revolver' | 'smg' | 'rifle' | 'shotgun' | 'draco';
-
-export type VehicleType = 'sedan' | 'coupe' | 'suv' | 'motorcycle' | 'lowrider' | 'truck';
-
-// ============ PLAYER ============
-
-export interface Player {
+export interface GeoBlock {
   id: string;
-  username: string;
-  email: string;
-  level: number;
-  xp: number;
-  xpToNextLevel: number;
-  money: number;
-  bankBalance: number;
-  heat: number;
-  reputation: number;
-  region: CityRegion;
-  gangName: string;
-  gangColor: string;
-  createdAt: string;
-  lastLogin: string;
-  settings: PlayerSettings;
+  address: string;
+  city: CityRegion;
+  coordinates: Coordinates;
+  boundingBox: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+  streetViewUrl?: string;
+  satelliteImageUrl?: string;
+  generatedAt: string;
 }
 
-export interface PlayerSettings {
-  notifications: boolean;
-  sound: boolean;
-  haptics: boolean;
-  autoSave: boolean;
-  darkMode: boolean;
+// ─────────────────────────────────────────────────────────────────────────────
+// BLOCK & TERRITORY TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Block {
+  id: string;
+  geoBlock: GeoBlock;
+  ownerId: string | null;
+  ownerGangId: string | null;
+  claimedAt: string | null;
+  
+  // Grid system
+  grid: BlockGrid;
+  
+  // Economics
+  trafficScore: number;      // 0-100, affects income
+  heatLevel: number;         // 0-5, police attention
+  incomePerTick: number;
+  
+  // Defenses
+  units: Unit[];
+  fortifications: Fortification[];
+  
+  // Metadata from real-world data
+  metadata: BlockMetadata;
 }
 
-// ============ GANG MEMBERS ============
+export interface BlockGrid {
+  width: number;              // Default 8
+  height: number;             // Default 8
+  tiles: Tile[][];
+  sidewalkTop: number[];      // Y coordinates of top sidewalk tiles
+  sidewalkBottom: number[];   // Y coordinates of bottom sidewalk tiles
+  streetRows: number[];       // Y coordinates of street tiles
+}
+
+export interface Tile {
+  x: number;
+  y: number;
+  type: TileType;
+  coverScore: number;         // 0.0-1.0 how much cover
+  visibilityScore: number;    // 0.0-1.0 how visible
+  distanceToStreet: number;
+  trafficModifier: number;
+  policeRisk: number;
+  environmentTags: EnvironmentTag[];
+  occupied: boolean;
+  occupantId: string | null;
+}
+
+export type TileType = 
+  | 'street'
+  | 'sidewalk'
+  | 'building'
+  | 'alley'
+  | 'corner'
+  | 'storefront'
+  | 'parking'
+  | 'vacant';
+
+export type EnvironmentTag = 
+  | 'corner'
+  | 'alley'
+  | 'storefront'
+  | 'residential'
+  | 'commercial'
+  | 'industrial'
+  | 'high_traffic'
+  | 'low_visibility'
+  | 'cover_heavy'
+  | 'open_area';
+
+export interface BlockMetadata {
+  neighborhood: string;
+  zoning: 'residential' | 'commercial' | 'industrial' | 'mixed';
+  avgBuildingHeight: number;
+  hasAlleys: boolean;
+  cornerBlock: boolean;
+  nearbyPOI: string[];
+  crimeIndex: number;         // Historical crime data weight
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNIT & CHARACTER TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type UnitType = 'dealer' | 'shooter' | 'driver' | 'lookout' | 'enforcer';
+export type UnitStatus = 'idle' | 'working' | 'combat' | 'wounded' | 'dead' | 'arrested' | 'hiding';
+
+export interface Unit {
+  id: string;
+  type: UnitType;
+  gangMemberId: string;       // Reference to GangMember
+  
+  // Position
+  blockId: string;
+  position: { x: number; y: number } | null;
+  
+  // Stats (derived from GangMember + modifiers)
+  health: number;
+  maxHealth: number;
+  accuracy: number;           // 0.0-1.0
+  nerve: number;              // 0.0-1.0, affects combat under pressure
+  speed: number;
+  
+  // Equipment
+  weaponId: string | null;
+  armorLevel: number;
+  
+  // State
+  status: UnitStatus;
+  assignedTask: string | null;
+}
 
 export interface GangMember {
   id: string;
+  gangId: string;
+  
+  // Identity
   name: string;
-  nickname?: string;
-  role: MemberRole;
-  status: MemberStatus;
+  nickname: string;
+  avatarUrl: string;
+  backstory: string;
+  
+  // Demographics
+  age: number;
+  region: CityRegion;
+  
+  // Core stats
+  stats: MemberStats;
+  
+  // Progression
   level: number;
-  xp: number;
+  experience: number;
+  skillPoints: number;
+  skills: Skill[];
   
-  // Stats
-  shooting: number;
-  driving: number;
-  dealing: number;
-  loyalty: number;
-  morale: number;
-  heatResistance: number;
-  stealth: number;
+  // Relationships
+  loyalty: number;            // 0-100
+  morale: number;             // 0-100
+  respect: number;            // 0-100
   
-  // Health
-  health: number;
-  maxHealth: number;
-  armor: number;
+  // History
+  kills: number;
+  arrests: number;
+  dealsCompleted: number;
+  moneyEarned: number;
   
-  // Equipment
-  weapon?: Weapon;
-  weaponMods: WeaponMod[];
-  gear: TacticalGear[];
-  vehicle?: Vehicle;
-  inventory: InventoryItem[];
-  
-  // Appearance
-  appearance: MemberAppearance;
-  customAvatarUrl?: string; // For friend selfie uploads
-  
-  // Backstory & Connections
-  backstory: MemberBackstory;
-  connections: MemberConnection[];
-  
-  // Assignment
-  assignedBlockId?: string;
-  position?: GridPosition;
-  
-  // Meta
-  hiredAt: string;
-  deathDate?: string;
-  deathCause?: string;
-  killedBy?: string;
+  // Status
+  status: MemberStatus;
+  currentAssignment: string | null;
+  joinedAt: string;
 }
 
-export interface MemberAppearance {
-  gender: 'male' | 'female';
-  skinTone: string;
-  hairStyle: string;
-  hairColor: string;
-  facialHair?: string;
-  headwear?: string;
-  eyewear?: string;
-  jewelry: string[];
-  tattoos: Tattoo[];
-  top: string;
-  outerwear?: string;
-  bottom: string;
-  shoes: string;
-  gangColorAccent: boolean;
+export interface MemberStats {
+  strength: number;
+  agility: number;
+  intelligence: number;
+  charisma: number;
+  luck: number;
+  intimidation: number;
 }
 
-export interface Tattoo {
-  placement: string;
-  design: string;
-}
+export type MemberStatus = 
+  | 'active'
+  | 'injured'
+  | 'hospitalized'
+  | 'arrested'
+  | 'on_the_run'
+  | 'dead'
+  | 'missing';
 
-export interface MemberBackstory {
-  origin: string;
-  reason: string; // Why they're in the game
-  struggles: string[];
-  personality: string[];
-  skills: string[];
-  quirks: string[];
-  dreams: string[];
-  fears: string[];
-}
-
-export interface MemberConnection {
+export interface Skill {
   id: string;
   name: string;
-  relationship: 'family' | 'friend' | 'romantic' | 'rival' | 'enemy';
-  type: 'mother' | 'father' | 'sibling' | 'child' | 'spouse' | 'bestfriend' | 'homie' | 'ex';
-  status: 'alive' | 'dead' | 'missing' | 'jailed';
-  canBeTargeted: boolean;
-  locationKnown: boolean;
-  blockId?: string;
+  category: SkillCategory;
+  level: number;
+  maxLevel: number;
+  effect: string;
+  unlockRequirement?: string;
 }
 
-// ============ EQUIPMENT ============
+export type SkillCategory = 
+  | 'combat'
+  | 'dealing'
+  | 'driving'
+  | 'alchemy'
+  | 'leadership'
+  | 'stealth';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WEAPON & EQUIPMENT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface Weapon {
   id: string;
   name: string;
   type: WeaponType;
+  tier: 'common' | 'uncommon' | 'rare' | 'legendary';
+  
+  // Combat stats
   damage: number;
-  accuracy: number;
-  fireRate: number;
-  clipSize: number;
+  accuracy: number;           // Base accuracy modifier
   range: number;
-  icon: string;
-  price: number;
-  requiredLevel: number;
-}
-
-export interface WeaponMod {
-  id: string;
-  name: string;
-  type: 'extended_mag' | 'drum_mag' | 'double_drum' | 'silencer' | 'laser' | 'red_dot' | 'scope' | 'grip' | 'stock';
-  bonusDamage: number;
-  bonusAccuracy: number;
-  bonusClipSize: number;
-  price: number;
-}
-
-export interface TacticalGear {
-  id: string;
-  name: string;
-  type: 'vest' | 'helmet' | 'backpack' | 'gloves' | 'boots';
-  defense: number;
-  capacity?: number;
-  icon: string;
-  price: number;
-}
-
-export interface Vehicle {
-  id: string;
-  name: string;
-  type: VehicleType;
-  speed: number;
-  armor: number;
-  capacity: number; // Crew members
-  icon: string;
-  price: number;
-}
-
-export interface InventoryItem {
-  id: string;
-  type: 'drug' | 'weapon' | 'gear' | 'consumable' | 'key_item';
-  itemId: string;
-  quantity: number;
-}
-
-// ============ BLOCKS & TERRITORY ============
-
-export interface Block {
-  id: string;
-  address: string;
-  city: CityRegion;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  ownerId?: string;
-  ownerName?: string;
-  gangColor?: string;
+  fireRate: number;
+  penetration: number;        // Armor piercing
+  chaosFactor: number;        // How much randomness in outcomes
   
-  // Stats
-  traffic: number; // 1-100, determines income
-  heat: number;
-  reputation: number;
-  income: number; // Per hour
-  
-  // Units
-  units: BlockUnit[];
-  maxUnits: number;
+  // Characteristics
+  caliber: string;
+  magazineSize: number;
+  reloadTime: number;
+  concealability: number;     // 0-1, affects heat
   
   // Visual
-  imageUrl?: string;
-  gridLayout: GridCell[][];
-  
-  // Combat
-  inCombat: boolean;
-  contestedBy?: string;
-  
-  // Meta
-  claimedAt?: string;
-  lastAttacked?: string;
+  spriteUrl: string;
+  soundEffect: string;
 }
 
-export interface BlockUnit {
-  memberId: string;
-  memberName: string;
-  role: MemberRole;
-  position: GridPosition;
-  health: number;
-  maxHealth: number;
-}
+export type WeaponType = 
+  | 'pistol'
+  | 'revolver'
+  | 'smg'
+  | 'shotgun'
+  | 'rifle'
+  | 'assault_rifle'
+  | 'sniper'
+  | 'melee';
 
-export interface GridPosition {
-  row: number;
-  col: number;
-}
-
-export interface GridCell {
-  row: number;
-  col: number;
-  type: 'sidewalk' | 'street' | 'building' | 'alley' | 'corner';
-  occupied: boolean;
-  occupantId?: string;
-  visible: boolean; // Fog of war
-  hazard?: string;
-}
-
-// ============ DEALT MODE (Dealing) ============
-
-export interface Client {
+export interface Fortification {
   id: string;
-  type: ClientType;
-  name: string;
-  avatar: string;
-  description: string;
-  requestedDrug: DrugType;
-  requestedAmount: number;
-  offerPrice: number;
-  marketPrice: number;
-  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
-  redFlags: string[];
-  trustScore: number;
-  heatImpact: number;
-}
-
-export interface DealOutcome {
-  success: boolean;
-  type: 'success' | 'undercover' | 'robbery' | 'snitch' | 'overdose' | 'refused';
-  message: string;
-  moneyChange: number;
-  heatChange: number;
-  xpGained: number;
-  streakBonus: number;
-  consequences?: DealConsequence[];
-}
-
-export interface DealConsequence {
-  type: 'arrest' | 'injury' | 'reputation_loss' | 'member_captured' | 'block_raided';
-  severity: number;
-  description: string;
-}
-
-// ============ SLIDE MODE (Combat) ============
-
-export interface CombatSession {
-  id: string;
-  attackerId: string;
-  defenderId: string;
-  blockId: string;
-  phase: 'placement' | 'combat' | 'resolution';
-  turn: 'attacker' | 'defender';
-  turnNumber: number;
-  
-  attackerGrid: CombatGrid;
-  defenderGrid: CombatGrid;
-  
-  attackerUnits: CombatUnit[];
-  defenderUnits: CombatUnit[];
-  
-  combatLog: CombatLogEntry[];
-  
-  startedAt: string;
-  lastAction: string;
-  outcome?: CombatOutcome;
-}
-
-export interface CombatGrid {
-  cells: GridCell[][];
-  fogOfWar: boolean[][];
-  revealedCells: GridPosition[];
-}
-
-export interface CombatUnit {
-  memberId: string;
-  name: string;
-  role: MemberRole;
-  position: GridPosition;
+  type: FortificationType;
+  position: { x: number; y: number };
   health: number;
-  maxHealth: number;
-  weapon: Weapon;
-  hasMoved: boolean;
-  hasAttacked: boolean;
-  isRevealed: boolean;
+  coverBonus: number;
+  visibilityReduction: number;
 }
 
-export interface CombatLogEntry {
-  turn: number;
-  actor: string;
-  action: 'move' | 'attack' | 'counter' | 'kill' | 'retreat' | 'special';
-  target?: string;
-  position?: GridPosition;
-  damage?: number;
-  result: string;
-  timestamp: string;
-}
+export type FortificationType = 
+  | 'sandbags'
+  | 'barricade'
+  | 'lookout_post'
+  | 'stash_house'
+  | 'trap';
 
-export interface CombatOutcome {
-  winner: 'attacker' | 'defender' | 'draw';
-  attackerCasualties: string[];
-  defenderCasualties: string[];
-  territoryChanged: boolean;
-  lootCaptured: InventoryItem[];
-  xpGained: { attacker: number; defender: number };
-  reputationChange: { attacker: number; defender: number };
-}
-
-// ============ ALCHEMY MODE (Crafting) ============
+// ─────────────────────────────────────────────────────────────────────────────
+// DRUG & ALCHEMY TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface Drug {
   id: string;
   name: string;
-  type: DrugType;
-  tier: 1 | 2 | 3 | 4 | 5;
+  streetName: string;
+  tier: 'base' | 'processed' | 'premium' | 'designer';
+  
+  // Economics
   basePrice: number;
-  ingredients?: string[];
-  effects: string[];
-  icon: string;
+  volatility: number;         // Price fluctuation
+  demand: number;
+  
+  // Risk
+  heatGeneration: number;     // How much heat per sale
+  addictionRate: number;
+  
+  // Production
+  recipe?: Recipe;
+  
+  // Visual
+  iconUrl: string;
   color: string;
-  description: string;
 }
 
 export interface Recipe {
   id: string;
   name: string;
-  inputs: { drugId: string; amount: number }[];
-  output: { drugId: string; amount: number };
-  unlocked: boolean;
-  discovered: boolean;
-  successRate: number;
-  craftTime: number; // seconds
+  outputDrugId: string;
+  outputQuantity: number;
+  
+  ingredients: RecipeIngredient[];
+  
+  craftingTime: number;       // Seconds
+  difficultyLevel: number;
+  failureChance: number;
+  
+  discoveredBy: string | null;
 }
 
-export interface CraftingSession {
-  recipeId: string;
-  startedAt: string;
-  completesAt: string;
-  success?: boolean;
-  output?: Drug;
+export interface RecipeIngredient {
+  drugId: string;
+  quantity: number;
 }
 
-// ============ DRIVE-BY MODE (FPS) ============
+// ─────────────────────────────────────────────────────────────────────────────
+// COMBAT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
 
-export interface DriveBySession {
+export interface CombatSession {
   id: string;
-  blockId: string;
-  vehicleId: string;
-  crew: string[];
+  type: 'slide' | 'driveby' | 'raid' | 'defense';
   
-  // Game state
-  phase: 'approach' | 'combat' | 'escape' | 'complete';
-  score: number;
-  combo: number;
-  ammo: number;
-  maxAmmo: number;
+  attackerId: string;
+  defenderId: string;
+  targetBlockId: string;
   
-  // Targets
-  enemies: DriveByEnemy[];
-  civilians: DriveByEnemy[];
+  state: CombatState;
+  
+  startedAt: string;
+  endedAt: string | null;
   
   // Results
-  enemiesKilled: number;
-  civiliansKilled: number;
-  damageDealt: number;
-  damageTaken: number;
-  
-  heatGained: number;
-  moneyEarned: number;
-  xpEarned: number;
+  outcome: CombatOutcome | null;
+  casualties: Casualty[];
+  combatLog: CombatEvent[];
 }
 
-export interface DriveByEnemy {
+export type CombatState = 
+  | 'preparing'
+  | 'in_progress'
+  | 'resolving'
+  | 'completed'
+  | 'aborted';
+
+export interface CombatOutcome {
+  winner: 'attacker' | 'defender' | 'draw';
+  territoryTransferred: boolean;
+  attackerCasualties: number;
+  defenderCasualties: number;
+  moneyLost: number;
+  moneyGained: number;
+  heatGenerated: number;
+  experienceGained: number;
+}
+
+export interface Casualty {
+  unitId: string;
+  memberId: string;
+  result: 'wounded' | 'critical' | 'dead' | 'captured';
+  causedBy: string | null;
+}
+
+export interface CombatEvent {
   id: string;
-  type: 'rival_gang' | 'cop' | 'civilian' | 'armored' | 'boss';
-  position: { x: number; y: number; layer: number };
-  health: number;
-  maxHealth: number;
-  pointValue: number;
-  isCivilian: boolean;
-  behavior: 'stationary' | 'moving' | 'ducking' | 'shooting_back';
-  sprite: string;
+  timestamp: string;
+  type: CombatEventType;
+  
+  actorId: string;
+  targetId: string | null;
+  
+  tile?: { x: number; y: number };
+  
+  weaponUsed?: string;
+  result: CombatEventResult;
+  
+  details: Record<string, unknown>;
 }
 
-// ============ ECONOMY ============
+export type CombatEventType = 
+  | 'shot_fired'
+  | 'hit'
+  | 'miss'
+  | 'graze'
+  | 'critical_hit'
+  | 'kill'
+  | 'wounded'
+  | 'move'
+  | 'reload'
+  | 'take_cover'
+  | 'return_fire'
+  | 'vehicle_move'
+  | 'vehicle_damaged'
+  | 'police_arrival'
+  | 'retreat';
+
+export interface CombatEventResult {
+  success: boolean;
+  damage?: number;
+  hitProbability?: number;
+  actualRoll?: number;
+  modifiers?: CombatModifier[];
+}
+
+export interface CombatModifier {
+  source: string;
+  value: number;
+  type: 'accuracy' | 'damage' | 'cover' | 'distance' | 'chaos';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DRIVE-BY SPECIFIC TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface DriveBySession extends CombatSession {
+  vehicle: Vehicle;
+  route: DriveByRoute;
+  speed: number;
+  passengers: DriveByPassenger[];
+}
+
+export interface Vehicle {
+  id: string;
+  type: VehicleType;
+  seats: number;
+  armor: number;
+  speed: number;
+  handling: number;
+  health: number;
+}
+
+export type VehicleType = 
+  | 'sedan'
+  | 'suv'
+  | 'sports'
+  | 'van'
+  | 'motorcycle';
+
+export interface DriveByRoute {
+  startPosition: { x: number; y: number };
+  endPosition: { x: number; y: number };
+  waypoints: { x: number; y: number }[];
+  estimatedDuration: number;
+}
+
+export interface DriveByPassenger {
+  unitId: string;
+  seat: 'driver' | 'front_passenger' | 'back_left' | 'back_right';
+  canShoot: boolean;
+  firingArc: { min: number; max: number };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEALER MODE TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface DealerClient {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  
+  // Request
+  drugRequested: string;
+  quantity: number;
+  offerPrice: number;
+  
+  // Risk assessment
+  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
+  isCop: boolean;
+  isRobber: boolean;
+  isAddict: boolean;
+  
+  // Timing
+  patience: number;           // Seconds before they leave
+  expiresAt: string;
+  
+  // Location
+  location: string;
+  distanceFromBlock: number;
+}
+
+export interface DealResult {
+  clientId: string;
+  accepted: boolean;
+  
+  revenue?: number;
+  profit?: number;
+  heatGenerated?: number;
+  
+  outcome?: 'success' | 'busted' | 'robbed' | 'shortchanged';
+  
+  consequences?: DealConsequence[];
+}
+
+export interface DealConsequence {
+  type: 'heat_increase' | 'money_lost' | 'member_arrested' | 'reputation_change';
+  value: number;
+  description: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GANG & ORGANIZATION TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Gang {
+  id: string;
+  name: string;
+  tag: string;                // 2-4 letter tag
+  colorPrimary: string;
+  colorSecondary: string;
+  region: CityRegion;
+  
+  // Leadership
+  leaderId: string;
+  foundedAt: string;
+  
+  // Members
+  memberCount: number;
+  maxMembers: number;
+  
+  // Territory
+  blocksOwned: string[];
+  influence: number;
+  
+  // Economics
+  bankroll: number;
+  dailyIncome: number;
+  
+  // Reputation
+  respect: number;
+  fear: number;
+  heat: number;
+  
+  // Alliances
+  allies: string[];
+  enemies: string[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USER & PLAYER TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  
+  // Game state
+  gangId: string | null;
+  homeBlockId: string | null;
+  
+  // Resources
+  cash: number;
+  reputation: number;
+  
+  // Stats
+  totalEarnings: number;
+  blocksClaimedTotal: number;
+  combatWins: number;
+  combatLosses: number;
+  
+  // Progression
+  level: number;
+  experience: number;
+  
+  // Settings
+  settings: UserSettings;
+  
+  // Timestamps
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+export interface UserSettings {
+  notifications: boolean;
+  soundEnabled: boolean;
+  musicEnabled: boolean;
+  hapticFeedback: boolean;
+  language: string;
+  theme: 'dark' | 'light' | 'system';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEAT & POLICE TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface HeatState {
+  blockId: string;
+  currentLevel: number;       // 0-5
+  decayRate: number;
+  
+  recentEvents: HeatEvent[];
+  policePresence: PolicePresence;
+  
+  raidProbability: number;
+  nextDecayAt: string;
+}
+
+export interface HeatEvent {
+  id: string;
+  type: 'deal' | 'combat' | 'murder' | 'noise' | 'report';
+  heatGenerated: number;
+  timestamp: string;
+}
+
+export interface PolicePresence {
+  level: 'none' | 'patrol' | 'watching' | 'active' | 'raid';
+  unitsInArea: number;
+  responseTime: number;       // Seconds
+  alertness: number;
+}
+
+export interface Raid {
+  id: string;
+  blockId: string;
+  triggeredBy: string;
+  
+  policeUnits: number;
+  difficulty: number;
+  
+  state: 'incoming' | 'in_progress' | 'escaped' | 'busted';
+  
+  startedAt: string;
+  endedAt: string | null;
+  
+  casualties: Casualty[];
+  arrestsMade: string[];
+  assetsSeized: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ECONOMY TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MarketState {
+  drugPrices: Record<string, DrugPriceInfo>;
+  lastUpdated: string;
+  volatilityIndex: number;
+}
+
+export interface DrugPriceInfo {
+  drugId: string;
+  currentPrice: number;
+  previousPrice: number;
+  priceChange: number;
+  trend: 'rising' | 'falling' | 'stable';
+  supply: number;
+  demand: number;
+}
 
 export interface Transaction {
   id: string;
-  type: 'income' | 'expense' | 'transfer' | 'deal' | 'purchase' | 'loot';
+  type: TransactionType;
+  
+  userId: string;
   amount: number;
-  description: string;
-  category: string;
-  relatedEntityId?: string;
-  timestamp: string;
-}
-
-export interface MarketListing {
-  id: string;
-  type: 'weapon' | 'drug' | 'gear' | 'vehicle' | 'member' | 'intel';
-  itemId: string;
-  name: string;
-  description: string;
-  price: number;
-  sellerId?: string;
-  quantity: number;
-  available: boolean;
-}
-
-export interface Bill {
-  id: string;
-  name: string;
-  amount: number;
-  dueDate: string;
-  recurring: boolean;
-  frequency?: 'daily' | 'weekly' | 'monthly';
-  autoPay: boolean;
-  paid: boolean;
-}
-
-// ============ MISSIONS ============
-
-export interface Mission {
-  id: string;
-  type: 'slide' | 'stalk' | 'deal' | 'collect' | 'defend' | 'escort' | 'hit';
-  name: string;
-  description: string;
-  objectives: MissionObjective[];
-  rewards: MissionReward;
-  difficulty: 1 | 2 | 3 | 4 | 5;
-  requiredLevel: number;
-  assignedMembers: string[];
-  status: 'available' | 'active' | 'completed' | 'failed';
-  startedAt?: string;
-  completedAt?: string;
-  expiresAt?: string;
-}
-
-export interface MissionObjective {
-  id: string;
-  description: string;
-  type: 'kill' | 'collect' | 'reach' | 'survive' | 'earn';
-  target: string | number;
-  current: string | number;
-  completed: boolean;
-}
-
-export interface MissionReward {
-  money: number;
-  xp: number;
-  reputation: number;
-  items?: InventoryItem[];
-  unlocks?: string[];
-}
-
-// ============ NOTIFICATIONS ============
-
-export interface Notification {
-  id: string;
-  type: 'attack_incoming' | 'attack_result' | 'block_income' | 'member_event' | 'mission_complete' | 'level_up' | 'market' | 'system';
-  title: string;
-  message: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  read: boolean;
-  actionUrl?: string;
+  
+  details: Record<string, unknown>;
+  
   createdAt: string;
 }
 
-// ============ CONTACT BOOK ============
-
-export interface Contact {
-  id: string;
-  memberId: string;
-  name: string;
-  nickname?: string;
-  role: MemberRole;
-  status: MemberStatus;
-  avatar: string;
-  lastSeen?: string;
-  notes: string[];
-  tags: string[];
-  
-  // Status indicators
-  statusEmoji: string; // 💀 dead, ⛓️ jailed, 🔙 backdoored
-  
-  // History
-  hireDate: string;
-  deathDate?: string;
-  deathCause?: string;
-  killedBy?: string;
-  backdooredBy?: string;
-  
-  // Stats at time of death/capture
-  finalStats?: {
-    level: number;
-    kills: number;
-    deals: number;
-    earnings: number;
-  };
-}
-
-// ============ MORALE & LOYALTY EVENTS ============
-
-export interface MoraleEvent {
-  id: string;
-  memberId: string;
-  type: 'positive' | 'negative';
-  category: string;
-  description: string;
-  moraleChange: number;
-  loyaltyChange: number;
-  timestamp: string;
-}
-
-export interface GetBackRequest {
-  id: string;
-  memberId: string;
-  memberName: string;
-  targetType: 'revenge' | 'rescue' | 'retaliation';
-  targetId: string;
-  targetName: string;
-  reason: string;
-  urgency: 'low' | 'medium' | 'high' | 'critical';
-  deadline?: string;
-  loyaltyPenaltyIfIgnored: number;
-  moralePenaltyIfIgnored: number;
-  status: 'pending' | 'accepted' | 'completed' | 'failed' | 'ignored';
-  createdAt: string;
-}
-
-// ============ FRIEND SELFIE SYSTEM ============
-
-export interface SelfieUpload {
-  id: string;
-  imageUrl: string;
-  processedUrl?: string;
-  faceData?: FaceData;
-  status: 'pending' | 'processing' | 'ready' | 'failed';
-  uploadedAt: string;
-}
-
-export interface FaceData {
-  landmarks: { [key: string]: { x: number; y: number } };
-  skinTone: string;
-  estimatedAge: number;
-  gender: 'male' | 'female';
-  facialHair?: string;
-  hairColor?: string;
-}
-
-export interface GeneratedMemberFromSelfie extends GangMember {
-  selfieId: string;
-  resemblanceScore: number; // How closely AI matched the selfie
-  generatedBackstoryId: string;
-}
+export type TransactionType = 
+  | 'deal_income'
+  | 'block_income'
+  | 'combat_loot'
+  | 'purchase'
+  | 'salary'
+  | 'bribe'
+  | 'tax'
+  | 'asset_seized';
