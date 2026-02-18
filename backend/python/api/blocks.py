@@ -462,3 +462,67 @@ def regenerate_block_grid(block_id: str):
     except Exception as e:
         logger.error(f"Grid regeneration failed: {e}")
         return jsonify({'error': 'Regeneration failed'}), 500
+
+
+# ============================================================================
+# BLOCK SNAPSHOT ROUTES (for BlockStateEngine integration)
+# ============================================================================
+
+@blocks_bp.route('/<block_id>/snapshot', methods=['GET'])
+@require_auth
+def get_block_snapshot_endpoint(block_id: str):
+    """
+    Get immutable snapshot of block state.
+    Used by combat, drive-by, and other systems.
+    
+    Query params:
+        snapshot_id: Optional specific snapshot UUID
+    
+    Returns:
+        BlockSnapshot with complete state
+    """
+    try:
+        from services.block_state_engine import get_block_state_engine
+        
+        snapshot_id = request.args.get('snapshot_id')
+        
+        engine = get_block_state_engine()
+        snapshot = engine.get_block_snapshot(block_id, snapshot_id)
+        
+        if not snapshot:
+            return jsonify({'error': 'Snapshot not found'}), 404
+        
+        return jsonify(snapshot.to_dict())
+        
+    except Exception as e:
+        logger.error(f"Failed to get snapshot: {e}")
+        return jsonify({'error': 'Failed to get snapshot'}), 500
+
+
+@blocks_bp.route('/<block_id>/snapshot', methods=['POST'])
+@require_auth
+def create_block_snapshot_endpoint(block_id: str):
+    """
+    Create and persist a new immutable snapshot.
+    Called at combat start to freeze block state.
+    
+    Returns:
+        snapshot_id
+    """
+    try:
+        from services.block_state_engine import get_block_state_engine
+        
+        engine = get_block_state_engine()
+        snapshot_id = engine.create_snapshot(block_id)
+        
+        if not snapshot_id:
+            return jsonify({'error': 'Failed to create snapshot'}), 500
+        
+        return jsonify({
+            'snapshot_id': snapshot_id,
+            'block_id': block_id
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Failed to create snapshot: {e}")
+        return jsonify({'error': 'Failed to create snapshot'}), 500
