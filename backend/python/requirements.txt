@@ -19,7 +19,7 @@ requests==2.31.0
 urllib3==2.6.3
 
 # Image processing (for OCR and drip check)
-Pillow==10.3.0
+Pillow==12.1.1
 pytesseract==0.3.10
 
 # Utilities

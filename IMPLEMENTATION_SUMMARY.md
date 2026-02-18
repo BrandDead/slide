@@ -124,7 +124,7 @@ Run with: `npm run seed`
 
 ### Dependency Security
 ✅ **All Vulnerabilities Patched**
-- Pillow upgraded: 10.1.0 → 10.3.0 (fixes buffer overflow)
+- Pillow upgraded: 10.1.0 → 12.1.1 (fixes buffer overflow + PSD out-of-bounds write)
 - urllib3 upgraded: 2.1.0 → 2.6.3 (fixes 3 decompression vulnerabilities)
 
 ### Code Review
