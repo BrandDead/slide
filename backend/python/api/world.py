@@ -51,7 +51,12 @@ def advance_world():
     """
     try:
         data = request.json or {}
-        minutes = min(int(data.get('minutes', 10)), 60)  # Max 1 hour per tick
+        
+        try:
+            minutes = min(int(data.get('minutes', 10)), 60)  # Max 1 hour per tick
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid minutes value'}), 400
+        
         target_user_id = data.get('user_id', request.user_id)
         
         logger.info(f"Processing world tick: {minutes} minutes for user {target_user_id}")

@@ -72,10 +72,20 @@ async function seed() {
 
     // 2. Create demo users
     console.log('👤 Creating users...');
+    
+    // Generate random UUIDs for demo accounts (never use hardcoded UUIDs in production)
+    const generateUUID = () => {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    };
+    
     const { data: playerUser, error: userError1 } = await supabase
       .from('users')
       .insert({
-        auth_id: '00000000-0000-0000-0000-000000000001',
+        auth_id: generateUUID(),
         username: 'demo_player',
         email: 'demo@slide.local',
         gang_id: playerGang.id,
@@ -102,7 +112,7 @@ async function seed() {
     const { data: npcUser, error: userError2 } = await supabase
       .from('users')
       .insert({
-        auth_id: '00000000-0000-0000-0000-000000000002',
+        auth_id: generateUUID(),
         username: 'npc_boss',
         email: 'npc@slide.local',
         gang_id: npcGang.id,

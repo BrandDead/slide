@@ -282,8 +282,8 @@ def _resolve_driveby_shot(
     tx = target_tile.get('x', 0)
     ty = target_tile.get('y', 0)
     
-    # Find target on tile
-    if ty >= len(snapshot.tiles) or tx >= len(snapshot.tiles[ty]):
+    # Check bounds first
+    if ty < 0 or ty >= len(snapshot.tiles) or tx < 0 or (ty < len(snapshot.tiles) and tx >= len(snapshot.tiles[ty])):
         return {
             'hit': False,
             'reason': 'Invalid tile',

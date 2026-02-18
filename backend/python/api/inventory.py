@@ -169,7 +169,10 @@ def buy_item():
         data = request.json
         
         item_id = data.get('item_id')
-        quantity = int(data.get('quantity', 1))
+        try:
+            quantity = int(data.get('quantity', 1))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid quantity value'}), 400
         
         if not item_id or item_id not in MARKET_ITEMS:
             return jsonify({'error': 'Invalid item'}), 400
