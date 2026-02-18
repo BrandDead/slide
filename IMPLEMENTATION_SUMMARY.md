@@ -122,6 +122,11 @@ Run with: `npm run seed`
 - No path traversal issues
 - No hardcoded secrets
 
+### Dependency Security
+✅ **All Vulnerabilities Patched**
+- Pillow upgraded: 10.1.0 → 10.3.0 (fixes buffer overflow)
+- urllib3 upgraded: 2.1.0 → 2.6.3 (fixes 3 decompression vulnerabilities)
+
 ### Code Review
 ✅ **All 6 Issues Addressed**
 1. ✅ Fixed deprecated `substr()` → `substring()`
