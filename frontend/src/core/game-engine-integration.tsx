@@ -21,7 +21,7 @@ class GameEventBus {
   
   // Subscribe to an event
   on(event: string, callback: EventCallback): () => void {
-    const id = `${event}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = `${event}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     if (!this.events.has(event)) {
       this.events.set(event, []);

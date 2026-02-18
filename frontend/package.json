@@ -6,24 +6,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "cd ../backend/python && python app.py",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\" --names \"frontend,backend\" --prefix-colors \"cyan,yellow\"",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "tsx src/scripts/seed.ts",
+    "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "framer-motion": "^10.16.16",
+    "mapbox-gl": "^3.0.1",
+    "phaser": "^3.70.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "zustand": "^4.4.7",
-    "framer-motion": "^10.16.16",
-    "mapbox-gl": "^3.0.1",
-    "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "socket.io-client": "^4.7.2",
-    "@supabase/supabase-js": "^2.39.0",
-    "phaser": "^3.70.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@types/node": "^20.10.6",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/uuid": "^9.0.7",
@@ -31,11 +36,14 @@
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.3.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   }
