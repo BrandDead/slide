@@ -10,7 +10,9 @@ import logging
 
 from services.geocoding_service import get_geocoding_service, GeocodingService
 from services.grid_generator import generate_block_grid, GridConfig
-from models.block import Block, SUPPORTED_CITIES
+# from models.block import Block, SUPPORTED_CITIES  # Commented out - using Supabase now
+
+SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 
 logger = logging.getLogger(__name__)
 
@@ -433,35 +435,38 @@ def regenerate_block_grid(block_id: str):
     Returns:
         Updated block with new grid
     """
-    user_id = request.user_id
+    # TODO: Implement with Supabase instead of SQLAlchemy
+    return jsonify({'error': 'Not implemented yet - use Supabase'}), 501
     
-    try:
-        block = Block.query.get(block_id)
-        
-        if not block:
-            return jsonify({'error': 'Block not found'}), 404
-        
-        if str(block.owner_id) != user_id:
-            return jsonify({'error': 'Not authorized'}), 403
-        
-        # Generate new grid with new seed
-        grid_result = generate_block_grid(
-            city=block.city,
-            traffic_score=block.traffic_score,
-        )
-        
-        block.grid_data = grid_result.to_dict()
-        block.cover_density = grid_result.stats.get('averageCover', 0.3)
-        block.generation_version = '1.0.1'  # Increment version
-        
-        from extensions import db
-        db.session.commit()
-        
-        return jsonify(block.to_dict(include_grid=True))
-    
-    except Exception as e:
-        logger.error(f"Grid regeneration failed: {e}")
-        return jsonify({'error': 'Regeneration failed'}), 500
+    # user_id = request.user_id
+    # 
+    # try:
+    #     block = Block.query.get(block_id)
+    #     
+    #     if not block:
+    #         return jsonify({'error': 'Block not found'}), 404
+    #     
+    #     if str(block.owner_id) != user_id:
+    #         return jsonify({'error': 'Not authorized'}), 403
+    #     
+    #     # Generate new grid with new seed
+    #     grid_result = generate_block_grid(
+    #         city=block.city,
+    #         traffic_score=block.traffic_score,
+    #     )
+    #     
+    #     block.grid_data = grid_result.to_dict()
+    #     block.cover_density = grid_result.stats.get('averageCover', 0.3)
+    #     block.generation_version = '1.0.1'  # Increment version
+    #     
+    #     from extensions import db
+    #     db.session.commit()
+    #     
+    #     return jsonify(block.to_dict(include_grid=True))
+    # 
+    # except Exception as e:
+    #     logger.error(f"Grid regeneration failed: {e}")
+    #     return jsonify({'error': 'Regeneration failed'}), 500
 
 
 # ============================================================================
