@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigationStore, usePlayerStore, useNotificationStore } from '../stores/gameStore';
+import { useNavigationStore, usePlayerStore, useNotificationStore } from '../../stores/gameStore';
 import './OSShell.css';
 
 interface AppIcon {
