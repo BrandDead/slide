@@ -12,17 +12,14 @@ import OSShell from './components/layout/OSShell';
 // Game Mode Components
 import DealtMode from './components/dealt/DealtMode';
 import Contacts from './components/contacts/Contacts';
-// import SlideGame from './components/slide/SlideGame';
-// import DriveByGame from './components/driveby/DriveByGame';
-// import AlchemyLab from './components/alchemy/AlchemyLab';
-// import ShoeboxApp from './components/economy/ShoeboxApp';
-// import MapView from './components/map/MapView';
-// import MissionControl from './components/missions/MissionControl';
-// import CasinoLobby from './components/casino/CasinoLobby';
+import SlideGame from './components/slide/SlideGame';
+import DriveByGame from './components/driveby/DriveByGame';
+import AlchemyLab from './components/alchemy/AlchemyLab';
+import TerritoryMap from './components/map/TerritoryMap';
 
 import './App.css';
 
-// Placeholder components for unfinished modes
+// Placeholder components for modes still in development
 const PlaceholderScreen: React.FC<{ title: string; icon: string }> = ({ title, icon }) => {
   const { goBack } = useNavigationStore();
   
@@ -61,22 +58,22 @@ const App: React.FC = () => {
         return <Contacts key="contacts" />;
       
       case 'slide':
-        return <PlaceholderScreen key="slide" title="SLIDE" icon="🎯" />;
+        return <SlideGame key="slide" />;
       
       case 'driveby':
-        return <PlaceholderScreen key="driveby" title="DRIVE-BY" icon="🚗" />;
+        return <DriveByGame key="driveby" />;
       
       case 'alchemy':
-        return <PlaceholderScreen key="alchemy" title="COOK LAB" icon="⚗️" />;
+        return <AlchemyLab key="alchemy" />;
+      
+      case 'map':
+        return <TerritoryMap key="map" />;
       
       case 'shoebox':
         return <PlaceholderScreen key="shoebox" title="SHOEBOX" icon="💰" />;
       
       case 'market':
         return <PlaceholderScreen key="market" title="UNDERWORLD MARKET" icon="🏪" />;
-      
-      case 'map':
-        return <PlaceholderScreen key="map" title="TERRITORY MAP" icon="📍" />;
       
       case 'missions':
         return <PlaceholderScreen key="missions" title="MISSION CONTROL" icon="📋" />;
