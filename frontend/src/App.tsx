@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useNavigationStore } from './stores/gameStore';
+import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
 
 // Layout Components
@@ -24,6 +24,9 @@ import Market from './components/economy/Market';
 import Missions from './components/missions/Missions';
 import SettingsPage from './components/settings/SettingsPage';
 import Casino from './components/casino/Casino';
+import GraffitiGame from './components/graffiti/GraffitiGame';
+import Onboarding from './components/onboarding/Onboarding';
+import type { GangProfile } from './types/game.types';
 
 import './App.css';
 
@@ -53,9 +56,20 @@ const pageVariants = {
 
 const App: React.FC = () => {
   const { currentApp } = useNavigationStore();
+  const { player, updatePlayer } = usePlayerStore();
+  const [showOnboarding, setShowOnboarding] = React.useState(!player?.gangProfile);
 
   // Initialize the game loop - runs every 30 seconds
   const gameLoop = useGameLoop();
+
+  const handleOnboardingComplete = (profile: GangProfile) => {
+    updatePlayer({
+      gangName: profile.name,
+      gangColor: profile.primaryColor,
+      gangProfile: profile,
+    });
+    setShowOnboarding(false);
+  };
 
   const renderCurrentApp = () => {
     switch (currentApp) {
@@ -98,6 +112,9 @@ const App: React.FC = () => {
       case 'casino':
         return <Casino key="casino" />;
       
+      case 'graffiti':
+        return <GraffitiGame key="graffiti" />;
+
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
       
@@ -114,6 +131,11 @@ const App: React.FC = () => {
         );
     }
   };
+
+  // Show onboarding for new players
+  if (showOnboarding) {
+    return <Onboarding onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <div className="app-container">
