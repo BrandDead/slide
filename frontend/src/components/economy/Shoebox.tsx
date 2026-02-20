@@ -21,6 +21,12 @@ const formatTime = (iso: string): string => {
     ' ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
+const getTransactionDescription = (tx: { details: Record<string, unknown>; type: string; description?: string }): string =>
+  (tx.details?.description as string) || tx.description || tx.type;
+
+const getTransactionTime = (tx: { createdAt: string; timestamp?: string }): string =>
+  tx.createdAt || tx.timestamp || new Date().toISOString();
+
 const Shoebox: React.FC = () => {
   const { goBack } = useNavigationStore();
   const { player, updateMoney, updatePlayer } = usePlayerStore();
@@ -55,7 +61,7 @@ const Shoebox: React.FC = () => {
       updatePlayer({ bankBalance: player.bankBalance + val });
       addTransaction({
         id: Date.now().toString(),
-        type: 'purchase' as any,
+        type: 'purchase',
         userId: player.id,
         amount: -val,
         details: { action: 'deposit', description: `Deposited ${formatMoney(val)} into shoebox` },
@@ -66,7 +72,7 @@ const Shoebox: React.FC = () => {
       updatePlayer({ bankBalance: player.bankBalance - val });
       addTransaction({
         id: Date.now().toString(),
-        type: 'deal_income' as any,
+        type: 'deal_income',
         userId: player.id,
         amount: val,
         details: { action: 'withdrawal', description: `Withdrew ${formatMoney(val)} from shoebox` },
@@ -139,7 +145,7 @@ const Shoebox: React.FC = () => {
             <div className="no-transactions">No transactions yet</div>
           ) : (
             transactions.slice(0, 30).map((tx, i) => {
-              const desc = (tx.details as any)?.description || tx.type;
+              const desc = getTransactionDescription(tx as typeof tx & { description?: string });
               return (
                 <div key={tx.id || i} className="transaction-item">
                   <div className="tx-left">
@@ -148,7 +154,7 @@ const Shoebox: React.FC = () => {
                     </div>
                     <div className="tx-info">
                       <div className="tx-desc">{desc}</div>
-                      <div className="tx-time">{formatTime(tx.createdAt)}</div>
+                      <div className="tx-time">{formatTime(getTransactionTime(tx as typeof tx & { timestamp?: string }))}</div>
                     </div>
                   </div>
                   <div className={`tx-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
