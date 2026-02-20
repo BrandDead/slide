@@ -122,6 +122,7 @@ export interface Unit {
   id: string;
   type: UnitType;
   gangMemberId: string;       // Reference to GangMember
+  memberId?: string;          // Simplified assignment context: short-form reference matching gangMemberId
   
   // Position
   blockId: string;
@@ -151,6 +152,7 @@ export interface GangMember {
   name: string;
   nickname: string;
   avatarUrl: string;
+  customAvatarUrl?: string;
   backstory: string;
   
   // Demographics
@@ -181,6 +183,17 @@ export interface GangMember {
   status: MemberStatus;
   currentAssignment: string | null;
   joinedAt: string;
+  hiredAt?: string;
+  
+  // Role
+  role?: string;
+  
+  // Combat stats
+  health?: number;
+  maxHealth?: number;
+  
+  // Inventory
+  inventory?: InventoryItem[];
 }
 
 export interface MemberStats {
@@ -195,11 +208,14 @@ export interface MemberStats {
 export type MemberStatus = 
   | 'active'
   | 'injured'
-  | 'hospitalized'
-  | 'arrested'
+  | 'hospitalized'          // Recovering in hospital (not in the field)
+  | 'arrested'              // Picked up by police (pending processing)
   | 'on_the_run'
   | 'dead'
-  | 'missing';
+  | 'missing'
+  | 'jailed'                // Serving time (longer-term than arrested)
+  | 'hospital'              // Alternate form used in store operations
+  | 'backdoored';           // Removed from gang / turned
 
 export interface Skill {
   id: string;
@@ -679,3 +695,183 @@ export type TransactionType =
   | 'bribe'
   | 'tax'
   | 'asset_seized';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLAYER TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PlayerSettings {
+  notifications: boolean;
+  sound: boolean;
+  haptics: boolean;
+  autoSave: boolean;
+  darkMode: boolean;
+}
+
+export interface Player {
+  id: string;
+  username: string;
+  email: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+  money: number;
+  bankBalance: number;
+  heat: number;
+  reputation: number;
+  region: CityRegion;
+  gangName: string;
+  gangColor: string;
+  createdAt: string;
+  lastLogin: string;
+  settings: PlayerSettings;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEALT MODE CLIENT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ClientType =
+  | 'regular'
+  | 'fiend'
+  | 'prep_kid'
+  | 'celebrity'
+  | 'undercover'
+  | 'informant'
+  | 'tourist'
+  | 'homeless'
+  | 'armed_buyer'
+  | 'college_kid';
+
+export interface Client {
+  id: string;
+  type: ClientType;
+  name: string;
+  avatar: string;
+  age: number;
+  location: string;
+  requestedDrug: string;
+  requestedAmount: number;
+  offerPrice: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
+  riskPercentage: number;
+  heatImpact: number;
+  description: string;
+  redFlags: string[];
+}
+
+export interface DealOutcome {
+  success: boolean;
+  type: 'success' | 'undercover' | 'robbery' | 'snitch' | 'overdose';
+  moneyChange: number;
+  heatChange: number;
+  reputationChange: number;
+  message: string;
+  arrested?: boolean;
+  lostProduct?: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATION & CONTACT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  createdAt: string;
+  read: boolean;
+  data?: Record<string, unknown>;
+}
+
+export interface Contact {
+  id: string;
+  memberId: string;
+  name: string;
+  nickname: string;
+  role?: string;
+  status: 'active' | 'dead' | 'backdoored' | 'jailed';
+  avatar: string;
+  lastSeen: string;
+  notes: string[];
+  tags: string[];
+  statusEmoji: string;
+  hireDate?: string;
+  deathDate?: string;
+  deathCause?: string;
+  killedBy?: string;
+  backdooredBy?: string;
+  finalStats?: {
+    level: number;
+    kills: number;
+    deals: number;
+    earnings: number;
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MISSION & MORALE TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Mission {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  status: 'active' | 'completed' | 'failed';
+  reward: number;
+  createdAt: string;
+}
+
+export interface MoraleEvent {
+  id: string;
+  memberId: string;
+  type: string;
+  moraleChange: number;
+  loyaltyChange: number;
+  description: string;
+  timestamp: string;
+}
+
+export interface GetBackRequest {
+  id: string;
+  memberId: string;
+  targetId: string;
+  reason: string;
+  status: 'pending' | 'completed' | 'failed' | 'ignored';
+  requestedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ECONOMY & INVENTORY TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: string;
+  type: 'drug' | 'weapon' | 'armor' | 'tool' | 'vehicle';
+  itemId: string;
+  quantity: number;
+}
+
+export interface MarketListing {
+  id: string;
+  name: string;
+  type: string;
+  itemId: string;
+  price: number;
+  quantity: number;
+  available: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SELFIE / MEDIA TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SelfieUpload {
+  id: string;
+  url: string;
+  caption?: string;
+  timestamp: string;
+  status: 'uploading' | 'uploaded' | 'failed';
+}

@@ -8,20 +8,17 @@ import type {
   Player,
   GangMember,
   Block,
+  Unit,
   Client,
   DealOutcome,
-  CombatSession,
-  Drug,
-  Recipe,
   Transaction,
   Notification,
   Contact,
-  Mission,
-  MoraleEvent,
-  GetBackRequest,
   InventoryItem,
   MarketListing,
   SelfieUpload,
+  MoraleEvent,
+  GetBackRequest,
 } from '../types/game.types';
 
 // ============ NAVIGATION STORE ============
@@ -40,7 +37,7 @@ interface NavigationState {
 
 export const useNavigationStore = create<NavigationState>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       currentApp: 'home',
       previousApp: '',
       appStack: ['home'],
@@ -404,7 +401,7 @@ interface MoraleState {
 export const useMoraleStore = create<MoraleState>()(
   persist(
     devtools(
-      (set, get) => ({
+      (set) => ({
         events: [],
         getBackRequests: [],
         
@@ -500,6 +497,7 @@ export const useTerritoryStore = create<TerritoryState>()(
                     ...b,
                     units: [
                       ...b.units,
+                      // Simplified unit placement object; full Unit fields populated at combat time
                       {
                         memberId,
                         memberName: member.name,
@@ -507,7 +505,7 @@ export const useTerritoryStore = create<TerritoryState>()(
                         position,
                         health: member.health,
                         maxHealth: member.maxHealth,
-                      },
+                      } as unknown as Unit,
                     ],
                   }
                 : b
@@ -615,7 +613,7 @@ export const useEconomyStore = create<EconomyState>()(
           // Add to member inventory
           gangStore.updateMember(memberId, {
             inventory: [
-              ...member.inventory,
+              ...(member.inventory ?? []),
               {
                 id: Date.now().toString(),
                 type: item.type,
@@ -656,11 +654,10 @@ export const useEconomyStore = create<EconomyState>()(
           get().addTransaction({
             id: Date.now().toString(),
             type: 'purchase',
+            userId: playerStore.player.id,
             amount: -totalCost,
-            description: `Purchased ${quantity}x ${listing.name}`,
-            category: 'market',
-            relatedEntityId: listingId,
-            timestamp: new Date().toISOString(),
+            details: { description: `Purchased ${quantity}x ${listing.name}` },
+            createdAt: new Date().toISOString(),
           });
           
           // Update listing
