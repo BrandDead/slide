@@ -15,8 +15,9 @@
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.13.5",
     "framer-motion": "^10.16.16",
     "mapbox-gl": "^3.0.1",
     "phaser": "^3.70.0",

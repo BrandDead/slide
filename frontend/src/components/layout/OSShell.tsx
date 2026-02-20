@@ -13,12 +13,15 @@ import {
 } from '../../stores/gameStore';
 import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
+import { GameSprite } from '../common/GameSprite';
+import '../common/GameSprite.css';
 import './OSShell.css';
 
 interface AppIcon {
   id: string;
   label: string;
   icon: string;
+  spriteIcon?: string; // GameSprite icon key
   colorClass: string;
   available: boolean;
   badge?: number | string;
@@ -58,6 +61,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'map',
       label: 'MAP',
       icon: '📍',
+      spriteIcon: 'map',
       colorClass: 'app-green',
       available: true,
       description: 'Territory Control',
@@ -66,6 +70,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'dealt',
       label: 'DEALT',
       icon: '💊',
+      spriteIcon: 'dealt',
       colorClass: 'app-purple',
       available: true,
       badge: '🔥',
@@ -75,6 +80,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'slide',
       label: 'SLIDE',
       icon: '🎯',
+      spriteIcon: 'slide',
       colorClass: 'app-red',
       available: true,
       description: 'Grid Combat',
@@ -83,6 +89,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'driveby',
       label: 'DRIVE',
       icon: '🚗',
+      spriteIcon: 'slide',
       colorClass: 'app-orange',
       available: true,
       description: 'Drive-By Shooter',
@@ -91,6 +98,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'alchemy',
       label: 'COOK',
       icon: '⚗️',
+      spriteIcon: 'cook',
       colorClass: 'app-cyan',
       available: true,
       description: 'Drug Crafting',
@@ -99,6 +107,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'contacts',
       label: 'CREW',
       icon: '👥',
+      spriteIcon: 'crew',
       colorClass: 'app-blue',
       available: true,
       badge: crewAlerts > 0 ? crewAlerts : undefined,
@@ -108,6 +117,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'shoebox',
       label: 'SHOEBOX',
       icon: '💰',
+      spriteIcon: 'shoebox',
       colorClass: 'app-gold',
       available: true,
       description: 'Banking & Money',
@@ -116,6 +126,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'market',
       label: 'MARKET',
       icon: '🏪',
+      spriteIcon: 'market',
       colorClass: 'app-teal',
       available: true,
       description: 'Underworld Market',
@@ -124,6 +135,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'missions',
       label: 'OPS',
       icon: '📋',
+      spriteIcon: 'ops',
       colorClass: 'app-brown',
       available: true,
       description: 'Missions & Ops',
@@ -132,6 +144,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'casino',
       label: 'CASINO',
       icon: '🎰',
+      spriteIcon: 'casino',
       colorClass: 'app-pink',
       available: true,
       description: 'Gambling Games',
@@ -148,6 +161,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'settings',
       label: 'SETTINGS',
       icon: '⚙️',
+      spriteIcon: 'settings',
       colorClass: 'app-dark',
       available: true,
       description: 'Game Settings',
@@ -365,7 +379,11 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             whileTap={app.available ? { scale: 0.9 } : {}}
           >
             <div className={`icon-container ${app.colorClass}`}>
-              <span className="icon-emoji">{app.icon}</span>
+              {app.spriteIcon ? (
+                <GameSprite icon={app.spriteIcon as any} size={52} fallback={app.icon} />
+              ) : (
+                <span className="icon-emoji">{app.icon}</span>
+              )}
               {!app.available && <div className="lock-overlay">🔒</div>}
               {app.badge && (
                 <div className={`app-badge ${typeof app.badge === 'number' ? 'app-badge-number' : ''}`}>

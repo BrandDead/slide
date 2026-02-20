@@ -1,0 +1,38 @@
+/* ============================================================
+   GameSprite — Pixel Art Sprite Rendering
+   ============================================================ */
+
+.game-sprite {
+  display: inline-block;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.game-icon {
+  transition: transform 0.15s ease;
+}
+
+.game-icon:hover {
+  transform: scale(1.05);
+}
+
+/* Sprite animation for idle bobbing */
+@keyframes spriteBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.game-sprite.animated {
+  animation: spriteBob 2s ease-in-out infinite;
+}
+
+/* Sprite flash for hit effects */
+@keyframes spriteFlash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(3) saturate(0); }
+}
+
+.game-sprite.hit {
+  animation: spriteFlash 0.2s ease-out 3;
+}

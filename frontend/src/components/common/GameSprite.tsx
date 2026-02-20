@@ -1,0 +1,192 @@
+import React from 'react';
+
+/**
+ * GameSprite — Renders pixel art sprites from sprite sheets.
+ * Replaces emoji-based rendering with actual game art.
+ * 
+ * Usage:
+ *   <GameSprite sheet="gang_members" frame={0} size={48} />
+ *   <GameSprite sheet="drugs" frame={2} size={32} />
+ *   <GameSprite icon="slide" size={60} />
+ */
+
+// Sprite sheet definitions: each sheet has a URL, frame dimensions, and frame count
+const SPRITE_SHEETS: Record<string, { url: string; cols: number; rows: number; frameW: number; frameH: number }> = {
+  gang_members: { url: '/assets/sprites/gang_members.png', cols: 4, rows: 1, frameW: 688, frameH: 1536 },
+  drugs:        { url: '/assets/sprites/drugs.png',        cols: 4, rows: 2, frameW: 688, frameH: 768 },
+  weapons:      { url: '/assets/sprites/weapons.png',      cols: 6, rows: 1, frameW: 459, frameH: 1536 },
+  terrain:      { url: '/assets/sprites/terrain.png',      cols: 4, rows: 2, frameW: 688, frameH: 768 },
+};
+
+// App icon definitions
+const APP_ICONS: Record<string, string> = {
+  slide:    '/assets/icons/icon_slide.png',
+  cook:     '/assets/icons/icon_cook.png',
+  map:      '/assets/icons/icon_map.png',
+  crew:     '/assets/icons/icon_crew.png',
+  dealt:    '/assets/icons/icon_dealt.png',
+  ops:      '/assets/icons/icon_ops.png',
+  shoebox:  '/assets/icons/icon_shoebox.png',
+  market:   '/assets/icons/icon_market.png',
+  casino:   '/assets/icons/icon_casino.png',
+  settings: '/assets/icons/icon_settings.png',
+};
+
+// Role-to-frame mapping for gang members
+export const MEMBER_FRAMES: Record<string, number> = {
+  dealer:   0,
+  shooter:  1,
+  enforcer: 2,
+  lookout:  3,
+};
+
+// Drug-to-frame mapping
+export const DRUG_FRAMES: Record<string, number> = {
+  cannabis:  0,
+  cocaine:   1,
+  meth:      2,
+  pills:     3,
+  heroin:    4,
+  weed:      5,
+  crack:     6,
+  syringe:   7,
+};
+
+// Weapon-to-frame mapping
+export const WEAPON_FRAMES: Record<string, number> = {
+  pistol:        0,
+  ak47:          1,
+  shotgun:       2,
+  bat:           3,
+  knife:         4,
+  brass_knuckles: 5,
+};
+
+// Terrain-to-frame mapping
+export const TERRAIN_FRAMES: Record<string, number> = {
+  street:      0,
+  sidewalk:    1,
+  alley:       2,
+  building:    3,
+  building2:   4,
+  trap_house:  5,
+  park:        6,
+  parking_lot: 7,
+};
+
+interface GameSpriteProps {
+  /** Which sprite sheet to use */
+  sheet?: keyof typeof SPRITE_SHEETS;
+  /** Frame index within the sheet */
+  frame?: number;
+  /** App icon name (alternative to sheet+frame) */
+  icon?: keyof typeof APP_ICONS;
+  /** Display size in pixels */
+  size?: number;
+  /** Optional CSS class */
+  className?: string;
+  /** Optional inline styles */
+  style?: React.CSSProperties;
+  /** Alt text for accessibility */
+  alt?: string;
+  /** Fallback emoji if sprite fails to load */
+  fallback?: string;
+}
+
+export const GameSprite: React.FC<GameSpriteProps> = ({
+  sheet,
+  frame = 0,
+  icon,
+  size = 48,
+  className = '',
+  style = {},
+  alt = '',
+  fallback,
+}) => {
+  const [error, setError] = React.useState(false);
+
+  // If icon mode, render a simple img
+  if (icon) {
+    const iconUrl = APP_ICONS[icon];
+    if (!iconUrl || error) {
+      return fallback ? <span style={{ fontSize: size * 0.6, ...style }}>{fallback}</span> : null;
+    }
+    return (
+      <img
+        src={iconUrl}
+        alt={alt || icon}
+        width={size}
+        height={size}
+        className={`game-sprite game-icon ${className}`}
+        style={{ borderRadius: size * 0.22, objectFit: 'cover', imageRendering: 'pixelated', ...style }}
+        onError={() => setError(true)}
+        loading="lazy"
+      />
+    );
+  }
+
+  // Sprite sheet mode
+  if (!sheet || !SPRITE_SHEETS[sheet] || error) {
+    return fallback ? <span style={{ fontSize: size * 0.6, ...style }}>{fallback}</span> : null;
+  }
+
+  const def = SPRITE_SHEETS[sheet];
+  const col = frame % def.cols;
+  const row = Math.floor(frame / def.cols);
+
+  // Calculate background position as percentages
+  const bgPosX = def.cols > 1 ? (col / (def.cols - 1)) * 100 : 0;
+  const bgPosY = def.rows > 1 ? (row / (def.rows - 1)) * 100 : 0;
+
+  return (
+    <div
+      className={`game-sprite ${className}`}
+      role="img"
+      aria-label={alt}
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: `url(${def.url})`,
+        backgroundSize: `${def.cols * 100}% ${def.rows * 100}%`,
+        backgroundPosition: `${bgPosX}% ${bgPosY}%`,
+        backgroundRepeat: 'no-repeat',
+        imageRendering: 'pixelated',
+        flexShrink: 0,
+        ...style,
+      }}
+    />
+  );
+};
+
+/**
+ * Helper: Get the correct frame index for a member role
+ */
+export function getMemberFrame(role: string): number {
+  return MEMBER_FRAMES[role.toLowerCase()] ?? 0;
+}
+
+/**
+ * Helper: Get the correct frame index for a drug name
+ */
+export function getDrugFrame(drugName: string): number {
+  const key = drugName.toLowerCase().replace(/\s+/g, '_');
+  return DRUG_FRAMES[key] ?? 0;
+}
+
+/**
+ * Helper: Get the correct frame index for a weapon name
+ */
+export function getWeaponFrame(weaponName: string): number {
+  const key = weaponName.toLowerCase().replace(/\s+/g, '_');
+  return WEAPON_FRAMES[key] ?? 0;
+}
+
+/**
+ * Helper: Get the correct frame index for a terrain type
+ */
+export function getTerrainFrame(terrainType: string): number {
+  const key = terrainType.toLowerCase().replace(/\s+/g, '_');
+  return TERRAIN_FRAMES[key] ?? 0;
+}
+
+export default GameSprite;
