@@ -656,11 +656,10 @@ export const useEconomyStore = create<EconomyState>()(
           get().addTransaction({
             id: Date.now().toString(),
             type: 'purchase',
+            userId: playerStore.player.id,
             amount: -totalCost,
-            description: `Purchased ${quantity}x ${listing.name}`,
-            category: 'market',
-            relatedEntityId: listingId,
-            timestamp: new Date().toISOString(),
+            details: { description: `Purchased ${quantity}x ${listing.name}`, listingId },
+            createdAt: new Date().toISOString(),
           });
           
           // Update listing

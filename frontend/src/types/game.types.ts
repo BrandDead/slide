@@ -196,7 +196,9 @@ export type MemberStatus =
   | 'active'
   | 'injured'
   | 'hospitalized'
+  | 'hospital'
   | 'arrested'
+  | 'jailed'
   | 'on_the_run'
   | 'dead'
   | 'missing';
@@ -672,6 +674,7 @@ export interface Transaction {
 
 export type TransactionType = 
   | 'deal_income'
+  | 'deal'
   | 'block_income'
   | 'combat_loot'
   | 'purchase'
@@ -679,3 +682,204 @@ export type TransactionType =
   | 'bribe'
   | 'tax'
   | 'asset_seized';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLAYER TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PlayerSettings {
+  notifications: boolean;
+  sound: boolean;
+  haptics: boolean;
+  autoSave: boolean;
+  darkMode: boolean;
+}
+
+export interface Player {
+  id: string;
+  username: string;
+  email: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+  money: number;
+  bankBalance: number;
+  heat: number;
+  reputation: number;
+  region: CityRegion;
+  gangName: string;
+  gangColor: string;
+  createdAt: string;
+  lastLogin: string;
+  settings: PlayerSettings;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEALING CLIENT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ClientType =
+  | 'regular'
+  | 'fiend'
+  | 'prep_kid'
+  | 'hustler'
+  | 'celebrity'
+  | 'undercover'
+  | 'paranoid'
+  | 'high_roller'
+  | 'snitch'
+  | 'robber';
+
+export interface Client {
+  id: string;
+  type: ClientType;
+  name: string;
+  avatar: string;
+  description: string;
+  requestedDrug: string;
+  requestedAmount: number;
+  offerPrice: number;
+  marketPrice: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
+  redFlags: string[];
+  trustScore: number;
+  heatImpact: number;
+}
+
+export interface DealOutcome {
+  success: boolean;
+  type: string;
+  message: string;
+  moneyChange: number;
+  heatChange: number;
+  xpGained: number;
+  streakBonus: number;
+  consequences?: Array<{
+    type: string;
+    severity: number;
+    description: string;
+  }>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GANG CONTACT TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ContactStatus = 'active' | 'jailed' | 'dead' | 'backdoored';
+
+export interface Contact {
+  id: string;
+  memberId: string;
+  name: string;
+  nickname?: string;
+  role: string;
+  status: ContactStatus;
+  avatar: string;
+  lastSeen: string;
+  notes: string[];
+  tags: string[];
+  statusEmoji: string;
+  hireDate: string;
+  deathDate?: string;
+  deathCause?: string;
+  killedBy?: string;
+  backdooredBy?: string;
+  finalStats?: {
+    level: number;
+    kills: number;
+    deals: number;
+    earnings: number;
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MISSION TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  status: 'available' | 'active' | 'completed' | 'failed';
+  reward: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  expiresAt?: string;
+  completedAt?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MORALE & LOYALTY TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MoraleEvent {
+  id: string;
+  memberId: string;
+  type: string;
+  moraleChange: number;
+  loyaltyChange: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface GetBackRequest {
+  id: string;
+  memberId: string;
+  memberName?: string;
+  targetId: string;
+  targetName?: string;
+  reason: string;
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  loyaltyPenaltyIfIgnored?: number;
+  moralePenaltyIfIgnored?: number;
+  status: 'pending' | 'completed' | 'failed' | 'ignored';
+  createdAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INVENTORY & MARKET TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  id: string;
+  type: 'drug' | 'weapon' | 'armor' | 'vehicle' | 'consumable' | 'tool';
+  itemId: string;
+  quantity: number;
+}
+
+export interface MarketListing {
+  id: string;
+  name: string;
+  itemId: string;
+  type: string;
+  price: number;
+  quantity: number;
+  available: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATION TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  priority?: 'low' | 'normal' | 'high' | 'urgent' | 'critical';
+  data?: Record<string, unknown>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SELFIE UPLOAD TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface SelfieUpload {
+  id: string;
+  url?: string;
+  imageUrl?: string;
+  memberId?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  uploadedAt: string;
+}

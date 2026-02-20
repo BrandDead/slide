@@ -100,7 +100,7 @@ const Market: React.FC = () => {
       amount: -total,
       details: { description: `Bought ${quantity}x ${selectedItem.name}` },
       createdAt: new Date().toISOString(),
-    } as any);
+    });
 
     setPurchaseResult(`COPPED ${quantity}x ${selectedItem.name}`);
     setTimeout(() => {
