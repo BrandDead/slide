@@ -6,31 +6,76 @@
 
 ## Game Overview
 
-**SLIDE** is an 18+ multiplayer urban warfare RPG where players build criminal empires across real US cities. The game features an iOS-style desktop interface where each game mode appears as a separate "app":
+**SLIDE** is an 18+ multiplayer urban warfare RPG where players build criminal empires across real US cities. The game features an iOS-style desktop interface where each game mode appears as a separate "app" on a phone home screen.
 
-| App | Mode | Engine | Description |
-|-----|------|--------|-------------|
-| DEALT | Dealing | Tinder/Swipe | Swipe to deal drugs to customers with risk assessment |
-| SLIDE | Combat | Battleship | Grid-based territory warfare with unit placement |
-| DRIVE | Drive-By | FPS/Scroller | First-person shooting from a moving vehicle |
-| COOK | Alchemy | Little Alchemy | Combine elements to craft drugs (base to super) |
-| CREW | Contacts | Contact Book | Buy/manage gang members (shooters, dealers, enforcers, dogs) |
-| MAP | Territory | Mapbox | Claim real-world blocks, position gang members |
-| SHOEBOX | Economy | Cash App | Banking, transactions, bail, hospital bills |
-| OPS | Missions | Task System | Tactical operations and assignments |
-| CASINO | Gambling | Phaser 3 | Blackjack, Craps, Slots |
+Players pick a block by providing a real address, raise a gang, grow through drug dealing, and protect themselves from drive-bys and police raids. Every mini-game feeds back into the overall game state — money earned from dealing funds weapons, members placed on the block determine combat defense, and heat from activity triggers police raids.
+
+| App | Mode | Engine Style | Description |
+|-----|------|-------------|-------------|
+| **DEALT** | Dealing | Tinder/Swipe | Swipe to deal drugs to customers with risk assessment |
+| **SLIDE** | Combat | Battleship | Grid-based territory warfare — attacker shoots at block, defender shoots at car |
+| **DRIVE** | Drive-By | Street Shooter | Shooting from a moving vehicle at members on the block |
+| **COOK** | Alchemy | Little Alchemy | Combine base elements to craft drugs (5 tiers, 18 recipes) |
+| **CREW** | Contacts | Contact Book | Buy/manage gang members — shooters, dealers, enforcers, dogs |
+| **MAP** | Territory | Grid Strategy | Claim blocks, position members (street proximity = more money but more danger) |
+| **SHOEBOX** | Banking | Cash App | Deposit/withdraw cash, safe from raids, transaction history |
+| **MARKET** | Shop | Underworld Store | Buy weapons, armor, vehicles, consumables |
+| **OPS** | Missions | Task System | Tactical operations — deliveries, collections, hits, recon |
+| **CASINO** | Gambling | Mini-Games | Dice, Hi-Lo, Slots — gamble your earnings |
+| **SETTINGS** | Config | System | Sound, notifications, difficulty, data management |
 
 ---
 
-## Branch: `repo-setup-optimized-v2`
+## Architecture
 
-This branch contains the fully optimized repository structure, including all code from the initial setup plus the new additions from the second batch of files. The new additions include:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React + Vite)                    │
+│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌─────────────┐  │
+│  │ OSShell  │  │ Mini-Game │  │  Zustand  │  │ Game Loop   │  │
+│  │ (iOS UI) │→ │   UIs    │← │  Stores   │← │  Engine     │  │
+│  └─────────┘  └──────────┘  └──────────┘  └─────────────┘  │
+│                       ↕ api.service.ts                       │
+├─────────────────────────────────────────────────────────────┤
+│                   BACKEND (Flask + Python)                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐  │
+│  │ Blocks   │  │ Combat   │  │ Drive-By │  │ Inventory  │  │
+│  │ API      │  │ API      │  │ API      │  │ API        │  │
+│  └──────────┘  └──────────┘  └──────────┘  └────────────┘  │
+│                       ↕ BlockStateEngine                     │
+├─────────────────────────────────────────────────────────────┤
+│                  DATABASE (Supabase/PostgreSQL)               │
+│  blocks · gang_members · combat_sessions · inventory · users │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- **Complete Combat System:** A full-fledged combat engine with types, utilities, a stateful service, a Zustand store, and Supabase Edge Functions for initiating and managing combat.
-- **Gang Member Creator:** A standalone React component for creating and customizing gang members with detailed attributes and AI-powered asset generation prompts.
-- **Advanced Location System:** A comprehensive system for block claiming, including frontend hooks and services, a detailed grid generator, and a Python backend with geocoding and API endpoints.
-- **Supabase Edge Functions:** A full suite of backend functions for handling core game logic like dealing, block claiming, and member recruitment.
-- **New Documentation & Prompts:** Updated design system, AI model assignments, and detailed prompts for generating the economy system and hub UI.
+**Tech Stack:**
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, Zustand, Framer Motion |
+| Styling | CSS Modules (dark theme, neon accents) |
+| Backend | Flask (Python), Blueprint-based API |
+| Database | Supabase (PostgreSQL + PostGIS + Auth) |
+| Maps | Mapbox GL JS (planned) |
+| State | Zustand stores (Player, Gang, Economy, Territory, Combat, Heat, Morale) |
+
+---
+
+## Game Loop Flow
+
+```
+Claim Block → Place Members → Deal Drugs → Earn Money → Buy Gear
+     ↓              ↓              ↓            ↓           ↓
+  Heat rises   Position =      Alchemy →    Shoebox     Market →
+  from activity  income vs     craft drugs   banking     weapons/armor
+     ↓          danger           ↓            ↓           ↓
+  Cop Raids ← Heat threshold  OD Risk →    Bail/Hospital  Equip to
+  seize product  triggers     kills customers  costs       members
+     ↓                           ↓                          ↓
+  Lose members ← Low morale  Heat spikes    Gang turns   Combat ready
+  (jail/death)   from neglect  from ODs      on itself    for SLIDE
+```
 
 ---
 
@@ -41,72 +86,205 @@ slide/
 ├── frontend/                        # React + TypeScript + Vite
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── layout/              # OSShell (iOS desktop)
-│   │   │   ├── dealt/               # Swipe dealing mode
-│   │   │   ├── slide/               # Grid combat mode
-│   │   │   ├── driveby/             # FPS drive-by mode
-│   │   │   ├── alchemy/             # Drug crafting
-│   │   │   ├── contacts/            # Contact book
-│   │   │   ├── gang/                # Member management
-│   │   │   ├── economy/             # Shoebox banking
-│   │   │   ├── map/                 # Territory map
-│   │   │   ├── casino/              # Gambling games
-│   │   │   ├── missions/            # Mission system
-│   │   │   ├── shell/               # Admin dashboard
-│   │   │   ├── shared/              # Reusable UI components
-│   │   │   └── auth/                # Login/signup
-│   │   ├── core/                    # Cross-system engines
-│   │   ├── stores/                  # Zustand state management
-│   │   ├── services/                # API clients (Supabase, Socket.IO)
-│   │   ├── utils/                   # Game logic utilities
-│   │   ├── types/                   # TypeScript definitions
-│   │   └── hooks/                   # Custom React hooks
+│   │   │   ├── layout/              # OSShell (iOS desktop), GameEventOverlay
+│   │   │   ├── dealt/               # Swipe dealing mode (DealtMode)
+│   │   │   ├── slide/               # Grid combat (SlideGame)
+│   │   │   ├── driveby/             # Drive-by shooter (DriveByEngine/Game)
+│   │   │   ├── alchemy/             # Drug crafting (AlchemyLab)
+│   │   │   ├── contacts/            # Contact book + LevelUpPopup
+│   │   │   ├── economy/             # Shoebox banking + Market shop
+│   │   │   ├── map/                 # Territory map (TerritoryMap)
+│   │   │   ├── casino/              # Dice, Hi-Lo, Slots (Casino)
+│   │   │   ├── missions/            # Mission system (Missions)
+│   │   │   └── settings/            # Settings page
+│   │   ├── stores/                  # Zustand state (gameStore.ts — 8 stores)
+│   │   ├── services/                # API client (api.service.ts)
+│   │   ├── utils/                   # Game engines
+│   │   │   ├── gameLoopEngine.ts    # Central tick system (10s interval)
+│   │   │   ├── incomeEngine.ts      # Income calculation per member/position
+│   │   │   ├── heatSystem.ts        # Heat accumulation and decay
+│   │   │   ├── moraleSystem.ts      # Morale and loyalty tracking
+│   │   │   ├── memberProgression.ts # XP, leveling, skill gains
+│   │   │   ├── alchemyEngine.ts     # Drug crafting recipes (18 recipes, 5 tiers)
+│   │   │   ├── dealtEngine.ts       # Dealing client generation
+│   │   │   ├── missionGenerator.ts  # Mission generation and rewards
+│   │   │   ├── combatResolver.ts    # Combat hit/damage resolution
+│   │   │   ├── dualGrid.ts          # Dual-grid system for combat
+│   │   │   └── turnLogic.ts         # Turn-based combat logic
+│   │   └── types/                   # TypeScript definitions
+│   │       ├── game.types.ts        # Core types (Player, Block, GangMember, etc.)
+│   │       ├── alchemy.types.ts     # Alchemy/drug types
+│   │       ├── combatTypes.ts       # Combat session types
+│   │       └── slide.types.ts       # SLIDE game types
 │   └── public/assets/               # Static game assets
 │
 ├── backend/
-│   ├── supabase/                    # Database schema (SQL)
-│   └── python/                      # Python microservices
+│   ├── python/
+│   │   ├── app.py                   # Flask application factory
+│   │   ├── api/
+│   │   │   ├── blocks.py            # Block search, preview, claim, nearby
+│   │   │   ├── combat.py            # SLIDE combat start, turn, session
+│   │   │   ├── driveby.py           # Drive-by start, shoot, complete
+│   │   │   ├── inventory.py         # Market, buy, equip, transactions
+│   │   │   └── world.py             # World tick, status
+│   │   └── services/
+│   │       └── block_state_engine.py # BlockStateEngine (rich grid, snapshots)
+│   └── supabase/
+│       └── migrations/              # Database schema SQL
 │
-├── standalone/                      # Playable HTML demos (no setup)
 ├── docs/                            # Project documentation
-└── prompts/                         # AI code generation prompts
+├── prompts/                         # AI code generation prompts (Sprint 1-4)
+└── DEV_PLAN.md                      # Development roadmap
 ```
 
 ---
 
 ## Quick Start
 
-### Play Standalone (No Setup Required)
-Open any file in `standalone/` in a browser to play immediately.
+### Prerequisites
+- Node.js 18+ and pnpm
+- Python 3.11+
+- Supabase account (for backend — optional for frontend-only dev)
 
-### Run React Project
+### Run Frontend (No Backend Required)
+The frontend runs fully offline with Zustand stores providing all game state:
+
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 # Open http://localhost:5173
 ```
 
+### Run Backend
+```bash
+cd backend/python
+pip install flask flask-cors python-dotenv supabase
+python app.py
+# API runs on http://localhost:5000
+```
+
 ### Environment Variables
+Create `frontend/.env`:
 ```env
+VITE_API_URL=http://localhost:5000
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_token
-VITE_SOCKET_URL=ws://localhost:3001
+```
+
+Create `backend/python/.env`:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+MAPBOX_ACCESS_TOKEN=your_mapbox_token
+SECRET_KEY=your_secret_key
+FLASK_DEBUG=True
 ```
 
 ---
 
-## Architecture
+## API Reference
 
-- **Frontend**: React 18 + TypeScript + Vite + Zustand + Framer Motion + Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + PostGIS + Auth + Real-time + Storage)
-- **Real-time**: Socket.IO for multiplayer events
-- **Maps**: Mapbox GL JS for territory visualization
-- **Mini-games**: Phaser 3 for casino games
-- **AI Assets**: Banana Nano for stylized imagery
+All endpoints are prefixed with `/api/`. Authentication via JWT Bearer token.
 
-See `docs/` for full development plan, element tracking, and AI prompts.
+### Blocks
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/blocks/search?q=<address>` | Search for a real address |
+| POST | `/blocks/preview` | Preview block grid before claiming |
+| POST | `/blocks/claim` | Claim a block for your gang |
+| GET | `/blocks/<block_id>` | Get block snapshot |
+| GET | `/blocks/my-blocks` | Get all owned blocks |
+| GET | `/blocks/nearby?lat=&lng=&radius=` | Find nearby blocks |
+| GET | `/blocks/availability/<hash>` | Check if block is available |
+| GET | `/blocks/city/<city>` | Get blocks in a city |
+| GET | `/blocks/cities` | List supported cities |
+
+### Combat (SLIDE)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/combat/start` | Start a SLIDE combat session |
+| POST | `/combat/turn` | Submit a combat turn (shoot/move/reload) |
+| GET | `/combat/<session_id>` | Get combat session state |
+
+### Drive-By
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/driveby/start` | Start a drive-by session |
+| POST | `/driveby/shoot` | Fire shots during drive-by |
+| POST | `/driveby/<session_id>/complete` | Complete drive-by and get results |
+
+### Inventory / Market
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/inventory/` | Get player inventory |
+| GET | `/inventory/market` | Browse market listings |
+| POST | `/inventory/buy` | Purchase an item |
+| POST | `/inventory/equip` | Equip item to a member |
+| GET | `/inventory/transactions?limit=` | Transaction history |
+| GET | `/inventory/cash` | Get cash/bank balance |
+
+### World
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/world/tick` | Advance world state (income, heat decay, events) |
+| GET | `/world/status` | Get world overview (blocks, members, heat, income) |
+
+---
+
+## Core Game Mechanics
+
+### Heat System
+Every action generates **heat** — dealing, combat, drive-bys, and especially drug ODs. Heat decays slowly over time. When heat exceeds thresholds:
+- **50+**: Increased police patrols (random raids)
+- **75+**: Targeted raids (lose product, weapons, money)
+- **90+**: SWAT raids (members arrested, block seized)
+
+### Morale System
+Gang members have **morale** and **loyalty**. Neglecting members (not paying bail, not covering hospital bills) drops morale. Low morale causes:
+- Members refusing orders (won't deploy to block)
+- Friendly fire (members shoot their own)
+- Desertion (members leave the gang)
+
+### Street Proximity Income
+On the Territory Map, member position determines income vs. danger:
+- **Street-adjacent**: $$$$ income but high exposure to drive-bys
+- **Mid-block**: $$ moderate income, moderate safety
+- **Deep interior**: $ low income but very safe from shooters
+
+### Drug Crafting (Alchemy)
+5 tiers of drugs, each with purity, potency, and OD risk:
+- **Tier 1** (Basic): Weed, Lean — low risk, low profit
+- **Tier 5** (Legendary): Super Crack, Krokodil — massive profit but high OD risk → heat spikes
+
+---
+
+## Development Status
+
+### Completed (Sprints 1-2)
+- iOS-style OSShell with live dashboard (heat meter, morale, income ticker)
+- All 11 app UIs built and playable
+- Game loop engine (10-second tick cycle)
+- Income engine with position-based calculations
+- Heat system with raid triggers
+- Morale system with loyalty tracking
+- Member progression (XP, leveling, skill gains)
+- Alchemy crafting with 18 recipes across 5 tiers
+- Rich grid generation with 7 terrain types and 10 feature types
+
+### In Progress (Sprint 3)
+- Backend API integration (api.service.ts ↔ Flask routes)
+- JWT authentication
+- Supabase database setup
+
+### Planned (Sprint 4)
+- Mapbox real-world map integration
+- NPC AI simulation
+- Multiplayer via Socket.IO
+- Testing suite
+
+See `DEV_PLAN.md` and `prompts/` for the full roadmap and AI-ready code generation prompts.
 
 ---
 

@@ -122,6 +122,7 @@ export interface Unit {
   id: string;
   type: UnitType;
   gangMemberId: string;       // Reference to GangMember
+  memberId?: string;            // Simplified assignment context: short-form reference matching gangMemberId
   
   // Position
   blockId: string;
@@ -181,6 +182,17 @@ export interface GangMember {
   status: MemberStatus;
   currentAssignment: string | null;
   joinedAt: string;
+  hiredAt?: string;
+
+  // Role
+  role?: string;
+
+  // Combat stats (optional overrides)
+  health?: number;
+  maxHealth?: number;
+
+  // Inventory
+  inventory?: InventoryItem[];
 }
 
 export interface MemberStats {
@@ -199,7 +211,10 @@ export type MemberStatus =
   | 'arrested'
   | 'on_the_run'
   | 'dead'
-  | 'missing';
+  | 'missing'
+  | 'jailed'                // Serving time (longer-term than arrested)
+  | 'hospital'              // Alternate form used in store operations
+  | 'backdoored';           // Removed from gang / turned
 
 export interface Skill {
   id: string;
@@ -679,3 +694,38 @@ export type TransactionType =
   | 'bribe'
   | 'tax'
   | 'asset_seized';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INVENTORY & MARKET TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface InventoryItem {
+  itemId: string;
+  type: 'drug' | 'weapon' | 'armor' | 'vehicle' | 'consumable' | 'tool';
+  name: string;
+  quantity: number;
+  quality?: number;          // 0-100 for drugs (purity)
+  potency?: number;          // 0-100 for drugs
+  odRisk?: number;           // 0-100 for drugs
+  tier?: number;             // Drug tier (1-5)
+  damage?: number;           // For weapons
+  accuracy?: number;         // For weapons
+  defense?: number;          // For armor
+  isEquipped?: boolean;
+  acquiredAt: string;
+  value: number;             // Per-unit market value
+  data?: Record<string, unknown>; // Extensible metadata
+}
+
+export interface MarketListing {
+  id: string;
+  name: string;
+  description: string;
+  category: 'weapons' | 'armor' | 'vehicles' | 'consumables' | 'tools';
+  price: number;
+  icon: string;
+  tier: number;
+  available: boolean;
+  stock: number;
+  stats?: Record<string, number>;
+}
