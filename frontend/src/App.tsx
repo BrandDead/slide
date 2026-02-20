@@ -1,13 +1,16 @@
 // ============================================================
 // App.tsx - Main Application Component
+// Integrates game loop engine and event overlay
 // ============================================================
 
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigationStore } from './stores/gameStore';
+import { useGameLoop } from './utils/gameLoopEngine';
 
 // Layout Components
 import OSShell from './components/layout/OSShell';
+import GameEventOverlay from './components/layout/GameEventOverlay';
 
 // Game Mode Components
 import DealtMode from './components/dealt/DealtMode';
@@ -51,10 +54,19 @@ const pageVariants = {
 const App: React.FC = () => {
   const { currentApp } = useNavigationStore();
 
+  // Initialize the game loop - runs every 30 seconds
+  const gameLoop = useGameLoop();
+
   const renderCurrentApp = () => {
     switch (currentApp) {
       case 'home':
-        return <OSShell key="home" />;
+        return (
+          <OSShell
+            key="home"
+            gangMorale={gameLoop.gangMorale}
+            incomePerMinute={gameLoop.incomePerMinute}
+          />
+        );
       
       case 'dealt':
         return <DealtMode key="dealt" />;
@@ -93,12 +105,27 @@ const App: React.FC = () => {
         return <SettingsPage key="settings" />;
       
       default:
-        return <OSShell key="home" />;
+        return (
+          <OSShell
+            key="home"
+            gangMorale={gameLoop.gangMorale}
+            incomePerMinute={gameLoop.incomePerMinute}
+          />
+        );
     }
   };
 
   return (
     <div className="app-container">
+      {/* Game Event Overlay - renders above everything */}
+      <GameEventOverlay
+        activeRaid={gameLoop.activeRaid}
+        lastEvent={gameLoop.lastEvent}
+        onDismissRaid={gameLoop.dismissRaid}
+        onPayBail={gameLoop.payBail}
+        onLeaveMember={gameLoop.leaveMember}
+      />
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentApp}
