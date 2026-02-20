@@ -5,6 +5,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore } from '../../stores/gameStore';
+import type { Transaction } from '../../types/game.types';
 import './Shoebox.css';
 
 type ModalMode = 'deposit' | 'withdraw' | null;
@@ -21,11 +22,20 @@ const formatTime = (iso: string): string => {
     ' ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
-const getTransactionDescription = (tx: { details: Record<string, unknown>; type: string; description?: string }): string =>
-  (tx.details?.description as string) || tx.description || tx.type;
+const getTransactionDescription = (tx: Transaction): string => {
+  const detailDescription = tx.details?.description;
+  if (typeof detailDescription === 'string' && detailDescription.length > 0) {
+    return detailDescription;
+  }
+  const legacyTx = tx as Transaction & { description?: string };
+  return legacyTx.description || tx.type;
+};
 
-const getTransactionTime = (tx: { createdAt: string; timestamp?: string }): string =>
-  tx.createdAt || tx.timestamp || new Date().toISOString();
+const getTransactionTime = (tx: Transaction): string => {
+  if (tx.createdAt) return tx.createdAt;
+  const legacyTx = tx as Transaction & { timestamp?: string };
+  return legacyTx.timestamp || new Date().toISOString();
+};
 
 const Shoebox: React.FC = () => {
   const { goBack } = useNavigationStore();
@@ -145,7 +155,7 @@ const Shoebox: React.FC = () => {
             <div className="no-transactions">No transactions yet</div>
           ) : (
             transactions.slice(0, 30).map((tx, i) => {
-              const desc = getTransactionDescription(tx as typeof tx & { description?: string });
+              const desc = getTransactionDescription(tx);
               return (
                 <div key={tx.id || i} className="transaction-item">
                   <div className="tx-left">
@@ -154,7 +164,7 @@ const Shoebox: React.FC = () => {
                     </div>
                     <div className="tx-info">
                       <div className="tx-desc">{desc}</div>
-                      <div className="tx-time">{formatTime(getTransactionTime(tx as typeof tx & { timestamp?: string }))}</div>
+                      <div className="tx-time">{formatTime(getTransactionTime(tx))}</div>
                     </div>
                   </div>
                   <div className={`tx-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
