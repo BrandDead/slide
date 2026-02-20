@@ -615,7 +615,7 @@ export const useEconomyStore = create<EconomyState>()(
           // Add to member inventory
           gangStore.updateMember(memberId, {
             inventory: [
-              ...member.inventory,
+              ...(member.inventory ?? []),
               {
                 id: Date.now().toString(),
                 type: item.type,

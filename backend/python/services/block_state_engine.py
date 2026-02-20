@@ -285,19 +285,26 @@ class BlockStateEngine:
             return None
     
     def _generate_mock_snapshot(self, block_id: str) -> BlockSnapshot:
-        """Generate a mock snapshot for testing without database"""
+        """Generate a mock snapshot for testing without database — uses rich grid."""
+        snapshot_id = self._generate_snapshot_id(block_id, 1)
+        seed = self._generate_seed(block_id, 1)
+
+        # Use the rich grid generator
+        raw_tiles = self._generate_default_grid(8, 8, seed=seed)
+
+        # Convert raw dicts to TileSnapshot objects
         tiles = []
-        for y in range(8):
+        for row_data in raw_tiles:
             row = []
-            for x in range(8):
-                tile_type = 'street' if (x == 0 or x == 7 or y == 0 or y == 7) else 'building'
+            for td in row_data:
                 row.append(TileSnapshot(
-                    x=x, y=y,
-                    tile_type=tile_type,
-                    terrain_bonus={'cover': 0.5 if tile_type == 'building' else 0.0}
+                    x=td['x'],
+                    y=td['y'],
+                    tile_type=td['type'],
+                    terrain_bonus=td['terrain_bonus'],
                 ))
             tiles.append(row)
-        
+
         members = [
             MemberSnapshot(
                 id='member-1',
@@ -307,10 +314,7 @@ class BlockStateEngine:
                 loadout={'weapon_id': 'pistol-1', 'armor_id': None, 'items': []}
             )
         ]
-        
-        snapshot_id = self._generate_snapshot_id(block_id, 1)
-        seed = self._generate_seed(block_id, 1)
-        
+
         return BlockSnapshot(
             block_id=block_id,
             snapshot_id=snapshot_id,
@@ -433,20 +437,128 @@ class BlockStateEngine:
         
         return [-118.245, 34.055]
     
-    def _generate_default_grid(self, width: int, height: int) -> List[List[Dict]]:
-        """Generate a simple default grid layout"""
+    # ─── Rich Grid Feature Configs (from Issue #12) ────────────────────────
+    TILE_TYPES = {
+        'street':   {'base_cover': 0.0,  'base_visibility': 1.0,  'walkable': True},
+        'sidewalk': {'base_cover': 0.05, 'base_visibility': 1.0,  'walkable': True},
+        'alley':    {'base_cover': 0.25, 'base_visibility': 0.6,  'walkable': True},
+        'parking':  {'base_cover': 0.0,  'base_visibility': 0.9,  'walkable': True},
+        'building': {'base_cover': 0.8,  'base_visibility': 0.3,  'walkable': False},
+        'yard':     {'base_cover': 0.1,  'base_visibility': 0.85, 'walkable': True},
+        'park':     {'base_cover': 0.15, 'base_visibility': 0.7,  'walkable': True},
+    }
+
+    FEATURES = {
+        'dumpster':      {'cover': 0.7,  'visibility_penalty': 0.3,  'destructible': False, 'hp': 0,   'valid_tiles': ['sidewalk', 'alley']},
+        'parked_car':    {'cover': 0.6,  'visibility_penalty': 0.2,  'destructible': True,  'hp': 100, 'valid_tiles': ['street', 'parking']},
+        'mailbox':       {'cover': 0.3,  'visibility_penalty': 0.1,  'destructible': True,  'hp': 30,  'valid_tiles': ['sidewalk']},
+        'fire_hydrant':  {'cover': 0.2,  'visibility_penalty': 0.05, 'destructible': False, 'hp': 0,   'valid_tiles': ['sidewalk']},
+        'streetlight':   {'cover': 0.1,  'visibility_penalty': -0.2, 'destructible': True,  'hp': 50,  'valid_tiles': ['sidewalk']},
+        'bench':         {'cover': 0.25, 'visibility_penalty': 0.05, 'destructible': True,  'hp': 40,  'valid_tiles': ['sidewalk', 'park']},
+        'trash_can':     {'cover': 0.15, 'visibility_penalty': 0.05, 'destructible': True,  'hp': 20,  'valid_tiles': ['sidewalk', 'alley']},
+        'phone_booth':   {'cover': 0.4,  'visibility_penalty': 0.15, 'destructible': True,  'hp': 60,  'valid_tiles': ['sidewalk']},
+        'fence':         {'cover': 0.35, 'visibility_penalty': 0.1,  'destructible': True,  'hp': 45,  'valid_tiles': ['yard', 'alley']},
+        'barrel':        {'cover': 0.3,  'visibility_penalty': 0.1,  'destructible': True,  'hp': 25,  'valid_tiles': ['alley', 'parking']},
+    }
+
+    def _generate_default_grid(self, width: int, height: int, seed: str = None) -> List[List[Dict]]:
+        """
+        Generate a rich grid layout with varied terrain types, features,
+        cover bonuses, visibility, and destructible objects.
+        Uses seeded RNG for deterministic placement.
+        """
+        import random as _random
+        rng = _random.Random(seed or 'default-seed')
+
+        # ── Step 1: Lay out base terrain ──────────────────────────────────
+        base_grid = []
+        for y in range(height):
+            row = []
+            for x in range(width):
+                if y == 0 or y == height - 1:
+                    tile_type = 'street'
+                elif x == 0 or x == width - 1:
+                    tile_type = 'sidewalk'
+                elif (x == 1 or x == width - 2) and (y == 1 or y == height - 2):
+                    tile_type = rng.choice(['alley', 'sidewalk'])
+                elif x == 1 or x == width - 2:
+                    tile_type = rng.choice(['sidewalk', 'yard', 'parking'])
+                else:
+                    # Interior tiles: mostly buildings with some alleys/yards
+                    roll = rng.random()
+                    if roll < 0.55:
+                        tile_type = 'building'
+                    elif roll < 0.70:
+                        tile_type = 'yard'
+                    elif roll < 0.82:
+                        tile_type = 'alley'
+                    elif roll < 0.90:
+                        tile_type = 'parking'
+                    else:
+                        tile_type = 'park'
+                row.append(tile_type)
+            base_grid.append(row)
+
+        # ── Step 2: Spawn features on valid tiles ─────────────────────────
+        feature_grid = [[None] * width for _ in range(height)]
+        feature_names = list(self.FEATURES.keys())
+
+        for y in range(height):
+            for x in range(width):
+                tile_type = base_grid[y][x]
+                if tile_type == 'building':
+                    continue  # No features on buildings
+
+                # ~25% chance of a feature on eligible tiles
+                if rng.random() < 0.25:
+                    eligible = [
+                        f for f in feature_names
+                        if tile_type in self.FEATURES[f]['valid_tiles']
+                    ]
+                    if eligible:
+                        feature_grid[y][x] = rng.choice(eligible)
+
+        # ── Step 3: Build final tile dicts ────────────────────────────────
         tiles = []
         for y in range(height):
             row = []
             for x in range(width):
-                tile_type = 'street' if (x == 0 or x == width-1 or y == 0 or y == height-1) else 'building'
-                row.append({
+                tile_type = base_grid[y][x]
+                tile_cfg = self.TILE_TYPES.get(tile_type, self.TILE_TYPES['building'])
+                feature_name = feature_grid[y][x]
+
+                cover = tile_cfg['base_cover']
+                visibility = tile_cfg['base_visibility']
+                feature_data = None
+
+                if feature_name:
+                    feat_cfg = self.FEATURES[feature_name]
+                    cover = max(cover, feat_cfg['cover'])
+                    visibility = max(0.0, visibility - feat_cfg['visibility_penalty'])
+                    feature_data = {
+                        'name': feature_name,
+                        'cover_bonus': feat_cfg['cover'],
+                        'destructible': feat_cfg['destructible'],
+                        'hp': feat_cfg['hp'] if feat_cfg['destructible'] else None,
+                        'max_hp': feat_cfg['hp'] if feat_cfg['destructible'] else None,
+                    }
+
+                tile = {
                     'x': x,
                     'y': y,
                     'type': tile_type,
-                    'terrain_bonus': {'cover': 0.5 if tile_type == 'building' else 0.0}
-                })
+                    'walkable': tile_cfg['walkable'],
+                    'terrain_bonus': {
+                        'cover': round(cover, 2),
+                        'visibility': round(visibility, 2),
+                    },
+                }
+                if feature_data:
+                    tile['feature'] = feature_data
+
+                row.append(tile)
             tiles.append(row)
+
         return tiles
 
 

@@ -5,6 +5,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore } from '../../stores/gameStore';
+import type { Transaction } from '../../types/game.types';
 import './Shoebox.css';
 
 type ModalMode = 'deposit' | 'withdraw' | null;
@@ -19,6 +20,21 @@ const formatTime = (iso: string): string => {
   const d = new Date(iso);
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
     ' ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+const getTransactionDescription = (tx: Transaction): string => {
+  const detailDescription = (tx.details as Record<string, unknown>)?.description;
+  if (typeof detailDescription === 'string' && detailDescription.length > 0) {
+    return detailDescription;
+  }
+  const legacyTx = tx as Transaction & { description?: string };
+  return legacyTx.description || tx.type;
+};
+
+const getTransactionTime = (tx: Transaction): string => {
+  if (tx.createdAt) return tx.createdAt;
+  const legacyTx = tx as Transaction & { timestamp?: string };
+  return legacyTx.timestamp || new Date().toISOString();
 };
 
 const Shoebox: React.FC = () => {
@@ -55,7 +71,7 @@ const Shoebox: React.FC = () => {
       updatePlayer({ bankBalance: player.bankBalance + val });
       addTransaction({
         id: Date.now().toString(),
-        type: 'purchase' as any,
+        type: 'purchase',
         userId: player.id,
         amount: -val,
         details: { action: 'deposit', description: `Deposited ${formatMoney(val)} into shoebox` },
@@ -66,7 +82,7 @@ const Shoebox: React.FC = () => {
       updatePlayer({ bankBalance: player.bankBalance - val });
       addTransaction({
         id: Date.now().toString(),
-        type: 'deal_income' as any,
+        type: 'deal_income',
         userId: player.id,
         amount: val,
         details: { action: 'withdrawal', description: `Withdrew ${formatMoney(val)} from shoebox` },
@@ -139,7 +155,7 @@ const Shoebox: React.FC = () => {
             <div className="no-transactions">No transactions yet</div>
           ) : (
             transactions.slice(0, 30).map((tx, i) => {
-              const desc = (tx.details as any)?.description || tx.type;
+              const desc = getTransactionDescription(tx);
               return (
                 <div key={tx.id || i} className="transaction-item">
                   <div className="tx-left">
@@ -148,7 +164,7 @@ const Shoebox: React.FC = () => {
                     </div>
                     <div className="tx-info">
                       <div className="tx-desc">{desc}</div>
-                      <div className="tx-time">{formatTime(tx.createdAt)}</div>
+                      <div className="tx-time">{formatTime(getTransactionTime(tx))}</div>
                     </div>
                   </div>
                   <div className={`tx-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
