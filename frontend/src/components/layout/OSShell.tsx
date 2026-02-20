@@ -1,10 +1,18 @@
 // ============================================================
 // OSShell - iOS-Style Desktop Interface for DEALT/SLIDE
+// Live Dashboard: Heat meter, Morale indicator, Income ticker
 // ============================================================
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigationStore, usePlayerStore, useNotificationStore } from '../../stores/gameStore';
+import {
+  useNavigationStore,
+  usePlayerStore,
+  useGangStore,
+  useNotificationStore,
+} from '../../stores/gameStore';
+import { getRaidProbability } from '../../utils/heatSystem';
+import { getMoraleDescription } from '../../utils/moraleSystem';
 import './OSShell.css';
 
 interface AppIcon {
@@ -17,17 +25,33 @@ interface AppIcon {
   description: string;
 }
 
+interface OSShellProps {
+  gangMorale?: number;
+  incomePerMinute?: number;
+}
+
 const formatMoney = (amount: number): string => {
   if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
   if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
   return `$${amount.toLocaleString()}`;
 };
 
-const OSShell: React.FC = () => {
+const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 }) => {
   const { navigateTo } = useNavigationStore();
   const { player } = usePlayerStore();
-  const { getUnreadCount } = useNotificationStore();
+  const { members } = useGangStore();
+  const { getUnreadCount, notifications, markAllAsRead } = useNotificationStore();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showHeatDetail, setShowHeatDetail] = useState(false);
+  const [showMoraleDetail, setShowMoraleDetail] = useState(false);
+
+  // Calculate alert badges
+  const jailedCount = members.filter((m) => m.status === 'jailed').length;
+  const hospitalCount = members.filter((m) => m.status === 'hospital').length;
+  const crewAlerts = jailedCount + hospitalCount;
+
+  const raidProb = useMemo(() => getRaidProbability(player.heat), [player.heat]);
+  const moraleDesc = useMemo(() => getMoraleDescription(gangMorale), [gangMorale]);
 
   const appIcons: AppIcon[] = [
     {
@@ -77,6 +101,7 @@ const OSShell: React.FC = () => {
       icon: '👥',
       colorClass: 'app-blue',
       available: true,
+      badge: crewAlerts > 0 ? crewAlerts : undefined,
       description: 'Gang Management',
     },
     {
@@ -136,11 +161,18 @@ const OSShell: React.FC = () => {
   };
 
   const getHeatColor = (heat: number): string => {
-    if (heat >= 80) return '#ff0000';
-    if (heat >= 60) return '#ff4400';
+    if (heat >= 85) return '#ff0000';
+    if (heat >= 65) return '#ff4400';
     if (heat >= 40) return '#ff8800';
     if (heat >= 20) return '#ffcc00';
-    return '#00ff00';
+    return '#00ff88';
+  };
+
+  const getHeatBarClass = (heat: number): string => {
+    if (heat >= 85) return 'heat-bar-critical';
+    if (heat >= 65) return 'heat-bar-high';
+    if (heat >= 40) return 'heat-bar-medium';
+    return 'heat-bar-low';
   };
 
   return (
@@ -181,13 +213,22 @@ const OSShell: React.FC = () => {
         <p className="home-subtitle">STREET EMPIRE</p>
       </div>
 
-      {/* Stats Bar */}
-      <div className="stats-bar">
-        <div className="stat">
+      {/* Live Stats Dashboard */}
+      <div className="stats-dashboard">
+        {/* Cash + Income */}
+        <div className="stat-card stat-cash">
           <div className="stat-value money">{formatMoney(player.money)}</div>
           <div className="stat-label">Cash</div>
+          {incomePerMinute > 0 && (
+            <div className="income-ticker">+${incomePerMinute}/min</div>
+          )}
         </div>
-        <div className="stat">
+
+        {/* Heat Meter */}
+        <div
+          className="stat-card stat-heat"
+          onClick={() => setShowHeatDetail(!showHeatDetail)}
+        >
           <div
             className="stat-value heat"
             style={{ color: getHeatColor(player.heat) }}
@@ -195,16 +236,104 @@ const OSShell: React.FC = () => {
             {player.heat}%
           </div>
           <div className="stat-label">Heat</div>
+          <div className={`heat-bar ${getHeatBarClass(player.heat)}`}>
+            <div
+              className="heat-bar-fill"
+              style={{ width: `${player.heat}%` }}
+            />
+          </div>
+          {raidProb > 0 && (
+            <div className="raid-probability">
+              🚨 {Math.round(raidProb * 100)}% raid
+            </div>
+          )}
         </div>
-        <div className="stat">
-          <div className="stat-value rep">{player.reputation}</div>
-          <div className="stat-label">Rep</div>
+
+        {/* Morale */}
+        <div
+          className="stat-card stat-morale"
+          onClick={() => setShowMoraleDetail(!showMoraleDetail)}
+        >
+          <div className="stat-value" style={{ color: moraleDesc.color }}>
+            {gangMorale}
+          </div>
+          <div className="stat-label">Morale</div>
+          <div className="morale-label" style={{ color: moraleDesc.color }}>
+            {moraleDesc.label}
+          </div>
         </div>
-        <div className="stat">
+
+        {/* Level */}
+        <div className="stat-card stat-level">
           <div className="stat-value level">LV{player.level}</div>
           <div className="stat-label">Level</div>
         </div>
       </div>
+
+      {/* Heat Detail Popup */}
+      <AnimatePresence>
+        {showHeatDetail && (
+          <motion.div
+            className="detail-popup heat-detail"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <div className="detail-row">
+              <span>Current Heat</span>
+              <span style={{ color: getHeatColor(player.heat) }}>{player.heat}/100</span>
+            </div>
+            <div className="detail-row">
+              <span>Raid Probability</span>
+              <span>{Math.round(raidProb * 100)}%</span>
+            </div>
+            <div className="detail-row">
+              <span>Decay Rate</span>
+              <span>-2/hour</span>
+            </div>
+            <div className="detail-row">
+              <span>Raid Severity</span>
+              <span>
+                {player.heat < 40 ? 'None' : player.heat < 65 ? 'Minor' : player.heat < 85 ? 'Major' : 'Federal'}
+              </span>
+            </div>
+            <button className="detail-close" onClick={() => setShowHeatDetail(false)}>Close</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Morale Detail Popup */}
+      <AnimatePresence>
+        {showMoraleDetail && (
+          <motion.div
+            className="detail-popup morale-detail"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <div className="detail-row">
+              <span>Gang Morale</span>
+              <span style={{ color: moraleDesc.color }}>{gangMorale}/100</span>
+            </div>
+            <div className="detail-row">
+              <span>Status</span>
+              <span style={{ color: moraleDesc.color }}>{moraleDesc.label}</span>
+            </div>
+            {moraleDesc.warning && (
+              <div className="detail-warning">{moraleDesc.warning}</div>
+            )}
+            <div className="detail-row">
+              <span>Jailed Members</span>
+              <span>{jailedCount}</span>
+            </div>
+            <div className="detail-row">
+              <span>Wounded Members</span>
+              <span>{hospitalCount}</span>
+            </div>
+            <button className="detail-close" onClick={() => setShowMoraleDetail(false)}>Close</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* XP Progress Bar */}
       <div className="xp-bar-container">
@@ -238,7 +367,11 @@ const OSShell: React.FC = () => {
             <div className={`icon-container ${app.colorClass}`}>
               <span className="icon-emoji">{app.icon}</span>
               {!app.available && <div className="lock-overlay">🔒</div>}
-              {app.badge && <div className="app-badge">{app.badge}</div>}
+              {app.badge && (
+                <div className={`app-badge ${typeof app.badge === 'number' ? 'app-badge-number' : ''}`}>
+                  {app.badge}
+                </div>
+              )}
             </div>
             <span className="icon-label">{app.label}</span>
           </motion.div>
@@ -247,32 +380,16 @@ const OSShell: React.FC = () => {
 
       {/* Quick Actions Dock */}
       <div className="dock">
-        <motion.div
-          className="dock-item"
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigateTo('dealt')}
-        >
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt')}>
           💊
         </motion.div>
-        <motion.div
-          className="dock-item"
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigateTo('slide')}
-        >
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('slide')}>
           🎯
         </motion.div>
-        <motion.div
-          className="dock-item"
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigateTo('contacts')}
-        >
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('contacts')}>
           👥
         </motion.div>
-        <motion.div
-          className="dock-item"
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigateTo('shoebox')}
-        >
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('shoebox')}>
           💰
         </motion.div>
       </div>
@@ -288,10 +405,32 @@ const OSShell: React.FC = () => {
           >
             <div className="notification-header">
               <h3>Notifications</h3>
-              <button onClick={() => setShowNotifications(false)}>✕</button>
+              <div className="notification-actions">
+                {notifications.length > 0 && (
+                  <button className="mark-read-btn" onClick={() => markAllAsRead()}>
+                    Mark All Read
+                  </button>
+                )}
+                <button onClick={() => setShowNotifications(false)}>✕</button>
+              </div>
             </div>
             <div className="notification-list">
-              <p className="no-notifications">No new notifications</p>
+              {notifications.length === 0 ? (
+                <p className="no-notifications">No notifications</p>
+              ) : (
+                notifications.slice(0, 20).map((n) => (
+                  <div
+                    key={n.id}
+                    className={`notification-item ${n.read ? 'read' : 'unread'} notif-${n.type}`}
+                  >
+                    <div className="notif-title">{n.title}</div>
+                    <div className="notif-message">{n.message}</div>
+                    <div className="notif-time">
+                      {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </motion.div>
         )}

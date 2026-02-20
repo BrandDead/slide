@@ -1,0 +1,551 @@
+// ============================================================
+// gameLoopEngine.ts - Central game tick system
+// Runs every 30 seconds, processes heat decay, raids, income,
+// member heat contribution, morale checks, and random events
+// ============================================================
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  calculateDecayedHeat,
+  rollForRaid,
+  executeRaid,
+  createInitialHeatState,
+  type HeatState,
+  type RaidResult,
+  HEAT_CONFIG,
+} from './heatSystem';
+import { getMemberHeatContribution } from './memberProgression';
+import { calculateTotalIncome, estimateIncomePerMinute, type ODEvent } from './incomeEngine';
+import {
+  calculateMorale,
+  getMoraleConsequences,
+  rollMoraleConsequences,
+  getMoraleDescription,
+  type MoraleFactors,
+} from './moraleSystem';
+import {
+  usePlayerStore,
+  useGangStore,
+  useTerritoryStore,
+  useEconomyStore,
+  useNotificationStore,
+} from '../stores/gameStore';
+
+// ============ GAME EVENT TYPES ============
+
+export type GameEventType =
+  | 'raid'
+  | 'income'
+  | 'od'
+  | 'morale_warning'
+  | 'random_event'
+  | 'member_heat'
+  | 'heat_decay';
+
+export interface GameEvent {
+  id: string;
+  type: GameEventType;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'danger' | 'critical';
+  timestamp: number;
+  data?: any;
+}
+
+export interface RaidEvent extends GameEvent {
+  type: 'raid';
+  data: {
+    result: RaidResult;
+    bailCosts: Array<{ memberId: string; memberName: string; amount: number }>;
+  };
+}
+
+// ============ RANDOM EVENTS ============
+
+interface RandomEventTemplate {
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'danger';
+  effect: (stores: GameStores) => void;
+}
+
+interface GameStores {
+  player: ReturnType<typeof usePlayerStore.getState>;
+  gang: ReturnType<typeof useGangStore.getState>;
+  territory: ReturnType<typeof useTerritoryStore.getState>;
+  economy: ReturnType<typeof useEconomyStore.getState>;
+  notifications: ReturnType<typeof useNotificationStore.getState>;
+}
+
+const RANDOM_EVENTS: RandomEventTemplate[] = [
+  {
+    title: '👮 Police Patrol',
+    message: 'Cops are cruising the block. Heat +5.',
+    severity: 'warning',
+    effect: (s) => s.player.updateHeat(5),
+  },
+  {
+    title: '🔫 Rival Gang Spotted',
+    message: 'Opps were seen scoping your block. Stay alert.',
+    severity: 'warning',
+    effect: () => {},
+  },
+  {
+    title: '💰 Big Spender',
+    message: 'A high roller came through. +$500 bonus.',
+    severity: 'info',
+    effect: (s) => s.player.updateMoney(500),
+  },
+  {
+    title: '📰 News Coverage',
+    message: 'Local news ran a story about drug activity. Heat +10.',
+    severity: 'danger',
+    effect: (s) => s.player.updateHeat(10),
+  },
+  {
+    title: '🤝 Community Support',
+    message: 'Locals appreciate you keeping things quiet. Heat -5.',
+    severity: 'info',
+    effect: (s) => s.player.updateHeat(-5),
+  },
+  {
+    title: '🚗 Drive-by Warning',
+    message: 'Someone shot up a nearby block. Your crew is on edge.',
+    severity: 'warning',
+    effect: () => {},
+  },
+  {
+    title: '💊 Product Shortage',
+    message: 'Supply chain disrupted. Prices going up on the street.',
+    severity: 'info',
+    effect: () => {},
+  },
+  {
+    title: '🎉 Block Party',
+    message: 'Neighborhood block party provides cover. Heat -3.',
+    severity: 'info',
+    effect: (s) => s.player.updateHeat(-3),
+  },
+  {
+    title: '🐀 Snitch Alert',
+    message: 'Word on the street is someone\'s talking. Heat +15.',
+    severity: 'danger',
+    effect: (s) => s.player.updateHeat(15),
+  },
+  {
+    title: '💵 Protection Money',
+    message: 'Local businesses paid their weekly dues. +$300.',
+    severity: 'info',
+    effect: (s) => s.player.updateMoney(300),
+  },
+];
+
+// ============ GAME LOOP CONFIG ============
+
+export const LOOP_CONFIG = {
+  TICK_INTERVAL_MS: 30_000,       // 30 seconds per tick
+  MORALE_CHECK_INTERVAL: 5,       // Every 5 ticks
+  RANDOM_EVENT_CHANCE: 0.05,      // 5% per tick
+  HEAT_DECAY_DIVISOR: 120,        // Decay fraction per tick (2pts/hr ÷ 120 ticks/hr)
+} as const;
+
+// ============ GAME LOOP HOOK ============
+
+export interface GameLoopState {
+  isRunning: boolean;
+  tickCount: number;
+  lastEvent: GameEvent | null;
+  activeRaid: RaidEvent | null;
+  incomePerMinute: number;
+  gangMorale: number;
+  heatState: HeatState;
+  start: () => void;
+  stop: () => void;
+  dismissRaid: () => void;
+  payBail: (memberId: string) => void;
+  leaveMember: (memberId: string) => void;
+}
+
+export function useGameLoop(): GameLoopState {
+  const [isRunning, setIsRunning] = useState(false);
+  const [tickCount, setTickCount] = useState(0);
+  const [lastEvent, setLastEvent] = useState<GameEvent | null>(null);
+  const [activeRaid, setActiveRaid] = useState<RaidEvent | null>(null);
+  const [incomePerMinute, setIncomePerMinute] = useState(0);
+  const [gangMorale, setGangMorale] = useState(75);
+  const [heatState, setHeatState] = useState<HeatState>(createInitialHeatState());
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tickRef = useRef(0);
+
+  const getStores = useCallback((): GameStores => ({
+    player: usePlayerStore.getState(),
+    gang: useGangStore.getState(),
+    territory: useTerritoryStore.getState(),
+    economy: useEconomyStore.getState(),
+    notifications: useNotificationStore.getState(),
+  }), []);
+
+  const createEvent = useCallback((
+    type: GameEventType,
+    title: string,
+    message: string,
+    severity: 'info' | 'warning' | 'danger' | 'critical',
+    data?: any,
+  ): GameEvent => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type,
+    title,
+    message,
+    severity,
+    timestamp: Date.now(),
+    data,
+  }), []);
+
+  const processTick = useCallback(() => {
+    const stores = getStores();
+    const { player } = stores.player;
+    const members = stores.gang.getActiveMembers();
+    const blocks = stores.territory.blocks;
+
+    tickRef.current += 1;
+    setTickCount(tickRef.current);
+
+    // 1. HEAT DECAY
+    const currentHeatState: HeatState = {
+      ...heatState,
+      level: player.heat,
+    };
+    const decayedHeat = calculateDecayedHeat(currentHeatState);
+    if (decayedHeat < player.heat) {
+      const diff = player.heat - decayedHeat;
+      stores.player.updateHeat(-diff);
+    }
+
+    // 2. MEMBER HEAT CONTRIBUTION
+    let memberHeatTotal = 0;
+    for (const block of blocks) {
+      for (const unit of block.units) {
+        const member = members.find((m) => m.id === unit.memberId);
+        if (member) {
+          const contribution = getMemberHeatContribution(member.level);
+          memberHeatTotal += contribution;
+        }
+      }
+    }
+    if (memberHeatTotal > 0) {
+      // Scale to per-tick amount (heat per hour → per tick)
+      const heatPerTick = memberHeatTotal / (3600000 / LOOP_CONFIG.TICK_INTERVAL_MS);
+      if (heatPerTick >= 0.1) {
+        stores.player.updateHeat(Math.ceil(heatPerTick));
+      }
+    }
+
+    // 3. PASSIVE INCOME
+    const blockDealers = blocks.map((block) => ({
+      blockId: block.id,
+      blockName: block.name || `Block ${block.id}`,
+      dealers: block.units
+        .filter((u) => u.role === 'dealer')
+        .map((u) => {
+          const member = members.find((m) => m.id === u.memberId);
+          return {
+            memberId: u.memberId,
+            memberName: u.memberName || 'Unknown',
+            row: u.position.row,
+            dealingStat: member?.stats?.dealing ?? 50,
+            drugPurity: 60, // Default; would come from equipped drug
+            drugOdRisk: 20,
+            drugName: 'Product',
+          };
+        }),
+    }));
+
+    const incomeResult = calculateTotalIncome(blockDealers);
+
+    if (incomeResult.totalIncome > 0) {
+      stores.player.updateMoney(incomeResult.totalIncome);
+      stores.economy.addTransaction({
+        id: Date.now().toString(),
+        type: 'income',
+        amount: incomeResult.totalIncome,
+        description: `Block income: $${incomeResult.totalIncome}`,
+        category: 'block_income',
+        timestamp: new Date().toISOString(),
+      } as any);
+    }
+
+    setIncomePerMinute(estimateIncomePerMinute(incomeResult.totalIncome));
+
+    // 4. OD EVENTS
+    for (const od of incomeResult.allOdEvents) {
+      stores.player.updateHeat(od.heatSpike);
+      const odEvent = createEvent(
+        'od',
+        '💀 Customer OD',
+        `A customer OD'd on ${od.drugName} from ${od.memberName}'s spot. Heat +${od.heatSpike}.`,
+        'danger',
+      );
+      setLastEvent(odEvent);
+      stores.notifications.addNotification({
+        type: 'danger',
+        title: odEvent.title,
+        message: odEvent.message,
+        priority: 'high',
+      });
+    }
+
+    // 5. RAID CHECK
+    const updatedHeat = usePlayerStore.getState().player.heat;
+    const raidHeatState: HeatState = {
+      ...currentHeatState,
+      level: updatedHeat,
+    };
+
+    if (rollForRaid(raidHeatState)) {
+      const memberIds = members.map((m) => m.id);
+      const drugCount = stores.economy.inventory
+        .filter((i) => i.type === 'drug')
+        .reduce((sum, i) => sum + i.quantity, 0);
+      const weaponCount = stores.economy.inventory
+        .filter((i) => i.type === 'weapon')
+        .reduce((sum, i) => sum + i.quantity, 0);
+
+      const raidResult = executeRaid(
+        updatedHeat,
+        memberIds,
+        drugCount,
+        weaponCount,
+        usePlayerStore.getState().player.money,
+      );
+
+      // Apply raid consequences
+      if (raidResult.confiscatedMoney > 0) {
+        stores.player.updateMoney(-raidResult.confiscatedMoney);
+      }
+      if (raidResult.confiscatedDrugs > 0) {
+        const drugs = stores.economy.inventory.filter((i) => i.type === 'drug');
+        let remaining = raidResult.confiscatedDrugs;
+        for (const drug of drugs) {
+          if (remaining <= 0) break;
+          const toRemove = Math.min(drug.quantity, remaining);
+          stores.economy.removeInventoryItem(drug.itemId, toRemove);
+          remaining -= toRemove;
+        }
+      }
+
+      // Jail arrested members
+      for (const memberId of raidResult.arrestedMembers) {
+        stores.gang.jailMember(memberId);
+      }
+
+      // Reduce heat after raid
+      stores.player.updateHeat(-raidResult.heatReduction);
+
+      // Build bail costs array
+      const bailCosts: Array<{ memberId: string; memberName: string; amount: number }> = [];
+      raidResult.bailCosts.forEach((amount, memberId) => {
+        const member = members.find((m) => m.id === memberId);
+        bailCosts.push({
+          memberId,
+          memberName: member?.name || 'Unknown',
+          amount,
+        });
+      });
+
+      // Create raid event
+      const raidEvent: RaidEvent = {
+        id: `raid-${Date.now()}`,
+        type: 'raid',
+        title: `🚨 ${raidResult.severity.toUpperCase()} RAID 🚨`,
+        message: `Police raided your block! ${raidResult.arrestedMembers.length} arrested, $${raidResult.confiscatedMoney} seized.`,
+        severity: 'critical',
+        timestamp: Date.now(),
+        data: { result: raidResult, bailCosts },
+      };
+
+      setActiveRaid(raidEvent);
+      setLastEvent(raidEvent);
+
+      // Update heat state
+      setHeatState((prev) => ({
+        ...prev,
+        lastRaidTime: Date.now(),
+        level: usePlayerStore.getState().player.heat,
+      }));
+
+      stores.notifications.addNotification({
+        type: 'danger',
+        title: raidEvent.title,
+        message: raidEvent.message,
+        priority: 'urgent',
+      });
+    }
+
+    // 6. MORALE CHECK (every 5 ticks)
+    if (tickRef.current % LOOP_CONFIG.MORALE_CHECK_INTERVAL === 0) {
+      const gangSize = members.length;
+      if (gangSize > 0) {
+        const jailedMembers = stores.gang.members.filter((m) => m.status === 'jailed');
+        const woundedMembers = stores.gang.members.filter((m) => m.status === 'hospital');
+
+        const factors: MoraleFactors = {
+          baseMorale: 60,
+          payOnTime: true,
+          memberBailedOut: jailedMembers.length === 0,
+          hospitalBillPaid: woundedMembers.length === 0,
+          recentWins: 0,
+          recentLosses: 0,
+          memberDeaths: 0,
+          gangSize,
+          playerReputation: player.reputation,
+        };
+
+        const morale = calculateMorale(factors);
+        setGangMorale(morale);
+
+        const moraleDesc = getMoraleDescription(morale);
+        if (moraleDesc.warning) {
+          const moraleEvent = createEvent(
+            'morale_warning',
+            `⚠️ Morale: ${moraleDesc.label}`,
+            moraleDesc.warning,
+            morale < 15 ? 'critical' : 'warning',
+          );
+          setLastEvent(moraleEvent);
+        }
+      }
+    }
+
+    // 7. RANDOM EVENTS (5% chance per tick)
+    if (Math.random() < LOOP_CONFIG.RANDOM_EVENT_CHANCE) {
+      const template = RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)];
+      template.effect(stores);
+
+      const randomEvent = createEvent(
+        'random_event',
+        template.title,
+        template.message,
+        template.severity,
+      );
+      setLastEvent(randomEvent);
+
+      stores.notifications.addNotification({
+        type: template.severity === 'danger' ? 'danger' : template.severity === 'warning' ? 'warning' : 'info',
+        title: template.title,
+        message: template.message,
+        priority: template.severity === 'danger' ? 'high' : 'normal',
+      });
+    }
+
+    // Update heat state for next tick
+    setHeatState((prev) => ({
+      ...prev,
+      level: usePlayerStore.getState().player.heat,
+      lastDecayTime: Date.now(),
+    }));
+  }, [getStores, createEvent, heatState]);
+
+  const start = useCallback(() => {
+    if (intervalRef.current) return;
+    setIsRunning(true);
+    intervalRef.current = setInterval(processTick, LOOP_CONFIG.TICK_INTERVAL_MS);
+  }, [processTick]);
+
+  const stop = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setIsRunning(false);
+  }, []);
+
+  const dismissRaid = useCallback(() => {
+    setActiveRaid(null);
+  }, []);
+
+  const payBail = useCallback((memberId: string) => {
+    if (!activeRaid) return;
+    const bail = activeRaid.data.bailCosts.find((b) => b.memberId === memberId);
+    if (!bail) return;
+
+    const playerStore = usePlayerStore.getState();
+    if (playerStore.player.money < bail.amount) return;
+
+    playerStore.updateMoney(-bail.amount);
+    useGangStore.getState().releaseMember(memberId);
+
+    // Remove from bail costs
+    setActiveRaid((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          bailCosts: prev.data.bailCosts.filter((b) => b.memberId !== memberId),
+          result: {
+            ...prev.data.result,
+            arrestedMembers: prev.data.result.arrestedMembers.filter((id) => id !== memberId),
+          },
+        },
+      };
+    });
+  }, [activeRaid]);
+
+  const leaveMember = useCallback((memberId: string) => {
+    if (!activeRaid) return;
+    const bail = activeRaid.data.bailCosts.find((b) => b.memberId === memberId);
+    if (!bail) return;
+
+    // Apply morale penalty
+    const gangStore = useGangStore.getState();
+    const members = gangStore.getActiveMembers();
+    // Morale drop for everyone
+    for (const member of members) {
+      const currentMorale = member.morale ?? 50;
+      gangStore.updateMember(member.id, {
+        morale: Math.max(0, currentMorale - 10),
+      });
+    }
+
+    // Remove from bail costs
+    setActiveRaid((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        data: {
+          ...prev.data,
+          bailCosts: prev.data.bailCosts.filter((b) => b.memberId !== memberId),
+        },
+      };
+    });
+
+    useNotificationStore.getState().addNotification({
+      type: 'warning',
+      title: '😤 Crew Upset',
+      message: `You left ${bail.memberName} locked up. Morale dropped for everyone.`,
+      priority: 'high',
+    });
+  }, [activeRaid]);
+
+  // Auto-start on mount
+  useEffect(() => {
+    start();
+    return () => stop();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return {
+    isRunning,
+    tickCount,
+    lastEvent,
+    activeRaid,
+    incomePerMinute,
+    gangMorale,
+    heatState,
+    start,
+    stop,
+    dismissRaid,
+    payBail,
+    leaveMember,
+  };
+}

@@ -1,0 +1,21 @@
+SPRINT 2 VERIFICATION NOTES
+===========================
+
+HOME SCREEN - LIVE DASHBOARD VERIFIED
+- Stats dashboard shows 4 cards: Cash ($1.9K), Heat (1%), Morale (75 LOYAL in green), Level (LV1)
+- Heat card has a small heat bar underneath the percentage
+- Morale card shows "LOYAL" label in green (#00ff88)
+- XP bar shows 25/100 XP with gradient fill
+- All 12 app icons render correctly in 4x3 grid
+- Bottom dock with 4 quick-access icons
+- Heat and Morale cards are clickable for detail popups
+- Game loop engine is running (auto-started on mount)
+
+BUILD STATUS
+- Vite build: SUCCESS (407 KB JS, 69 KB CSS)
+- All new files compile cleanly:
+  - incomeEngine.ts (income calculation)
+  - gameLoopEngine.ts (central tick system)
+  - GameEventOverlay.tsx + CSS (raid/event overlays)
+  - Updated OSShell.tsx + CSS (live dashboard)
+  - Updated App.tsx (game loop integration)
