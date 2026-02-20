@@ -1,4 +1,7 @@
-/* Contacts - Gang Member Management */
+/* ============================================================
+   Contacts - Gang Member Management
+   Sprint 2: Morale, XP, Equip, Bail, Deploy Warning
+   ============================================================ */
 
 .contacts-screen {
   width: 100%;
@@ -99,6 +102,11 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.contact-card.jailed-card {
+  background: rgba(255, 68, 68, 0.08);
+  border-color: rgba(255, 68, 68, 0.2);
+}
+
 .contact-avatar {
   width: 50px;
   height: 50px;
@@ -106,6 +114,7 @@
   background: rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .contact-avatar img {
@@ -134,6 +143,7 @@
 
 .contact-info {
   flex: 1;
+  min-width: 0;
 }
 
 .contact-name {
@@ -148,10 +158,37 @@
   margin-left: 6px;
 }
 
+.contact-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .contact-role {
   font-size: 11px;
   color: #666;
   letter-spacing: 1px;
+}
+
+.contact-level {
+  font-size: 11px;
+  color: #ffd700;
+  font-weight: 700;
+  background: rgba(255, 215, 0, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Morale Badge */
+.morale-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
 .death-info {
@@ -163,6 +200,33 @@
 .contact-arrow {
   font-size: 20px;
   color: #444;
+  flex-shrink: 0;
+}
+
+/* Jail Actions */
+.jail-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bail-btn, .leave-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bail-btn {
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+}
+
+.leave-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #888;
 }
 
 /* Request Card */
@@ -184,37 +248,13 @@
   margin-bottom: 12px;
 }
 
-.request-content {
-  margin-bottom: 12px;
-}
+.request-content { margin-bottom: 12px; }
+.request-member { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.request-reason { font-size: 14px; color: #ccc; margin-bottom: 8px; }
+.request-target { font-size: 13px; color: #888; }
+.request-penalty { font-size: 12px; color: #ff6666; margin-top: 8px; }
 
-.request-member {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.request-reason {
-  font-size: 14px;
-  color: #ccc;
-  margin-bottom: 8px;
-}
-
-.request-target {
-  font-size: 13px;
-  color: #888;
-}
-
-.request-penalty {
-  font-size: 12px;
-  color: #ff6666;
-  margin-top: 8px;
-}
-
-.request-actions {
-  display: flex;
-  gap: 12px;
-}
+.request-actions { display: flex; gap: 12px; }
 
 .accept-request, .ignore-request {
   flex: 1;
@@ -322,26 +362,11 @@
   text-align: left;
 }
 
-.add-option:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
+.add-option:hover { background: rgba(255, 255, 255, 0.08); }
 
-.option-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.option-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #fff;
-}
-
-.option-desc {
-  font-size: 12px;
-  color: #888;
-}
+.option-icon { font-size: 32px; margin-bottom: 8px; }
+.option-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #fff; }
+.option-desc { font-size: 12px; color: #888; }
 
 .close-modal {
   width: 100%;
@@ -355,9 +380,7 @@
 }
 
 /* Selfie Upload */
-.selfie-upload-area {
-  margin-bottom: 24px;
-}
+.selfie-upload-area { margin-bottom: 24px; }
 
 .upload-placeholder {
   display: flex;
@@ -375,9 +398,7 @@
 .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
 .upload-hint { font-size: 12px; color: #666; }
 
-.uploaded-preview {
-  text-align: center;
-}
+.uploaded-preview { text-align: center; }
 
 .uploaded-preview img {
   width: 150px;
@@ -396,10 +417,7 @@
   cursor: pointer;
 }
 
-.modal-actions {
-  display: flex;
-  gap: 12px;
-}
+.modal-actions { display: flex; gap: 12px; }
 
 .cancel-btn, .generate-btn {
   flex: 1;
@@ -411,19 +429,64 @@
   cursor: pointer;
 }
 
-.cancel-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #888;
-}
+.cancel-btn { background: rgba(255, 255, 255, 0.1); color: #888; }
 
 .generate-btn {
   background: linear-gradient(135deg, #00ff88, #00cc6a);
   color: #000;
 }
 
-.generate-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Deploy Warning Modal */
+.deploy-warning-modal {
+  border: 1px solid rgba(255, 150, 0, 0.3);
+}
+
+.consequence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.consequence-item {
+  background: rgba(255, 100, 0, 0.1);
+  border: 1px solid rgba(255, 100, 0, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.consequence-type {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff6600;
+  letter-spacing: 1px;
+}
+
+.consequence-prob {
+  float: right;
+  font-size: 12px;
+  color: #ff4444;
+  font-weight: 600;
+}
+
+.consequence-desc {
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+.deploy-anyway-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ff6600, #ff4400);
+  color: #fff;
 }
 
 /* Detail Modal */
@@ -452,9 +515,7 @@
   object-fit: cover;
 }
 
-.avatar-placeholder.large {
-  font-size: 36px;
-}
+.avatar-placeholder.large { font-size: 36px; }
 
 .status-badge {
   position: absolute;
@@ -463,18 +524,80 @@
   font-size: 24px;
 }
 
-.detail-nickname {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 4px;
+.detail-nickname { font-size: 14px; color: #888; margin-bottom: 4px; }
+.detail-role { font-size: 12px; color: #666; letter-spacing: 2px; }
+
+/* Level & XP */
+.level-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
-.detail-role {
+.level-badge {
+  font-size: 20px;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.rank-label {
   font-size: 12px;
-  color: #666;
+  color: #cc9900;
+  text-transform: uppercase;
   letter-spacing: 2px;
+  font-weight: 600;
 }
 
+.morale-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.xp-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.xp-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffaa00);
+  border-radius: 4px;
+}
+
+.xp-text {
+  font-size: 11px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.heat-warning-badge {
+  font-size: 11px;
+  color: #ff8888;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  text-align: center;
+}
+
+/* Detail Section */
 .detail-section {
   margin-bottom: 20px;
 }
@@ -526,6 +649,76 @@
   text-align: right;
 }
 
+/* Equipped Product */
+.equipped-drugs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.equipped-drug-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 8px;
+}
+
+.drug-emoji { font-size: 18px; }
+.drug-name { flex: 1; font-size: 14px; font-weight: 500; }
+.drug-qty { font-size: 13px; color: #888; }
+
+.no-product {
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+  padding: 12px;
+}
+
+.equip-btn {
+  width: 100%;
+  padding: 10px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 8px;
+  color: #00f0ff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.equip-list {
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.stash-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stash-item:hover {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.equip-arrow {
+  color: #00f0ff;
+  font-weight: 700;
+}
+
 /* Backstory */
 .backstory-text {
   font-size: 14px;
@@ -562,15 +755,8 @@
   width: 60px;
 }
 
-.conn-name {
-  flex: 1;
-  font-size: 14px;
-}
-
-.conn-warning {
-  font-size: 11px;
-  color: #ff6666;
-}
+.conn-name { flex: 1; font-size: 14px; }
+.conn-warning { font-size: 11px; color: #ff6666; }
 
 /* Death Section */
 .death-section {
@@ -597,6 +783,18 @@
   display: flex;
   gap: 12px;
   margin-top: 20px;
+}
+
+.deploy-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #007aff, #0055cc);
+  color: #fff;
 }
 
 .backdoor-btn, .close-btn {
