@@ -1,0 +1,11 @@
+Sprint 2 Remaining Verification Notes
+======================================
+
+Home Screen:
+- MORALE stat card now shows "75 MORALE LOYAL" in green - WORKING
+- HEAT shows 0% - WORKING
+- All 12 app icons render with proper styling
+- Bottom dock with 4 quick-access icons
+- XP bar shows 25/100 XP
+
+Testing CREW page next...

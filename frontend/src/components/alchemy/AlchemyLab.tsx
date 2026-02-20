@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigationStore, usePlayerStore } from '../../stores/gameStore';
+import { useNavigationStore, usePlayerStore, useEconomyStore, useNotificationStore } from '../../stores/gameStore';
 import { ALL_RECIPES, findMatchingRecipe, attemptCraft, getRecipeHint } from '../../utils/alchemyEngine';
 import type { BaseElement, CraftedDrug, AlchemyRecipe, CraftingResult } from '../../types/alchemy.types';
 import './AlchemyLab.css';
@@ -91,6 +91,8 @@ const TIER_LABELS: Record<number, string> = {
 const AlchemyLab: React.FC = () => {
   const { goBack } = useNavigationStore();
   const { player, updateMoney, updateHeat, addXP } = usePlayerStore();
+  const { addInventoryItem } = useEconomyStore();
+  const { addNotification } = useNotificationStore();
 
   // State
   const [discoveredRecipeIds, setDiscoveredRecipeIds] = useState<Set<string>>(
@@ -210,19 +212,40 @@ const AlchemyLab: React.FC = () => {
       const result = attemptCraft(recipe, 0);
 
       if (result) {
-        setCraftResult(result);
+         setCraftResult(result);
         setUnlockedDrugs(prev => new Set([...prev, result.drug]));
-
-        // Add crafted drug to inventory
+        // Add crafted drug to local inventory
         setInventory(prev => {
           const next = new Map(prev);
           next.set(result.drug, (next.get(result.drug) ?? 0) + result.quantity);
           return next;
         });
-
+        // Add crafted drug to economy store (global stash)
+        addInventoryItem({
+          id: `drug-${Date.now()}`,
+          type: 'drug',
+          itemId: result.drug,
+          quantity: result.quantity,
+        });
+        // Notify player
+        addNotification({
+          type: 'info',
+          title: '📦 Stash Updated',
+          message: `${getElementInfo(result.drug)?.name || result.drug} added to your stash.`,
+          priority: 'normal',
+        });
+        // OD risk warning
+        if (result.odRisk > 50) {
+          addNotification({
+            type: 'warning',
+            title: '⚠️ Dangerous Product',
+            message: `${getElementInfo(result.drug)?.name || result.drug} has ${result.odRisk}% OD risk. Customers may OD, raising heat by +25.`,
+            priority: 'high',
+          });
+        }
         // Apply heat
         updateHeat(recipe.heatGenerated);
-        addXP(recipe.resultTier * 25);
+        addXP(recipe.resultTier * 25);;
       } else {
         setCraftFailed(true);
         setNotification('💥 Craft FAILED! Ingredients lost.');
