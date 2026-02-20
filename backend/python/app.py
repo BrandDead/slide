@@ -62,6 +62,15 @@ def create_app():
         })
     
     # Register blueprints
+    
+    # Auth blueprint (JWT authentication)
+    try:
+        from middleware.auth import auth_bp
+        app.register_blueprint(auth_bp)
+        logger.info("✓ Registered auth blueprint")
+    except Exception as e:
+        logger.error(f"✗ Failed to register auth blueprint: {e}")
+    
     try:
         from api.blocks import blocks_bp
         app.register_blueprint(blocks_bp)
@@ -105,6 +114,16 @@ def create_app():
         logger.warning("Driveby blueprint not found - will be implemented")
     except Exception as e:
         logger.error(f"✗ Failed to register driveby blueprint: {e}")
+    
+    # Initialize world tick scheduler
+    try:
+        from services.scheduler import scheduler_manager
+        scheduler_manager.init_app(app)
+        logger.info("✓ World tick scheduler started")
+    except ImportError:
+        logger.warning("APScheduler not installed — scheduler disabled")
+    except Exception as e:
+        logger.warning(f"Scheduler init skipped: {e}")
     
     # Error handlers
     @app.errorhandler(404)
