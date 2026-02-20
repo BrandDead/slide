@@ -2,12 +2,17 @@
 // Territory Map - Block Management & Member Positioning
 // Players position gang members on their block grid
 // Position affects income, risk, and drive-by vulnerability
+// Hood view uses Mapbox for real-world map integration
 // ============================================================
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
 import { STREET_PROXIMITY_TABLE } from '../../types/slide.types';
+import MapboxMap from './MapboxMap';
+import BlockSearch from './BlockSearch';
+import BlockOverlay, { type BlockData } from './BlockOverlay';
+import BlockDetailPanel from './BlockDetailPanel';
 import './TerritoryMap.css';
 
 // ============ TYPES ============
@@ -118,6 +123,17 @@ const TerritoryMap: React.FC = () => {
   const [selectedTile, setSelectedTile] = useState<{ x: number; y: number } | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
 
+  // Mapbox state
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [selectedBlock, setSelectedBlock] = useState<BlockData | null>(null);
+  const [claimedBlocks, setClaimedBlocks] = useState<BlockData[]>([
+    // Demo blocks
+    { id: 'home', address: 'Your Home Block', lat: 34.0522, lng: -118.2437, owner: 'player', income: 450, heat: 15, members: 4 },
+    { id: 'opp1', address: 'Rival Block #1', lat: 34.0545, lng: -118.2410, owner: 'npc', income: 300, heat: 45, members: 6 },
+    { id: 'opp2', address: 'Rival Block #2', lat: 34.0500, lng: -118.2460, owner: 'npc', income: 200, heat: 30, members: 3 },
+    { id: 'neutral1', address: 'Unclaimed Lot', lat: 34.0530, lng: -118.2480, owner: 'unclaimed', income: 0, heat: 0, members: 0 },
+  ]);
+
   // Calculate block stats
   const blockStats = useMemo<BlockStats>(() => {
     let totalIncome = 0;
@@ -153,13 +169,11 @@ const TerritoryMap: React.FC = () => {
       return;
     }
 
-    // Remove member from current position if placed
     const newBlock = block.map(row => row.map(t => {
       if (t.occupant?.id === member.id) return { ...t, occupant: null };
       return { ...t };
     }));
 
-    // Place on new tile
     if (newBlock[y][x].occupant) {
       setNotification('Tile already occupied!');
       setTimeout(() => setNotification(null), 2000);
@@ -203,15 +217,62 @@ const TerritoryMap: React.FC = () => {
     const tile = block[y][x];
 
     if (selectedMember) {
-      // Place selected member
       placeMember(selectedMember, x, y);
     } else if (tile.occupant) {
-      // Select placed member (to move or remove)
       setSelectedTile({ x, y });
     } else {
       setSelectedTile(selectedTile?.x === x && selectedTile?.y === y ? null : { x, y });
     }
   }, [block, selectedMember, selectedTile, placeMember]);
+
+  // Mapbox handlers
+  const handleMapLoad = useCallback((map: any) => {
+    setMapInstance(map);
+  }, []);
+
+  const handleSearchResult = useCallback((result: any) => {
+    if (mapInstance) {
+      mapInstance.flyTo({ center: [result.lng, result.lat], zoom: 16, duration: 2000 });
+    }
+    // Add as unclaimed block
+    const newBlock: BlockData = {
+      id: `search-${Date.now()}`,
+      address: result.address,
+      lat: result.lat,
+      lng: result.lng,
+      owner: 'unclaimed',
+      income: 0,
+      heat: 0,
+      members: 0,
+    };
+    setClaimedBlocks(prev => {
+      if (prev.some(b => Math.abs(b.lat - result.lat) < 0.0001 && Math.abs(b.lng - result.lng) < 0.0001)) {
+        return prev;
+      }
+      return [...prev, newBlock];
+    });
+    setSelectedBlock(newBlock);
+  }, [mapInstance]);
+
+  const handleBlockClick = useCallback((blockData: BlockData) => {
+    setSelectedBlock(blockData);
+  }, []);
+
+  const handleClaimBlock = useCallback((blockData: BlockData) => {
+    if ((player?.money || 0) < 2000) {
+      setNotification('Not enough cash! Need $2,000 to claim.');
+      setTimeout(() => setNotification(null), 2000);
+      return;
+    }
+    updateMoney(-2000);
+    updateHeat(5);
+    setClaimedBlocks(prev =>
+      prev.map(b => b.id === blockData.id ? { ...b, owner: 'player' as const, income: 100 + Math.floor(Math.random() * 200) } : b)
+    );
+    setSelectedBlock(null);
+    setNotification(`🏴 Claimed ${blockData.address}! (-$2,000, +5 heat)`);
+    setTimeout(() => setNotification(null), 3000);
+  }, [player, updateMoney, updateHeat]);
 
   // ============ RENDER ============
 
@@ -398,35 +459,37 @@ const TerritoryMap: React.FC = () => {
         </>
       )}
 
-      {/* Hood View */}
+      {/* Hood View - Mapbox Integration */}
       {view === 'hood' && (
         <div className="hood-view">
-          <div className="hood-map">
-            {/* Simple grid-based neighborhood map */}
-            <div className="hood-grid">
-              {Array.from({ length: 5 }, (_, row) =>
-                Array.from({ length: 5 }, (_, col) => {
-                  const isHome = row === 2 && col === 2;
-                  const isOpp = (row === 0 && col === 1) || (row === 4 && col === 3);
-                  const isNeutral = !isHome && !isOpp;
-
-                  return (
-                    <motion.div
-                      key={`hood-${row}-${col}`}
-                      className={`hood-block ${isHome ? 'home' : isOpp ? 'opp' : 'neutral'}`}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <span className="hood-emoji">
-                        {isHome ? '🏠' : isOpp ? '⚔️' : '🏘️'}
-                      </span>
-                      <span className="hood-label">
-                        {isHome ? 'YOUR BLOCK' : isOpp ? 'OPP BLOCK' : `Block ${row * 5 + col + 1}`}
-                      </span>
-                    </motion.div>
-                  );
-                })
-              )}
-            </div>
+          <div className="hood-map-container">
+            <MapboxMap onMapLoad={handleMapLoad} />
+            <BlockSearch onResultSelect={handleSearchResult} />
+            <BlockOverlay
+              map={mapInstance}
+              blocks={claimedBlocks}
+              onBlockClick={handleBlockClick}
+            />
+            <BlockDetailPanel
+              block={selectedBlock}
+              onClose={() => setSelectedBlock(null)}
+              onCollectIncome={(b) => {
+                updateMoney(b.income || 0);
+                setNotification(`💰 Collected $${b.income} from ${b.address}`);
+                setTimeout(() => setNotification(null), 2000);
+                setSelectedBlock(null);
+              }}
+              onDeployMember={() => {
+                setView('roster');
+                setSelectedBlock(null);
+              }}
+              onStartSlide={() => {
+                setNotification('🚗 Starting slide... (navigate to SLIDE app)');
+                setTimeout(() => setNotification(null), 2000);
+                setSelectedBlock(null);
+              }}
+              onClaimBlock={handleClaimBlock}
+            />
           </div>
           <div className="hood-legend">
             <span className="legend-item"><span className="dot home" /> Your Territory</span>
