@@ -3,6 +3,114 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PLAYER & GANG TYPES
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Player {
+  id: string;
+  username: string;
+  email: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+  money: number;
+  bankBalance: number;
+  heat: number;
+  reputation: number;
+  region: CityRegion;
+  gangName: string;
+  gangColor: string;
+  gangProfile?: GangProfile;
+  createdAt: string;
+  lastLogin: string;
+  settings: PlayerSettings;
+}
+
+export interface PlayerSettings {
+  notifications: boolean;
+  sound: boolean;
+  haptics: boolean;
+  autoSave: boolean;
+  darkMode: boolean;
+}
+
+export interface GangProfile {
+  name: string;
+  tag: string;                     // 2-5 char abbreviation
+  primaryColor: string;            // hex
+  secondaryColor: string;          // hex
+  style: GangStyle;
+  logoUrl?: string;                // uploaded or AI-generated
+  graffitiOptions: GraffitiOption[];
+  motto: string;
+  foundedAt: string;
+}
+
+export type GangStyle = 
+  | 'street'
+  | 'cartel'
+  | 'mafia'
+  | 'biker'
+  | 'yakuza'
+  | 'triad';
+
+export interface GraffitiOption {
+  id: string;
+  style: GraffitiStyleType;
+  text: string;                    // The gang name or custom text
+  svgData: string;                 // SVG string for rendering
+  previewUrl?: string;             // Generated preview image URL
+  createdAt: string;
+}
+
+export type GraffitiStyleType = 'tag' | 'throwup' | 'blockbuster' | 'piece' | 'wildstyle';
+
+export interface GraffitiStyleConfig {
+  type: GraffitiStyleType;
+  name: string;
+  complexity: 'low' | 'low-medium' | 'medium' | 'high' | 'very-high';
+  timeSeconds: number;             // Base time to spray
+  legibility: 'moderate' | 'high' | 'very-high' | 'moderate' | 'very-low';
+  xpReward: number;
+  moraleBoost: number;
+  description: string;
+}
+
+export interface GraffitiMission {
+  id: string;
+  attackerId: string;
+  defenderId: string;
+  targetBlockId: string;
+  graffitiOption: GraffitiOption;
+  placement: { x: number; y: number; width: number; height: number };
+  membersAssigned: GraffitiMember[];
+  status: 'preparing' | 'in-progress' | 'completed' | 'failed' | 'intercepted';
+  timeRequired: number;            // Seconds (base / numPainters)
+  timeElapsed: number;
+  startedAt: string;
+  completedAt?: string;
+  expiresAt?: string;              // 3 days after completion
+  fadeLevel: number;               // 0-100, decreases daily
+}
+
+export interface GraffitiMember {
+  memberId: string;
+  role: 'painter' | 'shooter';
+  status: 'spraying' | 'fighting' | 'dead' | 'arrested' | 'escaped';
+}
+
+export interface ActiveGraffiti {
+  id: string;
+  blockId: string;
+  gangProfile: GangProfile;
+  graffitiOption: GraffitiOption;
+  placement: { x: number; y: number; width: number; height: number };
+  placedAt: string;
+  expiresAt: string;
+  fadeLevel: number;               // 100 = fresh, 0 = gone
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // REGION & LOCATION TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
