@@ -1,0 +1,422 @@
+/* ============================================================
+   Casino Styles
+   ============================================================ */
+
+.casino-container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0a0a 0%, #1a0e1a 50%, #0f0a0f 100%);
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-bottom: 40px;
+}
+
+.casino-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.casino-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.casino-cash {
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+  color: #888;
+}
+
+.casino-cash .cash-value {
+  color: #00ff88;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+/* Casino Game Cards */
+.casino-games-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.casino-game-card {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 100, 0, 0.04));
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.cgc-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.cgc-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffd700;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+}
+
+.cgc-desc {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.cgc-tag {
+  font-size: 11px;
+  color: #666;
+  font-weight: 600;
+}
+
+.casino-disclaimer {
+  text-align: center;
+  padding: 24px;
+  font-size: 11px;
+  color: #444;
+  font-style: italic;
+}
+
+/* ── Shared Casino Game Styles ── */
+.casino-game {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a0a0a 0%, #1a0e1a 50%, #0f0a0f 100%);
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-bottom: 40px;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.game-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0;
+}
+
+.game-back {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.game-cash {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff88;
+}
+
+/* Bet Controls */
+.bet-controls {
+  padding: 0 20px;
+  margin-bottom: 16px;
+}
+
+.bet-controls label {
+  display: block;
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.bet-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bet-btn {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #aaa;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bet-btn.active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.4);
+  color: #ffd700;
+}
+
+.roll-btn {
+  display: block;
+  width: calc(100% - 40px);
+  margin: 0 auto;
+  padding: 16px;
+  background: linear-gradient(135deg, #ffd700, #cc9900);
+  border: none;
+  border-radius: 14px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+.roll-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Dice Game ── */
+.dice-display {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 40px 0 16px;
+}
+
+.die {
+  font-size: 64px;
+  display: inline-block;
+}
+
+.dice-sum {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.point-display {
+  text-align: center;
+  font-size: 18px;
+  color: #ffd700;
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 10px;
+  margin: 0 20px 16px;
+}
+
+.dice-result {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 12px 20px;
+  margin: 0 20px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dice-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+.dice-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+/* ── Hi-Lo Game ── */
+.card-display {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0 20px;
+}
+
+.playing-card {
+  width: 120px;
+  height: 170px;
+  background: linear-gradient(135deg, #fff, #f0f0f0);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.card-value {
+  font-size: 48px;
+  font-weight: 900;
+  color: #1a1a1a;
+}
+
+.card-suit {
+  font-size: 28px;
+}
+
+.hilo-info {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 20px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #aaa;
+}
+
+.hilo-result {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 20px;
+  margin: 0 20px 16px;
+  border-radius: 10px;
+}
+
+.hilo-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+.hilo-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+.hilo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.hi-btn, .lo-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.hi-btn {
+  background: linear-gradient(135deg, #00cc6a, #009950);
+  color: white;
+}
+
+.lo-btn {
+  background: linear-gradient(135deg, #cc3333, #990000);
+  color: white;
+}
+
+.cashout-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ffd700, #cc9900);
+  border: none;
+  border-radius: 12px;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Slots Game ── */
+.slots-machine {
+  padding: 40px 20px 20px;
+}
+
+.slots-frame {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(200, 150, 0, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+}
+
+.slot-reel {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.slots-result {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 20px;
+  margin: 0 20px 12px;
+  border-radius: 10px;
+}
+
+.slots-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
+.slots-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+
+.payout-table {
+  margin: 0 20px 16px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+}
+
+.payout-table h4 {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 8px;
+  text-align: center;
+}
+
+.payout-rows {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.payout-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.payout-row span:first-child { color: #ddd; }
+.payout-row span:last-child { color: #ffd700; font-weight: 700; }
+
+.spin-btn {
+  background: linear-gradient(135deg, #ff2d55, #cc0033) !important;
+  color: white !important;
+}
+
+/* Shared back button */
+.back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}

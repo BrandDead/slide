@@ -16,6 +16,11 @@ import SlideGame from './components/slide/SlideGame';
 import DriveByGame from './components/driveby/DriveByGame';
 import AlchemyLab from './components/alchemy/AlchemyLab';
 import TerritoryMap from './components/map/TerritoryMap';
+import Shoebox from './components/economy/Shoebox';
+import Market from './components/economy/Market';
+import Missions from './components/missions/Missions';
+import SettingsPage from './components/settings/SettingsPage';
+import Casino from './components/casino/Casino';
 
 import './App.css';
 
@@ -70,22 +75,22 @@ const App: React.FC = () => {
         return <TerritoryMap key="map" />;
       
       case 'shoebox':
-        return <PlaceholderScreen key="shoebox" title="SHOEBOX" icon="💰" />;
+        return <Shoebox key="shoebox" />;
       
       case 'market':
-        return <PlaceholderScreen key="market" title="UNDERWORLD MARKET" icon="🏪" />;
+        return <Market key="market" />;
       
       case 'missions':
-        return <PlaceholderScreen key="missions" title="MISSION CONTROL" icon="📋" />;
+        return <Missions key="missions" />;
       
       case 'casino':
-        return <PlaceholderScreen key="casino" title="CASINO" icon="🎰" />;
+        return <Casino key="casino" />;
       
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
       
       case 'settings':
-        return <PlaceholderScreen key="settings" title="SETTINGS" icon="⚙️" />;
+        return <SettingsPage key="settings" />;
       
       default:
         return <OSShell key="home" />;
