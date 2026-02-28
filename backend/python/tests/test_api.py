@@ -180,6 +180,30 @@ class TestBlocksEndpoints:
         response = client.get('/api/blocks/test-block/state')
         assert response.status_code in (200, 404)
 
+    def test_generate_backgrounds_dev_mode(self, client, auth_headers):
+        """POST /api/blocks/<id>/generate_backgrounds should work in dev mode."""
+        # Pre-seed a mock block via db adapter
+        from services.db import get_db, _mock_blocks
+        _mock_blocks['test-bg-block'] = {
+            'id': 'test-bg-block',
+            'owner_id': 'dev-user-001',
+            'lat': 25.7617,
+            'lng': -80.1918,
+            'bounds_north': 25.7627,
+            'bounds_south': 25.7607,
+            'bounds_east': -80.1908,
+            'bounds_west': -80.1928,
+            'city': 'miami',
+        }
+        response = client.post('/api/blocks/test-bg-block/generate_backgrounds',
+                               headers=auth_headers)
+        assert response.status_code == 201
+        data = response.get_json()
+        assert 'backgrounds' in data
+        assert 'anchors_json' in data
+        # 8x8 = 64 anchors
+        assert len(data['anchors_json']) == 64
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # COMBAT ENDPOINTS

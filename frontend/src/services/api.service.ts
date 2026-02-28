@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // DEALT/SLIDE - API Service
 // Centralized HTTP client for all API calls
-// Matches Flask backend routes from PR #3 (blocks, combat, driveby, inventory, world)
+// Matches Flask backend routes (see docs/openapi.yaml for full contract)
 // ═══════════════════════════════════════════════════════════════════════════
 
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
@@ -12,6 +12,10 @@ import type {
   InventoryItem,
   MarketListing,
 } from '../types/game.types';
+import type {
+  BlockSearchResponse,
+  GenerateBackgroundsResponse,
+} from '../types/api.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIGURATION
@@ -131,7 +135,7 @@ export const authApi = {
 export const blocksApi = {
   /** GET /api/blocks/search?q=<address> */
   search: async (query: string) => {
-    const response = await apiClient.get<{ results: Array<{ address: string; lat: number; lng: number }> }>(
+    const response = await apiClient.get<BlockSearchResponse>(
       '/blocks/search',
       { params: { q: query } },
     );
@@ -194,6 +198,14 @@ export const blocksApi = {
   getSupportedCities: async () => {
     const response = await apiClient.get<{ cities: string[] }>('/blocks/cities');
     return response.data.cities;
+  },
+
+  /** POST /api/blocks/:id/generate_backgrounds */
+  generateBackgrounds: async (blockId: string) => {
+    const response = await apiClient.post<GenerateBackgroundsResponse>(
+      `/blocks/${blockId}/generate_backgrounds`,
+    );
+    return response.data;
   },
 };
 
