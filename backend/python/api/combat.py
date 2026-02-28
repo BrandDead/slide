@@ -3,34 +3,18 @@ Combat API Blueprint
 Handles SLIDE combat initiation and turn resolution
 """
 
-from flask import Blueprint, request, jsonify
-from functools import wraps
+from flask import Blueprint, request, jsonify, g
 import logging
 import random
 from typing import Optional, Dict, Any
 from datetime import datetime
 
 from services.block_state_engine import get_block_state_engine, BlockSnapshot
+from middleware.auth import require_auth
 
 logger = logging.getLogger(__name__)
 
 combat_bp = Blueprint('combat', __name__, url_prefix='/api/combat')
-
-
-# Mock auth for now
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token  # Placeholder
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 # In-memory combat sessions (in production, use database)

@@ -3,32 +3,17 @@ World Tick API Blueprint
 Handles passive income, heat decay, and world simulation
 """
 
-from flask import Blueprint, request, jsonify
-from functools import wraps
+from flask import Blueprint, request, jsonify, g
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any
 
 from services.block_state_engine import get_block_state_engine
+from middleware.auth import require_auth
 
 logger = logging.getLogger(__name__)
 
 world_bp = Blueprint('world', __name__, url_prefix='/api/world')
-
-
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 @world_bp.route('/tick', methods=['POST'])
@@ -57,7 +42,7 @@ def advance_world():
         except (ValueError, TypeError):
             return jsonify({'error': 'Invalid minutes value'}), 400
         
-        target_user_id = data.get('user_id', request.user_id)
+        target_user_id = data.get('user_id', g.user["id"])
         
         logger.info(f"Processing world tick: {minutes} minutes for user {target_user_id}")
         
@@ -218,7 +203,7 @@ def _process_npc_events(snapshot, minutes: int) -> list:
 def get_world_status():
     """Get current world status for user"""
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         
         # Get user's blocks
         user_blocks = _get_user_blocks(user_id)

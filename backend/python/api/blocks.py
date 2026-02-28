@@ -3,13 +3,13 @@ DEALT/SLIDE - Block API Routes
 Handles block claiming, lookup, and management
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from functools import wraps
+from flask import Blueprint, request, jsonify, current_app, g
 from typing import Optional
 import logging
 
 from services.geocoding_service import get_geocoding_service, GeocodingService
 from services.grid_generator import generate_block_grid, GridConfig
+from middleware.auth import require_auth
 # from models.block import Block, SUPPORTED_CITIES  # Commented out - using Supabase now
 
 SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
@@ -17,28 +17,6 @@ SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 logger = logging.getLogger(__name__)
 
 blocks_bp = Blueprint('blocks', __name__, url_prefix='/api/blocks')
-
-
-# ============================================================================
-# AUTHENTICATION DECORATOR (Placeholder)
-# ============================================================================
-
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        # TODO: Implement JWT validation
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        # For now, extract user_id from request
-        # In production, decode JWT and get user
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token  # Placeholder
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 # ============================================================================
@@ -62,7 +40,7 @@ def search_address():
     
     if len(query) < 3:
         return jsonify({
-            'suggestions': [],
+            'results': [],
             'query': query,
         })
     
@@ -71,7 +49,7 @@ def search_address():
         results = geocoding.search_address(query, limit=limit)
         
         return jsonify({
-            'suggestions': [
+            'results': [
                 {
                     'address': r.address,
                     'formattedAddress': r.formatted_address,
@@ -165,8 +143,7 @@ def claim_block():
         Complete block data with grid
     """
     data = request.get_json()
-    user_id = request.user_id
-    
+    user_id = g.user['id']
     address = data.get('address')
     coords = data.get('coordinates', {})
     city = data.get('city')
@@ -323,7 +300,7 @@ def get_my_blocks():
     Returns:
         List of owned blocks
     """
-    user_id = request.user_id
+    user_id = g.user['id']
     
     try:
         blocks = Block.query.filter_by(owner_id=user_id).all()
