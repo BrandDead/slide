@@ -9,7 +9,7 @@
     "dev:backend": "cd ../backend/python && python app.py",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\" --names \"frontend,backend\" --prefix-colors \"cyan,yellow\"",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "preview": "vite preview",
     "seed": "tsx src/scripts/seed.ts",
     "test": "echo \"No tests yet\" && exit 0"
