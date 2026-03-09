@@ -222,8 +222,8 @@ class TestCombatEndpoints:
         assert response.status_code in (200, 201, 400, 404)
 
     def test_combat_action(self, client, auth_headers):
-        """POST /api/combat/action should process a combat action."""
-        response = client.post('/api/combat/action', json={
+        """POST /api/combat/turn should process a combat action."""
+        response = client.post('/api/combat/turn', json={
             'session_id': 'test-session',
             'action': 'shoot',
             'target': {'row': 3, 'col': 5},
@@ -427,6 +427,7 @@ class TestScheduler:
             cell = grid[0][0]
             assert 'type' in cell
             assert 'walkable' in cell
+            assert 'terrain_bonus' in cell
         except ImportError:
             # supabase module not installed — skip
             pytest.skip('supabase module not installed')

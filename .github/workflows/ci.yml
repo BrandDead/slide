@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, copilot/**]
+    branches: [main, main-tL2525, copilot/**]
   pull_request:
-    branches: [main]
+    branches: [main, main-tL2525]
 
 permissions:
   contents: read
