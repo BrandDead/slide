@@ -198,8 +198,8 @@ class TestCombatEndpoints:
         assert response.status_code in (200, 201, 400, 404)
 
     def test_combat_action(self, client, auth_headers):
-        """POST /api/combat/action should process a combat action."""
-        response = client.post('/api/combat/action', json={
+        """POST /api/combat/turn should process a combat action."""
+        response = client.post('/api/combat/turn', json={
             'session_id': 'test-session',
             'action': 'shoot',
             'target': {'row': 3, 'col': 5},
@@ -402,12 +402,12 @@ class TestScheduler:
         try:
             from services.block_state_engine import BlockStateEngine
             engine = BlockStateEngine()
-            grid = engine._generate_default_grid()
+            grid = engine._generate_default_grid(8, 8)
             assert len(grid) == 8
             assert len(grid[0]) == 8
             cell = grid[0][0]
-            assert 'terrain' in cell
-            assert 'feature' in cell
+            assert 'type' in cell
+            assert 'terrain_bonus' in cell
         except ImportError:
             # supabase module not installed — skip
             pytest.skip('supabase module not installed')
