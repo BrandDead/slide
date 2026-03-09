@@ -3,33 +3,18 @@ Drive-By API Blueprint
 Handles drive-by shooting mechanics
 """
 
-from flask import Blueprint, request, jsonify
-from functools import wraps
+from flask import Blueprint, request, jsonify, g
 import logging
 import random
 from datetime import datetime
 from typing import Dict, Any, List
 
 from services.block_state_engine import get_block_state_engine
+from middleware.auth import require_auth
 
 logger = logging.getLogger(__name__)
 
 driveby_bp = Blueprint('driveby', __name__, url_prefix='/api/driveby')
-
-
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 # Active drive-by sessions

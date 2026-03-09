@@ -3,31 +3,17 @@ Inventory API Blueprint
 Handles underground market, equipment, and transactions
 """
 
-from flask import Blueprint, request, jsonify
-from functools import wraps
+from flask import Blueprint, request, jsonify, g
 import logging
 from datetime import datetime
 from typing import Dict, List, Any
 import uuid
 
+from middleware.auth import require_auth
+
 logger = logging.getLogger(__name__)
 
 inventory_bp = Blueprint('inventory', __name__, url_prefix='/api/inventory')
-
-
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 # Mock inventory data (in production: database)
@@ -94,7 +80,7 @@ def get_inventory():
         List of owned items with quantities
     """
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         
         # Get user inventory
         inventory = user_inventories.get(user_id, {})
@@ -165,7 +151,7 @@ def buy_item():
         Updated inventory and cash
     """
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         data = request.json
         
         item_id = data.get('item_id')
@@ -245,7 +231,7 @@ def equip_item():
         Updated member loadout
     """
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         data = request.json
         
         member_id = data.get('member_id')
@@ -291,7 +277,7 @@ def get_transactions():
         List of transactions
     """
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         limit = min(int(request.args.get('limit', 50)), 100)
         
         user_transactions = transactions.get(user_id, [])
@@ -316,7 +302,7 @@ def get_transactions():
 def get_cash_balance():
     """Get current cash balance"""
     try:
-        user_id = request.user_id
+        user_id = g.user["id"]
         balance = user_cash.get(user_id, 10000)
         
         return jsonify({

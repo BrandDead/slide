@@ -1,0 +1,677 @@
+openapi: "3.0.3"
+info:
+  title: SLIDE Backend API
+  description: |
+    DEALT/SLIDE game server. Flask is the authoritative game server; Supabase provides DB/Auth/Realtime.
+    All endpoints require `Authorization: Bearer <JWT>` unless marked as public.
+    In dev mode (no SUPABASE_URL configured) a mock DEV_USER is injected automatically.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://api.slide.game
+    description: Production (placeholder)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    Coordinates:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+      required: [lat, lng]
+
+    AddressResult:
+      type: object
+      properties:
+        address:
+          type: string
+        formattedAddress:
+          type: string
+        coordinates:
+          $ref: "#/components/schemas/Coordinates"
+        city:
+          type: string
+        inServiceArea:
+          type: boolean
+        mapboxId:
+          type: string
+
+    Block:
+      type: object
+      properties:
+        id:
+          type: string
+        address:
+          type: string
+        formattedAddress:
+          type: string
+        city:
+          type: string
+        coordinates:
+          $ref: "#/components/schemas/Coordinates"
+        ownerId:
+          type: string
+        gangName:
+          type: string
+        gridData:
+          type: object
+        trafficScore:
+          type: number
+        incomePerHour:
+          type: number
+        heatLevel:
+          type: number
+        claimedAt:
+          type: string
+          format: date-time
+        backgrounds:
+          $ref: "#/components/schemas/BlockBackgrounds"
+
+    BlockBackgrounds:
+      type: object
+      properties:
+        topdownUrl:
+          type: string
+          description: Mapbox static satellite image URL
+        streetNUrl:
+          type: string
+          description: Google Street View north heading
+        streetEUrl:
+          type: string
+          description: Google Street View east heading
+        streetSUrl:
+          type: string
+          description: Google Street View south heading
+        streetWUrl:
+          type: string
+          description: Google Street View west heading
+
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        itemId:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [weapon, armor, consumable, tool, vehicle]
+        quantity:
+          type: integer
+        equippedOnMemberId:
+          type: string
+
+    MarketListing:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        damage:
+          type: integer
+        defense:
+          type: integer
+        basePrice:
+          type: integer
+        rarity:
+          type: string
+
+    CombatSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        targetBlockId:
+          type: string
+        attackerGangId:
+          type: string
+        currentTurn:
+          type: integer
+        maxTurns:
+          type: integer
+        status:
+          type: string
+          enum: [active, attacker_victory, defender_victory, draw, abandoned]
+        combatLog:
+          type: array
+          items:
+            type: object
+
+    WorldTickResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        userId:
+          type: string
+        minutesProcessed:
+          type: integer
+        income:
+          type: number
+        heatChange:
+          type: number
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              eventType:
+                type: string
+              description:
+                type: string
+              blockId:
+                type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  version:
+                    type: string
+
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                username:
+                  type: string
+              required: [email, password]
+      responses:
+        "200":
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/login:
+    post:
+      summary: Authenticate user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required: [email, password]
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        "401":
+          description: Invalid credentials
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required: [refresh_token]
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+
+  /api/auth/me:
+    get:
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+
+  /api/blocks/search:
+    get:
+      summary: Search for addresses
+      security: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query (min 3 chars)
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Address search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AddressResult"
+                  query:
+                    type: string
+
+  /api/blocks/claim:
+    post:
+      summary: Claim a block for the current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: string
+                coordinates:
+                  $ref: "#/components/schemas/Coordinates"
+                city:
+                  type: string
+                  enum: [nyc, la, miami, chicago, detroit, nola]
+                gangName:
+                  type: string
+              required: [address, coordinates, city]
+      responses:
+        "201":
+          description: Block claimed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+        "400":
+          description: Validation error or unsupported city
+        "409":
+          description: Block already claimed
+
+  /api/blocks/{block_id}:
+    get:
+      summary: Get block by ID
+      security: []
+      parameters:
+        - name: block_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeGrid
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Block details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+        "404":
+          description: Block not found
+
+  /api/blocks/{block_id}/generate_backgrounds:
+    post:
+      summary: Generate satellite and street-view backgrounds for a block
+      parameters:
+        - name: block_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Backgrounds generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  block_id:
+                    type: string
+                  backgrounds:
+                    $ref: "#/components/schemas/BlockBackgrounds"
+                  anchors_json:
+                    type: object
+                    description: 8x8 grid anchor lat/lon mapping
+
+  /api/blocks/my-blocks:
+    get:
+      summary: Get all blocks owned by current user
+      responses:
+        "200":
+          description: Owned blocks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blocks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Block"
+                  count:
+                    type: integer
+                  totalIncome:
+                    type: number
+
+  /api/blocks/city/{city}:
+    get:
+      summary: Get blocks in a city
+      security: []
+      parameters:
+        - name: city
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [nyc, la, miami, chicago, detroit, nola]
+      responses:
+        "200":
+          description: City blocks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blocks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Block"
+                  count:
+                    type: integer
+
+  /api/combat/start:
+    post:
+      summary: Start a SLIDE combat session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_block_id:
+                  type: string
+                attacker_members:
+                  type: array
+                  items:
+                    type: string
+              required: [target_block_id]
+      responses:
+        "201":
+          description: Combat session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CombatSession"
+        "400":
+          description: Validation error
+
+  /api/combat/turn:
+    post:
+      summary: Submit a combat turn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                action:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [attack, move, retreat]
+                    attacker_id:
+                      type: string
+                    target_x:
+                      type: integer
+                    target_y:
+                      type: integer
+              required: [session_id, action]
+      responses:
+        "200":
+          description: Turn result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  turn:
+                    type: integer
+                  result:
+                    type: object
+                  session:
+                    $ref: "#/components/schemas/CombatSession"
+
+  /api/combat/{session_id}:
+    get:
+      summary: Get combat session state
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Combat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CombatSession"
+        "404":
+          description: Session not found
+
+  /api/inventory/:
+    get:
+      summary: Get player inventory
+      responses:
+        "200":
+          description: Player inventory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inventory:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/InventoryItem"
+
+  /api/inventory/market:
+    get:
+      summary: Get market listings
+      security: []
+      responses:
+        "200":
+          description: Available market items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  listings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MarketListing"
+
+  /api/inventory/buy:
+    post:
+      summary: Purchase an item from the market
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item_id:
+                  type: string
+                quantity:
+                  type: integer
+                  default: 1
+              required: [item_id]
+      responses:
+        "200":
+          description: Purchase successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  item:
+                    $ref: "#/components/schemas/InventoryItem"
+                  remaining_cash:
+                    type: number
+        "400":
+          description: Insufficient funds or invalid item
+
+  /api/world/tick:
+    post:
+      summary: Advance world state (passive income, heat decay, events)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                minutes:
+                  type: integer
+                  default: 10
+                  maximum: 60
+      responses:
+        "200":
+          description: Tick result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorldTickResult"
+
+  /api/world/status:
+    get:
+      summary: Get world overview for current user
+      responses:
+        "200":
+          description: World status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  blocks:
+                    type: integer
+                  members:
+                    type: integer
+                  heat:
+                    type: number
+                  cash:
+                    type: number
+                  incomePerTick:
+                    type: number
+                  lastTick:
+                    type: string
+                    format: date-time

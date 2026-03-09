@@ -3,13 +3,13 @@ DEALT/SLIDE - Block API Routes
 Handles block claiming, lookup, and management
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from functools import wraps
+from flask import Blueprint, request, jsonify, current_app, g
 from typing import Optional
 import logging
 
 from services.geocoding_service import get_geocoding_service, GeocodingService
 from services.grid_generator import generate_block_grid, GridConfig
+from middleware.auth import require_auth
 # from models.block import Block, SUPPORTED_CITIES  # Commented out - using Supabase now
 
 SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
@@ -17,28 +17,6 @@ SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 logger = logging.getLogger(__name__)
 
 blocks_bp = Blueprint('blocks', __name__, url_prefix='/api/blocks')
-
-
-# ============================================================================
-# AUTHENTICATION DECORATOR (Placeholder)
-# ============================================================================
-
-def require_auth(f):
-    """Require authentication for route"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        # TODO: Implement JWT validation
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            return jsonify({'error': 'Authentication required'}), 401
-        
-        # For now, extract user_id from request
-        # In production, decode JWT and get user
-        token = auth_header.replace('Bearer ', '')
-        request.user_id = token  # Placeholder
-        
-        return f(*args, **kwargs)
-    return decorated
 
 
 # ============================================================================
@@ -62,7 +40,7 @@ def search_address():
     
     if len(query) < 3:
         return jsonify({
-            'suggestions': [],
+            'results': [],
             'query': query,
         })
     
@@ -71,7 +49,7 @@ def search_address():
         results = geocoding.search_address(query, limit=limit)
         
         return jsonify({
-            'suggestions': [
+            'results': [
                 {
                     'address': r.address,
                     'formattedAddress': r.formatted_address,
@@ -165,8 +143,7 @@ def claim_block():
         Complete block data with grid
     """
     data = request.get_json()
-    user_id = request.user_id
-    
+    user_id = g.user['id']
     address = data.get('address')
     coords = data.get('coordinates', {})
     city = data.get('city')
@@ -323,7 +300,7 @@ def get_my_blocks():
     Returns:
         List of owned blocks
     """
-    user_id = request.user_id
+    user_id = g.user['id']
     
     try:
         blocks = Block.query.filter_by(owner_id=user_id).all()
@@ -531,3 +508,108 @@ def create_block_snapshot_endpoint(block_id: str):
     except Exception as e:
         logger.error(f"Failed to create snapshot: {e}")
         return jsonify({'error': 'Failed to create snapshot'}), 500
+
+
+# ============================================================================
+# PHASE 7 — BLOCK BACKGROUNDS + RECON VIEWS
+# ============================================================================
+
+@blocks_bp.route('/<block_id>/generate_backgrounds', methods=['POST'])
+@require_auth
+def generate_backgrounds(block_id: str):
+    """
+    Generate and persist background imagery for a claimed block.
+
+    Generates:
+    - Mapbox static satellite image (top-down view)
+    - Street View images for N/E/S/W headings (optional, requires GOOGLE_MAPS_API_KEY
+      and ENABLE_STREET_VIEW=true)
+    - 8x8 lat/lon anchor grid stored in block_grid_anchors table
+
+    Returns:
+        Generated background URLs + anchors_json
+    """
+    import os
+
+    try:
+        from services.db import get_db
+        db = get_db()
+
+        block = db.get_block(block_id)
+        if not block:
+            return jsonify({'error': 'Block not found'}), 404
+
+        lat = block.get('lat')
+        lng = block.get('lng')
+        if lat is None or lng is None:
+            return jsonify({'error': 'Block has no coordinates'}), 400
+
+        bounds = {
+            'north': block.get('bounds_north', lat + 0.001),
+            'south': block.get('bounds_south', lat - 0.001),
+            'east': block.get('bounds_east', lng + 0.001),
+            'west': block.get('bounds_west', lng - 0.001),
+        }
+
+        mapbox_token = os.getenv('MAPBOX_ACCESS_TOKEN', '')
+        google_key = os.getenv('GOOGLE_MAPS_API_KEY', '')
+        enable_street_view = os.getenv('ENABLE_STREET_VIEW', 'false').lower() == 'true'
+
+        backgrounds = {}
+
+        # ── Top-down Mapbox satellite image ──────────────────────────────
+        if mapbox_token:
+            # Build Mapbox Static Images API URL
+            # https://docs.mapbox.com/api/maps/static-images/
+            center_lng = (bounds['east'] + bounds['west']) / 2
+            center_lat = (bounds['north'] + bounds['south']) / 2
+            topdown_url = (
+                f"https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/"
+                f"{center_lng},{center_lat},17,0/800x600"
+                f"?access_token={mapbox_token}"
+            )
+            backgrounds['topdownUrl'] = topdown_url
+        else:
+            backgrounds['topdownUrl'] = None
+
+        # ── Street View images (optional) ─────────────────────────────────
+        if google_key and enable_street_view:
+            sv_base = "https://maps.googleapis.com/maps/api/streetview"
+            sv_params = f"size=800x400&location={lat},{lng}&key={google_key}"
+            backgrounds['streetNUrl'] = f"{sv_base}?{sv_params}&heading=0&pitch=0"
+            backgrounds['streetEUrl'] = f"{sv_base}?{sv_params}&heading=90&pitch=0"
+            backgrounds['streetSUrl'] = f"{sv_base}?{sv_params}&heading=180&pitch=0"
+            backgrounds['streetWUrl'] = f"{sv_base}?{sv_params}&heading=270&pitch=0"
+        else:
+            backgrounds['streetNUrl'] = None
+            backgrounds['streetEUrl'] = None
+            backgrounds['streetSUrl'] = None
+            backgrounds['streetWUrl'] = None
+
+        # ── 8×8 grid lat/lon anchors ──────────────────────────────────────
+        grid_size = 8
+        lat_step = (bounds['north'] - bounds['south']) / grid_size
+        lng_step = (bounds['east'] - bounds['west']) / grid_size
+
+        anchors_json: dict = {}
+        for row in range(grid_size):
+            for col in range(grid_size):
+                tile_lat = bounds['south'] + (row + 0.5) * lat_step
+                tile_lng = bounds['west'] + (col + 0.5) * lng_step
+                anchors_json[f"{col},{row}"] = {'lat': tile_lat, 'lng': tile_lng}
+
+        # ── Persist to DB ─────────────────────────────────────────────────
+        db.update_block_backgrounds(block_id, backgrounds)
+        db.save_block_grid_anchors(block_id, anchors_json)
+
+        logger.info(f"Generated backgrounds for block {block_id}")
+
+        return jsonify({
+            'block_id': block_id,
+            'backgrounds': backgrounds,
+            'anchors_json': anchors_json,
+        }), 201
+
+    except Exception as e:
+        logger.error(f"generate_backgrounds failed: {e}", exc_info=True)
+        return jsonify({'error': 'Background generation failed'}), 500

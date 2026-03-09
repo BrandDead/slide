@@ -4,6 +4,29 @@
 
 ---
 
+## How to Run Locally
+
+See **[README_RUN.md](README_RUN.md)** for the complete setup guide.
+
+**Quick start (npm):**
+```bash
+# Install frontend deps
+cd frontend && npm install
+
+# Install backend deps
+cd ../backend/python && pip install -r requirements.txt
+
+# Copy env files and fill in your credentials
+cp frontend/.env.example frontend/.env
+cp backend/python/.env.example backend/python/.env
+
+# Run frontend + backend together
+cd frontend && npm run dev:all
+# Frontend → http://localhost:5173  |  Backend → http://localhost:5000
+```
+
+---
+
 ## Game Overview
 
 **SLIDE** is an 18+ multiplayer urban warfare RPG where players build criminal empires across real US cities. The game features an iOS-style desktop interface where each game mode appears as a separate "app" on a phone home screen.

@@ -123,7 +123,10 @@ CORS_ORIGINS=http://localhost:5173
 1. Create account at https://supabase.com
 2. Create a new project
 3. Go to SQL Editor
-4. Copy and run `/backend/supabase/schema.sql`
+4. Run migrations in order from `/backend/supabase/migrations/`:
+   - `001_mvp_tables.sql`
+   - `002_combat_tables.sql`
+   - `003_block_backgrounds.sql`
 5. Copy Project URL and keys to `.env` files
 
 ### Option B: Local PostgreSQL
