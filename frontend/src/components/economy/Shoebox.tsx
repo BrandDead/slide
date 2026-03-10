@@ -38,7 +38,7 @@ const getTransactionTime = (tx: Transaction): string => {
 };
 
 const Shoebox: React.FC = () => {
-  const { goBack } = useNavigationStore();
+  const { goBack, navigateTo } = useNavigationStore();
   const { player, updateMoney, updatePlayer } = usePlayerStore();
   const { transactions, addTransaction } = useEconomyStore();
 
@@ -139,6 +139,14 @@ const Shoebox: React.FC = () => {
           whileTap={{ scale: 0.95 }}
         >
           ⬆️ Withdraw
+        </motion.button>
+        <motion.button
+          className="action-btn"
+          onClick={() => navigateTo('cocaine_crush')}
+          whileTap={{ scale: 0.95 }}
+          style={{ gridColumn: '1 / -1', background: '#4ade80', color: 'black', fontWeight: '900', marginTop: '10px' }}
+        >
+          💊 Play Cocaine Crush
         </motion.button>
       </div>
 

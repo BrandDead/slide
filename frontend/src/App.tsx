@@ -26,6 +26,7 @@ import SettingsPage from './components/settings/SettingsPage';
 import Casino from './components/casino/Casino';
 import GraffitiGame from './components/graffiti/GraffitiGame';
 import Onboarding from './components/onboarding/Onboarding';
+import CocaineCrush from './components/cocaine-crush/CocaineCrush';
 import type { GangProfile } from './types/game.types';
 
 import './App.css';
@@ -33,7 +34,7 @@ import './App.css';
 // Placeholder components for modes still in development
 const PlaceholderScreen: React.FC<{ title: string; icon: string }> = ({ title, icon }) => {
   const { goBack } = useNavigationStore();
-  
+
   return (
     <div className="placeholder-screen">
       <motion.button className="back-button" onClick={goBack} whileTap={{ scale: 0.9 }}>
@@ -81,46 +82,49 @@ const App: React.FC = () => {
             incomePerMinute={gameLoop.incomePerMinute}
           />
         );
-      
+
       case 'dealt':
         return <DealtMode key="dealt" />;
-      
+
       case 'contacts':
         return <Contacts key="contacts" />;
-      
+
       case 'slide':
         return <SlideGame key="slide" />;
-      
+
       case 'driveby':
         return <DriveByGame key="driveby" />;
-      
+
       case 'alchemy':
         return <AlchemyLab key="alchemy" />;
-      
+
       case 'map':
         return <TerritoryMap key="map" />;
-      
+
       case 'shoebox':
         return <Shoebox key="shoebox" />;
-      
+
       case 'market':
         return <Market key="market" />;
-      
+
       case 'missions':
         return <Missions key="missions" />;
-      
+
       case 'casino':
         return <Casino key="casino" />;
-      
+
       case 'graffiti':
         return <GraffitiGame key="graffiti" />;
 
+      case 'cocaine_crush':
+        return <CocaineCrush key="cocaine_crush" />;
+
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
-      
+
       case 'settings':
         return <SettingsPage key="settings" />;
-      
+
       default:
         return (
           <OSShell
