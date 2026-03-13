@@ -1,6 +1,7 @@
 // ============================================================
 // App.tsx - Main Application Component
 // Integrates game loop engine and event overlay
+// Now includes: TopDown Shooter, DEALT v2 variants, enhanced Contacts
 // ============================================================
 
 import React from 'react';
@@ -13,10 +14,11 @@ import OSShell from './components/layout/OSShell';
 import GameEventOverlay from './components/layout/GameEventOverlay';
 
 // Game Mode Components
-import DealtMode from './components/dealt/DealtMode';
+import DealtModeSelector from './components/dealt-v2/DealtModeSelector';
 import Contacts from './components/contacts/Contacts';
 import SlideGame from './components/slide/SlideGame';
 import DriveByGame from './components/driveby/DriveByGame';
+import TopDownShooter from './components/topdown/TopDownShooter';
 import AlchemyLab from './components/alchemy/AlchemyLab';
 import TerritoryMap from './components/map/TerritoryMap';
 import Shoebox from './components/economy/Shoebox';
@@ -82,17 +84,24 @@ const App: React.FC = () => {
           />
         );
       
+      // DEALT now opens the mode selector with 3 variants
       case 'dealt':
-        return <DealtMode key="dealt" />;
+        return <DealtModeSelector key="dealt" />;
       
       case 'contacts':
         return <Contacts key="contacts" />;
       
+      // SLIDE remains the battleship-style grid combat
       case 'slide':
         return <SlideGame key="slide" />;
       
+      // DRIVE-BY is the car-based shooter
       case 'driveby':
         return <DriveByGame key="driveby" />;
+      
+      // NEW: Top-Down Shooter (Block Attack)
+      case 'topdown':
+        return <TopDownShooter key="topdown" />;
       
       case 'alchemy':
         return <AlchemyLab key="alchemy" />;
