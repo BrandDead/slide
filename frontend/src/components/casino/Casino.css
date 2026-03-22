@@ -1,13 +1,24 @@
 /* ============================================================
-   Casino Styles
+   Casino Styles - GTA Dark Theme
    ============================================================ */
 
 .casino-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a0e1a 50%, #0f0a0f 100%);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--ds-bg-primary, #050505);
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
   padding-bottom: 40px;
+  position: relative;
+}
+
+.casino-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('/assets/bg_desktop.jpg') center/cover no-repeat;
+  opacity: 0.06;
+  filter: brightness(0.4) hue-rotate(30deg);
+  pointer-events: none;
 }
 
 .casino-header {
@@ -15,32 +26,39 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
 }
 
 .casino-header h1 {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: #ffd700;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  font-family: var(--ds-font-heading, 'Bebas Neue', sans-serif);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .casino-cash {
   text-align: center;
   padding: 16px;
   font-size: 14px;
-  color: #888;
+  color: rgba(255, 255, 255, 0.35);
+  position: relative;
+  z-index: 1;
 }
 
 .casino-cash .cash-value {
   color: #00ff88;
   font-weight: 700;
-  font-size: 22px;
+  font-size: 24px;
+  font-family: var(--ds-font-heading);
+  text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
 
 /* Casino Game Cards */
@@ -49,56 +67,46 @@
   flex-direction: column;
   gap: 12px;
   padding: 0 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .casino-game-card {
   padding: 24px;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 100, 0, 0.04));
-  border: 1px solid rgba(255, 215, 0, 0.15);
-  border-radius: 16px;
+  background: rgba(255, 215, 0, 0.03);
+  border: 1px solid rgba(255, 215, 0, 0.08);
+  border-radius: 10px;
   cursor: pointer;
   text-align: center;
+  transition: all 0.2s;
 }
 
-.cgc-icon {
-  font-size: 48px;
-  margin-bottom: 8px;
+.casino-game-card:hover {
+  background: rgba(255, 215, 0, 0.06);
+  border-color: rgba(255, 215, 0, 0.15);
 }
 
-.cgc-name {
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffd700;
-  letter-spacing: 3px;
-  margin-bottom: 4px;
-}
-
-.cgc-desc {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 8px;
-}
-
-.cgc-tag {
-  font-size: 11px;
-  color: #666;
-  font-weight: 600;
-}
+.cgc-icon { font-size: 48px; margin-bottom: 8px; }
+.cgc-name { font-size: 22px; font-weight: 700; color: #ffd700; letter-spacing: 4px; margin-bottom: 4px; font-family: var(--ds-font-heading); }
+.cgc-desc { font-size: 13px; color: rgba(255, 255, 255, 0.4); margin-bottom: 8px; }
+.cgc-tag { font-size: 11px; color: rgba(255, 255, 255, 0.2); font-weight: 600; font-family: var(--ds-font-subheading); letter-spacing: 1px; }
 
 .casino-disclaimer {
   text-align: center;
   padding: 24px;
   font-size: 11px;
-  color: #444;
+  color: rgba(255, 255, 255, 0.15);
   font-style: italic;
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Shared Casino Game Styles ── */
 .casino-game {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a0e1a 50%, #0f0a0f 100%);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--ds-bg-primary, #050505);
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
   padding-bottom: 40px;
 }
 
@@ -107,34 +115,40 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
 }
 
 .game-header h2 {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: #ffd700;
   margin: 0;
+  font-family: var(--ds-font-heading);
+  letter-spacing: 3px;
 }
 
 .game-back {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 1px;
 }
 
 .game-cash {
   font-size: 14px;
   font-weight: 700;
   color: #00ff88;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.3);
 }
 
 /* Bet Controls */
@@ -145,12 +159,13 @@
 
 .bet-controls label {
   display: block;
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   margin-bottom: 8px;
   text-align: center;
+  font-family: var(--ds-font-subheading);
 }
 
 .bet-buttons {
@@ -162,18 +177,19 @@
 
 .bet-btn {
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #aaa;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .bet-btn.active {
-  background: rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.4);
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.2);
   color: #ffd700;
 }
 
@@ -182,20 +198,19 @@
   width: calc(100% - 40px);
   margin: 0 auto;
   padding: 16px;
-  background: linear-gradient(135deg, #ffd700, #cc9900);
+  background: linear-gradient(135deg, #cc9900, #ffd700);
   border: none;
-  border-radius: 14px;
+  border-radius: 6px;
   color: #000;
   font-size: 18px;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   cursor: pointer;
+  font-family: var(--ds-font-subheading);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
 }
 
-.roll-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.roll-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
 /* ── Dice Game ── */
 .dice-display {
@@ -205,17 +220,15 @@
   padding: 40px 0 16px;
 }
 
-.die {
-  font-size: 64px;
-  display: inline-block;
-}
+.die { font-size: 64px; display: inline-block; }
 
 .dice-sum {
   text-align: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
   color: #fff;
   margin-bottom: 8px;
+  font-family: var(--ds-font-heading);
 }
 
 .point-display {
@@ -225,9 +238,10 @@
   font-weight: 700;
   margin-bottom: 8px;
   padding: 8px;
-  background: rgba(255, 215, 0, 0.1);
-  border-radius: 10px;
+  background: rgba(255, 215, 0, 0.06);
+  border-radius: 6px;
   margin: 0 20px 16px;
+  border: 1px solid rgba(255, 215, 0, 0.1);
 }
 
 .dice-result {
@@ -236,12 +250,13 @@
   font-weight: 700;
   padding: 12px 20px;
   margin: 0 20px 16px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 2px;
 }
 
-.dice-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
-.dice-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+.dice-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.06); border: 1px solid rgba(0, 255, 136, 0.1); }
+.dice-result.lose { color: #ff4444; background: rgba(255, 34, 34, 0.06); border: 1px solid rgba(255, 34, 34, 0.1); }
 
 /* ── Hi-Lo Game ── */
 .card-display {
@@ -254,23 +269,16 @@
   width: 120px;
   height: 170px;
   background: linear-gradient(135deg, #fff, #f0f0f0);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
-.card-value {
-  font-size: 48px;
-  font-weight: 900;
-  color: #1a1a1a;
-}
-
-.card-suit {
-  font-size: 28px;
-}
+.card-value { font-size: 48px; font-weight: 900; color: #1a1a1a; }
+.card-suit { font-size: 28px; }
 
 .hilo-info {
   display: flex;
@@ -279,7 +287,7 @@
   padding: 0 20px 12px;
   font-size: 14px;
   font-weight: 600;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .hilo-result {
@@ -288,11 +296,13 @@
   font-weight: 700;
   padding: 10px 20px;
   margin: 0 20px 16px;
-  border-radius: 10px;
+  border-radius: 6px;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 1px;
 }
 
-.hilo-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
-.hilo-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+.hilo-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.06); }
+.hilo-result.lose { color: #ff4444; background: rgba(255, 34, 34, 0.06); }
 
 .hilo-actions {
   display: flex;
@@ -305,56 +315,50 @@
   width: 100%;
   padding: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  font-family: var(--ds-font-subheading);
 }
 
-.hi-btn {
-  background: linear-gradient(135deg, #00cc6a, #009950);
-  color: white;
-}
-
-.lo-btn {
-  background: linear-gradient(135deg, #cc3333, #990000);
-  color: white;
-}
+.hi-btn { background: linear-gradient(135deg, #1a6b3a, #00cc6a); color: white; }
+.lo-btn { background: linear-gradient(135deg, #cc0000, #ff3333); color: white; }
 
 .cashout-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #ffd700, #cc9900);
+  background: linear-gradient(135deg, #cc9900, #ffd700);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   color: #000;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 2px;
 }
 
 /* ── Slots Game ── */
-.slots-machine {
-  padding: 40px 20px 20px;
-}
+.slots-machine { padding: 40px 20px 20px; }
 
 .slots-frame {
   display: flex;
   justify-content: center;
   gap: 8px;
   padding: 20px;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(200, 150, 0, 0.05));
-  border: 2px solid rgba(255, 215, 0, 0.3);
-  border-radius: 16px;
+  background: rgba(255, 215, 0, 0.04);
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  border-radius: 10px;
 }
 
 .slot-reel {
   width: 80px;
   height: 80px;
   background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -367,33 +371,33 @@
   font-weight: 700;
   padding: 10px 20px;
   margin: 0 20px 12px;
-  border-radius: 10px;
+  border-radius: 6px;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 1px;
 }
 
-.slots-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.1); }
-.slots-result.lose { color: #ff4444; background: rgba(255, 68, 68, 0.1); }
+.slots-result.win { color: #00ff88; background: rgba(0, 255, 136, 0.06); }
+.slots-result.lose { color: #ff4444; background: rgba(255, 34, 34, 0.06); }
 
 .payout-table {
   margin: 0 20px 16px;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .payout-table h4 {
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   margin: 0 0 8px;
   text-align: center;
+  font-family: var(--ds-font-subheading);
 }
 
-.payout-rows {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px;
-}
+.payout-rows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
 
 .payout-row {
   display: flex;
@@ -402,21 +406,22 @@
   padding: 4px 8px;
 }
 
-.payout-row span:first-child { color: #ddd; }
+.payout-row span:first-child { color: rgba(255, 255, 255, 0.6); }
 .payout-row span:last-child { color: #ffd700; font-weight: 700; }
 
 .spin-btn {
-  background: linear-gradient(135deg, #ff2d55, #cc0033) !important;
+  background: linear-gradient(135deg, #cc0000, #ff3333) !important;
   color: white !important;
 }
 
 /* Shared back button */
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
+  font-family: var(--ds-font-subheading);
 }

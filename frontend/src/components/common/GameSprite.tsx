@@ -20,16 +20,18 @@ const SPRITE_SHEETS: Record<string, { url: string; cols: number; rows: number; f
 
 // App icon definitions
 const APP_ICONS: Record<string, string> = {
-  slide:    '/assets/icons/icon_slide.png',
-  cook:     '/assets/icons/icon_cook.png',
-  map:      '/assets/icons/icon_map.png',
-  crew:     '/assets/icons/icon_crew.png',
-  dealt:    '/assets/icons/icon_dealt.png',
-  ops:      '/assets/icons/icon_ops.png',
-  shoebox:  '/assets/icons/icon_shoebox.png',
-  market:   '/assets/icons/icon_market.png',
-  casino:   '/assets/icons/icon_casino.png',
-  settings: '/assets/icons/icon_settings.png',
+  slide:    '/assets/icons/icon_slide_new.png',
+  cook:     '/assets/icons/icon_cook_new.png',
+  map:      '/assets/icons/icon_map_new.png',
+  crew:     '/assets/icons/icon_crew_new.png',
+  dealt:    '/assets/icons/icon_dealt_new.png',
+  ops:      '/assets/icons/icon_ops_new.png',
+  shoebox:  '/assets/icons/icon_shoebox_new.png',
+  market:   '/assets/icons/icon_market_new.png',
+  casino:   '/assets/icons/icon_casino_new.png',
+  settings: '/assets/icons/icon_settings_new.png',
+  driveby:  '/assets/icons/icon_driveby_new.png',
+  graffiti: '/assets/icons/icon_graffiti_new.png',
 };
 
 // Role-to-frame mapping for gang members
@@ -118,7 +120,7 @@ export const GameSprite: React.FC<GameSpriteProps> = ({
         width={size}
         height={size}
         className={`game-sprite game-icon ${className}`}
-        style={{ borderRadius: size * 0.22, objectFit: 'cover', imageRendering: 'pixelated', ...style }}
+        style={{ borderRadius: size * 0.22, objectFit: 'cover', imageRendering: 'auto', ...style }}
         onError={() => setError(true)}
         loading="lazy"
       />

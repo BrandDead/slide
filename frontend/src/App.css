@@ -1,6 +1,9 @@
 /* ============================================================
-   DEALT/SLIDE - Main Application Styles
+   DEALT/SLIDE - Street Empire - Global Styles
+   GTA-style dark cinematic theme
    ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&display=swap');
 
 * {
   margin: 0;
@@ -12,11 +15,12 @@ html, body {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  background: #000000;
 }
 
 body {
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #0a0a0a;
+  font-family: 'Rajdhani', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #050505;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
   user-select: none;
@@ -35,7 +39,8 @@ body {
   margin: 0 auto;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+  background: #050505;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
 }
 
 .page-container {
@@ -54,18 +59,30 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+  background: #050505;
   position: relative;
+}
+
+.placeholder-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/bg_desktop.jpg') center/cover no-repeat;
+  opacity: 0.15;
+  filter: brightness(0.5);
 }
 
 .placeholder-screen .back-button {
   position: absolute;
   top: 20px;
   left: 20px;
+  z-index: 2;
 }
 
 .placeholder-content {
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .placeholder-icon {
@@ -75,38 +92,47 @@ body {
 }
 
 .placeholder-content h2 {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   margin-bottom: 10px;
-  background: linear-gradient(135deg, #00f0ff, #ff006e);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  letter-spacing: 4px;
+  color: #ff3333;
+  text-shadow: 0 0 20px rgba(255, 50, 50, 0.3);
 }
 
 .placeholder-content p {
-  color: #666;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 14px;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 /* Common Buttons */
 .back-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #fff;
+  background: rgba(255, 50, 50, 0.1);
+  border: 1px solid rgba(255, 50, 50, 0.2);
+  color: #ff6666;
   padding: 10px 16px;
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
   backdrop-filter: blur(10px);
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.2s;
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 50, 50, 0.2);
+  border-color: rgba(255, 50, 50, 0.3);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -114,6 +140,16 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 50, 50, 0.2);
   border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 50, 50, 0.4);
+}
+
+/* Global selection color */
+::selection {
+  background: rgba(255, 50, 50, 0.3);
+  color: #ffffff;
 }

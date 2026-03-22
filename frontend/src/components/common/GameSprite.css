@@ -1,12 +1,14 @@
 /* ============================================================
-   GameSprite — Pixel Art Sprite Rendering
+   GameSprite — Icon Rendering - GTA Dark Theme
    ============================================================ */
 
 .game-sprite {
   display: inline-block;
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  image-rendering: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .game-icon {
