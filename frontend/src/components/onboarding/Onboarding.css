@@ -25,15 +25,17 @@
   position: absolute;
   inset: 0;
   background: url('/assets/bg_menu.jpg') center/cover no-repeat;
-  opacity: 0.15;
-  filter: brightness(0.4);
+  opacity: 0.34;
+  filter: brightness(0.72) contrast(1.08);
 }
 
 .onboarding-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(5,5,5,0.4) 40%, rgba(0,0,0,0.9) 100%);
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 50, 50, 0.14), transparent 32%),
+    linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(5,5,5,0.32) 42%, rgba(0,0,0,0.78) 100%);
 }
 
 /* ─── Progress Bar ─── */
@@ -712,4 +714,108 @@
   .style-grid { grid-template-columns: 1fr; }
   .color-presets { grid-template-columns: repeat(2, 1fr); }
   .step-title { font-size: 24px; }
+  .step-panel { padding: 18px; border-radius: 14px; }
+}
+
+/* ─── Readability patch: keep the gritty art pass but make first-run setup legible ─── */
+.step-panel {
+  padding: 22px;
+  background: rgba(3, 3, 3, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+}
+
+.step-subtitle,
+.input-group label,
+.color-picker-row label {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.gang-input {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.gang-input::placeholder {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.gang-input:focus {
+  border-color: rgba(255, 70, 70, 0.74);
+  box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.12), 0 0 18px rgba(255, 50, 50, 0.18);
+}
+
+.char-count,
+.color-picker-row span,
+.upload-hint,
+.generate-note,
+.no-options,
+.graffiti-legend h3,
+.style-table th {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.style-desc,
+.color-name,
+.custom-color-toggle,
+.mode-btn,
+.upload-label,
+.graffiti-complexity,
+.graffiti-time,
+.confirm-label {
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.74);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.next-btn {
+  box-shadow: 0 8px 24px rgba(255, 50, 50, 0.3);
+}
+
+.nav-btn:focus-visible,
+.gang-input:focus-visible,
+.mode-btn:focus-visible,
+.style-card:focus-visible,
+.color-preset:focus-visible {
+  outline: 2px solid rgba(255, 70, 70, 0.85);
+  outline-offset: 3px;
+}
+
+/* ─── Final contrast guardrail for dark street backgrounds ─── */
+.step-panel {
+  background: rgba(5, 5, 5, 0.82);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.step-title {
+  color: #ffffff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.95);
+}
+
+.step-subtitle,
+.input-group label,
+.color-picker-row label {
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+}
+
+.gang-input {
+  background: rgba(0, 0, 0, 0.72);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.gang-input::placeholder {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.next-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.52);
 }
