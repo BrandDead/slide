@@ -3,13 +3,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(15, 15, 30, 0.97);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
+  background: rgba(8, 8, 12, 0.97);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
   padding: 8px 16px 20px;
   z-index: 30;
   backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -93,7 +94,7 @@
   flex-direction: column;
   align-items: center;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  border-radius: 6px;
   padding: 8px;
 }
 
@@ -152,9 +153,11 @@
   flex: 1;
   padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--ds-font-subheading, 'Oswald', sans-serif);
+  letter-spacing: 1px;
   cursor: pointer;
   color: #fff;
   transition: transform 0.1s, opacity 0.1s;

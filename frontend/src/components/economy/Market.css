@@ -5,8 +5,9 @@
 .market-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #0e1a1a 50%, #0a0f0f 100%);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--ds-bg-primary, #050505);
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
+  position: relative;
   padding-bottom: 40px;
 }
 
@@ -25,19 +26,22 @@
 .market-header h1 {
   font-size: 20px;
   font-weight: 700;
-  color: #5ac8fa;
+  color: #fff;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  font-family: var(--ds-font-heading, 'Bebas Neue', sans-serif);
 }
 
 .inv-toggle-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 13px;
   cursor: pointer;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 1px;
 }
 
 .market-cash {
@@ -76,9 +80,9 @@
 }
 
 .cat-tab.active {
-  background: rgba(90, 200, 250, 0.15);
-  border-color: rgba(90, 200, 250, 0.3);
-  color: #5ac8fa;
+  background: rgba(255, 50, 50, 0.08);
+  border-color: rgba(255, 50, 50, 0.2);
+  color: #ff4444;
 }
 
 /* Item Grid */
@@ -92,7 +96,7 @@
 .item-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 16px;
   cursor: pointer;
   display: flex;
@@ -253,7 +257,7 @@
 .buy-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #007aff, #0055cc);
+  background: linear-gradient(135deg, #cc0000, #ff3333);
   border: none;
   border-radius: 12px;
   color: white;
@@ -286,9 +290,9 @@
 }
 
 .market-container .modal-content {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  background: rgba(10, 10, 15, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   padding: 30px;
   width: 100%;
   max-width: 360px;
