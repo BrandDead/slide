@@ -1,0 +1,251 @@
+/* ============================================================
+   StreetBlock — 2.5D street view
+   Sprint: block-mode-combat-assets
+   ============================================================ */
+
+.street-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0f;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 480px;
+  width: 100%;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  cursor: crosshair;
+  user-select: none;
+}
+
+/* ── Backdrop ── */
+.street-backdrop {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* Fallback gradient backdrop */
+.street-backdrop-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-sky       { flex: 2; background: linear-gradient(180deg, #0d1b2a 0%, #1a2744 100%); }
+.sb-buildings { flex: 2; background: linear-gradient(180deg, #1a2744 0%, #0f1f3d 100%); position: relative; }
+.sb-storefront{ flex: 2; background: linear-gradient(180deg, #1b2838 0%, #0d1b2a 100%); border-top: 2px solid #2d3748; }
+.sb-sidewalk  { flex: 1.5; background: #1e293b; border-top: 2px solid #334155; }
+.sb-curb      { flex: 0.5; background: #374151; }
+.sb-street    { flex: 2; background: linear-gradient(180deg, #111827 0%, #0a0a0f 100%); }
+
+/* ── Zone labels ── */
+.street-zone-labels {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.sz-label {
+  position: absolute;
+  transform: translateY(-50%);
+  font-size: 7px;
+  color: rgba(255,255,255,0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ── Street member ── */
+.street-member {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  z-index: 5;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  padding: 2px;
+  background: rgba(0,0,0,0.5);
+  transition: border-color 0.15s;
+}
+
+.street-member.selected {
+  border-color: #facc15;
+  box-shadow: 0 0 8px rgba(250,204,21,0.4);
+}
+
+.street-member.under-fire {
+  animation: shake 0.3s ease-in-out;
+}
+
+.street-member.dead {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  25%       { transform: translate(-48%, -50%) rotate(-5deg); }
+  75%       { transform: translate(-52%, -50%) rotate(5deg); }
+}
+
+.sm-name {
+  font-size: 7px;
+  color: #e2e8f0;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.7);
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+
+.sm-health-bar {
+  height: 2px;
+  border-radius: 1px;
+  transition: width 0.3s;
+  min-width: 20px;
+}
+
+/* ── Drive-by car ── */
+.driveby-car {
+  position: absolute;
+  bottom: 8%;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.car-body {
+  font-size: 36px;
+  filter: drop-shadow(0 0 8px rgba(239,68,68,0.5));
+}
+
+.car-gang-tag {
+  font-size: 9px;
+  color: #ef4444;
+  background: rgba(0,0,0,0.8);
+  border: 1px solid #ef4444;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.muzzle-flash {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #fff 0%, #facc15 40%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* ── Active drive-by overlay ── */
+.driveby-active-overlay {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.5);
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 10px;
+  color: #ef4444;
+  white-space: nowrap;
+  z-index: 20;
+  animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { border-color: rgba(239,68,68,0.5); }
+  50%       { border-color: rgba(239,68,68,0.1); }
+}
+
+/* ── Shot FX ── */
+.shot-fx {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(250,204,21,0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 15;
+}
+
+/* ── Controls ── */
+.street-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(10,10,15,0.95);
+  border-top: 1px solid #1e293b;
+}
+
+.sc-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.sc-btn.topdown {
+  background: rgba(96,165,250,0.15);
+  border: 1px solid rgba(96,165,250,0.3);
+  color: #60a5fa;
+}
+.sc-btn.topdown:hover { background: rgba(96,165,250,0.25); }
+
+.sc-info {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: #64748b;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.sc-heat { color: #f97316; }
+.sc-members { color: #4ade80; }
+
+/* ── Selected member info ── */
+.street-member-info {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,23,42,0.95);
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 10px;
+  z-index: 25;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.smi-name { font-weight: 700; font-size: 11px; }
+.smi-zone { color: #64748b; }
+.smi-income { color: #4ade80; }
+.smi-risk { color: #ef4444; }
+.smi-hp { color: #facc15; }

@@ -1,0 +1,113 @@
+/* ============================================================
+   DriveByEngine — Attack / Defend Loop
+   Sprint: block-mode-combat-assets
+   ============================================================ */
+
+.driveby-engine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ── Action bar ── */
+.dbe-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: rgba(10,10,15,0.95);
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}
+
+.dbe-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+}
+
+.dbe-btn.attack {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(239,68,68,0.4);
+}
+.dbe-btn.attack:hover { box-shadow: 0 0 20px rgba(239,68,68,0.6); }
+
+.dbe-btn.simulate {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #ef4444;
+}
+.dbe-btn.simulate:hover { background: rgba(239,68,68,0.25); }
+
+/* ── Phase indicator ── */
+.dbe-phase-indicator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dbe-phase {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+}
+
+.dbe-phase.phase-incoming {
+  background: rgba(250,204,21,0.15);
+  color: #facc15;
+  border: 1px solid rgba(250,204,21,0.3);
+  animation: blink 0.8s infinite;
+}
+
+.dbe-phase.phase-active {
+  background: rgba(239,68,68,0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.5);
+  animation: blink 0.5s infinite;
+}
+
+.dbe-phase.phase-retreating {
+  background: rgba(96,165,250,0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96,165,250,0.3);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.dbe-shots {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* ── Result banner ── */
+.dbe-result-banner {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,23,42,0.95);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  z-index: 50;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}

@@ -18,6 +18,39 @@ const SPRITE_SHEETS: Record<string, { url: string; cols: number; rows: number; f
   terrain:      { url: '/assets/sprites/terrain.png',      cols: 4, rows: 2, frameW: 688, frameH: 768 },
 };
 
+// ─── Generated character asset paths (Sprint: block-mode-combat-assets) ───
+export const GENERATED_CHAR_PORTRAITS: Record<string, string> = {
+  dealer_male_001:    '/assets/generated/characters/portraits/character_dealer_male_blacktee_portrait_v001.png',
+  enforcer_male_001:  '/assets/generated/characters/portraits/character_enforcer_male_portrait_v001.png',
+  lookout_female_001: '/assets/generated/characters/portraits/character_lookout_female_portrait_v001.png',
+  driver_male_001:    '/assets/generated/characters/portraits/character_driver_male_portrait_v001.png',
+};
+
+export const GENERATED_CHAR_FULLBODY: Record<string, string> = {
+  dealer_male_001:    '/assets/generated/characters/fullbody/character_dealer_male_blacktee_fullbody_front_v001.png',
+  enforcer_male_001:  '/assets/generated/characters/fullbody/character_enforcer_male_fullbody_front_v001.png',
+  lookout_female_001: '/assets/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.png',
+  driver_male_001:    '/assets/generated/characters/fullbody/character_driver_male_fullbody_front_v001.png',
+};
+
+export const GENERATED_CHAR_TOPDOWN: Record<string, string> = {
+  dealer_male_001:   '/assets/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.png',
+  enforcer_male_001: '/assets/generated/characters/topdown/character_enforcer_male_topdown_v001.png',
+};
+
+export const GENERATED_VEHICLE_TOPDOWN: Record<string, string> = {
+  luxury_sedan_black: '/assets/generated/vehicles/topdown/vehicle_luxury_sedan_black_topdown_v001.png',
+};
+
+export const GENERATED_VEHICLE_STREET: Record<string, string> = {
+  luxury_sedan_black: '/assets/generated/vehicles/street/vehicle_luxury_sedan_black_street_side_v001.png',
+};
+
+export const GENERATED_ENVIRONMENTS: Record<string, string> = {
+  block_stripplaza_topdown: '/assets/generated/environments/topdown/block_stripplaza_topdown_v001.png',
+  block_stripplaza_street:  '/assets/generated/environments/street/block_stripplaza_day_street_v001.png',
+};
+
 // App icon definitions
 const APP_ICONS: Record<string, string> = {
   slide:    '/assets/icons/icon_slide.png',
