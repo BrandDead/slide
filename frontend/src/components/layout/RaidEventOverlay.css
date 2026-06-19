@@ -1,0 +1,174 @@
+/* ============================================================
+   RaidEventOverlay — Full-screen raid notification
+   Sprint: morale-heat-photo-batch2
+   ============================================================ */
+
+.raid-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  padding: 20px;
+}
+
+/* ── Incoming ── */
+.raid-incoming {
+  background: #0d1117;
+  border: 2px solid #ef4444;
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 360px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  box-shadow: 0 0 40px rgba(239,68,68,0.3);
+  animation: raid-pulse 1s infinite;
+}
+
+@keyframes raid-pulse {
+  0%, 100% { box-shadow: 0 0 40px rgba(239,68,68,0.3); }
+  50%       { box-shadow: 0 0 60px rgba(239,68,68,0.6); }
+}
+
+.raid-siren {
+  font-size: 48px;
+  animation: siren-spin 0.5s infinite;
+}
+@keyframes siren-spin {
+  0%   { transform: rotate(-10deg); }
+  50%  { transform: rotate(10deg); }
+  100% { transform: rotate(-10deg); }
+}
+
+.raid-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.raid-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.raid-heat-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.raid-heat-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+.raid-heat-label {
+  font-size: 10px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── Result ── */
+.raid-result {
+  background: #0d1117;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 380px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.raid-result-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #e2e8f0;
+  margin: 0;
+  text-align: center;
+}
+
+.raid-severity {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.raid-losses {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loss-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}
+
+.loss-icon { font-size: 18px; }
+
+.loss-label {
+  flex: 1;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.loss-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.loss-val.red { color: #ef4444; }
+
+/* ── Action buttons ── */
+.raid-result-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.raid-btn {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.raid-btn.bail {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #ef4444;
+}
+.raid-btn.bail:hover { background: rgba(239,68,68,0.25); }
+
+.raid-btn.dismiss {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #1e293b;
+  color: #64748b;
+}
+.raid-btn.dismiss:hover { background: rgba(255,255,255,0.1); }

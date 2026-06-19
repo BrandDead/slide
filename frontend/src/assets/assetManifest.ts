@@ -150,8 +150,7 @@ export const characterAssets: Record<string, CharacterAsset> = {
     fullbody:    `${CHARS}/fullbody/character_shooter_male_fullbody_front_v001.png`,
     topdown:     `${CHARS}/topdown/character_shooter_male_topdown_v001.png`,
     streetIdle:  `${CHARS}/street/character_shooter_male_street_idle_v001.png`,
-    streetAim:   `${CHARS}/street/character_shooter_male_street_aim_v001.png`,
-    streetFire:  `${CHARS}/street/character_shooter_male_street_fire_v001.png`,
+    streetAim:   `${CHARS}/street/character_dealer_male_street_aim_v001.png`,
     rarity: 'uncommon',
     tags: ['masked', 'streetwear', 'weapon'],
     scale: 1,
@@ -226,14 +225,20 @@ export const productAssets: Record<string, ProductAsset> = {
   },
 };
 
+// ─── Effects ─────────────────────────────────────────────────
+
+export const effectAssets = {
+  fx_combat_sheet: `${BASE}/effects/fx_combat_sprite_sheet_v001.png`,
+};
+
 // ─── Environments ────────────────────────────────────────────
 
 export const environmentAssets: Record<string, EnvironmentAsset> = {
   block_stripplaza_miami_001: {
     id: 'block_stripplaza_miami_001',
     displayName: 'South Florida Strip Plaza',
-    topdownBg:          `${ENVS}/topdown/block_stripplaza_topdown_v001.png`,
-    streetBackdropDay:  `${ENVS}/street/block_stripplaza_day_street_v001.png`,
+    topdownBg:           `${ENVS}/topdown/block_stripplaza_topdown_v001.png`,
+    streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.png`,
     streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.png`,
   },
 };
@@ -258,12 +263,13 @@ export const uiIconPaths: Record<string, string> = {
 // ─── Aggregated manifest ─────────────────────────────────────
 
 export const assetManifest = {
-  characters: characterAssets,
-  vehicles:   vehicleAssets,
-  weapons:    weaponAssets,
-  products:   productAssets,
+  characters:   characterAssets,
+  vehicles:     vehicleAssets,
+  weapons:      weaponAssets,
+  products:     productAssets,
   environments: environmentAssets,
-  ui:         uiIconPaths,
+  effects:      effectAssets,
+  ui:           uiIconPaths,
 } as const;
 
 export default assetManifest;

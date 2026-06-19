@@ -7,6 +7,9 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
+import { useHeatDecay } from './hooks/useHeatDecay';
+import { useRaidCheck } from './hooks/useRaidCheck';
+import RaidEventOverlay from './components/layout/RaidEventOverlay';
 
 // Layout Components
 import OSShell from './components/layout/OSShell';
@@ -61,6 +64,12 @@ const App: React.FC = () => {
 
   // Initialize the game loop - runs every 30 seconds
   const gameLoop = useGameLoop();
+
+  // Heat decay: reduces block heat every 60 s when block is quiet
+  useHeatDecay();
+
+  // Raid check: rolls for a raid every 45 s based on heat
+  const { raidBlockId, clearRaid } = useRaidCheck();
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
@@ -139,6 +148,11 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      {/* Block-store raid overlay — fires when heat triggers a roll */}
+      {raidBlockId && (
+        <RaidEventOverlay blockId={raidBlockId} onClose={clearRaid} />
+      )}
+
       {/* Game Event Overlay - renders above everything */}
       <GameEventOverlay
         activeRaid={gameLoop.activeRaid}

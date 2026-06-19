@@ -1,0 +1,159 @@
+/* ============================================================
+   BailModal — Post-incident bail / hospital decision
+   Sprint: morale-heat-photo-batch2
+   ============================================================ */
+
+.bail-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.bail-modal {
+  background: #0d1117;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Header ── */
+.bm-header { text-align: center; }
+
+.bm-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ef4444;
+  margin: 0 0 6px;
+  letter-spacing: 0.5px;
+}
+
+.bm-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ── Incident list ── */
+.bm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bm-incident {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bm-member-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bm-member-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.bm-member-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.bm-member-status {
+  font-size: 10px;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bm-cost {
+  margin-left: auto;
+  font-size: 16px;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.bm-warning {
+  font-size: 10px;
+  color: #f97316;
+  margin: 0;
+  padding: 6px 8px;
+  background: rgba(249,115,22,0.08);
+  border-left: 2px solid rgba(249,115,22,0.4);
+  border-radius: 4px;
+}
+
+/* ── Actions ── */
+.bm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bm-btn {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  letter-spacing: 0.3px;
+}
+
+.bm-btn.pay {
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+  color: #000;
+}
+.bm-btn.pay:hover:not(.disabled) { filter: brightness(1.1); }
+.bm-btn.pay.disabled {
+  background: rgba(74,222,128,0.15);
+  color: #4ade80;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.bm-broke {
+  font-size: 9px;
+  opacity: 0.8;
+}
+
+.bm-btn.abandon {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #ef4444;
+}
+.bm-btn.abandon:hover { background: rgba(239,68,68,0.2); }
+
+/* ── Close ── */
+.bm-close {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #1e293b;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.bm-close:hover { background: rgba(255,255,255,0.1); }
