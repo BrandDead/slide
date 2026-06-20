@@ -12,6 +12,7 @@ import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode } from '../../types/block.types';
 import type { IncidentMember } from '../gang/BailModal';
 import { useMoraleEffects } from '../../hooks/useMoraleEffects';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/DriveByEngine';
@@ -118,6 +119,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
   const [showBailModal, setShowBailModal] = useState(false);
   const { checkMoraleOnDeploy } = useMoraleEffects();
+  const { completeStep } = useTutorialProgressStore();
 
   const showToast = useCallback((msg: string, duration = 2500) => {
     setToast(msg);
@@ -151,10 +153,13 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     if (amount > 0) {
       updateMoney(amount);
       showToast(`💰 Collected $${amount}!`);
+      // Tutorial: first income collected
+      const reward = completeStep('first_income_collected');
+      if (reward.cashReward > 0) updateMoney(reward.cashReward);
     } else {
       showToast('No income to collect yet.');
     }
-  }, [selectedBlockId, block, collectIncome, updateMoney, showToast]);
+  }, [selectedBlockId, block, collectIncome, updateMoney, showToast, completeStep]);
 
   const handleDeploy = useCallback(
     (memberId: string, memberName: string, role: string, level: number) => {
@@ -173,6 +178,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       setPlacementMode(true, memberId);
       setShowDeployPanel(false);
       showToast(`📍 Tap a zone to place ${memberName}`);
+      // Tutorial: first member deployed (fires on first successful placement intent)
+      completeStep('first_member_deployed');
       useBlockStore.setState((state) => {
         const b = state.blocks[selectedBlockId];
         if (!b) return state;

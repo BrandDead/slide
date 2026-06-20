@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import type {
   BlockData,
   DriveByEvent,
@@ -18,7 +19,11 @@ import type {
   DriveByPhase,
 } from '../../types/block.types';
 import StreetBlock from '../map/StreetBlock';
+import CanvasStreetRenderer from './CanvasStreetRenderer';
 import './DriveByEngine.css';
+
+// Use canvas renderer for active drive-by phases; DOM renderer otherwise
+const USE_CANVAS_RENDERER = true;
 
 // ─── Phase timing (ms) ───────────────────────────────────────
 const PHASE_DURATIONS: Record<DriveByPhase, number> = {
@@ -74,6 +79,7 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
   } = useBlockStore();
   const { player, updateHeat } = usePlayerStore();
   useGangStore(); // keep store subscription for future use
+  const { completeStep: completeTutorialStep } = useTutorialProgressStore();
 
   const block = blocks[blockId] as BlockData | undefined;
   const activeEvent = activeDriveBys[blockId] as DriveByEvent | undefined;
@@ -174,9 +180,12 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
       setResultBanner(bannerMsg);
       setTimeout(() => setResultBanner(null), 3500);
 
+      // Tutorial: first drive-by survived (any outcome counts)
+      completeTutorialStep('first_driveby_survived');
+
       onResolved?.(outcome, casualties);
     },
-    [block, blockId, resolveDriveBy, updateHeat, onResolved]
+    [block, blockId, resolveDriveBy, updateHeat, onResolved, completeTutorialStep]
   );
 
   // ── Initiate a drive-by (called when enemy slides on player's block) ──
@@ -251,12 +260,35 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
 
   return (
     <div className="driveby-engine">
-      {/* Street view with live event */}
-      <StreetBlock
-        block={block}
-        activeDriveBy={activeEvent}
-        onDefend={handleDefend}
-      />
+      {/* Street view — canvas renderer during combat, DOM renderer otherwise */}
+      {USE_CANVAS_RENDERER && activeEvent && activeEvent.phase !== 'resolved' ? (
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: 8 }}>
+          <CanvasStreetRenderer
+            placements={block.placements}
+            activeDriveBy={activeEvent}
+            width={480}
+            height={270}
+            onDefendShot={(x, y) => {
+              const shot = {
+                shooterId: 'player',
+                targetX: x,
+                targetY: y,
+                hit: Math.random() > 0.4,
+                damage: Math.floor(Math.random() * 30) + 10,
+                timestamp: Date.now(),
+              };
+              recordShot(blockId, shot, true);
+              handleDefend(shot);
+            }}
+          />
+        </div>
+      ) : (
+        <StreetBlock
+          block={block}
+          activeDriveBy={activeEvent}
+          onDefend={handleDefend}
+        />
+      )}
 
       {/* Action bar */}
       <div className="dbe-action-bar">

@@ -9,6 +9,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import MapboxMap from './MapboxMap';
 import BlockSearch from './BlockSearch';
 import BlockOverlay, { type BlockData as MapBlockData } from './BlockOverlay';
@@ -49,6 +50,7 @@ const TerritoryMap: React.FC = () => {
   const { blocks, selectedBlockId, selectBlock, upsertBlock } = useBlockStore();
 
   const [view, setView] = useState<MapView>('block');
+  const { completeStep: completeTutorialStep } = useTutorialProgressStore();
   const [notification, setNotification] = useState<string | null>(null);
 
   // Mapbox / hood state
@@ -125,6 +127,8 @@ const TerritoryMap: React.FC = () => {
     selectBlock(blockData.id);
     setSelectedMapBlock(null);
     notify(`🏴 Claimed ${blockData.address}! (-$2,000, +5 heat)`, 3000);
+    // Tutorial: first block claimed
+    completeTutorialStep('first_block_claimed');
   }, [player, updateMoney, updateHeat, upsertBlock, selectBlock, notify]);
 
   // ── Derive active block ID for BlockModeView ──

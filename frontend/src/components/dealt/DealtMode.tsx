@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useDealtStore, useEconomyStore } from '../../stores/gameStore';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { generateClient, resolveDeal } from '../../utils/dealtEngine';
 import type { Client, DealOutcome } from '../../types/game.types';
 import './DealtMode.css';
@@ -20,6 +21,7 @@ const DealtMode: React.FC = () => {
   const { player, updateMoney, updateHeat, addXP } = usePlayerStore();
   const { streak, completeDeal } = useDealtStore();
   const { inventory, removeInventoryItem, addTransaction } = useEconomyStore();
+  const { completeStep: completeTutorialStep } = useTutorialProgressStore();
 
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const [currentOutcome, setCurrentOutcome] = useState<DealOutcome | null>(null);
@@ -90,6 +92,8 @@ const DealtMode: React.FC = () => {
       addXP(outcome.xpGained);
       completeDeal(outcome);
       setCurrentOutcome(outcome);
+      // Tutorial: first deal made
+      if (outcome.success) completeTutorialStep('first_deal_made');
     } else {
       // Rejected the deal
       updateHeat(1);
