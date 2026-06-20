@@ -30,6 +30,9 @@ import SettingsPage from './components/settings/SettingsPage';
 import Casino from './components/casino/Casino';
 import GraffitiGame from './components/graffiti/GraffitiGame';
 import Onboarding from './components/onboarding/Onboarding';
+import Leaderboard from './components/hub/Leaderboard';
+import TutorialOverlay from './components/tutorial/TutorialOverlay';
+import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import type { GangProfile } from './types/game.types';
 
 import './App.css';
@@ -74,6 +77,16 @@ const App: React.FC = () => {
 
   // Supabase block sync: loads remote blocks on mount, persists changes
   useBlockSync();
+
+  // Tutorial progress
+  const { completeStep } = useTutorialProgressStore();
+
+  // Mark gang_created when onboarding completes
+  const handleOnboardingCompleteWithTutorial = (profile: GangProfile) => {
+    handleOnboardingComplete(profile);
+    const reward = completeStep('gang_created');
+    if (reward.cashReward > 0) updatePlayer({ money: (player?.money ?? 0) + reward.cashReward });
+  };
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
@@ -128,6 +141,9 @@ const App: React.FC = () => {
       case 'graffiti':
         return <GraffitiGame key="graffiti" />;
 
+      case 'leaderboard':
+        return <Leaderboard key="leaderboard" />;
+
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
       
@@ -147,11 +163,14 @@ const App: React.FC = () => {
 
   // Show onboarding for new players
   if (showOnboarding) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+    return <Onboarding onComplete={handleOnboardingCompleteWithTutorial} />;
   }
 
   return (
     <div className="app-container">
+      {/* Tutorial overlay — step completion toasts + next-step hints */}
+      <TutorialOverlay />
+
       {/* Block-store raid overlay — fires when heat triggers a roll */}
       {raidBlockId && (
         <RaidEventOverlay blockId={raidBlockId} onClose={clearRaid} />

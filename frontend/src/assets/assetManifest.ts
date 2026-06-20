@@ -206,6 +206,13 @@ export const weaponAssets: Record<string, WeaponAsset> = {
     category: 'long',
     icon: `${WEAPS}/weapon_long_prop_black_icon_v001.png`,
   },
+  // Batch 4 — drum-magazine long prop
+  long_prop_drum_001: {
+    id: 'long_prop_drum_001',
+    displayName: 'Drum Prop',
+    category: 'long',
+    icon: `${WEAPS}/weapon_long_prop_black_icon_v001.png`,
+  },
 };
 
 // ─── Products ────────────────────────────────────────────────
