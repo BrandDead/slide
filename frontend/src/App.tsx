@@ -9,6 +9,7 @@ import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
 import { useHeatDecay } from './hooks/useHeatDecay';
 import { useRaidCheck } from './hooks/useRaidCheck';
+import { useBlockSync } from './hooks/useBlockSync';
 import RaidEventOverlay from './components/layout/RaidEventOverlay';
 
 // Layout Components
@@ -70,6 +71,9 @@ const App: React.FC = () => {
 
   // Raid check: rolls for a raid every 45 s based on heat
   const { raidBlockId, clearRaid } = useRaidCheck();
+
+  // Supabase block sync: loads remote blocks on mount, persists changes
+  useBlockSync();
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({

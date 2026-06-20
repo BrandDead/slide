@@ -4,7 +4,9 @@
 //           XP bars, equip product, member progression
 // ============================================================
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, lazy, Suspense } from 'react';
+// Lazy-load PhotoMemberCreator so it doesn't bloat the main bundle
+const PhotoMemberCreator = lazy(() => import('../gang/PhotoMemberCreator'));
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useNavigationStore,
@@ -37,6 +39,7 @@ const Contacts: React.FC = () => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showSelfieUpload, setShowSelfieUpload] = useState(false);
+  const [showPhotoCreator, setShowPhotoCreator] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showDeployWarning, setShowDeployWarning] = useState<string | null>(null);
   const [deployConsequences, setDeployConsequences] = useState<any[]>([]);
@@ -326,10 +329,10 @@ const Contacts: React.FC = () => {
             <motion.div className="modal-content" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
               <h2>Add New Member</h2>
               <div className="add-options">
-                <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowSelfieUpload(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowPhotoCreator(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <span className="option-icon">📸</span>
-                  <span className="option-title">Upload Friend's Selfie</span>
-                  <span className="option-desc">Generate a member that looks like your friend</span>
+                  <span className="option-title">Create from Photo</span>
+                  <span className="option-desc">Upload a photo and AI-generate a custom gang member</span>
                 </motion.button>
                 <motion.button className="add-option" onClick={() => {
                   const newMember: any = {
@@ -386,6 +389,33 @@ const Contacts: React.FC = () => {
                 <button className="generate-btn" onClick={generateMemberFromSelfie} disabled={!uploadedImage}>Generate Member</button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PhotoMemberCreator — AI-powered member creation from photo */}
+      <AnimatePresence>
+        {showPhotoCreator && (
+          <motion.div
+            className="modal-overlay pmc-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Suspense fallback={<div className="pmc-loading-fallback">Loading...</div>}>
+              <PhotoMemberCreator
+                onClose={() => setShowPhotoCreator(false)}
+                onApproved={(memberId) => {
+                  addNotification({
+                    type: 'success',
+                    title: 'Member Created',
+                    message: 'Your custom member has been added to the crew.',
+                    priority: 'normal',
+                  });
+                  setShowPhotoCreator(false);
+                }}
+              />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>

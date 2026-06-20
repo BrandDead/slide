@@ -54,11 +54,17 @@ export const GENERATED_ENVIRONMENTS: Record<string, string> = {
 
 // ─── Batch 2 additions (Sprint: morale-heat-photo-batch2) ───
 export const GENERATED_CHAR_STREET: Record<string, string> = {
-  dealer_male_aim:   '/assets/generated/characters/street/character_dealer_male_street_aim_v001.png',
+  dealer_male_aim:    '/assets/generated/characters/street/character_dealer_male_street_aim_v001.png',
+  dealer_male_hit:    '/assets/generated/characters/street/character_dealer_male_street_hit_v001.png',
+  dealer_male_downed: '/assets/generated/characters/street/character_dealer_male_street_downed_v001.png',
 };
 
 export const GENERATED_VEHICLE_OVERLAYS: Record<string, string> = {
   luxury_sedan_passenger: '/assets/generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png',
+};
+
+export const GENERATED_VEHICLE_DAMAGE: Record<string, string> = {
+  luxury_sedan_damage_light: '/assets/generated/vehicles/damage/vehicle_luxury_sedan_black_damage_light_v001.png',
 };
 
 export const GENERATED_EFFECTS: Record<string, string> = {

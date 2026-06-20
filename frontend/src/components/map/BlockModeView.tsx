@@ -10,9 +10,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode } from '../../types/block.types';
+import type { IncidentMember } from '../gang/BailModal';
+import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/DriveByEngine';
+import BailModal from '../gang/BailModal';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -112,6 +115,9 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const [showDeployPanel, setShowDeployPanel] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
+  const [showBailModal, setShowBailModal] = useState(false);
+  const { checkMoraleOnDeploy } = useMoraleEffects();
 
   const showToast = useCallback((msg: string, duration = 2500) => {
     setToast(msg);
@@ -153,24 +159,30 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const handleDeploy = useCallback(
     (memberId: string, memberName: string, role: string, level: number) => {
       if (!selectedBlockId) return;
+
+      // Morale check before deployment
+      const moraleResult = checkMoraleOnDeploy(selectedBlockId, memberId, memberName);
+      if (!moraleResult.memberShowsUp) {
+        showToast(moraleResult.warnings[0] ?? `${memberName} didn't show up.`, 3500);
+        return;
+      }
+      if (moraleResult.warnings.length > 0) {
+        showToast(moraleResult.warnings[0], 3000);
+      }
+
       setPlacementMode(true, memberId);
       setShowDeployPanel(false);
       showToast(`📍 Tap a zone to place ${memberName}`);
-      // Store member metadata for placement
-      // The actual placement happens in TopDownBlock when user taps a zone
-      // We need to update the pending placement with correct member data
-      // This is done via a store update after zone selection
       useBlockStore.setState((state) => {
         const b = state.blocks[selectedBlockId];
         if (!b) return state;
-        // Store pending member data in a temp field
         return {
           ...state,
           _pendingMemberData: { memberId, memberName, role, level },
         } as any;
       });
     },
-    [selectedBlockId, setPlacementMode, showToast]
+    [selectedBlockId, setPlacementMode, showToast, checkMoraleOnDeploy]
   );
 
   const handleDriveByResolved = useCallback(
@@ -178,11 +190,27 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       setShowDriveBy(false);
       if (outcome === 'repelled') {
         showToast('✅ Drive-by repelled!', 3000);
-      } else if (outcome === 'successful') {
+      } else if (outcome === 'successful' && casualties.length > 0) {
         showToast(`⚠️ ${casualties.length} member(s) down!`, 3500);
+        // Build bail incidents for wounded members
+        const block = selectedBlockId ? blocks[selectedBlockId] : undefined;
+        if (block) {
+          const incidents: IncidentMember[] = casualties.map(memberId => {
+            const placement = block.placements.find(p => p.memberId === memberId);
+            return {
+              memberId,
+              memberName: placement?.memberName ?? 'Member',
+              incidentType: 'injured' as const,
+              cost: 2500 + Math.floor(Math.random() * 5000),
+              blockId: block.id,
+            };
+          });
+          setBailIncidents(incidents);
+          setShowBailModal(true);
+        }
       }
     },
-    [showToast]
+    [showToast, selectedBlockId, blocks]
   );
 
   if (!block) {
@@ -281,6 +309,17 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           />
         )}
       </AnimatePresence>
+
+      {/* Bail Modal — shown after drive-by casualties */}
+      {showBailModal && bailIncidents.length > 0 && (
+        <BailModal
+          incidents={bailIncidents}
+          onClose={() => {
+            setShowBailModal(false);
+            setBailIncidents([]);
+          }}
+        />
+      )}
 
       {/* Toast */}
       <AnimatePresence>
