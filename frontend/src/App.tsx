@@ -1,46 +1,59 @@
 // ============================================================
 // App.tsx - Main Application Component
-// Integrates game loop engine and event overlay
+// Sprint 7D: Lazy-loaded mini-games for performance
 // ============================================================
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
 import { useHeatDecay } from './hooks/useHeatDecay';
 import { useRaidCheck } from './hooks/useRaidCheck';
 import { useBlockSync } from './hooks/useBlockSync';
-import RaidEventOverlay from './components/layout/RaidEventOverlay';
-
-// Layout Components
-import OSShell from './components/layout/OSShell';
-import GameEventOverlay from './components/layout/GameEventOverlay';
-
-// Game Mode Components
-import DealtMode from './components/dealt/DealtMode';
-import Contacts from './components/contacts/Contacts';
-import SlideGame from './components/slide/SlideGame';
-import DriveByGame from './components/driveby/DriveByGame';
-import AlchemyLab from './components/alchemy/AlchemyLab';
-import TerritoryMap from './components/map/TerritoryMap';
-import Shoebox from './components/economy/Shoebox';
-import Market from './components/economy/Market';
-import Missions from './components/missions/Missions';
-import SettingsPage from './components/settings/SettingsPage';
-import Casino from './components/casino/Casino';
-import GraffitiGame from './components/graffiti/GraffitiGame';
-import Onboarding from './components/onboarding/Onboarding';
-import Leaderboard from './components/hub/Leaderboard';
-import TutorialOverlay from './components/tutorial/TutorialOverlay';
+import { useSoundManager } from './hooks/useSoundManager';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import type { GangProfile } from './types/game.types';
 
+// Layout
+import OSShell from './components/layout/OSShell';
+import GameEventOverlay from './components/layout/GameEventOverlay';
+import RaidEventOverlay from './components/layout/RaidEventOverlay';
+import TutorialOverlay from './components/tutorial/TutorialOverlay';
+
+// Always-loaded core screens (small, needed immediately)
+import DealtMode from './components/dealt/DealtMode';
+import Contacts from './components/contacts/Contacts';
+import TerritoryMap from './components/map/TerritoryMap';
+import Onboarding from './components/onboarding/Onboarding';
+import SettingsPage from './components/settings/SettingsPage';
+
+// Lazy-loaded mini-games and heavy screens (Sprint 7D)
+const SlideGame    = React.lazy(() => import('./components/slide/SlideGame'));
+const DriveByGame  = React.lazy(() => import('./components/driveby/DriveByGame'));
+const AlchemyLab   = React.lazy(() => import('./components/alchemy/AlchemyLab'));
+const GraffitiGame = React.lazy(() => import('./components/graffiti/GraffitiGame'));
+const Casino       = React.lazy(() => import('./components/casino/Casino'));
+const Shoebox      = React.lazy(() => import('./components/economy/Shoebox'));
+const Market       = React.lazy(() => import('./components/economy/Market'));
+const Missions     = React.lazy(() => import('./components/missions/Missions'));
+const Leaderboard  = React.lazy(() => import('./components/hub/Leaderboard'));
+
 import './App.css';
 
-// Placeholder components for modes still in development
+// ─── Lazy fallback ────────────────────────────────────────────
+const LazyFallback: React.FC = () => (
+  <div style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    height: '100%', background: '#0a0a0f', color: '#4ade80',
+    fontFamily: 'monospace', fontSize: 12,
+  }}>
+    Loading...
+  </div>
+);
+
+// ─── Placeholder ──────────────────────────────────────────────
 const PlaceholderScreen: React.FC<{ title: string; icon: string }> = ({ title, icon }) => {
   const { goBack } = useNavigationStore();
-  
   return (
     <div className="placeholder-screen">
       <motion.button className="back-button" onClick={goBack} whileTap={{ scale: 0.9 }}>
@@ -58,35 +71,22 @@ const PlaceholderScreen: React.FC<{ title: string; icon: string }> = ({ title, i
 const pageVariants = {
   initial: { opacity: 0, x: 20 },
   animate: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -20 },
+  exit:    { opacity: 0, x: -20 },
 };
 
+// ─── App ──────────────────────────────────────────────────────
 const App: React.FC = () => {
   const { currentApp } = useNavigationStore();
   const { player, updatePlayer } = usePlayerStore();
   const [showOnboarding, setShowOnboarding] = React.useState(!player?.gangProfile);
 
-  // Initialize the game loop - runs every 30 seconds
   const gameLoop = useGameLoop();
-
-  // Heat decay: reduces block heat every 60 s when block is quiet
   useHeatDecay();
-
-  // Raid check: rolls for a raid every 45 s based on heat
   const { raidBlockId, clearRaid } = useRaidCheck();
-
-  // Supabase block sync: loads remote blocks on mount, persists changes
   useBlockSync();
+  useSoundManager();
 
-  // Tutorial progress
   const { completeStep } = useTutorialProgressStore();
-
-  // Mark gang_created when onboarding completes
-  const handleOnboardingCompleteWithTutorial = (profile: GangProfile) => {
-    handleOnboardingComplete(profile);
-    const reward = completeStep('gang_created');
-    if (reward.cashReward > 0) updatePlayer({ money: (player?.money ?? 0) + reward.cashReward });
-  };
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
@@ -95,6 +95,12 @@ const App: React.FC = () => {
       gangProfile: profile,
     });
     setShowOnboarding(false);
+  };
+
+  const handleOnboardingCompleteWithTutorial = (profile: GangProfile) => {
+    handleOnboardingComplete(profile);
+    const reward = completeStep('gang_created');
+    if (reward.cashReward > 0) updatePlayer({ money: (player?.money ?? 0) + reward.cashReward });
   };
 
   const renderCurrentApp = () => {
@@ -107,49 +113,34 @@ const App: React.FC = () => {
             incomePerMinute={gameLoop.incomePerMinute}
           />
         );
-      
-      case 'dealt':
-        return <DealtMode key="dealt" />;
-      
-      case 'contacts':
-        return <Contacts key="contacts" />;
-      
-      case 'slide':
-        return <SlideGame key="slide" />;
-      
-      case 'driveby':
-        return <DriveByGame key="driveby" />;
-      
-      case 'alchemy':
-        return <AlchemyLab key="alchemy" />;
-      
-      case 'map':
-        return <TerritoryMap key="map" />;
-      
-      case 'shoebox':
-        return <Shoebox key="shoebox" />;
-      
-      case 'market':
-        return <Market key="market" />;
-      
-      case 'missions':
-        return <Missions key="missions" />;
-      
-      case 'casino':
-        return <Casino key="casino" />;
-      
-      case 'graffiti':
-        return <GraffitiGame key="graffiti" />;
+      case 'dealt':       return <DealtMode key="dealt" />;
+      case 'contacts':    return <Contacts key="contacts" />;
+      case 'map':         return <TerritoryMap key="map" />;
+      case 'settings':    return <SettingsPage key="settings" />;
 
+      // Lazy-loaded screens wrapped in Suspense
+      case 'slide':
+        return <Suspense fallback={<LazyFallback />}><SlideGame key="slide" /></Suspense>;
+      case 'driveby':
+        return <Suspense fallback={<LazyFallback />}><DriveByGame key="driveby" /></Suspense>;
+      case 'alchemy':
+        return <Suspense fallback={<LazyFallback />}><AlchemyLab key="alchemy" /></Suspense>;
+      case 'shoebox':
+        return <Suspense fallback={<LazyFallback />}><Shoebox key="shoebox" /></Suspense>;
+      case 'market':
+        return <Suspense fallback={<LazyFallback />}><Market key="market" /></Suspense>;
+      case 'missions':
+        return <Suspense fallback={<LazyFallback />}><Missions key="missions" /></Suspense>;
+      case 'casino':
+        return <Suspense fallback={<LazyFallback />}><Casino key="casino" /></Suspense>;
+      case 'graffiti':
+        return <Suspense fallback={<LazyFallback />}><GraffitiGame key="graffiti" /></Suspense>;
       case 'leaderboard':
-        return <Leaderboard key="leaderboard" />;
+        return <Suspense fallback={<LazyFallback />}><Leaderboard key="leaderboard" /></Suspense>;
 
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
-      
-      case 'settings':
-        return <SettingsPage key="settings" />;
-      
+
       default:
         return (
           <OSShell
@@ -161,22 +152,21 @@ const App: React.FC = () => {
     }
   };
 
-  // Show onboarding for new players
   if (showOnboarding) {
     return <Onboarding onComplete={handleOnboardingCompleteWithTutorial} />;
   }
 
   return (
     <div className="app-container">
-      {/* Tutorial overlay — step completion toasts + next-step hints */}
+      {/* Tutorial overlay */}
       <TutorialOverlay />
 
-      {/* Block-store raid overlay — fires when heat triggers a roll */}
+      {/* Block-store raid overlay */}
       {raidBlockId && (
         <RaidEventOverlay blockId={raidBlockId} onClose={clearRaid} />
       )}
 
-      {/* Game Event Overlay - renders above everything */}
+      {/* Game Event Overlay */}
       <GameEventOverlay
         activeRaid={gameLoop.activeRaid}
         lastEvent={gameLoop.lastEvent}
