@@ -1,0 +1,263 @@
+/* ============================================================
+   BlockModeView — Unified block management
+   Sprint: block-mode-combat-assets
+   ============================================================ */
+
+.block-mode-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  background: #0a0a0f;
+  padding: 8px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.block-mode-view.loading {
+  align-items: center;
+  justify-content: center;
+}
+
+.bmv-spinner {
+  color: #4ade80;
+  font-size: 13px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Top bar ── */
+.bmv-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bmv-address {
+  font-size: 11px;
+  color: #94a3b8;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bmv-quick-stats {
+  display: flex;
+  gap: 6px;
+}
+
+.bmv-stat {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.05);
+}
+.bmv-stat.income { color: #4ade80; }
+.bmv-stat.heat   { color: #f97316; }
+.bmv-stat.morale { color: #fb7185; }
+
+/* ── View tabs ── */
+.bmv-view-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.bmv-tab {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.bmv-tab.active {
+  background: rgba(74,222,128,0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74,222,128,0.3);
+}
+
+.bmv-tab.active.danger {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.bmv-tab:hover:not(.active) {
+  color: #94a3b8;
+  background: rgba(255,255,255,0.05);
+}
+
+/* ── Content ── */
+.bmv-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Action bar ── */
+.bmv-action-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.bmv-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.bmv-btn.deploy {
+  background: rgba(96,165,250,0.15);
+  border: 1px solid rgba(96,165,250,0.3);
+  color: #60a5fa;
+}
+.bmv-btn.deploy:hover { background: rgba(96,165,250,0.25); }
+
+.bmv-btn.collect {
+  background: rgba(74,222,128,0.15);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: #4ade80;
+}
+.bmv-btn.collect:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.bmv-btn.collect:not(:disabled):hover { background: rgba(74,222,128,0.25); }
+
+.bmv-btn.slide {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #ef4444;
+}
+.bmv-btn.slide:hover { background: rgba(239,68,68,0.25); }
+
+/* ── Deploy panel ── */
+.deploy-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 220px;
+  background: #0d1117;
+  border-left: 1px solid #1e293b;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  padding: 12px;
+  gap: 8px;
+}
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dp-header h3 {
+  font-size: 13px;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.dp-close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.dp-hint {
+  font-size: 10px;
+  color: #64748b;
+  margin: 0;
+}
+
+.dp-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dp-empty {
+  font-size: 11px;
+  color: #475569;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.dp-member-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #1e293b;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+.dp-member-btn:hover { background: rgba(255,255,255,0.08); }
+
+.dp-role {
+  font-size: 8px;
+  color: #4ade80;
+  letter-spacing: 0.5px;
+  min-width: 52px;
+}
+
+.dp-name {
+  font-size: 11px;
+  color: #e2e8f0;
+  flex: 1;
+}
+
+.dp-level {
+  font-size: 9px;
+  color: #64748b;
+}
+
+/* ── Toast ── */
+.bmv-toast {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,23,42,0.95);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 11px;
+  color: #e2e8f0;
+  white-space: nowrap;
+  z-index: 40;
+  pointer-events: none;
+}
