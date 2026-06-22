@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
+import { soundManager } from '../../utils/SoundManager';
 import type {
   BlockData,
   DriveByEvent,
@@ -20,6 +21,7 @@ import type {
 } from '../../types/block.types';
 import StreetBlock from '../map/StreetBlock';
 import CanvasStreetRenderer from './CanvasStreetRenderer';
+import FPSOverlay from './FPSOverlay';
 import './DriveByEngine.css';
 
 // Use canvas renderer for active drive-by phases; DOM renderer otherwise
@@ -78,7 +80,7 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
     setBlockViewMode,
   } = useBlockStore();
   const { player, updateHeat } = usePlayerStore();
-  useGangStore(); // keep store subscription for future use
+  useGangStore();
   const { completeStep: completeTutorialStep } = useTutorialProgressStore();
 
   const block = blocks[blockId] as BlockData | undefined;
@@ -129,6 +131,8 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
             timestamp: Date.now(),
           };
           recordShot(blockId, shot, false);
+          // SFX: distant gunshot from attacker car
+          soundManager.play('gunshot_distant');
         }, 1200);
 
         // Schedule retreat
@@ -180,6 +184,10 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
       setResultBanner(bannerMsg);
       setTimeout(() => setResultBanner(null), 3500);
 
+      // SFX based on outcome
+      if (outcome === 'repelled') soundManager.play('level_up');
+      else if (casualties.length > 0) soundManager.play('member_down');
+
       // Tutorial: first drive-by survived (any outcome counts)
       completeTutorialStep('first_driveby_survived');
 
@@ -210,10 +218,12 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
       startDriveBy(event);
       setBlockViewMode(blockId, 'street');
 
-      // Schedule active phase
-      phaseTimerRef.current = setTimeout(() => {
-        advancePhase(event, 'active');
-      }, PHASE_DURATIONS.incoming);
+        // Schedule active phase
+        phaseTimerRef.current = setTimeout(() => {
+          advancePhase(event, 'active');
+        }, PHASE_DURATIONS.incoming);
+        // SFX: alert on incoming
+        soundManager.play('alert_driveby');
     },
     [block, blockId, activeEvent, startDriveBy, setBlockViewMode, advancePhase]
   );
@@ -275,6 +285,27 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
                 targetY: y,
                 hit: Math.random() > 0.4,
                 damage: Math.floor(Math.random() * 30) + 10,
+                timestamp: Date.now(),
+              };
+              recordShot(blockId, shot, true);
+              handleDefend(shot);
+            }}
+          />
+          {/* FPS overlay: gun hands, crosshair, ammo, bullet casings */}
+          <FPSOverlay
+            width={480}
+            height={270}
+            isActive={activeEvent.phase === 'active'}
+            gunType="compact"
+            accuracy={70}
+            onShot={(x, y, hit) => {
+              soundManager.play('gunshot');
+              const shot = {
+                shooterId: 'player',
+                targetX: x,
+                targetY: y,
+                hit,
+                damage: hit ? Math.floor(Math.random() * 30) + 10 : 0,
                 timestamp: Date.now(),
               };
               recordShot(blockId, shot, true);

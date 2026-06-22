@@ -1,0 +1,10 @@
+/* ============================================================
+   FPSOverlay — First-person gun overlay
+   Sprint: sfx-fps-ollama-assets
+   ============================================================ */
+
+/* The canvas is positioned absolutely over CanvasStreetRenderer */
+canvas[data-testid="fps-overlay"] {
+  pointer-events: none; /* default — enabled via prop when active */
+  z-index: 10;
+}

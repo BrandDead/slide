@@ -13,6 +13,7 @@ import type { BlockData, BlockViewMode } from '../../types/block.types';
 import type { IncidentMember } from '../gang/BailModal';
 import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
+import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/DriveByEngine';
@@ -153,6 +154,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     if (amount > 0) {
       updateMoney(amount);
       showToast(`💰 Collected $${amount}!`);
+      soundManager.play('cash_register');
       // Tutorial: first income collected
       const reward = completeStep('first_income_collected');
       if (reward.cashReward > 0) updateMoney(reward.cashReward);
@@ -169,11 +171,14 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       const moraleResult = checkMoraleOnDeploy(selectedBlockId, memberId, memberName);
       if (!moraleResult.memberShowsUp) {
         showToast(moraleResult.warnings[0] ?? `${memberName} didn't show up.`, 3500);
+        soundManager.play('morale_drop');
         return;
       }
       if (moraleResult.warnings.length > 0) {
         showToast(moraleResult.warnings[0], 3000);
+        soundManager.play('morale_drop');
       }
+      soundManager.play('ui_tap');
 
       setPlacementMode(true, memberId);
       setShowDeployPanel(false);

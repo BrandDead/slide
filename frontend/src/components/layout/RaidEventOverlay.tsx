@@ -15,6 +15,7 @@ import {
   type RaidResult,
 } from '../../utils/heatSystem';
 import BailModal, { type IncidentMember } from '../gang/BailModal';
+import { soundManager } from '../../utils/SoundManager';
 import './RaidEventOverlay.css';
 
 interface RaidEventOverlayProps {
@@ -58,6 +59,7 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
     const result = executeRaid(heat, memberIds, drugQty, weaponCount, cashOnHand);
     setRaidResult(result);
     setPhase('result');
+    soundManager.play('alert_raid');
 
     // Apply consequences
     updateMoney(-result.confiscatedMoney);

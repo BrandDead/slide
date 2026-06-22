@@ -166,6 +166,14 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Global Leaderboard',
     },
     {
+      id: 'news',
+      label: 'LOCAL NEWS',
+      icon: '📰',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Weekly Update',
+    },
+    {
       id: 'phone',
       label: 'PHONE',
       icon: '📱',

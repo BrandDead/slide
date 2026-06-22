@@ -75,6 +75,14 @@ export const GENERATED_EFFECTS: Record<string, string> = {
   fx_combat_sheet: '/assets/generated/effects/fx_combat_sprite_sheet_v001.png',
 };
 
+// ─── UI overlays (Sprint: sfx-fps-ollama-assets) ───
+export const GENERATED_UI_OVERLAYS: Record<string, string> = {
+  fps_hud:          '/assets/generated/ui/fps_hud_elements_v001.png',
+  security_cam:     '/assets/generated/ui/security_cam_overlay_v001.png',
+  bullet_cam:       '/assets/generated/ui/bullet_cam_ui_v001.png',
+  icon_news:        '/assets/generated/ui/icons/icon_news_v001.png',
+};
+
 // App icon definitions
 const APP_ICONS: Record<string, string> = {
   slide:    '/assets/icons/icon_slide.png',
