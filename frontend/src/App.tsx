@@ -27,6 +27,7 @@ import Casino from './components/casino/Casino';
 import GraffitiGame from './components/graffiti/GraffitiGame';
 import Onboarding from './components/onboarding/Onboarding';
 import CocaineCrush from './components/cocaine-crush/CocaineCrush';
+import WeeklyUpdateRoute from './components/news/WeeklyUpdateRoute';
 import type { GangProfile } from './types/game.types';
 
 import './App.css';
@@ -118,6 +119,9 @@ const App: React.FC = () => {
 
       case 'cocaine_crush':
         return <CocaineCrush key="cocaine_crush" />;
+
+      case 'news':
+        return <WeeklyUpdateRoute key="news" />;
 
       case 'phone':
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
