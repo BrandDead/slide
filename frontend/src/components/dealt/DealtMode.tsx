@@ -5,7 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useDealtStore, useEconomyStore } from '../../stores/gameStore';
-import { generateClient, resolveDeal } from '../../utils/dealtEngine';
+import { useDrugInventory } from '../../stores/useDrugInventory';
+import { generateClientWithHeatModifiers, resolveDeal } from '../../utils/dealtEngine';
+import { resolveBust } from '../../utils/heatModifiers';
 import type { Client, DealOutcome } from '../../types/game.types';
 import './DealtMode.css';
 
@@ -37,7 +39,8 @@ const DealtMode: React.FC = () => {
   }, []);
 
   const generateNewClient = () => {
-    const client = generateClient(player.heat, player.level);
+    const drugTier = useDrugInventory.getState().getBlockDrugTier();
+    const client = generateClientWithHeatModifiers(player.heat, player.level, drugTier);
     setCurrentClient(client);
     setCurrentOutcome(null);
   };
@@ -47,6 +50,35 @@ const DealtMode: React.FC = () => {
     setIsAnimating(true);
 
     if (accepted) {
+      // Undercover bust — heat/cash consequences before normal deal resolution
+      if (currentClient.type === 'undercover') {
+        const drugTier = useDrugInventory.getState().getBlockDrugTier();
+        const bust = resolveBust(player.heat, drugTier);
+        const cashLost = Math.round(player.money * bust.cashLoss);
+
+        updateMoney(-cashLost);
+        updateHeat(bust.heatIncrease);
+
+        const outcome: DealOutcome = {
+          success: false,
+          type: 'undercover',
+          message: bust.message,
+          moneyChange: -cashLost,
+          heatChange: bust.heatIncrease,
+          xpGained: 0,
+          streakBonus: 0,
+        };
+
+        completeDeal(outcome);
+        setCurrentOutcome(outcome);
+
+        setTimeout(() => {
+          setIsAnimating(false);
+          generateNewClient();
+        }, 2500);
+        return;
+      }
+
       // Check if player has the drug
       const drugItem = inventory.find(
         (i) => i.itemId === currentClient.requestedDrug && i.quantity >= currentClient.requestedAmount

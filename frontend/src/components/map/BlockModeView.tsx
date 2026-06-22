@@ -9,10 +9,16 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
+import {
+  useDrugInventory,
+  blockZoneToDrugZone,
+  type BlockDealer,
+} from '../../stores/useDrugInventory';
 import type { BlockData, BlockViewMode } from '../../types/block.types';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
 import BlockDriveByEngine from '../slide/BlockDriveByEngine';
+import DrugAssignmentPanel from '../block/DrugAssignmentPanel';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -33,6 +39,21 @@ function buildDefaultBlock(id: string, address: string): BlockData {
     viewMode: 'topdown',
     pendingIncome: 0,
   };
+}
+
+// ─── Dealer helper ─────────────────────────────────────────────
+function blockToDealers(block: BlockData): BlockDealer[] {
+  return block.placements
+    .filter((p) => p.role === 'dealer')
+    .map((p) => ({
+      id: p.memberId,
+      name: p.memberName,
+      gridX: p.x,
+      gridY: p.y,
+      zone: blockZoneToDrugZone(p.zoneType),
+      baseIncome: p.incomePerTick,
+      baseHeat: Math.max(1, Math.round(p.exposureRisk / 25)),
+    }));
 }
 
 // ─── Member deploy panel ──────────────────────────────────────
@@ -105,11 +126,11 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     setBlockViewMode,
     collectIncome,
     setPlacementMode,
-    tickIncome,
   } = useBlockStore();
   const { updateMoney } = usePlayerStore();
 
   const [showDeployPanel, setShowDeployPanel] = useState(false);
+  const [showLoadout, setShowLoadout] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -128,13 +149,43 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     selectBlock(targetId);
   }, [initialBlockId, initialAddress, blocks, upsertBlock, selectBlock]);
 
-  // ── Income tick every 30 seconds ──
+  // ── Income tick every 30 seconds (drug-adjusted) ──
   useEffect(() => {
     const interval = setInterval(() => {
-      tickIncome();
+      const { consumeAssignedDrugs, getTotalIncome } = useDrugInventory.getState();
+      const consumeResult = consumeAssignedDrugs(1);
+
+      if (consumeResult.depleted.length > 0) {
+        showToast(`⚠️ ${consumeResult.depleted.length} drug supply depleted`);
+      }
+
+      const blockId = useBlockStore.getState().selectedBlockId;
+      if (!blockId) return;
+
+      const currentBlock = useBlockStore.getState().blocks[blockId] as BlockData | undefined;
+      if (!currentBlock || currentBlock.owner !== 'player') return;
+
+      const dealers = blockToDealers(currentBlock);
+      const tickIncome = Math.round(getTotalIncome(dealers));
+
+      if (tickIncome > 0) {
+        useBlockStore.setState((state) => {
+          const b = state.blocks[blockId];
+          if (!b) return state;
+          return {
+            blocks: {
+              ...state.blocks,
+              [blockId]: {
+                ...b,
+                pendingIncome: b.pendingIncome + tickIncome,
+              },
+            },
+          };
+        });
+      }
     }, 30_000);
     return () => clearInterval(interval);
-  }, [tickIncome]);
+  }, [showToast]);
 
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
   const activeEvent = selectedBlockId ? activeDriveBys[selectedBlockId] : undefined;
@@ -264,6 +315,13 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           💰 Collect ${block.pendingIncome}
         </motion.button>
         <motion.button
+          className="bmv-btn loadout"
+          onClick={() => setShowLoadout(true)}
+          whileTap={{ scale: 0.95 }}
+        >
+          💊 Loadout
+        </motion.button>
+        <motion.button
           className="bmv-btn slide"
           onClick={() => setShowDriveBy(true)}
           whileTap={{ scale: 0.95 }}
@@ -281,6 +339,14 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           />
         )}
       </AnimatePresence>
+
+      {/* Drug loadout panel */}
+      {showLoadout && (
+        <DrugAssignmentPanel
+          dealers={blockToDealers(block)}
+          onClose={() => setShowLoadout(false)}
+        />
+      )}
 
       {/* Toast */}
       <AnimatePresence>

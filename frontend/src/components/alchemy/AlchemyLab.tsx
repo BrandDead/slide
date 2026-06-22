@@ -7,6 +7,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore, useNotificationStore } from '../../stores/gameStore';
 import { ALL_RECIPES, findMatchingRecipe, attemptCraft, getRecipeHint } from '../../utils/alchemyEngine';
+import { useDrugInventory, type DrugTier } from '../../stores/useDrugInventory';
 import type { BaseElement, CraftedDrug, AlchemyRecipe, CraftingResult } from '../../types/alchemy.types';
 import './AlchemyLab.css';
 
@@ -85,6 +86,13 @@ const TIER_LABELS: Record<number, string> = {
   4: 'Super',
   5: 'Legendary',
 };
+
+function recipeTierToDrugTier(resultTier: number): DrugTier {
+  if (resultTier >= 4) return 'legendary';
+  if (resultTier === 3) return 'exotic';
+  if (resultTier === 2) return 'pure';
+  return 'street';
+}
 
 // ============ COMPONENT ============
 
@@ -226,6 +234,15 @@ const AlchemyLab: React.FC = () => {
           type: 'drug',
           itemId: result.drug,
           quantity: result.quantity,
+        });
+        // Add to drug inventory for block dealer assignment
+        useDrugInventory.getState().addDrug({
+          name: recipe.name,
+          tier: recipeTierToDrugTier(recipe.resultTier),
+          quality: result.purity ?? 75,
+          quantity: result.quantity,
+          craftedAt: Date.now(),
+          effects: (result as CraftingResult & { effects?: string[] }).effects ?? [],
         });
         // Notify player
         addNotification({

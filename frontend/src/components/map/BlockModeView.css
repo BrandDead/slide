@@ -148,6 +148,13 @@
 }
 .bmv-btn.collect:not(:disabled):hover { background: rgba(74,222,128,0.25); }
 
+.bmv-btn.loadout {
+  background: rgba(192,132,252,0.15);
+  border: 1px solid rgba(192,132,252,0.3);
+  color: #c084fc;
+}
+.bmv-btn.loadout:hover { background: rgba(192,132,252,0.25); }
+
 .bmv-btn.slide {
   background: rgba(239,68,68,0.15);
   border: 1px solid rgba(239,68,68,0.3);

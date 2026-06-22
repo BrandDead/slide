@@ -3,6 +3,8 @@
 // ============================================================
 
 import type { Client, ClientType, DealOutcome } from '../types/game.types';
+import type { DrugTier } from '../stores/useDrugInventory';
+import { getDealtModeModifiers, generateNextCustomer } from './heatModifiers';
 
 // ============ CLIENT TYPE CONFIGURATIONS ============
 
@@ -235,6 +237,48 @@ function generateName(): string {
 }
 
 // ============ CLIENT GENERATION ============
+
+function undercoverProfileToClient(profile: ReturnType<typeof generateNextCustomer>): Client {
+  const drugType = DRUG_NAMES[Math.floor(Math.random() * DRUG_NAMES.length)];
+  const basePrice = DRUG_PRICES[drugType];
+  const amount = profile.quantityRequested;
+  const marketPrice = basePrice * amount;
+
+  return {
+    id: profile.id,
+    type: 'undercover',
+    name: profile.name,
+    avatar: profile.avatar,
+    description: 'Something feels off about this one...',
+    requestedDrug: drugType,
+    requestedAmount: amount,
+    offerPrice: profile.offerAmount,
+    marketPrice,
+    riskLevel: 'extreme',
+    redFlags: profile.tells,
+    trustScore: 15,
+    heatImpact: 50,
+  };
+}
+
+/**
+ * Heat- and drug-tier-aware client generation for DealtMode.
+ * Undercover cops from heatModifiers; otherwise falls back to generateClient.
+ */
+export function generateClientWithHeatModifiers(
+  playerHeat: number,
+  playerLevel: number,
+  drugTier: DrugTier | null,
+): Client {
+  const modifiers = getDealtModeModifiers(playerHeat, drugTier);
+  const profile = generateNextCustomer(modifiers, playerHeat, drugTier);
+
+  if (profile.isCop) {
+    return undercoverProfileToClient(profile);
+  }
+
+  return generateClient(playerHeat, playerLevel);
+}
 
 export function generateClient(playerHeat: number, playerLevel: number): Client {
   // Calculate client type weights based on heat

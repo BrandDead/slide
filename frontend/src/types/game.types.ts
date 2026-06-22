@@ -582,6 +582,49 @@ export interface DriveByPassenger {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// DEALT MODE (TINDER DEALING) — used by dealtEngine + DealtMode
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ClientType =
+  | 'regular'
+  | 'fiend'
+  | 'prep_kid'
+  | 'hustler'
+  | 'celebrity'
+  | 'undercover'
+  | 'paranoid'
+  | 'high_roller'
+  | 'snitch'
+  | 'robber';
+
+export interface Client {
+  id: string;
+  type: ClientType;
+  name: string;
+  avatar: string;
+  description: string;
+  requestedDrug: string;
+  requestedAmount: number;
+  offerPrice: number;
+  marketPrice: number;
+  riskLevel: 'low' | 'medium' | 'high' | 'extreme';
+  redFlags: string[];
+  trustScore: number;
+  heatImpact: number;
+}
+
+export interface DealOutcome {
+  success: boolean;
+  type: 'success' | 'undercover' | 'robbery' | 'snitch' | 'overdose' | 'refused';
+  message: string;
+  moneyChange: number;
+  heatChange: number;
+  xpGained: number;
+  streakBonus: number;
+  consequences?: Array<{ type: string; severity: number; description: string }>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DEALER MODE TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
