@@ -421,3 +421,5 @@ export const CocaineCrush: React.FC = () => {
     </div>
   );
 };
+
+export default CocaineCrush;

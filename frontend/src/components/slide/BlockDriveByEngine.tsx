@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { v4 as uuidv4 } from 'uuid';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
+import { soundManager } from '../../utils/SoundManager';
 import type {
   BlockData,
   DriveByEvent,
@@ -18,7 +20,12 @@ import type {
   DriveByPhase,
 } from '../../types/block.types';
 import StreetBlock from '../map/StreetBlock';
-import './DriveByEngine.css';
+import CanvasStreetRenderer from './CanvasStreetRenderer';
+import FPSOverlay from './FPSOverlay';
+import './BlockDriveByEngine.css';
+
+// Use canvas renderer for active drive-by phases; DOM renderer otherwise
+const USE_CANVAS_RENDERER = true;
 
 // ─── Phase timing (ms) ───────────────────────────────────────
 const PHASE_DURATIONS: Record<DriveByPhase, number> = {
@@ -59,7 +66,7 @@ interface DriveByEngineProps {
   enemyBlockId?: string;
 }
 
-const DriveByEngine: React.FC<DriveByEngineProps> = ({
+const BlockDriveByEngine: React.FC<DriveByEngineProps> = ({
   blockId,
   onResolved,
   attackMode = false,
@@ -73,7 +80,8 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
     setBlockViewMode,
   } = useBlockStore();
   const { player, updateHeat } = usePlayerStore();
-  useGangStore(); // keep store subscription for future use
+  useGangStore();
+  const { completeStep: completeTutorialStep } = useTutorialProgressStore();
 
   const block = blocks[blockId] as BlockData | undefined;
   const activeEvent = activeDriveBys[blockId] as DriveByEvent | undefined;
@@ -123,6 +131,8 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
             timestamp: Date.now(),
           };
           recordShot(blockId, shot, false);
+          // SFX: distant gunshot from attacker car
+          soundManager.play('gunshot_distant');
         }, 1200);
 
         // Schedule retreat
@@ -174,9 +184,16 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
       setResultBanner(bannerMsg);
       setTimeout(() => setResultBanner(null), 3500);
 
+      // SFX based on outcome
+      if (outcome === 'repelled') soundManager.play('level_up');
+      else if (casualties.length > 0) soundManager.play('member_down');
+
+      // Tutorial: first drive-by survived (any outcome counts)
+      completeTutorialStep('first_driveby_survived');
+
       onResolved?.(outcome, casualties);
     },
-    [block, blockId, resolveDriveBy, updateHeat, onResolved]
+    [block, blockId, resolveDriveBy, updateHeat, onResolved, completeTutorialStep]
   );
 
   // ── Initiate a drive-by (called when enemy slides on player's block) ──
@@ -201,10 +218,12 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
       startDriveBy(event);
       setBlockViewMode(blockId, 'street');
 
-      // Schedule active phase
-      phaseTimerRef.current = setTimeout(() => {
-        advancePhase(event, 'active');
-      }, PHASE_DURATIONS.incoming);
+        // Schedule active phase
+        phaseTimerRef.current = setTimeout(() => {
+          advancePhase(event, 'active');
+        }, PHASE_DURATIONS.incoming);
+        // SFX: alert on incoming
+        soundManager.play('alert_driveby');
     },
     [block, blockId, activeEvent, startDriveBy, setBlockViewMode, advancePhase]
   );
@@ -251,12 +270,56 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
 
   return (
     <div className="driveby-engine">
-      {/* Street view with live event */}
-      <StreetBlock
-        block={block}
-        activeDriveBy={activeEvent}
-        onDefend={handleDefend}
-      />
+      {/* Street view — canvas renderer during combat, DOM renderer otherwise */}
+      {USE_CANVAS_RENDERER && activeEvent && activeEvent.phase !== 'resolved' ? (
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: 8 }}>
+          <CanvasStreetRenderer
+            placements={block.placements}
+            activeDriveBy={activeEvent}
+            width={480}
+            height={270}
+            onDefendShot={(x, y) => {
+              const shot = {
+                shooterId: 'player',
+                targetX: x,
+                targetY: y,
+                hit: Math.random() > 0.4,
+                damage: Math.floor(Math.random() * 30) + 10,
+                timestamp: Date.now(),
+              };
+              recordShot(blockId, shot, true);
+              handleDefend(shot);
+            }}
+          />
+          {/* FPS overlay: gun hands, crosshair, ammo, bullet casings */}
+          <FPSOverlay
+            width={480}
+            height={270}
+            isActive={activeEvent.phase === 'active'}
+            gunType="compact"
+            accuracy={70}
+            onShot={(x, y, hit) => {
+              soundManager.play('gunshot');
+              const shot = {
+                shooterId: 'player',
+                targetX: x,
+                targetY: y,
+                hit,
+                damage: hit ? Math.floor(Math.random() * 30) + 10 : 0,
+                timestamp: Date.now(),
+              };
+              recordShot(blockId, shot, true);
+              handleDefend(shot);
+            }}
+          />
+        </div>
+      ) : (
+        <StreetBlock
+          block={block}
+          activeDriveBy={activeEvent}
+          onDefend={handleDefend}
+        />
+      )}
 
       {/* Action bar */}
       <div className="dbe-action-bar">
@@ -311,7 +374,7 @@ const DriveByEngine: React.FC<DriveByEngineProps> = ({
   );
 };
 
-export default DriveByEngine;
+export default BlockDriveByEngine;
 
 // ─── Export helper for external triggers ─────────────────────
-export { DriveByEngine };
+export { BlockDriveByEngine };

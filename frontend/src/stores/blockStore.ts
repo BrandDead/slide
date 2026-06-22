@@ -11,6 +11,7 @@ import type {
   BlockZone,
   BlockZoneType,
   BlockPlacement,
+  DriveByEvent,
 } from '../types/block.types';
 
 // ─── Zone layout template (8×8) ─────────────────────────────
@@ -276,6 +277,13 @@ export const useBlockStore = create<BlockStore>()(
             isPlacementMode: active,
             pendingPlacementMemberId: memberId ?? null,
           }),
+
+        getResolvedDriveBys: () => {
+          const events = Object.values(get().activeDriveBys);
+          return events
+            .filter((e) => e.phase === 'resolved' && e.resolvedAt != null)
+            .sort((a, b) => (b.resolvedAt ?? 0) - (a.resolvedAt ?? 0));
+        },
       }),
       { name: 'block-store' }
     ),

@@ -179,6 +179,8 @@ export interface BlockStoreActions {
   setPlacementMode: (active: boolean, memberId?: string) => void;
   /** Generate a default 8×8 grid for a block */
   generateDefaultGrid: () => BlockZone[][];
+  /** Get all resolved drive-by events for news feed / replays */
+  getResolvedDriveBys: () => DriveByEvent[];
 }
 
 export type BlockStore = BlockStoreState & BlockStoreActions;

@@ -12,7 +12,7 @@ import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode } from '../../types/block.types';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
-import DriveByEngine from '../slide/DriveByEngine';
+import BlockDriveByEngine from '../slide/BlockDriveByEngine';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -232,7 +232,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       {/* Main view */}
       <div className="bmv-content">
         {showDriveBy ? (
-          <DriveByEngine
+          <BlockDriveByEngine
             blockId={block.id}
             onResolved={handleDriveByResolved}
           />
