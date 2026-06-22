@@ -18,6 +18,7 @@ import {
 import { getMoraleDescription, getMoraleConsequences, rollMoraleConsequences, calculateBailImpact, calculateHospitalImpact } from '../../utils/moraleSystem';
 import { getMemberHeatContribution } from '../../utils/memberProgression';
 import type { GangMember, Contact, MemberStatus, GetBackRequest } from '../../types/game.types';
+import PhotoMemberCreator from '../gang/PhotoMemberCreator';
 import './Contacts.css';
 
 type TabType = 'active' | 'jailed' | 'dead' | 'requests';
@@ -36,6 +37,7 @@ const Contacts: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [showPhotoCreator, setShowPhotoCreator] = useState(false);
   const [showSelfieUpload, setShowSelfieUpload] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showDeployWarning, setShowDeployWarning] = useState<string | null>(null);
@@ -326,6 +328,11 @@ const Contacts: React.FC = () => {
             <motion.div className="modal-content" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
               <h2>Add New Member</h2>
               <div className="add-options">
+                <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowPhotoCreator(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <span className="option-icon">🎨</span>
+                  <span className="option-title">AI Photo Member</span>
+                  <span className="option-desc">Upload a photo for AI-generated gang assets</span>
+                </motion.button>
                 <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowSelfieUpload(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <span className="option-icon">📸</span>
                   <span className="option-title">Upload Friend's Selfie</span>
@@ -432,6 +439,13 @@ const Contacts: React.FC = () => {
           />
         )}
       </AnimatePresence>
+
+      {showPhotoCreator && (
+        <PhotoMemberCreator
+          onClose={() => setShowPhotoCreator(false)}
+          onApproved={() => setShowPhotoCreator(false)}
+        />
+      )}
     </div>
   );
 };

@@ -7,10 +7,16 @@ import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
+import { useHeatDecay } from './hooks/useHeatDecay';
+import { useRaidCheck } from './hooks/useRaidCheck';
+import { useBlockSync } from './hooks/useBlockSync';
+import { useSoundManager } from './hooks/useSoundManager';
 
 // Layout Components
 import OSShell from './components/layout/OSShell';
 import GameEventOverlay from './components/layout/GameEventOverlay';
+import RaidEventOverlay from './components/layout/RaidEventOverlay';
+import TutorialOverlay from './components/tutorial/TutorialOverlay';
 
 // Game Mode Components
 import DealtMode from './components/dealt/DealtMode';
@@ -64,6 +70,10 @@ const App: React.FC = () => {
 
   // Initialize the game loop - runs every 30 seconds
   const gameLoop = useGameLoop();
+  useHeatDecay();
+  const { raidBlockId, clearRaid } = useRaidCheck();
+  useBlockSync();
+  useSoundManager();
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
@@ -159,6 +169,12 @@ const App: React.FC = () => {
         onPayBail={gameLoop.payBail}
         onLeaveMember={gameLoop.leaveMember}
       />
+
+      {raidBlockId && (
+        <RaidEventOverlay blockId={raidBlockId} onClose={clearRaid} />
+      )}
+
+      <TutorialOverlay />
 
       <AnimatePresence mode="wait">
         <motion.div

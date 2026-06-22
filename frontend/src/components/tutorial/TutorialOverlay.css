@@ -1,0 +1,101 @@
+/* ============================================================
+   TutorialOverlay
+   Sprint: mobile-leaderboard-onboarding-batch4
+   ============================================================ */
+
+/* ── Step completion toast ── */
+.tutorial-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15,23,42,0.97);
+  border: 1px solid rgba(74,222,128,0.5);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 200;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 20px rgba(74,222,128,0.15);
+  max-width: 320px;
+  width: calc(100% - 32px);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.tt-message {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4ade80;
+  text-align: center;
+}
+
+.tt-dismiss {
+  font-size: 9px;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Next step hint ── */
+.tutorial-hint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10,10,15,0.95);
+  border-top: 1px solid rgba(250,204,21,0.2);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.th-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.th-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.th-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #facc15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.th-desc {
+  font-size: 9px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.th-target {
+  font-size: 9px;
+  font-weight: 700;
+  color: #facc15;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Safe area support */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .tutorial-hint {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
