@@ -54,7 +54,7 @@ export const CocaineCrush: React.FC = () => {
       return;
     }
 
-    let newBoard = new Array(64).fill(null);
+    const newBoard = new Array(64).fill(null);
     for (let i = 0; i < 64; i++) {
       newBoard[i] = activeDrugs[Math.floor(Math.random() * activeDrugs.length)];
     }
@@ -65,7 +65,7 @@ export const CocaineCrush: React.FC = () => {
 
   // Check board for matches (3 or more horizontal/vertical)
   const findMatches = useCallback((currentBoard: (string | null)[]) => {
-    let matches = new Set<number>();
+    const matches = new Set<number>();
 
     // Horizontal
     for (let y = 0; y < 8; y++) {
@@ -229,7 +229,7 @@ export const CocaineCrush: React.FC = () => {
 
   // Main board processing loop
   const processBoard = useCallback(async (currentBoard: (string | null)[]) => {
-    let loopBoard = [...currentBoard];
+    const loopBoard = [...currentBoard];
     let hasMatches = true;
 
     while (hasMatches) {
@@ -271,7 +271,7 @@ export const CocaineCrush: React.FC = () => {
         }
 
         for (let x = 0; x < 8; x++) {
-          let column = [];
+          const column = [];
           for (let y = 7; y >= 0; y--) {
             if (loopBoard[y * 8 + x] !== null) {
               column.push(loopBoard[y * 8 + x]);

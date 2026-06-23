@@ -188,7 +188,7 @@ function generatePiece(text: string, primary: string, secondary: string): string
   
   // Create gradient defs
   const gradId = `grad-${hashString(text)}`;
-  let defs = `<defs>
+  const defs = `<defs>
     <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" style="stop-color:${primary};stop-opacity:1"/>
       <stop offset="50%" style="stop-color:${secondary};stop-opacity:1"/>
@@ -244,7 +244,7 @@ function generateWildstyle(text: string, primary: string, secondary: string): st
   const h = 240;
   
   const gradId = `wgrad-${hashString(text)}`;
-  let defs = `<defs>
+  const defs = `<defs>
     <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:${primary}"/>
       <stop offset="50%" style="stop-color:${secondary}"/>

@@ -190,10 +190,10 @@ function computeScene(
     allY.push(0, 100);
   }
 
-  let minX = Math.min(...allX);
-  let maxX = Math.max(...allX);
-  let minY = Math.min(...allY);
-  let maxY = Math.max(...allY);
+  const minX = Math.min(...allX);
+  const maxX = Math.max(...allX);
+  const minY = Math.min(...allY);
+  const maxY = Math.max(...allY);
 
   const span = Math.max(maxX - minX, maxY - minY, 60);
   const margin = span * 0.35;
@@ -967,7 +967,7 @@ export default function SecurityCamRenderer({
       // ── VHS jitter ─────────────────────────────────────────────────────────
 
       let jitterX = 0;
-      let jitterY = 0;
+      const jitterY = 0;
       if (Math.random() < 0.04) {
         jitterX = (Math.random() - 0.5) * 5 * dpr;
       }

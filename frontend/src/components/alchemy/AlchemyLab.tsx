@@ -262,7 +262,7 @@ const AlchemyLab: React.FC = () => {
         }
         // Apply heat
         updateHeat(recipe.heatGenerated);
-        addXP(recipe.resultTier * 25);;
+        addXP(recipe.resultTier * 25);
       } else {
         setCraftFailed(true);
         setNotification('💥 Craft FAILED! Ingredients lost.');

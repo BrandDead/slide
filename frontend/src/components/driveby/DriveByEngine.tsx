@@ -302,7 +302,7 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
 
       // Update targets
       setTargets(prev => prev.map(target => {
-        let newTarget = { ...target };
+        const newTarget = { ...target };
         
         // Movement
         newTarget.x += newTarget.velocityX;
