@@ -84,7 +84,7 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
     if (incidents.length > 0) {
       setBailIncidents(incidents);
     }
-  }, [block, player, members, updateMoney, updateHeat, upsertBlock, blockId]); // eslint-disable-line
+  }, [block, player, members, updateMoney, updateHeat, upsertBlock, blockId]);  
 
   const severity = block ? getRaidSeverity(block.heat * 20) : 'minor';
   const severityColor = SEVERITY_COLORS[severity];
