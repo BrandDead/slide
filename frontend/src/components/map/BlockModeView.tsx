@@ -9,16 +9,15 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
-import {
-  useDrugInventory,
-  blockZoneToDrugZone,
-  type BlockDealer,
-} from '../../stores/useDrugInventory';
 import type { BlockData, BlockViewMode } from '../../types/block.types';
+import type { IncidentMember } from '../gang/BailModal';
+import { useMoraleEffects } from '../../hooks/useMoraleEffects';
+import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
+import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
-import BlockDriveByEngine from '../slide/BlockDriveByEngine';
-import DrugAssignmentPanel from '../block/DrugAssignmentPanel';
+import DriveByEngine from '../slide/DriveByEngine';
+import BailModal from '../gang/BailModal';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -39,21 +38,6 @@ function buildDefaultBlock(id: string, address: string): BlockData {
     viewMode: 'topdown',
     pendingIncome: 0,
   };
-}
-
-// ─── Dealer helper ─────────────────────────────────────────────
-function blockToDealers(block: BlockData): BlockDealer[] {
-  return block.placements
-    .filter((p) => p.role === 'dealer')
-    .map((p) => ({
-      id: p.memberId,
-      name: p.memberName,
-      gridX: p.x,
-      gridY: p.y,
-      zone: blockZoneToDrugZone(p.zoneType),
-      baseIncome: p.incomePerTick,
-      baseHeat: Math.max(1, Math.round(p.exposureRisk / 25)),
-    }));
 }
 
 // ─── Member deploy panel ──────────────────────────────────────
@@ -126,13 +110,17 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     setBlockViewMode,
     collectIncome,
     setPlacementMode,
+    tickIncome,
   } = useBlockStore();
   const { updateMoney } = usePlayerStore();
 
   const [showDeployPanel, setShowDeployPanel] = useState(false);
-  const [showLoadout, setShowLoadout] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
+  const [showBailModal, setShowBailModal] = useState(false);
+  const { checkMoraleOnDeploy } = useMoraleEffects();
+  const { completeStep } = useTutorialProgressStore();
 
   const showToast = useCallback((msg: string, duration = 2500) => {
     setToast(msg);
@@ -149,43 +137,13 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     selectBlock(targetId);
   }, [initialBlockId, initialAddress, blocks, upsertBlock, selectBlock]);
 
-  // ── Income tick every 30 seconds (drug-adjusted) ──
+  // ── Income tick every 30 seconds ──
   useEffect(() => {
     const interval = setInterval(() => {
-      const { consumeAssignedDrugs, getTotalIncome } = useDrugInventory.getState();
-      const consumeResult = consumeAssignedDrugs(1);
-
-      if (consumeResult.depleted.length > 0) {
-        showToast(`⚠️ ${consumeResult.depleted.length} drug supply depleted`);
-      }
-
-      const blockId = useBlockStore.getState().selectedBlockId;
-      if (!blockId) return;
-
-      const currentBlock = useBlockStore.getState().blocks[blockId] as BlockData | undefined;
-      if (!currentBlock || currentBlock.owner !== 'player') return;
-
-      const dealers = blockToDealers(currentBlock);
-      const tickIncome = Math.round(getTotalIncome(dealers));
-
-      if (tickIncome > 0) {
-        useBlockStore.setState((state) => {
-          const b = state.blocks[blockId];
-          if (!b) return state;
-          return {
-            blocks: {
-              ...state.blocks,
-              [blockId]: {
-                ...b,
-                pendingIncome: b.pendingIncome + tickIncome,
-              },
-            },
-          };
-        });
-      }
+      tickIncome();
     }, 30_000);
     return () => clearInterval(interval);
-  }, [showToast]);
+  }, [tickIncome]);
 
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
   const activeEvent = selectedBlockId ? activeDriveBys[selectedBlockId] : undefined;
@@ -196,32 +154,47 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     if (amount > 0) {
       updateMoney(amount);
       showToast(`💰 Collected $${amount}!`);
+      soundManager.play('cash_register');
+      // Tutorial: first income collected
+      const reward = completeStep('first_income_collected');
+      if (reward.cashReward > 0) updateMoney(reward.cashReward);
     } else {
       showToast('No income to collect yet.');
     }
-  }, [selectedBlockId, block, collectIncome, updateMoney, showToast]);
+  }, [selectedBlockId, block, collectIncome, updateMoney, showToast, completeStep]);
 
   const handleDeploy = useCallback(
     (memberId: string, memberName: string, role: string, level: number) => {
       if (!selectedBlockId) return;
+
+      // Morale check before deployment
+      const moraleResult = checkMoraleOnDeploy(selectedBlockId, memberId, memberName);
+      if (!moraleResult.memberShowsUp) {
+        showToast(moraleResult.warnings[0] ?? `${memberName} didn't show up.`, 3500);
+        soundManager.play('morale_drop');
+        return;
+      }
+      if (moraleResult.warnings.length > 0) {
+        showToast(moraleResult.warnings[0], 3000);
+        soundManager.play('morale_drop');
+      }
+      soundManager.play('ui_tap');
+
       setPlacementMode(true, memberId);
       setShowDeployPanel(false);
       showToast(`📍 Tap a zone to place ${memberName}`);
-      // Store member metadata for placement
-      // The actual placement happens in TopDownBlock when user taps a zone
-      // We need to update the pending placement with correct member data
-      // This is done via a store update after zone selection
+      // Tutorial: first member deployed (fires on first successful placement intent)
+      completeStep('first_member_deployed');
       useBlockStore.setState((state) => {
         const b = state.blocks[selectedBlockId];
         if (!b) return state;
-        // Store pending member data in a temp field
         return {
           ...state,
           _pendingMemberData: { memberId, memberName, role, level },
         } as any;
       });
     },
-    [selectedBlockId, setPlacementMode, showToast]
+    [selectedBlockId, setPlacementMode, showToast, checkMoraleOnDeploy]
   );
 
   const handleDriveByResolved = useCallback(
@@ -229,11 +202,27 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       setShowDriveBy(false);
       if (outcome === 'repelled') {
         showToast('✅ Drive-by repelled!', 3000);
-      } else if (outcome === 'successful') {
+      } else if (outcome === 'successful' && casualties.length > 0) {
         showToast(`⚠️ ${casualties.length} member(s) down!`, 3500);
+        // Build bail incidents for wounded members
+        const block = selectedBlockId ? blocks[selectedBlockId] : undefined;
+        if (block) {
+          const incidents: IncidentMember[] = casualties.map(memberId => {
+            const placement = block.placements.find(p => p.memberId === memberId);
+            return {
+              memberId,
+              memberName: placement?.memberName ?? 'Member',
+              incidentType: 'injured' as const,
+              cost: 2500 + Math.floor(Math.random() * 5000),
+              blockId: block.id,
+            };
+          });
+          setBailIncidents(incidents);
+          setShowBailModal(true);
+        }
       }
     },
-    [showToast]
+    [showToast, selectedBlockId, blocks]
   );
 
   if (!block) {
@@ -283,7 +272,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       {/* Main view */}
       <div className="bmv-content">
         {showDriveBy ? (
-          <BlockDriveByEngine
+          <DriveByEngine
             blockId={block.id}
             onResolved={handleDriveByResolved}
           />
@@ -315,13 +304,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           💰 Collect ${block.pendingIncome}
         </motion.button>
         <motion.button
-          className="bmv-btn loadout"
-          onClick={() => setShowLoadout(true)}
-          whileTap={{ scale: 0.95 }}
-        >
-          💊 Loadout
-        </motion.button>
-        <motion.button
           className="bmv-btn slide"
           onClick={() => setShowDriveBy(true)}
           whileTap={{ scale: 0.95 }}
@@ -340,11 +322,14 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Drug loadout panel */}
-      {showLoadout && (
-        <DrugAssignmentPanel
-          dealers={blockToDealers(block)}
-          onClose={() => setShowLoadout(false)}
+      {/* Bail Modal — shown after drive-by casualties */}
+      {showBailModal && bailIncidents.length > 0 && (
+        <BailModal
+          incidents={bailIncidents}
+          onClose={() => {
+            setShowBailModal(false);
+            setBailIncidents([]);
+          }}
         />
       )}
 

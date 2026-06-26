@@ -4,7 +4,9 @@
 //           XP bars, equip product, member progression
 // ============================================================
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, lazy, Suspense } from 'react';
+// Lazy-load PhotoMemberCreator so it doesn't bloat the main bundle
+const PhotoMemberCreator = lazy(() => import('../gang/PhotoMemberCreator'));
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useNavigationStore,
@@ -18,7 +20,6 @@ import {
 import { getMoraleDescription, getMoraleConsequences, rollMoraleConsequences, calculateBailImpact, calculateHospitalImpact } from '../../utils/moraleSystem';
 import { getMemberHeatContribution } from '../../utils/memberProgression';
 import type { GangMember, Contact, MemberStatus, GetBackRequest } from '../../types/game.types';
-import PhotoMemberCreator from '../gang/PhotoMemberCreator';
 import './Contacts.css';
 
 type TabType = 'active' | 'jailed' | 'dead' | 'requests';
@@ -37,8 +38,8 @@ const Contacts: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showAddMember, setShowAddMember] = useState(false);
-  const [showPhotoCreator, setShowPhotoCreator] = useState(false);
   const [showSelfieUpload, setShowSelfieUpload] = useState(false);
+  const [showPhotoCreator, setShowPhotoCreator] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showDeployWarning, setShowDeployWarning] = useState<string | null>(null);
   const [deployConsequences, setDeployConsequences] = useState<any[]>([]);
@@ -329,14 +330,9 @@ const Contacts: React.FC = () => {
               <h2>Add New Member</h2>
               <div className="add-options">
                 <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowPhotoCreator(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <span className="option-icon">🎨</span>
-                  <span className="option-title">AI Photo Member</span>
-                  <span className="option-desc">Upload a photo for AI-generated gang assets</span>
-                </motion.button>
-                <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowSelfieUpload(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <span className="option-icon">📸</span>
-                  <span className="option-title">Upload Friend's Selfie</span>
-                  <span className="option-desc">Generate a member that looks like your friend</span>
+                  <span className="option-title">Create from Photo</span>
+                  <span className="option-desc">Upload a photo and AI-generate a custom gang member</span>
                 </motion.button>
                 <motion.button className="add-option" onClick={() => {
                   const newMember: any = {
@@ -397,6 +393,33 @@ const Contacts: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* PhotoMemberCreator — AI-powered member creation from photo */}
+      <AnimatePresence>
+        {showPhotoCreator && (
+          <motion.div
+            className="modal-overlay pmc-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Suspense fallback={<div className="pmc-loading-fallback">Loading...</div>}>
+              <PhotoMemberCreator
+                onClose={() => setShowPhotoCreator(false)}
+                onApproved={(memberId) => {
+                  addNotification({
+                    type: 'success',
+                    title: 'Member Created',
+                    message: 'Your custom member has been added to the crew.',
+                    priority: 'normal',
+                  });
+                  setShowPhotoCreator(false);
+                }}
+              />
+            </Suspense>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Deploy Warning Modal */}
       <AnimatePresence>
         {showDeployWarning && (
@@ -439,13 +462,6 @@ const Contacts: React.FC = () => {
           />
         )}
       </AnimatePresence>
-
-      {showPhotoCreator && (
-        <PhotoMemberCreator
-          onClose={() => setShowPhotoCreator(false)}
-          onApproved={() => setShowPhotoCreator(false)}
-        />
-      )}
     </div>
   );
 };

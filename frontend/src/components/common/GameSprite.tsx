@@ -47,22 +47,56 @@ export const GENERATED_VEHICLE_STREET: Record<string, string> = {
 };
 
 export const GENERATED_ENVIRONMENTS: Record<string, string> = {
-  block_stripplaza_topdown: '/assets/generated/environments/topdown/block_stripplaza_topdown_v001.png',
-  block_stripplaza_street:  '/assets/generated/environments/street/block_stripplaza_day_street_v001.png',
+  block_stripplaza_topdown:      '/assets/generated/environments/topdown/block_stripplaza_topdown_v001.png',
+  block_stripplaza_street_day:   '/assets/generated/environments/street/block_stripplaza_day_street_v001.png',
+  block_stripplaza_street_night: '/assets/generated/environments/street/block_stripplaza_night_street_v001.png',
+};
+
+// ─── Batch 2 additions (Sprint: morale-heat-photo-batch2) ───
+export const GENERATED_CHAR_STREET: Record<string, string> = {
+  dealer_male_aim:       '/assets/generated/characters/street/character_dealer_male_street_aim_v001.png',
+  dealer_male_hit:       '/assets/generated/characters/street/character_dealer_male_street_hit_v001.png',
+  dealer_male_downed:    '/assets/generated/characters/street/character_dealer_male_street_downed_v001.png',
+  // Batch 4
+  shooter_male_hit:      '/assets/generated/characters/street/character_shooter_male_street_hit_v001.png',
+  shooter_male_downed:   '/assets/generated/characters/street/character_shooter_male_street_downed_v001.png',
+  enforcer_male_idle:    '/assets/generated/characters/street/character_enforcer_male_street_idle_v001.png',
+};
+
+export const GENERATED_VEHICLE_OVERLAYS: Record<string, string> = {
+  luxury_sedan_passenger: '/assets/generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png',
+};
+
+export const GENERATED_VEHICLE_DAMAGE: Record<string, string> = {
+  luxury_sedan_damage_light: '/assets/generated/vehicles/damage/vehicle_luxury_sedan_black_damage_light_v001.png',
+};
+
+export const GENERATED_EFFECTS: Record<string, string> = {
+  fx_combat_sheet: '/assets/generated/effects/fx_combat_sprite_sheet_v001.png',
+};
+
+// ─── UI overlays (Sprint: sfx-fps-ollama-assets) ───
+export const GENERATED_UI_OVERLAYS: Record<string, string> = {
+  fps_hud:          '/assets/generated/ui/fps_hud_elements_v001.png',
+  security_cam:     '/assets/generated/ui/security_cam_overlay_v001.png',
+  bullet_cam:       '/assets/generated/ui/bullet_cam_ui_v001.png',
+  icon_news:        '/assets/generated/ui/icons/icon_news_v001.png',
 };
 
 // App icon definitions
 const APP_ICONS: Record<string, string> = {
-  slide:    '/assets/icons/icon_slide.png',
-  cook:     '/assets/icons/icon_cook.png',
-  map:      '/assets/icons/icon_map.png',
-  crew:     '/assets/icons/icon_crew.png',
-  dealt:    '/assets/icons/icon_dealt.png',
-  ops:      '/assets/icons/icon_ops.png',
-  shoebox:  '/assets/icons/icon_shoebox.png',
-  market:   '/assets/icons/icon_market.png',
-  casino:   '/assets/icons/icon_casino.png',
-  settings: '/assets/icons/icon_settings.png',
+  slide:    '/assets/icons/icon_slide_new.png',
+  cook:     '/assets/icons/icon_cook_new.png',
+  map:      '/assets/icons/icon_map_new.png',
+  crew:     '/assets/icons/icon_crew_new.png',
+  dealt:    '/assets/icons/icon_dealt_new.png',
+  ops:      '/assets/icons/icon_ops_new.png',
+  shoebox:  '/assets/icons/icon_shoebox_new.png',
+  market:   '/assets/icons/icon_market_new.png',
+  casino:   '/assets/icons/icon_casino_new.png',
+  settings: '/assets/icons/icon_settings_new.png',
+  driveby:  '/assets/icons/icon_driveby_new.png',
+  graffiti: '/assets/icons/icon_graffiti_new.png',
 };
 
 // Role-to-frame mapping for gang members
@@ -151,7 +185,7 @@ export const GameSprite: React.FC<GameSpriteProps> = ({
         width={size}
         height={size}
         className={`game-sprite game-icon ${className}`}
-        style={{ borderRadius: size * 0.22, objectFit: 'cover', imageRendering: 'pixelated', ...style }}
+        style={{ borderRadius: size * 0.22, objectFit: 'cover', imageRendering: 'auto', ...style }}
         onError={() => setError(true)}
         loading="lazy"
       />
