@@ -9,6 +9,7 @@ import { useNavigationStore, usePlayerStore, useEconomyStore, useNotificationSto
 import { ALL_RECIPES, findMatchingRecipe, attemptCraft, getRecipeHint } from '../../utils/alchemyEngine';
 import { useDrugInventory, type DrugTier } from '../../stores/useDrugInventory';
 import type { BaseElement, CraftedDrug, AlchemyRecipe, CraftingResult } from '../../types/alchemy.types';
+import { soundManager } from '../../utils/SoundManager';
 import './AlchemyLab.css';
 
 // ============ ELEMENT DATA ============
@@ -220,7 +221,8 @@ const AlchemyLab: React.FC = () => {
       const result = attemptCraft(recipe, 0);
 
       if (result) {
-         setCraftResult(result);
+        soundManager.play('deal_accept'); // Successful cook SFX
+        setCraftResult(result);
         setUnlockedDrugs(prev => new Set([...prev, result.drug]));
         // Add crafted drug to local inventory
         setInventory(prev => {
