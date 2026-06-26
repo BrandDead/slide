@@ -67,7 +67,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Territory Control',
     },
     {
-      id: 'dealt',
+      id: 'dealt_v2',
       label: 'DEALT',
       icon: '💊',
       spriteIcon: 'dealt',
@@ -431,7 +431,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
       {/* Quick Actions Dock */}
       <div className="dock">
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt')}>
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt_v2')}>
           💊
         </motion.div>
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('slide')}>
