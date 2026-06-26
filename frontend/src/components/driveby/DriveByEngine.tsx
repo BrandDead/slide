@@ -1,6 +1,7 @@
 // DriveByEngine.tsx - GTA-Style First-Person Drive-By Shooter
 // Cinematic urban warfare with parallax backgrounds, particle effects, screen shake
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { soundManager } from '../../utils/SoundManager';
 
 // ============ TYPES ============
 type TargetType = 'gang' | 'civilian' | 'leader';
@@ -297,6 +298,7 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     setStats(prev => ({ ...prev, shotsFired: prev.shotsFired + 1 }));
 
     playSound('shoot');
+    soundManager.play('gunshot'); // Wire to SoundManager for settings control
     muzzleFlashRef.current = 6;
     triggerShake(3);
 

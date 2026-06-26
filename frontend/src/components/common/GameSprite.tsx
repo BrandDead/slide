@@ -85,18 +85,21 @@ export const GENERATED_UI_OVERLAYS: Record<string, string> = {
 
 // App icon definitions
 const APP_ICONS: Record<string, string> = {
-  slide:    '/assets/icons/icon_slide_new.png',
-  cook:     '/assets/icons/icon_cook_new.png',
-  map:      '/assets/icons/icon_map_new.png',
-  crew:     '/assets/icons/icon_crew_new.png',
-  dealt:    '/assets/icons/icon_dealt_new.png',
-  ops:      '/assets/icons/icon_ops_new.png',
-  shoebox:  '/assets/icons/icon_shoebox_new.png',
-  market:   '/assets/icons/icon_market_new.png',
-  casino:   '/assets/icons/icon_casino_new.png',
-  settings: '/assets/icons/icon_settings_new.png',
-  driveby:  '/assets/icons/icon_driveby_new.png',
-  graffiti: '/assets/icons/icon_graffiti_new.png',
+  slide:          '/assets/icons/icon_slide_new.png',
+  cook:           '/assets/icons/icon_cook_new.png',
+  map:            '/assets/icons/icon_map_new.png',
+  crew:           '/assets/icons/icon_crew_new.png',
+  dealt:          '/assets/icons/icon_dealt_new.png',
+  ops:            '/assets/icons/icon_ops_new.png',
+  shoebox:        '/assets/icons/icon_shoebox_new.png',
+  market:         '/assets/icons/icon_market_new.png',
+  casino:         '/assets/icons/icon_casino_new.png',
+  settings:       '/assets/icons/icon_settings_new.png',
+  driveby:        '/assets/icons/icon_driveby_new.png',
+  graffiti:       '/assets/icons/icon_graffiti_new.png',
+  news:           '/assets/generated/ui/icons/icon_news_v001.png',
+  leaderboard:    '/assets/icons/icon_slide_new.png', // fallback until dedicated icon
+  cocaine_crush:  '/assets/icons/icon_casino_new.png', // fallback until dedicated icon
 };
 
 // Role-to-frame mapping for gang members

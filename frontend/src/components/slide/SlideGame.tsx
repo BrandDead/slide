@@ -7,6 +7,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { soundManager } from '../../utils/SoundManager';
 import {
   MACRO_SIZE,
   MICRO_SIZE,
@@ -261,6 +262,7 @@ const SlideGame: React.FC = () => {
     cell.revealed = true;
     cell.hit = true;
 
+    soundManager.play('gunshot');
     let log = `💥 Shot at (${coord.x}, ${coord.y}) — `;
     let scoreAdd = 0;
 
@@ -314,6 +316,7 @@ const SlideGame: React.FC = () => {
     cell.revealed = true;
     cell.hit = true;
 
+    soundManager.play('gunshot');
     let log = `🔫 Shot at car (${coord.i}, ${coord.j}) — `;
     let scoreAdd = 0;
 

@@ -11,19 +11,24 @@ import { useNavigationStore } from '../stores/gameStore';
 
 // Map app IDs to ambient tracks
 const APP_AMBIENT_MAP: Record<string, AmbientTrack> = {
-  home:       'menu',
-  map:        'street',
-  contacts:   'street',
-  dealt:      'street',
-  slide:      'combat',
-  driveby:    'combat',
-  alchemy:    'lab',
-  shoebox:    'menu',
-  market:     'menu',
-  missions:   'menu',
-  casino:     'casino',
-  leaderboard: 'menu',
-  settings:   'menu',
+  home:           'menu',
+  map:            'street',
+  contacts:       'street',
+  gang_hq:        'street',
+  dealt:          'street',
+  dealt_v2:       'street',
+  slide:          'combat',
+  driveby:        'combat',
+  topdown:        'combat',
+  alchemy:        'lab',
+  shoebox:        'menu',
+  market:         'menu',
+  missions:       'menu',
+  casino:         'casino',
+  cocaine_crush:  'casino',
+  leaderboard:    'menu',
+  news:           'street',
+  settings:       'menu',
 };
 
 export function useSoundManager() {

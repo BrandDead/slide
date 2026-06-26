@@ -5,6 +5,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore } from '../../stores/gameStore';
+import { soundManager } from '../../utils/SoundManager';
 import './Market.css';
 
 // ── Item Catalog (from DB seed data) ──
@@ -102,6 +103,7 @@ const Market: React.FC = () => {
       createdAt: new Date().toISOString(),
     } as any);
 
+    soundManager.play('cash_register');
     setPurchaseResult(`COPPED ${quantity}x ${selectedItem.name}`);
     setTimeout(() => {
       setPurchaseResult('');
