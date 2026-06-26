@@ -5,8 +5,9 @@
 .shoebox-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a1a0e 50%, #0f0f0a 100%);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--ds-bg-primary, #050505);
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
+  position: relative;
   padding-bottom: 40px;
 }
 
@@ -27,7 +28,9 @@
   font-weight: 700;
   color: #ffd700;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  font-family: var(--ds-font-heading, 'Bebas Neue', sans-serif);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .header-spacer { width: 60px; }
@@ -52,19 +55,19 @@
 .balance-card {
   flex: 1;
   padding: 20px;
-  border-radius: 16px;
+  border-radius: 8px;
   position: relative;
   overflow: hidden;
 }
 
 .cash-card {
-  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 200, 100, 0.05));
-  border: 1px solid rgba(0, 255, 136, 0.2);
+  background: rgba(0, 255, 136, 0.04);
+  border: 1px solid rgba(0, 255, 136, 0.1);
 }
 
 .bank-card {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(200, 170, 0, 0.05));
-  border: 1px solid rgba(255, 215, 0, 0.2);
+  background: rgba(255, 215, 0, 0.04);
+  border: 1px solid rgba(255, 215, 0, 0.1);
 }
 
 .balance-label {
@@ -103,11 +106,12 @@
   flex: 1;
   padding: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  font-family: var(--ds-font-subheading, 'Oswald', sans-serif);
 }
 
 .deposit-btn {
@@ -213,9 +217,9 @@
 }
 
 .modal-content {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  background: rgba(10, 10, 15, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   padding: 30px;
   width: 100%;
   max-width: 360px;

@@ -5,8 +5,9 @@
 .missions-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0a0a 0%, #1a150e 50%, #0f0d0a 100%);
-  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--ds-bg-primary, #050505);
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
+  position: relative;
   padding-bottom: 40px;
 }
 
@@ -25,9 +26,11 @@
 .missions-header h1 {
   font-size: 20px;
   font-weight: 700;
-  color: #a2845e;
+  color: #ff9900;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  font-family: var(--ds-font-heading, 'Bebas Neue', sans-serif);
+  text-shadow: 0 0 8px rgba(255, 153, 0, 0.2);
 }
 
 .refresh-btn {
@@ -47,7 +50,7 @@
   padding: 16px;
   background: linear-gradient(135deg, rgba(255, 100, 0, 0.15), rgba(255, 50, 0, 0.05));
   border: 1px solid rgba(255, 100, 0, 0.3);
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 .active-info {
@@ -142,10 +145,11 @@
 .result-icon { font-size: 64px; }
 
 .result-text {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 900;
   color: #fff;
   letter-spacing: 4px;
+  font-family: var(--ds-font-heading);
 }
 
 .result-rewards {
@@ -174,7 +178,7 @@
   padding: 16px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -269,9 +273,9 @@
 }
 
 .mission-modal {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  background: rgba(10, 10, 15, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   padding: 30px;
   width: 100%;
   max-width: 380px;
@@ -359,13 +363,14 @@
   padding: 14px;
   background: linear-gradient(135deg, #ff6600, #cc4400);
   border: none;
-  border-radius: 12px;
+  border-radius: 6px;
   color: white;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   letter-spacing: 2px;
   margin-bottom: 8px;
+  font-family: var(--ds-font-subheading);
 }
 
 .start-mission-btn:disabled {

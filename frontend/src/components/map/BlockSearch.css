@@ -10,9 +10,10 @@
 .search-input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(20, 20, 35, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  background: rgba(8, 8, 12, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  font-family: var(--ds-font-body, 'Rajdhani', sans-serif);
   padding: 0 12px;
   backdrop-filter: blur(12px);
 }
@@ -49,9 +50,9 @@
 
 .search-results {
   margin-top: 4px;
-  background: rgba(20, 20, 35, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  background: rgba(8, 8, 12, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
   overflow: hidden;
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);

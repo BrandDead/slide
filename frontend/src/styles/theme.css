@@ -1,0 +1,273 @@
+/* ============================================================
+   DEALT/SLIDE - Shared Theme Variables & Components
+   GTA-style dark cinematic theme for all mini-games
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+
+:root {
+  /* Core palette */
+  --ds-bg-primary: #050505;
+  --ds-bg-secondary: #0a0a0f;
+  --ds-bg-card: rgba(10, 10, 15, 0.85);
+  --ds-bg-card-hover: rgba(15, 15, 20, 0.9);
+  --ds-bg-overlay: rgba(0, 0, 0, 0.85);
+
+  /* Accent colors */
+  --ds-red: #ff3333;
+  --ds-red-dark: #cc0000;
+  --ds-red-glow: rgba(255, 50, 50, 0.3);
+  --ds-green: #00ff88;
+  --ds-green-dark: #00cc66;
+  --ds-green-glow: rgba(0, 255, 136, 0.3);
+  --ds-gold: #ffd700;
+  --ds-gold-glow: rgba(255, 215, 0, 0.3);
+  --ds-blue: #00aaff;
+  --ds-orange: #ff8800;
+  --ds-purple: #aa44ff;
+
+  /* Text */
+  --ds-text-primary: #ffffff;
+  --ds-text-secondary: rgba(255, 255, 255, 0.6);
+  --ds-text-muted: rgba(255, 255, 255, 0.35);
+  --ds-text-danger: #ff6666;
+
+  /* Borders */
+  --ds-border: rgba(255, 255, 255, 0.06);
+  --ds-border-red: rgba(255, 50, 50, 0.2);
+  --ds-border-glow: rgba(255, 50, 50, 0.15);
+
+  /* Fonts */
+  --ds-font-heading: 'Bebas Neue', 'Oswald', sans-serif;
+  --ds-font-subheading: 'Oswald', sans-serif;
+  --ds-font-body: 'Rajdhani', -apple-system, sans-serif;
+
+  /* Spacing */
+  --ds-radius-sm: 6px;
+  --ds-radius-md: 10px;
+  --ds-radius-lg: 16px;
+
+  /* Shadows */
+  --ds-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --ds-shadow-glow: 0 0 20px rgba(255, 50, 50, 0.1);
+}
+
+/* ============ SHARED COMPONENTS ============ */
+
+/* Game Screen Container */
+.game-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--ds-bg-primary);
+  color: var(--ds-text-primary);
+  font-family: var(--ds-font-body);
+  position: relative;
+  overflow: hidden;
+}
+
+.game-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/assets/bg_desktop.jpg') center/cover no-repeat;
+  opacity: 0.1;
+  filter: brightness(0.4) saturate(1.2);
+  pointer-events: none;
+}
+
+/* Screen Header */
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--ds-border-red);
+  position: relative;
+  z-index: 10;
+}
+
+.screen-title {
+  font-family: var(--ds-font-heading);
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: var(--ds-text-primary);
+  margin: 0;
+}
+
+.screen-subtitle {
+  font-family: var(--ds-font-subheading);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--ds-text-muted);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Cards */
+.game-card {
+  background: var(--ds-bg-card);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.game-card:hover {
+  background: var(--ds-bg-card-hover);
+  border-color: var(--ds-border-red);
+  box-shadow: var(--ds-shadow-glow);
+}
+
+/* Buttons */
+.btn-primary {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--ds-red-dark), var(--ds-red));
+  border: none;
+  border-radius: var(--ds-radius-sm);
+  color: white;
+  font-family: var(--ds-font-subheading);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px var(--ds-red-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--ds-red-glow);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-text-secondary);
+  font-family: var(--ds-font-subheading);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 50, 50, 0.1);
+  border-color: var(--ds-border-red);
+  color: var(--ds-text-primary);
+}
+
+.btn-danger {
+  padding: 10px 20px;
+  background: rgba(255, 34, 34, 0.1);
+  border: 1px solid rgba(255, 34, 34, 0.3);
+  border-radius: var(--ds-radius-sm);
+  color: #ff6666;
+  font-family: var(--ds-font-subheading);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: rgba(255, 34, 34, 0.2);
+}
+
+/* Money display */
+.money-display {
+  color: var(--ds-green);
+  font-family: var(--ds-font-body);
+  font-weight: 700;
+  text-shadow: 0 0 8px var(--ds-green-glow);
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--ds-font-subheading);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.badge-danger {
+  background: rgba(255, 34, 34, 0.15);
+  color: #ff6666;
+  border: 1px solid rgba(255, 34, 34, 0.2);
+}
+
+.badge-success {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.15);
+}
+
+.badge-warning {
+  background: rgba(255, 200, 0, 0.1);
+  color: #ffd700;
+  border: 1px solid rgba(255, 200, 0, 0.15);
+}
+
+/* Divider */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ds-border-red), transparent);
+  margin: 16px 0;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px var(--ds-red-glow); }
+  50% { box-shadow: 0 0 20px var(--ds-red-glow); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
