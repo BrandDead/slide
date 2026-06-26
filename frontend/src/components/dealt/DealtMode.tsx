@@ -8,6 +8,7 @@ import { useNavigationStore, usePlayerStore, useDealtStore, useEconomyStore } fr
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { generateClient, resolveDeal } from '../../utils/dealtEngine';
 import type { Client, DealOutcome } from '../../types/game.types';
+import { soundManager } from '../../utils/SoundManager';
 import './DealtMode.css';
 
 const formatMoney = (amount: number): string => {
@@ -47,6 +48,7 @@ const DealtMode: React.FC = () => {
   const handleDeal = async (accepted: boolean) => {
     if (!currentClient || isAnimating) return;
     setIsAnimating(true);
+    soundManager.play(accepted ? 'deal_accept' : 'deal_reject');
 
     if (accepted) {
       // Check if player has the drug
