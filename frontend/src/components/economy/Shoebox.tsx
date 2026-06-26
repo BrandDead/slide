@@ -6,6 +6,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore } from '../../stores/gameStore';
 import type { Transaction } from '../../types/game.types';
+import { soundManager } from '../../utils/SoundManager';
 import './Shoebox.css';
 
 type ModalMode = 'deposit' | 'withdraw' | null;
@@ -90,6 +91,7 @@ const Shoebox: React.FC = () => {
       });
     }
 
+    soundManager.play('cash_register');
     setSuccessMsg(`${modalMode === 'deposit' ? 'Deposited' : 'Withdrew'} ${formatMoney(val)}`);
     setAmount('');
     setError('');
