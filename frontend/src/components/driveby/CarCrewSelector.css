@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════
+   Car Crew Selector - Top-Down Car Seat Assignment
+   ═══════════════════════════════════════════════════════════ */
+
+.car-crew-selector {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+}
+
+.ccs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.9);
+  border-bottom: 1px solid #333;
+}
+
+.ccs-back {
+  background: none;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ccs-title {
+  color: #ff6600;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ─── TOP-DOWN CAR ─── */
+.car-topdown {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.car-body {
+  width: 200px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.car-hood {
+  width: 140px;
+  height: 50px;
+  background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+  border-radius: 30px 30px 0 0;
+  border: 2px solid #444;
+  border-bottom: none;
+}
+
+.car-cabin {
+  width: 180px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(180deg, #1a1a1a, #111);
+  border: 2px solid #444;
+  border-top: none;
+  border-bottom: none;
+}
+
+.car-trunk {
+  width: 160px;
+  height: 40px;
+  background: linear-gradient(180deg, #1a1a1a, #2a2a2a);
+  border-radius: 0 0 20px 20px;
+  border: 2px solid #444;
+  border-top: none;
+}
+
+/* ─── SEATS ─── */
+.car-seat {
+  width: 70px;
+  height: 70px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.car-seat.empty {
+  background: rgba(255,255,255,0.03);
+  border: 2px dashed #333;
+}
+
+.car-seat.occupied {
+  background: rgba(255,102,0,0.1);
+  border: 2px solid #ff6600;
+}
+
+.car-seat.selected {
+  border-color: #00ff88;
+  box-shadow: 0 0 10px rgba(0,255,136,0.3);
+}
+
+.seat-driver { grid-area: 1 / 1 / 2 / 2; }
+.seat-passenger { grid-area: 1 / 2 / 2 / 3; }
+.seat-back_left { grid-area: 2 / 1 / 3 / 2; }
+.seat-back_right { grid-area: 2 / 2 / 3 / 3; }
+
+.seat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.seat-plus {
+  font-size: 20px;
+  color: #555;
+}
+
+.seat-label {
+  font-size: 7px;
+  color: #555;
+  text-align: center;
+}
+
+.seat-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.seat-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.seat-name {
+  font-size: 8px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.seat-role {
+  font-size: 7px;
+  color: #ff6600;
+  text-transform: uppercase;
+}
+
+.seat-legend {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seat-legend .legend-item {
+  font-size: 9px;
+  color: #666;
+}
+
+/* ─── MEMBER PICKER ─── */
+.member-picker {
+  margin: 0 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #333;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #222;
+  color: #aaa;
+  font-size: 11px;
+}
+
+.picker-header button {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.picker-list {
+  padding: 4px;
+}
+
+.picker-empty {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+}
+
+.picker-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.picker-member:hover {
+  background: rgba(255,102,0,0.1);
+}
+
+.picker-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.picker-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.picker-role {
+  color: #888;
+  font-size: 10px;
+}
+
+.picker-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: #aaa;
+}
+
+/* ─── TARGET BLOCK ─── */
+.target-block-section {
+  padding: 12px 16px;
+}
+
+.target-label {
+  display: block;
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.target-input {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+}
+
+.target-input:focus {
+  outline: none;
+  border-color: #ff6600;
+}
+
+/* ─── LAUNCH ─── */
+.launch-section {
+  padding: 12px 16px;
+  margin-top: auto;
+}
+
+.launch-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  font-family: 'Courier New', monospace;
+}
+
+.launch-btn.ready {
+  background: linear-gradient(135deg, #ff6600, #ff3300);
+  color: #fff;
+}
+
+.launch-btn.disabled {
+  background: #222;
+  color: #555;
+  cursor: not-allowed;
+}

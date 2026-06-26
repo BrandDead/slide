@@ -1,0 +1,713 @@
+/* ═══════════════════════════════════════════════════════════
+   DEALT V2 - Shared Styles for Symptom Match & Speed Deals
+   ═══════════════════════════════════════════════════════════ */
+
+.dealt-v2 {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* ─── HEADER ─── */
+.dealt-v2-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.9);
+  border-bottom: 1px solid #333;
+}
+
+.dealt-v2-header .back-btn {
+  background: none;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dealt-v2-header .game-title {
+  color: #9b59b6;
+  font-weight: bold;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dealt-v2-header .round-info {
+  color: #888;
+  font-size: 11px;
+}
+
+/* ─── STATS BAR ─── */
+.stats-bar {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 9px;
+  color: #666;
+  text-transform: uppercase;
+  display: block;
+}
+
+.stat-value {
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ─── CLIENT DISPLAY (Symptoms) ─── */
+.client-display {
+  padding: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.client-avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  border: 3px solid #9b59b6;
+  overflow: hidden;
+}
+
+.client-avatar-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.client-name-tag {
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.client-type-tag {
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.symptoms-display {
+  background: rgba(155,89,182,0.1);
+  border: 1px solid rgba(155,89,182,0.3);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: left;
+}
+
+.symptoms-label {
+  color: #9b59b6;
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.symptoms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.symptom-tag {
+  background: rgba(155,89,182,0.2);
+  color: #d4a5e8;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.body-language {
+  color: #888;
+  font-size: 10px;
+}
+
+.bl-label {
+  color: #aaa;
+}
+
+.red-flags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.red-flag {
+  background: rgba(255,68,68,0.15);
+  color: #ff8888;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+/* ─── DRUG PICKER ─── */
+.drug-picker {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.picker-label {
+  color: #888;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.drug-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.drug-option {
+  background: rgba(255,255,255,0.03);
+  border: 2px solid #222;
+  border-radius: 8px;
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.drug-option:hover {
+  border-color: #9b59b6;
+  background: rgba(155,89,182,0.1);
+}
+
+.drug-option.selected {
+  border-color: #9b59b6;
+  background: rgba(155,89,182,0.2);
+}
+
+.drug-icon {
+  font-size: 24px;
+}
+
+.drug-name {
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.drug-hint {
+  color: #666;
+  font-size: 9px;
+}
+
+/* ─── PRICE SETTER ─── */
+.price-setter {
+  padding: 16px;
+  flex: 1;
+}
+
+.price-label {
+  color: #9b59b6;
+  font-size: 12px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.price-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.price-symbol {
+  color: #44ff44;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.price-input {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  width: 120px;
+  padding: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #9b59b6;
+}
+
+.price-presets {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.preset-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #aaa;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preset-btn:hover {
+  border-color: #9b59b6;
+  color: #fff;
+}
+
+.price-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #333;
+  border-radius: 6px;
+  color: #888;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sell-btn {
+  flex: 2;
+  padding: 10px;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ─── RESULT DISPLAY ─── */
+.result-display {
+  padding: 24px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-display.success { background: rgba(68,255,68,0.05); }
+.result-display.failure { background: rgba(255,68,68,0.05); }
+
+.result-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.result-message {
+  color: #ccc;
+  font-size: 13px;
+  margin-bottom: 16px;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.result-money {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.result-money.positive { color: #44ff44; }
+.result-money.negative { color: #ff4444; }
+
+.next-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ─── INVENTORY LEGEND (Speed Deals) ─── */
+.inventory-legend {
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.legend-title {
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.legend-items {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #222;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.legend-item.empty {
+  opacity: 0.3;
+}
+
+.legend-icon {
+  font-size: 14px;
+}
+
+.legend-name {
+  color: #ccc;
+  font-size: 10px;
+}
+
+.legend-amount {
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.legend-cost {
+  color: #888;
+  font-size: 9px;
+}
+
+/* ─── TIMER BAR ─── */
+.timer-bar-container {
+  height: 20px;
+  background: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+}
+
+.timer-bar-fill {
+  height: 100%;
+  transition: width 1s linear;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+/* ─── SPEED DEAL CARD ─── */
+.speed-deal-card {
+  margin: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.deal-client-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.deal-client-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #555;
+}
+
+.deal-client-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.deal-client-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.deal-client-request {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.deal-client-request strong {
+  color: #fff;
+}
+
+.deal-offer-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.deal-offer-label {
+  color: #888;
+  font-size: 12px;
+}
+
+.deal-offer-price {
+  color: #44ff44;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.deal-math-hint {
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+
+.deal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.deal-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.deal-btn.accept {
+  background: linear-gradient(135deg, #44ff44, #22cc22);
+  color: #000;
+}
+
+.deal-btn.decline {
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+  color: #fff;
+}
+
+/* ─── SPEED RESULT ─── */
+.speed-result {
+  margin: 12px;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.speed-result.positive {
+  background: rgba(68,255,68,0.05);
+  border: 1px solid rgba(68,255,68,0.2);
+}
+
+.speed-result.negative {
+  background: rgba(255,68,68,0.05);
+  border: 1px solid rgba(255,68,68,0.2);
+}
+
+/* ─── GAME OVER ─── */
+.game-over-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.game-over-title {
+  font-size: 28px;
+  color: #9b59b6;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.game-over-subtitle {
+  color: #888;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.game-over-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 24px;
+}
+
+.go-stat {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+
+.go-stat-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.go-stat-value {
+  font-size: 20px;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* ─── DEALT MODE SELECTOR ─── */
+.dealt-mode-selector {
+  width: 100%;
+  height: 100%;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Courier New', monospace;
+}
+
+.mode-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.9);
+  border-bottom: 1px solid #333;
+}
+
+.mode-selector-header .back-btn {
+  background: none;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mode-selector-header .title {
+  color: #9b59b6;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.mode-cards {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.mode-card {
+  background: rgba(255,255,255,0.03);
+  border: 2px solid #222;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-card:hover {
+  border-color: #9b59b6;
+  background: rgba(155,89,182,0.1);
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mode-card-icon {
+  font-size: 28px;
+}
+
+.mode-card-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.mode-card-subtitle {
+  color: #9b59b6;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.mode-card-desc {
+  color: #888;
+  font-size: 11px;
+  line-height: 1.5;
+}

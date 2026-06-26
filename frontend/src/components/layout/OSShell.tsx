@@ -150,6 +150,14 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Gambling Games',
     },
     {
+      id: 'topdown',
+      label: 'ATTACK',
+      icon: '🔫',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Block Attack',
+    },
+    {
       id: 'graffiti',
       label: 'VANDALIZE',
       icon: '🎨',

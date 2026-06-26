@@ -115,15 +115,16 @@ def create_app():
     except Exception as e:
         logger.error(f"✗ Failed to register driveby blueprint: {e}")
     
+    # Art generation blueprint
     try:
-        from api.avatar import avatar_bp
-        app.register_blueprint(avatar_bp)
-        logger.info("✓ Registered avatar blueprint")
+        from routes.art import art_bp
+        app.register_blueprint(art_bp)
+        logger.info("✓ Registered art blueprint")
     except ImportError:
-        logger.warning("Avatar blueprint not found")
+        logger.warning("Art blueprint not found - will be implemented")
     except Exception as e:
-        logger.error(f"✗ Failed to register avatar blueprint: {e}")
-
+        logger.error(f"✗ Failed to register art blueprint: {e}")
+    
     # Initialize world tick scheduler
     try:
         from services.scheduler import scheduler_manager

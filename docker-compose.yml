@@ -1,0 +1,83 @@
+version: '3.9'
+
+services:
+  # ── PostgreSQL with PostGIS ──────────────────────────────────
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: slide-postgres
+    environment:
+      POSTGRES_USER: slide
+      POSTGRES_PASSWORD: slide_dev_pw
+      POSTGRES_DB: slide_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slide"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Redis (for Celery / caching / sessions) ─────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: slide-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── Flask Backend ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend/python
+      dockerfile: Dockerfile
+    container_name: slide-backend
+    environment:
+      FLASK_ENV: development
+      FLASK_DEBUG: "True"
+      DATABASE_URL: postgresql://slide:slide_dev_pw@postgres:5432/slide_dev
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: dev-secret-key-change-in-production
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+      HOST: 0.0.0.0
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/python:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python app.py
+
+  # ── Vite Frontend ────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: slide-frontend
+    environment:
+      VITE_API_URL: http://localhost:5000
+      VITE_SUPABASE_URL: ""
+      VITE_SUPABASE_ANON_KEY: ""
+      VITE_MAPBOX_ACCESS_TOKEN: ""
+      VITE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    depends_on:
+      - backend
+    command: npx vite --host 0.0.0.0 --port 3000
+
+volumes:
+  pgdata:
