@@ -10,6 +10,7 @@ import {
   useEconomyStore,
   useDealtStore,
 } from '../../stores/gameStore';
+import { soundManager } from '../../utils/SoundManager';
 import './Settings.css';
 
 const SettingsPage: React.FC = () => {
@@ -40,6 +41,10 @@ const SettingsPage: React.FC = () => {
     const newSettings = { ...settings, [key]: !settings[key] };
     setSettings(newSettings);
     updatePlayer({ settings: newSettings });
+    // Wire sound toggle to SoundManager
+    if (key === 'sound') {
+      soundManager.setEnabled(newSettings.sound);
+    }
   };
 
   const handleReset = () => {

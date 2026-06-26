@@ -110,7 +110,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     setBlockViewMode,
     collectIncome,
     setPlacementMode,
-    tickIncome,
   } = useBlockStore();
   const { updateMoney } = usePlayerStore();
 
@@ -137,13 +136,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     selectBlock(targetId);
   }, [initialBlockId, initialAddress, blocks, upsertBlock, selectBlock]);
 
-  // ── Income tick every 30 seconds ──
-  useEffect(() => {
-    const interval = setInterval(() => {
-      tickIncome();
-    }, 30_000);
-    return () => clearInterval(interval);
-  }, [tickIncome]);
+  // Income ticking is handled centrally by gameLoopEngine (App.tsx)
+  // BlockModeView only reads pendingIncome and allows manual collection
 
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
   const activeEvent = selectedBlockId ? activeDriveBys[selectedBlockId] : undefined;

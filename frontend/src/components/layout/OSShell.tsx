@@ -104,7 +104,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Drug Crafting',
     },
     {
-      id: 'contacts',
+      id: 'gang_hq',
       label: 'CREW',
       icon: '👥',
       spriteIcon: 'crew',
@@ -150,6 +150,15 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Gambling Games',
     },
     {
+      id: 'cocaine_crush',
+      label: 'CRUSH',
+      icon: '❄️',
+      spriteIcon: 'cocaine_crush',
+      colorClass: 'app-blue',
+      available: true,
+      description: 'Cocaine Crush',
+    },
+    {
       id: 'topdown',
       label: 'ATTACK',
       icon: '🔫',
@@ -170,6 +179,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'leaderboard',
       label: 'RANKINGS',
       icon: '🏆',
+      spriteIcon: 'leaderboard',
       colorClass: 'app-gold',
       available: true,
       description: 'Global Leaderboard',
@@ -178,7 +188,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'news',
       label: 'LOCAL NEWS',
       icon: '📰',
-      colorClass: 'app-red',
+      spriteIcon: 'news',
+      colorClass: 'app-cyan',
       available: true,
       description: 'Weekly Update',
     },
@@ -437,7 +448,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('slide')}>
           🎯
         </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('contacts')}>
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('gang_hq')}>
           👥
         </motion.div>
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('shoebox')}>

@@ -30,6 +30,7 @@ import {
   useEconomyStore,
   useNotificationStore,
 } from '../stores/gameStore';
+import { useBlockStore } from '../stores/blockStore';
 
 // ============ GAME EVENT TYPES ============
 
@@ -262,6 +263,9 @@ export function useGameLoop(): GameLoopState {
     }));
 
     const incomeResult = calculateTotalIncome(blockDealers);
+
+    // Also tick the block store so BlockModeView pendingIncome stays in sync
+    useBlockStore.getState().tickIncome();
 
     if (incomeResult.totalIncome > 0) {
       stores.player.updateMoney(incomeResult.totalIncome);

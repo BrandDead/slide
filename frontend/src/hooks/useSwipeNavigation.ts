@@ -12,15 +12,20 @@ import { useTouchGestures } from './useTouchGestures';
 // Ordered list of apps for swipe cycling
 const APP_ORDER = [
   'map',
-  'contacts',
-  'dealt',
+  'dealt_v2',
   'slide',
   'driveby',
+  'topdown',
   'alchemy',
+  'gang_hq',
   'shoebox',
   'market',
   'missions',
   'casino',
+  'cocaine_crush',
+  'leaderboard',
+  'news',
+  'graffiti',
   'settings',
 ] as const;
 
