@@ -1,0 +1,334 @@
+/* ============================================================
+   mobile.css — Responsive overrides for SLIDE / DEALT
+   Targets: phones (< 480px), small tablets (480-768px)
+   Sprint: mobile-leaderboard-onboarding-batch4
+   ============================================================ */
+
+/* ── Base ── */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* ── OSShell — iOS desktop ── */
+@media (max-width: 480px) {
+  .os-shell {
+    padding: 8px 4px;
+  }
+
+  .app-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+    padding: 12px 8px !important;
+  }
+
+  .app-icon-wrapper {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .app-icon-label {
+    font-size: 9px !important;
+  }
+
+  .status-bar {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+}
+
+/* ── TerritoryMap ── */
+@media (max-width: 480px) {
+  .territory-map {
+    padding: 0 !important;
+  }
+
+  .map-header {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+
+  .view-tabs {
+    gap: 2px !important;
+    padding: 4px !important;
+  }
+
+  .view-tab {
+    padding: 6px 4px !important;
+    font-size: 9px !important;
+  }
+
+  .block-stats {
+    gap: 4px !important;
+    padding: 4px 6px !important;
+  }
+
+  .stat-item {
+    min-width: 0 !important;
+  }
+
+  .stat-value {
+    font-size: 11px !important;
+  }
+
+  .stat-label {
+    font-size: 8px !important;
+  }
+}
+
+/* ── TopDownBlock — 8×8 grid ── */
+@media (max-width: 480px) {
+  .topdown-block {
+    max-width: 100% !important;
+    padding: 8px !important;
+    border-radius: 0 !important;
+  }
+
+  .td-grid {
+    gap: 1px !important;
+  }
+
+  .td-cell {
+    /* Cells auto-size to fill the grid */
+    min-height: 0 !important;
+  }
+
+  .td-member-token {
+    width: 85% !important;
+    height: 85% !important;
+  }
+
+  .td-zone-label {
+    font-size: 5px !important;
+  }
+
+  .td-member-level {
+    font-size: 7px !important;
+  }
+
+  .td-header {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .td-stats {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .td-view-toggle {
+    font-size: 9px !important;
+    padding: 3px 6px !important;
+  }
+
+  .td-legend {
+    gap: 4px !important;
+    font-size: 8px !important;
+  }
+
+  .td-zone-info {
+    padding: 8px !important;
+  }
+
+  .td-action-btn {
+    font-size: 9px !important;
+    padding: 5px 6px !important;
+  }
+}
+
+/* ── StreetBlock ── */
+@media (max-width: 480px) {
+  .street-block {
+    max-width: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  .street-backdrop {
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  .street-member {
+    padding: 1px !important;
+  }
+
+  .sm-name {
+    font-size: 6px !important;
+  }
+
+  .street-controls {
+    padding: 6px 8px !important;
+  }
+
+  .sc-info {
+    font-size: 9px !important;
+  }
+}
+
+/* ── BlockModeView ── */
+@media (max-width: 480px) {
+  .block-mode-view {
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+
+  .bmv-topbar {
+    padding: 0 !important;
+  }
+
+  .bmv-address {
+    font-size: 10px !important;
+  }
+
+  .bmv-view-tabs {
+    padding: 3px !important;
+    gap: 2px !important;
+  }
+
+  .bmv-tab {
+    font-size: 9px !important;
+    padding: 5px 3px !important;
+  }
+
+  .bmv-action-bar {
+    gap: 4px !important;
+    padding: 4px 0 !important;
+  }
+
+  .bmv-btn {
+    font-size: 10px !important;
+    padding: 8px 4px !important;
+  }
+
+  .deploy-panel {
+    width: 180px !important;
+  }
+
+  .dp-header h3 {
+    font-size: 12px !important;
+  }
+
+  .dp-member-btn {
+    padding: 6px 8px !important;
+  }
+
+  .dp-name {
+    font-size: 10px !important;
+  }
+}
+
+/* ── Contacts / CREW ── */
+@media (max-width: 480px) {
+  .contacts-screen {
+    padding: 0 !important;
+  }
+
+  .contacts-header {
+    padding: 8px 10px !important;
+  }
+
+  .contacts-tabs {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .contacts-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .tab {
+    font-size: 10px !important;
+    padding: 6px 10px !important;
+  }
+}
+
+/* ── BailModal ── */
+@media (max-width: 480px) {
+  .bail-modal {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .bm-title {
+    font-size: 16px !important;
+  }
+
+  .bm-cost {
+    font-size: 14px !important;
+  }
+
+  .bm-btn {
+    font-size: 10px !important;
+    padding: 9px 6px !important;
+  }
+}
+
+/* ── RaidEventOverlay ── */
+@media (max-width: 480px) {
+  .raid-incoming,
+  .raid-result {
+    padding: 18px 14px !important;
+  }
+
+  .raid-title {
+    font-size: 18px !important;
+  }
+}
+
+/* ── DriveByEngine ── */
+@media (max-width: 480px) {
+  .driveby-engine {
+    max-width: 100% !important;
+  }
+
+  .dbe-btn {
+    font-size: 12px !important;
+    padding: 12px 8px !important;
+  }
+}
+
+/* ── PhotoMemberCreator ── */
+@media (max-width: 480px) {
+  .pmc-container {
+    border-radius: 0 !important;
+  }
+
+  .pmc-role-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .pmc-role-btn {
+    padding: 8px !important;
+  }
+
+  .pmc-role-label {
+    font-size: 11px !important;
+  }
+}
+
+/* ── Safe area insets for notched phones ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .os-shell,
+  .territory-map,
+  .contacts-screen {
+    padding-top: env(safe-area-inset-top) !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+}
+
+/* ── Prevent text selection during gameplay ── */
+.block-mode-view,
+.topdown-block,
+.street-block,
+.driveby-engine {
+  user-select: none;
+  -webkit-user-select: none;
+}

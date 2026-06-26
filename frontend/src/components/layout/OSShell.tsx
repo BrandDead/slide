@@ -158,20 +158,20 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Tag Opp Blocks',
     },
     {
-      id: 'news',
-      label: 'LOCAL NEWS',
-      icon: '📰',
-      colorClass: 'app-red',
-      available: true,
-      description: 'Weekly Update',
-    },
-    {
       id: 'leaderboard',
       label: 'RANKINGS',
       icon: '🏆',
       colorClass: 'app-gold',
       available: true,
       description: 'Global Leaderboard',
+    },
+    {
+      id: 'news',
+      label: 'LOCAL NEWS',
+      icon: '📰',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Weekly Update',
     },
     {
       id: 'phone',

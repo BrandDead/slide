@@ -22,7 +22,7 @@ import type {
 import StreetBlock from '../map/StreetBlock';
 import CanvasStreetRenderer from './CanvasStreetRenderer';
 import FPSOverlay from './FPSOverlay';
-import './BlockDriveByEngine.css';
+import './DriveByEngine.css';
 
 // Use canvas renderer for active drive-by phases; DOM renderer otherwise
 const USE_CANVAS_RENDERER = true;
@@ -66,7 +66,7 @@ interface DriveByEngineProps {
   enemyBlockId?: string;
 }
 
-const BlockDriveByEngine: React.FC<DriveByEngineProps> = ({
+const DriveByEngine: React.FC<DriveByEngineProps> = ({
   blockId,
   onResolved,
   attackMode = false,
@@ -374,7 +374,7 @@ const BlockDriveByEngine: React.FC<DriveByEngineProps> = ({
   );
 };
 
-export default BlockDriveByEngine;
+export default DriveByEngine;
 
 // ─── Export helper for external triggers ─────────────────────
-export { BlockDriveByEngine };
+export { DriveByEngine };

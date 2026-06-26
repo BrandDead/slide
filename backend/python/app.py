@@ -115,6 +115,15 @@ def create_app():
     except Exception as e:
         logger.error(f"✗ Failed to register driveby blueprint: {e}")
     
+    try:
+        from api.avatar import avatar_bp
+        app.register_blueprint(avatar_bp)
+        logger.info("✓ Registered avatar blueprint")
+    except ImportError:
+        logger.warning("Avatar blueprint not found")
+    except Exception as e:
+        logger.error(f"✗ Failed to register avatar blueprint: {e}")
+
     # Initialize world tick scheduler
     try:
         from services.scheduler import scheduler_manager

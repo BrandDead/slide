@@ -11,7 +11,7 @@ import type {
   GeneratedMemberAsset,
 } from '../types/avatar.types';
 
- 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const API_BASE: string = (typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_URL : undefined) ?? 'http://localhost:5000';
 
 // ─── Mock assets (used when backend is offline) ──────────────

@@ -1,0 +1,28 @@
+{
+  "name": "SLIDE — Street Empire",
+  "short_name": "SLIDE",
+  "description": "Urban warfare RPG — claim blocks, build your crew, slide on opps.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/icons/icon_slide.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/icon_slide.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
