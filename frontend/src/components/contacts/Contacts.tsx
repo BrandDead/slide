@@ -20,6 +20,7 @@ import {
 import { getMoraleDescription, getMoraleConsequences, rollMoraleConsequences, calculateBailImpact, calculateHospitalImpact } from '../../utils/moraleSystem';
 import { getMemberHeatContribution } from '../../utils/memberProgression';
 import type { GangMember, Contact, MemberStatus, GetBackRequest } from '../../types/game.types';
+import { soundManager } from '../../utils/SoundManager';
 import './Contacts.css';
 
 type TabType = 'active' | 'jailed' | 'dead' | 'requests';
@@ -210,6 +211,7 @@ const Contacts: React.FC = () => {
     }
     updateMoney(-bailCost);
     releaseMember(memberId);
+    soundManager.play('bail_paid');
     const impact = calculateBailImpact(members.length, 'member');
     addNotification({ type: 'info', title: 'Member Bailed Out', message: `Paid $${bailCost.toLocaleString()} bail. ${impact.message}`, priority: 'normal' });
   }, [player.money, updateMoney, releaseMember, members.length, addNotification]);
