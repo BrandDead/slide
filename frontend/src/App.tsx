@@ -141,7 +141,8 @@ const App: React.FC = () => {
         return <Suspense fallback={<LazyFallback />}><Shoebox key="shoebox" /></Suspense>;
       case 'market':
         return <Suspense fallback={<LazyFallback />}><Market key="market" /></Suspense>;
-      case 'missions':
+      case 'missions':        return <Suspense fallback={<LazyFallback />}><Missions key="missions" /></Suspense>;
+      case 'planner':        return <Suspense fallback={<LazyFallback />}><AttackPlanner key="planner" /></Suspense>;
         return <Suspense fallback={<LazyFallback />}><Missions key="missions" /></Suspense>;
       case 'casino':
         return <Suspense fallback={<LazyFallback />}><Casino key="casino" /></Suspense>;
@@ -154,7 +155,7 @@ const App: React.FC = () => {
       case 'news':
         return <Suspense fallback={<LazyFallback />}><WeeklyUpdateRoute key="news" /></Suspense>;
 
-      case 'phone':
+      case 'phone':        return <Suspense fallback={<LazyFallback />}><PhoneApp key="phone" /></Suspense>;
         return <PlaceholderScreen key="phone" title="PHONE" icon="📱" />;
 
       default:
