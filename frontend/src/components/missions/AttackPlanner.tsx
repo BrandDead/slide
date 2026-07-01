@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigationStore, useGangStore, useBlockStore } from '../../stores/gameStore';
+import { useNavigationStore, useGangStore } from '../../stores/gameStore';
+import { useBlockStore } from '../../stores/blockStore';
 import './AttackPlanner.css';
 
 export const AttackPlanner: React.FC = () => {
   const { goBack, navigateTo } = useNavigationStore();
   const { members } = useGangStore();
-  const { blocks } = useBlockStore();
+  const { blocks: rawBlocks } = useBlockStore();
+  const blocks = Object.values(rawBlocks ?? {}) as any[];
   
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [assignedRoles, setAssignedRoles] = useState<{ [role: string]: string }>({
@@ -35,7 +37,7 @@ export const AttackPlanner: React.FC = () => {
           <h3>1. Select Target Block</h3>
           <select value={selectedTarget} onChange={(e) => setSelectedTarget(e.target.value)} className="ap-select">
             <option value="">-- Select Enemy Block --</option>
-            {Object.values(blocks).filter(b => b.owner !== 'player').map(b => (
+            {blocks.filter((b: any) => b.owner !== 'player').map((b: any) => (
               <option key={b.id} value={b.id}>{b.address} (Heat: {b.heat})</option>
             ))}
             <option value="dummy-target">187th St & 5th Ave (Rival Territory)</option>

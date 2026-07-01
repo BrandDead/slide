@@ -269,15 +269,10 @@ export const useGangStore = create<GangState>()(
             memberId: member.id,
             name: member.name,
             nickname: member.nickname,
-            role: member.role,
+            role: member.role ?? 'soldier',
             status: 'active',
-            avatar: member.customAvatarUrl || '',
-            lastSeen: new Date().toISOString(),
-            notes: [],
-            tags: [],
-            statusEmoji: '✅',
-            hireDate: member.hiredAt,
-          }],
+            customAvatarUrl: member.customAvatarUrl,
+          } as Contact],
         })),
         
         updateMember: (id, updates) => set((state) => ({
@@ -487,13 +482,12 @@ export const useTerritoryStore = create<TerritoryState>()(
         
         selectBlock: (id) => set({ selectedBlockId: id }),
         
-        assignMember: (blockId, memberId, position) => set((state) => {
+                assignMember: (blockId, memberId, position) => set((state) => {
           const gangStore = useGangStore.getState();
           const member = gangStore.getMemberById(memberId);
-          
-          if (!member) return state;
-          
+          if (!member) return state as TerritoryState;
           return {
+            ...state,
             blocks: state.blocks.map((b) =>
               b.id === blockId
                 ? {
@@ -501,18 +495,27 @@ export const useTerritoryStore = create<TerritoryState>()(
                     units: [
                       ...b.units,
                       {
+                        id: `unit-${memberId}`,
+                        type: (member.role ?? 'soldier') as any,
+                        gangMemberId: memberId,
                         memberId,
-                        memberName: member.name,
-                        role: member.role,
+                        blockId,
                         position,
-                        health: member.health,
-                        maxHealth: member.maxHealth,
+                        health: member.health ?? 100,
+                        maxHealth: member.maxHealth ?? 100,
+                        accuracy: 0.5,
+                        nerve: 0.5,
+                        speed: 50,
+                        weaponId: null,
+                        armorLevel: 0,
+                        status: 'idle' as const,
+                        assignedTask: null,
                       },
                     ],
                   }
                 : b
             ),
-          };
+          } as TerritoryState;
         }),
         
         removeMemberFromBlock: (blockId, memberId) => set((state) => ({
@@ -552,9 +555,9 @@ export const useEconomyStore = create<EconomyState>()(
       (set, get) => ({
         transactions: [],
         inventory: [
-          { id: '1', type: 'drug', itemId: 'weed', quantity: 50 },
-          { id: '2', type: 'drug', itemId: 'coke', quantity: 20 },
-          { id: '3', type: 'drug', itemId: 'pills', quantity: 30 },
+          { id: '1', type: 'drug' as const, itemId: 'weed', name: 'Cannabis', quantity: 50, acquiredAt: new Date().toISOString(), value: 20 },
+          { id: '2', type: 'drug' as const, itemId: 'coke', name: 'Cocaine', quantity: 20, acquiredAt: new Date().toISOString(), value: 80 },
+          { id: '3', type: 'drug' as const, itemId: 'pills', name: 'Percocet', quantity: 30, acquiredAt: new Date().toISOString(), value: 50 },
         ],
         marketListings: [],
         
@@ -620,7 +623,10 @@ export const useEconomyStore = create<EconomyState>()(
                 id: Date.now().toString(),
                 type: item.type,
                 itemId: item.itemId,
+                name: item.name,
                 quantity,
+                acquiredAt: new Date().toISOString(),
+                value: item.value,
               },
             ],
           });
@@ -630,11 +636,12 @@ export const useEconomyStore = create<EconomyState>()(
           const { marketListings } = get();
           const listing = marketListings.find((l) => l.id === listingId);
           
-          if (!listing || !listing.available || listing.quantity < quantity) {
+          if (!listing || !listing.available || (listing as any).quantity < quantity) {
             return false;
           }
           
           const totalCost = listing.price * quantity;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const playerStore = usePlayerStore.getState();
           
           if (playerStore.player.money < totalCost) {
@@ -647,9 +654,12 @@ export const useEconomyStore = create<EconomyState>()(
           // Add item to inventory
           get().addInventoryItem({
             id: Date.now().toString(),
-            type: listing.type as any,
-            itemId: listing.itemId,
+            type: (listing as any).type ?? 'consumable',
+            itemId: (listing as any).itemId ?? listing.id,
+            name: listing.name,
             quantity,
+            acquiredAt: new Date().toISOString(),
+            value: listing.price,
           });
           
           // Record transaction
@@ -667,7 +677,7 @@ export const useEconomyStore = create<EconomyState>()(
           set((state) => ({
             marketListings: state.marketListings.map((l) =>
               l.id === listingId
-                ? { ...l, quantity: l.quantity - quantity }
+                ? { ...l, quantity: (l.quantity ?? l.stock) - quantity }
                 : l
             ),
           }));
@@ -686,7 +696,7 @@ export const useEconomyStore = create<EconomyState>()(
 interface NotificationState {
   notifications: Notification[];
   
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'timestamp'> & { timestamp?: number }) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
@@ -704,6 +714,7 @@ export const useNotificationStore = create<NotificationState>()(
             {
               ...notification,
               id: Date.now().toString(),
+              timestamp: notification.timestamp ?? Date.now(),
               createdAt: new Date().toISOString(),
               read: false,
             },
