@@ -1,0 +1,68 @@
+.phone-app {
+  height: 100%;
+  background: #0a0a0f;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+.phone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #1a1a24;
+  border-bottom: 1px solid #333;
+}
+.phone-header h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #4ade80;
+}
+.cash-display {
+  color: #fbbf24;
+  font-family: monospace;
+  font-weight: bold;
+}
+.contact-list {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+}
+.phone-contact-card {
+  background: #1e1e2d;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.contact-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+}
+.contact-role {
+  color: #888;
+  font-size: 0.9rem;
+}
+.call-btn {
+  background: #4ade80;
+  color: #000;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.call-btn:hover {
+  background: #22c55e;
+}
+.call-status-toast {
+  background: #3b82f6;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+}
