@@ -129,6 +129,7 @@ const App: React.FC = () => {
       case 'contacts':    return <Contacts key="contacts" />;
       case 'map':         return <TerritoryMap key="map" />;
       case 'settings':    return <SettingsPage key="settings" />;
+      // Lazy-loaded screens wrapped in Suspense
       case 'slide':       return <Suspense fallback={<LazyFallback />}><SlideGame key="slide" /></Suspense>;
       case 'driveby':     return <Suspense fallback={<LazyFallback />}><DriveByGame key="driveby" /></Suspense>;
       case 'topdown':     return <Suspense fallback={<LazyFallback />}><TopDownShooter key="topdown" /></Suspense>;
