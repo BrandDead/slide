@@ -200,7 +200,7 @@ export class BlockGridGenerator {
   private generateBuildingType(): TileType {
     const zoning = this.metadata?.zoning || 'mixed';
     
-    const typeWeights: Record<string, Record<TileType, number>> = {
+    const typeWeights: Record<string, Partial<Record<TileType, number>>> = {
       residential: { building: 60, storefront: 10, alley: 15, parking: 10, vacant: 5 },
       commercial: { building: 30, storefront: 40, alley: 10, parking: 15, vacant: 5 },
       industrial: { building: 40, storefront: 5, alley: 20, parking: 25, vacant: 10 },

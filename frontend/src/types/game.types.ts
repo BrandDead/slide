@@ -272,6 +272,7 @@ export interface GangMember {
   // Progression
   level: number;
   experience: number;
+  xp?: number;           // Alias for experience
   skillPoints: number;
   skills: Skill[];
   
@@ -301,6 +302,8 @@ export interface GangMember {
 
   // Inventory
   inventory?: InventoryItem[];
+  // Avatar
+  customAvatarUrl?: string;
 }
 
 export interface MemberStats {
@@ -826,14 +829,15 @@ export interface DrugPriceInfo {
 
 export interface Transaction {
   id: string;
-  type: TransactionType;
-  
-  userId: string;
+  type: TransactionType | string;
+  userId?: string;
   amount: number;
-  
-  details: Record<string, unknown>;
-  
-  createdAt: string;
+  description?: string;
+  category?: string;
+  relatedEntityId?: string;
+  timestamp?: string;
+  details?: Record<string, unknown>;
+  createdAt?: string;
 }
 
 export type TransactionType = 
@@ -844,16 +848,21 @@ export type TransactionType =
   | 'salary'
   | 'bribe'
   | 'tax'
-  | 'asset_seized';
+  | 'asset_seized'
+  | 'deal'
+  | 'launder'
+  | 'bail'
+  | 'salary_payment';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INVENTORY & MARKET TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface InventoryItem {
+  id?: string;
   itemId: string;
   type: 'drug' | 'weapon' | 'armor' | 'vehicle' | 'consumable' | 'tool';
-  name: string;
+  name?: string;
   quantity: number;
   quality?: number;          // 0-100 for drugs (purity)
   potency?: number;          // 0-100 for drugs
@@ -863,8 +872,8 @@ export interface InventoryItem {
   accuracy?: number;         // For weapons
   defense?: number;          // For armor
   isEquipped?: boolean;
-  acquiredAt: string;
-  value: number;             // Per-unit market value
+  acquiredAt?: string;
+  value?: number;             // Per-unit market value
   data?: Record<string, unknown>; // Extensible metadata
 }
 
@@ -878,5 +887,100 @@ export interface MarketListing {
   tier: number;
   available: boolean;
   stock: number;
+  quantity?: number;
+  type?: string;
+  itemId?: string;
   stats?: Record<string, number>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MISSING TYPES (added for gameStore.ts compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface Notification {
+  id: string;
+  type: 'info' | 'warning' | 'danger' | 'critical' | 'success';
+  title: string;
+  message: string;
+  timestamp: number;
+  read: boolean;
+  createdAt?: string;
+  priority?: 'low' | 'normal' | 'high' | 'critical';
+  data?: Record<string, unknown>;
+}
+
+export interface Contact {
+  id: string;
+  memberId?: string;
+  name: string;
+  nickname?: string;
+  role: string;
+  status: string;
+  avatar?: string;
+  statusEmoji?: string;
+  deathCause?: string;
+  killedBy?: string;
+  deathDate?: string;
+  backdooredBy?: string;
+  lastSeen?: string;
+  notes?: string[];
+  tags?: string[];
+  hireDate?: string;
+  finalStats?: { level: number; kills: number; deals: number; earnings: number };
+  morale?: number;
+  loyalty?: number;
+  level?: number;
+  stats?: Record<string, number>;
+  equipment?: string[];
+  health?: number;
+  maxHealth?: number;
+  armor?: number;
+  salary?: number;
+  heatResistance?: number;
+  stealth?: number;
+  backstory?: { origin: string; reason: string };
+  connections?: string[];
+  xp?: number;
+  customAvatarUrl?: string;
+}
+
+export interface Mission {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  objective: string;
+  rewards: { money: number; xp: number; reputation: number };
+  difficulty: 'easy' | 'medium' | 'hard' | 'suicide';
+  timeLimit: number;
+  requirements: string[];
+  status: 'available' | 'active' | 'completed' | 'failed';
+}
+
+export interface MoraleEvent {
+  id: string;
+  type: string;
+  description: string;
+  moraleChange: number;
+  timestamp: number;
+}
+
+export interface GetBackRequest {
+  id: string;
+  memberId: string;
+  memberName: string;
+  reason: string;
+  cost: number;
+  status: 'pending' | 'approved' | 'denied' | 'completed' | 'failed' | 'ignored';
+  timestamp: number;
+  urgency?: 'low' | 'medium' | 'high';
+  targetName?: string;
+  loyaltyPenaltyIfIgnored?: number;
+  moralePenaltyIfIgnored?: number;
+}
+
+export interface SelfieUpload {
+  id: string;
+  imageUrl: string;
+  status: 'pending' | 'processing' | 'done' | 'failed';
+  uploadedAt: string;
 }

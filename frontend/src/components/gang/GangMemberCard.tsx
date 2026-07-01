@@ -475,3 +475,38 @@ export const MemberGrid: React.FC<MemberGridProps> = ({
 };
 
 export default GangMemberCard;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GANG MEMBER CARD - Simple display card for a single member
+// ─────────────────────────────────────────────────────────────────────────────
+interface GangMemberCardProps {
+  member: GangMember;
+  variant?: 'compact' | 'full';
+  onClick?: () => void;
+}
+
+export const GangMemberCard: React.FC<GangMemberCardProps> = ({ member, variant = 'compact', onClick }) => {
+  const statusColor = member.status === 'active' ? '#4ade80' : member.status === 'jailed' ? '#fbbf24' : '#ef4444';
+  return (
+    <motion.div
+      className={`gang-member-card ${variant}`}
+      onClick={onClick}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      style={{ background: '#1e1e2d', border: '1px solid #333', borderRadius: 8, padding: 12, cursor: onClick ? 'pointer' : 'default' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontWeight: 'bold', color: 'white' }}>{member.name}</div>
+          <div style={{ fontSize: '0.8rem', color: '#888' }}>{member.role ?? 'Soldier'} • Lv{member.level}</div>
+        </div>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: statusColor }} />
+      </div>
+      {variant === 'full' && (
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: '0.75rem', color: '#888' }}>Morale: {member.morale}/100 | Loyalty: {member.loyalty}/100</div>
+        </div>
+      )}
+    </motion.div>
+  );
+};

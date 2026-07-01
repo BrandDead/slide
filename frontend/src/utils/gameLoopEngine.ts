@@ -245,16 +245,17 @@ export function useGameLoop(): GameLoopState {
     // 3. PASSIVE INCOME
     const blockDealers = blocks.map((block) => ({
       blockId: block.id,
-      blockName: block.name || `Block ${block.id}`,
+      blockName: (block as any).name || `Block ${block.id}`,
       dealers: block.units
-        .filter((u) => u.role === 'dealer')
+        .filter((u) => (u as any).role === 'dealer' || u.type === 'dealer')
         .map((u) => {
-          const member = members.find((m) => m.id === u.memberId);
+          const member = members.find((m) => m.id === u.gangMemberId);
+          const pos = u.position as any;
           return {
-            memberId: u.memberId,
-            memberName: u.memberName || 'Unknown',
-            row: u.position.row,
-            dealingStat: member?.stats?.dealing ?? 50,
+            memberId: u.gangMemberId ?? '',
+            memberName: (u as any).memberName || member?.name || 'Unknown',
+            row: pos ? (pos.row ?? pos.y ?? 4) : 4,
+            dealingStat: (member?.stats as any)?.dealing ?? 50,
             drugPurity: 60, // Default; would come from equipped drug
             drugOdRisk: 20,
             drugName: 'Product',
@@ -296,6 +297,7 @@ export function useGameLoop(): GameLoopState {
         title: odEvent.title,
         message: odEvent.message,
         priority: 'high',
+        timestamp: Date.now(),
       });
     }
 
@@ -382,7 +384,8 @@ export function useGameLoop(): GameLoopState {
         type: 'danger',
         title: raidEvent.title,
         message: raidEvent.message,
-        priority: 'urgent',
+        priority: 'critical',
+        timestamp: Date.now(),
       });
     }
 
@@ -439,6 +442,7 @@ export function useGameLoop(): GameLoopState {
         title: template.title,
         message: template.message,
         priority: template.severity === 'danger' ? 'high' : 'normal',
+        timestamp: Date.now(),
       });
     }
 

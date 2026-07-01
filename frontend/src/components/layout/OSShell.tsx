@@ -197,9 +197,17 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       id: 'phone',
       label: 'PHONE',
       icon: '📱',
-      colorClass: 'app-gray',
-      available: false,
-      description: 'Coming Soon',
+      colorClass: 'app-green',
+      available: true,
+      description: 'Call Contacts',
+    },
+    {
+      id: 'planner',
+      label: 'OPS PLAN',
+      icon: '⚔️',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Attack Planner',
     },
     {
       id: 'settings',
@@ -488,7 +496,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
                     <div className="notif-title">{n.title}</div>
                     <div className="notif-message">{n.message}</div>
                     <div className="notif-time">
-                      {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                 ))
