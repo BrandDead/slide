@@ -327,12 +327,12 @@ export default function GraffitiGame() {
     setAssignedCrew(prev => [...prev, {
       memberId,
       name: member.name,
-      originalRole: member.role,
+      originalRole: member.role ?? 'soldier',
       assignedRole: role,
-      level: (member as any).shooting || (member as any).dealing || 1,
+      level: (member as any).shooting || (member as any).dealing || member.level || 1,
       weapon,
-      status: 'ready',
-    }]);
+      status: 'ready' as const,
+    } as AssignedMember]);
   };
 
   const removeMember = (memberId: string) => {

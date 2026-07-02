@@ -474,7 +474,6 @@ export const MemberGrid: React.FC<MemberGridProps> = ({
   );
 };
 
-export default GangMemberCard;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GANG MEMBER CARD - Simple display card for a single member
@@ -510,3 +509,5 @@ export const GangMemberCard: React.FC<GangMemberCardProps> = ({ member, variant 
     </motion.div>
   );
 };
+
+export default GangMemberCard;

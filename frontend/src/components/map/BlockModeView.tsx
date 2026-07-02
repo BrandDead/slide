@@ -16,7 +16,7 @@ import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
-import DriveByEngine from '../slide/DriveByEngine';
+import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import './BlockModeView.css';
 

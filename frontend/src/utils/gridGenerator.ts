@@ -308,7 +308,7 @@ export class GridGenerator {
       x,
       y,
       type,
-      subtype,
+      subtype: subtype as any,
       cover: baseCover,
       visibility: baseVisibility,
       movementCost: this.getMovementCost(type),

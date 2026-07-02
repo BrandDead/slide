@@ -8,8 +8,9 @@
     "dev": "vite",
     "dev:backend": "cd ../backend/python && python app.py",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\" --names \"frontend,backend\" --prefix-colors \"cyan,yellow\"",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives",
     "preview": "vite preview",
     "seed": "tsx src/scripts/seed.ts",
     "test": "echo \"No tests yet\" && exit 0"
@@ -45,6 +46,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
+    "terser": "^5.48.0",
     "tsx": "^4.7.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"

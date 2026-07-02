@@ -22,7 +22,7 @@ import type {
 import StreetBlock from '../map/StreetBlock';
 import CanvasStreetRenderer from './CanvasStreetRenderer';
 import FPSOverlay from './FPSOverlay';
-import './DriveByEngine.css';
+import './BlockDriveByEngine.css';
 
 // Use canvas renderer for active drive-by phases; DOM renderer otherwise
 const USE_CANVAS_RENDERER = true;

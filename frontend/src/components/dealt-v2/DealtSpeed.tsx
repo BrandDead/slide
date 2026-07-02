@@ -82,7 +82,7 @@ function generateSpeedDeal(stock: DrugStock[], round: number): SpeedDeal | null 
   
   // Generate a random amount request
   let requestedAmount: number;
-  let requestedUnit = drug.unit;
+  const requestedUnit = drug.unit;
   
   if (drug.unit === 'g') {
     const amounts = [1, 3.5, 7, 14, 28];

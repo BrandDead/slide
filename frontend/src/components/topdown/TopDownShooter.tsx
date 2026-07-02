@@ -130,15 +130,15 @@ const generateBlockGrid = (): GridTile[][] => {
       if (y === 4 || y === 5) {
         type = 'street';
         coverScore = 0;
+      } else if ((y === 3 || y === 6) && (x === 0 || x === GRID_SIZE - 1)) {
+        type = 'corner';
+        coverScore = 0.6;
       } else if (y === 3 || y === 6) {
         type = 'sidewalk';
         coverScore = 0.2;
       } else if (x === 0 || x === GRID_SIZE - 1) {
         type = 'alley';
         coverScore = 0.5;
-      } else if ((y === 3 || y === 6) && (x === 0 || x === GRID_SIZE - 1)) {
-        type = 'corner';
-        coverScore = 0.6;
       } else if (Math.random() < 0.15) {
         type = 'vacant';
         coverScore = 0.3;
@@ -576,7 +576,7 @@ const TopDownShooter: React.FC = () => {
       
       let newAttackers = [...attackers];
       let newKillFeed = [...killFeed];
-      let newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+      const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
       
       aliveDefenders.forEach(def => {
         if (!def.weapon || def.weapon.ammo <= 0) return;

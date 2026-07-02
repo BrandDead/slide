@@ -31,7 +31,6 @@ function isSupabaseConfigured(): boolean {
 export async function persistBlock(block: BlockData, userId: string): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from('blocks').upsert(
     {
       id: block.id,
@@ -67,7 +66,6 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
 export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockData>[]> {
   if (!isSupabaseConfigured()) return [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from('blocks')
     .select('id, address, block_heat, base_income, metadata, status')
@@ -105,7 +103,6 @@ export async function persistPlacements(
   if (!isSupabaseConfigured()) return;
 
   // Delete existing placements for this block then re-insert
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error: delError } = await (supabase as any)
     .from('block_placements')
     .delete()
@@ -135,7 +132,6 @@ export async function persistPlacements(
     updated_at: new Date().toISOString(),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from('block_placements').insert(rows);
   if (error) {
     console.warn('[BlockPersistence] Failed to insert placements:', error.message);
@@ -148,7 +144,6 @@ export async function persistPlacements(
 export async function loadPlacements(blockId: string): Promise<BlockPlacement[]> {
   if (!isSupabaseConfigured()) return [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
     .from('block_placements')
     .select('*')

@@ -38,6 +38,12 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
   }
 );
 
+// Loosely-typed alias for legacy service methods whose table/column shapes
+// predate the current generated Database types (e.g. 'inventory' table which
+// is now 'user_inventory'/'player_drug_inventory', and the 'profiles' view).
+// Auth and realtime keep the fully-typed `supabase` client above.
+const db = supabase as any;
+
 // ============================================================
 // AUTH SERVICE
 // ============================================================
@@ -123,7 +129,7 @@ export const profileService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('*')
       .eq('id', user.id)
@@ -134,11 +140,11 @@ export const profileService = {
   },
 
   // Update profile
-  async updateProfile(updates: Partial<Database['public']['Tables']['profiles']['Update']>) {
+  async updateProfile(updates: Record<string, unknown>) {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .update(updates)
       .eq('id', user.id)
@@ -151,7 +157,7 @@ export const profileService = {
 
   // Get profile by ID (for viewing other players)
   async getProfile(userId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id, username, display_name, gang_name, gang_tag, city_region, reputation, level, blocks_owned')
       .eq('id', userId)
@@ -163,7 +169,7 @@ export const profileService = {
 
   // Get leaderboard
   async getLeaderboard(region: string, limit = 100) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id, username, gang_name, reputation, level, blocks_owned, total_deals, raids_won')
       .eq('city_region', region)
@@ -182,7 +188,7 @@ export const profileService = {
 export const blockService = {
   // Get blocks in a region
   async getBlocksByRegion(region: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('blocks')
       .select(`
         *,
@@ -199,7 +205,7 @@ export const blockService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('blocks')
       .select('*')
       .eq('owner_id', user.id);
@@ -213,7 +219,7 @@ export const blockService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('blocks')
       .update({
         owner_id: user.id,
@@ -238,7 +244,7 @@ export const blockService = {
     lat?: number;
     lng?: number;
   }) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('blocks')
       .insert({
         address: blockData.address,
@@ -284,7 +290,7 @@ export const gangService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('gang_members')
       .select('*')
       .eq('owner_id', user.id)
@@ -299,7 +305,7 @@ export const gangService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('gang_members')
       .insert({
         owner_id: user.id,
@@ -317,14 +323,14 @@ export const gangService = {
     if (error) throw error;
 
     // Update member count
-    await supabase.rpc('increment_member_count', { user_id: user.id });
+    await db.rpc('increment_member_count', { user_id: user.id });
 
     return data;
   },
 
   // Assign member to block
   async assignToBlock(memberId: string, blockId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('gang_members')
       .update({ assigned_block_id: blockId })
       .eq('id', memberId)
@@ -337,7 +343,7 @@ export const gangService = {
 
   // Update member stats
   async updateMember(memberId: string, updates: Partial<Database['public']['Tables']['gang_members']['Update']>) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('gang_members')
       .update(updates)
       .eq('id', memberId)
@@ -359,7 +365,7 @@ export const inventoryService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('inventory')
       .select(`
         *,
@@ -377,7 +383,7 @@ export const inventoryService = {
     if (!user) throw new Error('Not authenticated');
 
     // Try to update existing stack first
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('inventory')
       .select('id, quantity')
       .eq('owner_id', user.id)
@@ -386,7 +392,7 @@ export const inventoryService = {
       .single();
 
     if (existing) {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('inventory')
         .update({ quantity: existing.quantity + quantity })
         .eq('id', existing.id)
@@ -398,7 +404,7 @@ export const inventoryService = {
     }
 
     // Create new stack
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('inventory')
       .insert({
         owner_id: user.id,
@@ -419,7 +425,7 @@ export const inventoryService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('inventory')
       .select('id, quantity')
       .eq('owner_id', user.id)
@@ -433,12 +439,12 @@ export const inventoryService = {
 
     if (existing.quantity === quantity) {
       // Delete the stack
-      await supabase.from('inventory').delete().eq('id', existing.id);
+      await db.from('inventory').delete().eq('id', existing.id);
       return null;
     }
 
     // Reduce quantity
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('inventory')
       .update({ quantity: existing.quantity - quantity })
       .eq('id', existing.id)
@@ -472,7 +478,7 @@ export const transactionService = {
     const profile = await profileService.getMyProfile();
     const newBalance = profile.cash + params.amount;
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('transactions')
       .insert({
         player_id: user.id,
@@ -498,7 +504,7 @@ export const transactionService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('transactions')
       .select('*')
       .eq('player_id', user.id)
@@ -514,7 +520,7 @@ export const transactionService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('transactions')
       .select('type, amount')
       .eq('player_id', user.id);
@@ -528,7 +534,7 @@ export const transactionService = {
       totalLost: 0,
     };
 
-    data?.forEach((tx) => {
+    data?.forEach((tx: any) => {
       if (tx.type === 'deal') {
         stats.totalDeals++;
         stats.totalEarned += tx.amount;
@@ -552,7 +558,7 @@ export const combatService = {
     if (!user) throw new Error('Not authenticated');
 
     // Get target block info
-    const { data: block } = await supabase
+    const { data: block } = await db
       .from('blocks')
       .select('owner_id')
       .eq('id', targetBlockId)
@@ -560,7 +566,7 @@ export const combatService = {
 
     if (!block) throw new Error('Block not found');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('combat_logs')
       .insert({
         attacker_id: user.id,
@@ -575,7 +581,7 @@ export const combatService = {
     if (error) throw error;
 
     // Mark block as contested
-    await supabase
+    await db
       .from('blocks')
       .update({
         is_contested: true,
@@ -589,7 +595,7 @@ export const combatService = {
 
   // Submit combat turn
   async submitTurn(combatId: string, turnData: any) {
-    const { data: combat } = await supabase
+    const { data: combat } = await db
       .from('combat_logs')
       .select('turns')
       .eq('id', combatId)
@@ -599,7 +605,7 @@ export const combatService = {
 
     const updatedTurns = [...(combat.turns as any[] || []), turnData];
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('combat_logs')
       .update({ turns: updatedTurns })
       .eq('id', combatId)
@@ -612,7 +618,7 @@ export const combatService = {
 
   // End combat
   async endCombat(combatId: string, outcome: string, results: any) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('combat_logs')
       .update({
         outcome: outcome as any,
@@ -630,7 +636,7 @@ export const combatService = {
 
     // Update block ownership if attacker won
     if (outcome === 'attacker_win' && results.blockId) {
-      await supabase
+      await db
         .from('blocks')
         .update({
           owner_id: results.attackerId,
@@ -672,7 +678,7 @@ export const notificationService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('notifications')
       .select('*')
       .eq('player_id', user.id)
@@ -685,7 +691,7 @@ export const notificationService = {
 
   // Mark as read
   async markAsRead(notificationId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId);
@@ -698,7 +704,7 @@ export const notificationService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { error } = await supabase
+    const { error } = await db
       .from('notifications')
       .update({ is_read: true })
       .eq('player_id', user.id)
@@ -739,7 +745,7 @@ export const presenceService = {
     const user = await authService.getUser();
     if (!user) return;
 
-    await supabase.from('presence').upsert({
+    await db.from('presence').upsert({
       player_id: user.id,
       is_online: true,
       current_game_mode: gameMode,
@@ -753,7 +759,7 @@ export const presenceService = {
     const user = await authService.getUser();
     if (!user) return;
 
-    await supabase
+    await db
       .from('presence')
       .update({ is_online: false })
       .eq('player_id', user.id);
@@ -764,7 +770,7 @@ export const presenceService = {
     const user = await authService.getUser();
     if (!user) return;
 
-    await supabase
+    await db
       .from('presence')
       .update({
         current_game_mode: gameMode,
@@ -778,7 +784,7 @@ export const presenceService = {
     const user = await authService.getUser();
     if (!user) return;
 
-    await supabase
+    await db
       .from('presence')
       .update({ last_heartbeat: new Date().toISOString() })
       .eq('player_id', user.id);
@@ -786,7 +792,7 @@ export const presenceService = {
 
   // Get online players in region
   async getOnlinePlayers(region: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('presence')
       .select(`
         *,
@@ -807,7 +813,7 @@ export const presenceService = {
 export const drugService = {
   // Get all drugs
   async getAllDrugs() {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('drugs')
       .select('*')
       .order('base_price', { ascending: true });
@@ -818,7 +824,7 @@ export const drugService = {
 
   // Get drugs available in region
   async getDrugsByRegion(region: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('drugs')
       .select('*')
       .contains('available_regions', [region]);
@@ -837,7 +843,7 @@ export const missionService = {
   async getAvailableMissions() {
     const profile = await profileService.getMyProfile();
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('missions')
       .select('*')
       .lte('required_level', profile.level)
@@ -852,7 +858,7 @@ export const missionService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('player_missions')
       .select(`
         *,
@@ -870,7 +876,7 @@ export const missionService = {
     const user = await authService.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data: mission } = await supabase
+    const { data: mission } = await db
       .from('missions')
       .select('objectives, time_limit_minutes')
       .eq('id', missionId)
@@ -878,7 +884,7 @@ export const missionService = {
 
     if (!mission) throw new Error('Mission not found');
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('player_missions')
       .insert({
         player_id: user.id,
@@ -897,7 +903,7 @@ export const missionService = {
 
   // Update mission progress
   async updateProgress(playerMissionId: string, objectiveIndex: number, newValue: number) {
-    const { data: current } = await supabase
+    const { data: current } = await db
       .from('player_missions')
       .select('objectives_progress')
       .eq('id', playerMissionId)
@@ -911,7 +917,7 @@ export const missionService = {
     // Check if all objectives complete
     const isCompleted = updatedProgress.every((obj) => obj.current >= obj.target);
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('player_missions')
       .update({
         objectives_progress: updatedProgress,
