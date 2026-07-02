@@ -30,6 +30,8 @@ export interface CharacterAsset {
   streetIdle: string;
   streetAim?: string;
   streetFire?: string;
+  streetHit?: string;
+  streetDowned?: string;
   rarity?: AssetRarity;
   tags: string[];
   scale: number;
@@ -141,20 +143,6 @@ export const characterAssets: Record<string, CharacterAsset> = {
     scale: 1.1,
     anchor: { x: 0.5, y: 1 },
     hitbox: { width: 80, height: 152 },
-  },
-  driver_male_001: {
-    id: 'driver_male_001',
-    displayName: 'Driver',
-    role: 'driver',
-    portrait:    `${CHARS}/portraits/character_driver_male_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_driver_male_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_driver_male_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_driver_male_street_idle_v001.png`,
-    rarity: 'uncommon',
-    tags: ['cap', 'racing_jacket', 'keys'],
-    scale: 1,
-    anchor: { x: 0.5, y: 1 },
-    hitbox: { width: 70, height: 140 },
   },
   shooter_male_001: {
     id: 'shooter_male_001',

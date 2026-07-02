@@ -641,7 +641,6 @@ export const useEconomyStore = create<EconomyState>()(
           }
           
           const totalCost = listing.price * quantity;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const playerStore = usePlayerStore.getState();
           
           if (playerStore.player.money < totalCost) {

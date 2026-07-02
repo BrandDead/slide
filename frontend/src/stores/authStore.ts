@@ -64,7 +64,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             .eq('id', session.user.id)
             .single();
           
-          set({ session, user: profile });
+          set({ session, user: profile as unknown as User });
         }
       },
 
@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
               .eq('id', data.user.id)
               .single();
 
-            set({ user: profile, session: data.session, isLoading: false });
+            set({ user: profile as unknown as User, session: data.session, isLoading: false });
           }
         } catch (error: any) {
           set({ error: error.message, isLoading: false });
@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         try {
           const { error } = await supabase
             .from('profiles')
-            .update(data)
+            .update(data as any)
             .eq('id', user.id);
 
           if (error) throw error;

@@ -60,7 +60,7 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
   }, [members, assignedIds]);
   
   const getEligibleMembers = (seat: CarSeat) => {
-    return availableMembers.filter(m => seat.allowedRoles.includes(m.role));
+    return availableMembers.filter(m => seat.allowedRoles.includes(m.role ?? 'soldier'));
   };
   
   const assignMember = (seatPosition: string, memberId: string) => {
@@ -173,7 +173,7 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
                       <span className="picker-role">{member.role} • LV{member.level}</span>
                     </div>
                     <div className="picker-stats">
-                      <span>🎯 {member.stats?.shooting || 50}</span>
+                      <span>🎯 {(member.stats as any)?.shooting ?? member.stats?.strength ?? 50}</span>
                       <span>❤️ {member.health || 100}</span>
                     </div>
                   </motion.div>

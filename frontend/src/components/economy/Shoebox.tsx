@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useEconomyStore } from '../../stores/gameStore';
 import type { Transaction } from '../../types/game.types';
 import { soundManager } from '../../utils/SoundManager';
+import LaunderMoneyModal from './LaunderMoneyModal';
 import './Shoebox.css';
 
 type ModalMode = 'deposit' | 'withdraw' | null;
@@ -44,6 +45,7 @@ const Shoebox: React.FC = () => {
   const { transactions, addTransaction } = useEconomyStore();
 
   const [modalMode, setModalMode] = useState<ModalMode>(null);
+  const [showLaunderModal, setShowLaunderModal] = useState(false);
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -143,6 +145,14 @@ const Shoebox: React.FC = () => {
           ⬆️ Withdraw
         </motion.button>
         <motion.button
+          className="action-btn launder-btn"
+          onClick={() => setShowLaunderModal(true)}
+          whileTap={{ scale: 0.95 }}
+          style={{ gridColumn: '1 / -1', background: '#fbbf24', color: 'black', fontWeight: '900', marginTop: '10px' }}
+        >
+          💸 Launder Money
+        </motion.button>
+        <motion.button
           className="action-btn"
           onClick={() => navigateTo('cocaine_crush')}
           whileTap={{ scale: 0.95 }}
@@ -151,6 +161,11 @@ const Shoebox: React.FC = () => {
           💊 Play Cocaine Crush
         </motion.button>
       </div>
+
+      {/* Launder Money Modal */}
+      {showLaunderModal && (
+        <LaunderMoneyModal onClose={() => setShowLaunderModal(false)} />
+      )}
 
       {/* Info Box */}
       <div className="info-box">

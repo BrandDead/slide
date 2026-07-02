@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { io, Socket } from 'socket.io-client';
-import { useGameStore } from '../stores/gameStore';
+import { useNotificationStore } from '../stores/gameStore';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -153,8 +153,8 @@ class SocketService {
       
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error('[Socket] Max reconnection attempts reached');
-        useGameStore.getState().addNotification({
-          type: 'error',
+        useNotificationStore.getState().addNotification({
+          type: 'danger',
           title: 'Connection Lost',
           message: 'Unable to connect to server. Please refresh the page.',
         });
@@ -168,7 +168,7 @@ class SocketService {
     });
     
     this.socket.on('block:claimed', (data: BlockClaimedEvent) => {
-      useGameStore.getState().addNotification({
+      useNotificationStore.getState().addNotification({
         type: 'info',
         title: 'Territory Update',
         message: `${data.gangName} claimed a block`,
@@ -176,16 +176,16 @@ class SocketService {
     });
     
     this.socket.on('block:attacked', (data: BlockAttackedEvent) => {
-      useGameStore.getState().addNotification({
-        type: 'combat',
+      useNotificationStore.getState().addNotification({
+        type: 'danger',
         title: 'Under Attack!',
         message: `Your block is being attacked by ${data.attackerGang}`,
       });
     });
     
     this.socket.on('notify:income', (data: IncomeNotification) => {
-      useGameStore.getState().addNotification({
-        type: 'money',
+      useNotificationStore.getState().addNotification({
+        type: 'success',
         title: 'Income Received',
         message: `+$${data.amount.toLocaleString()} from ${data.blockName}`,
       });
@@ -193,7 +193,7 @@ class SocketService {
     
     this.socket.on('notify:heat', (data: HeatNotification) => {
       if (data.heatLevel >= 4) {
-        useGameStore.getState().addNotification({
+        useNotificationStore.getState().addNotification({
           type: 'warning',
           title: 'Heat Warning',
           message: data.warning,
@@ -227,7 +227,7 @@ class SocketService {
     this.listeners.get(event)!.add(callback as (...args: unknown[]) => void);
     
     if (this.socket) {
-      this.socket.on(event, callback as (...args: unknown[]) => void);
+      this.socket.on(event as any, callback as any);
     }
     
     // Return unsubscribe function
@@ -246,7 +246,7 @@ class SocketService {
     }
     
     if (this.socket) {
-      this.socket.off(event, callback as (...args: unknown[]) => void);
+      this.socket.off(event as any, callback as any);
     }
   }
   

@@ -277,7 +277,7 @@ const Contacts: React.FC = () => {
               moraleBadge={moraleInfo}
               memberLevel={(member as any)?.level}
               onClick={() => setSelectedContact(contact)}
-              onBackdoor={() => handleBackdoor(contact.memberId)}
+              onBackdoor={() => handleBackdoor(contact.memberId ?? contact.id)}
             />
           );
         })}
@@ -286,8 +286,8 @@ const Contacts: React.FC = () => {
           <JailedCard
             key={contact.id}
             contact={contact}
-            onBail={() => handleBail(contact.memberId)}
-            onLeave={() => handleLeaveMember(contact.memberId)}
+            onBail={() => handleBail(contact.memberId ?? contact.id)}
+            onLeave={() => handleLeaveMember(contact.memberId ?? contact.id)}
             onClick={() => setSelectedContact(contact)}
           />
         ))}
@@ -455,10 +455,10 @@ const Contacts: React.FC = () => {
             member={members.find(m => m.id === selectedContact.memberId)}
             drugInventory={drugInventory}
             onClose={() => setSelectedContact(null)}
-            onBackdoor={() => { handleBackdoor(selectedContact.memberId); setSelectedContact(null); }}
-            onDeploy={() => handleDeploy(selectedContact.memberId)}
+            onBackdoor={() => { handleBackdoor(selectedContact.memberId ?? selectedContact.id); setSelectedContact(null); }}
+            onDeploy={() => handleDeploy(selectedContact.memberId ?? selectedContact.id)}
             onEquipDrug={(drugId) => {
-              transferItemToMember(drugId, selectedContact.memberId, 1);
+              transferItemToMember(drugId, selectedContact.memberId ?? selectedContact.id, 1);
               addNotification({ type: 'info', title: 'Product Equipped', message: `Equipped ${drugId} to ${selectedContact.name}.`, priority: 'normal' });
             }}
           />
@@ -564,7 +564,7 @@ const GetBackRequestCard: React.FC<GetBackRequestCardProps> = ({ request, onAcce
   const urgencyColors: Record<string, string> = { low: '#ffd700', medium: '#ff9500', high: '#ff4444', critical: '#ff0066' };
   return (
     <motion.div className="request-card" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-      <div className="request-urgency" style={{ backgroundColor: urgencyColors[request.urgency] }}>{request.urgency.toUpperCase()}</div>
+      <div className="request-urgency" style={{ backgroundColor: urgencyColors[request.urgency ?? 'low'] }}>{(request.urgency ?? 'low').toUpperCase()}</div>
       <div className="request-content">
         <div className="request-member">{request.memberName}</div>
         <div className="request-reason">{request.reason}</div>
