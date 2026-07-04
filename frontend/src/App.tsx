@@ -12,6 +12,7 @@ import { useRaidCheck } from './hooks/useRaidCheck';
 import { useBlockSync } from './hooks/useBlockSync';
 import { useSoundManager } from './hooks/useSoundManager';
 import { useSalarySystem } from './hooks/useSalarySystem';
+import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import { supabase } from './services/supabase';
@@ -82,7 +83,7 @@ const App: React.FC = () => {
   const { raidBlockId, clearRaid } = useRaidCheck();
   useBlockSync();
   useSoundManager();
-  useSalarySystem();
+  const salarySystem = useSalarySystem();
   useNPCRetaliation();
 
   const { completeStep } = useTutorialProgressStore();
@@ -178,6 +179,9 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <TutorialOverlay />
+
+      {/* Payroll modal — renders when Shoebox can't cover weekly wages */}
+      {salarySystem.payrollDue && <PayrollModal />}
 
       {raidBlockId && (
         <RaidEventOverlay blockId={raidBlockId} onClose={clearRaid} />
