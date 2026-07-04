@@ -269,7 +269,9 @@ export function useGameLoop(): GameLoopState {
     useBlockStore.getState().tickIncome();
 
     if (incomeResult.totalIncome > 0) {
-      stores.player.updateMoney(incomeResult.totalIncome);
+      // Route ALL passive income to the Shoebox (bankBalance)
+      const currentBank = usePlayerStore.getState().player.bankBalance ?? 0;
+      stores.player.updatePlayer({ bankBalance: currentBank + incomeResult.totalIncome });
       stores.economy.addTransaction({
         id: Date.now().toString(),
         type: 'income',

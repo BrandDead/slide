@@ -111,7 +111,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     collectIncome,
     setPlacementMode,
   } = useBlockStore();
-  const { updateMoney } = usePlayerStore();
+  const { updateMoney, updatePlayer, player } = usePlayerStore();
 
   const [showDeployPanel, setShowDeployPanel] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
@@ -146,7 +146,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     if (!selectedBlockId || !block) return;
     const amount = collectIncome(selectedBlockId);
     if (amount > 0) {
-      updateMoney(amount);
+      // Route collected income to Shoebox (bankBalance)
+      updatePlayer({ bankBalance: (player.bankBalance ?? 0) + amount });
       showToast(`💰 Collected $${amount}!`);
       soundManager.play('cash_register');
       // Tutorial: first income collected
