@@ -21,6 +21,7 @@ import { usePlayerStore, useGangStore, useNotificationStore } from '../stores/ga
 import { useBlockStore } from '../stores/blockStore';
 import { useShoeboxStore } from '../stores/useShoeboxStore';
 import type { BlockPayroll, PayrollLine } from '../types/economy.types';
+import { computeWage, calculatePerBlockPayroll } from '../config/wages';
 
 /** How often the game clock ticks (income + payroll checks), ms. */
 const CLOCK_TICK_MS = 5_000;
@@ -137,7 +138,6 @@ export function useSalarySystem() {
       const total = members
         .filter((m) => m.status === 'active')
         .reduce((sum, m) => {
-          const { computeWage } = require('../config/wages');
           return sum + computeWage(m.role, m.level);
         }, 0);
       setTotalWeeklySalary(total);
@@ -182,7 +182,6 @@ export function useSalarySystem() {
       if (!block || (block as any).owner !== 'player') continue;
       const placements = (block as any).placements ?? [];
       if (placements.length === 0) continue;
-      const { calculatePerBlockPayroll } = require('../config/wages');
       summaries.push({
         blockId,
         address: (block as any).address ?? blockId,
