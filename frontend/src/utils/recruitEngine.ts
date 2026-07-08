@@ -11,7 +11,14 @@
 // They cannot shoot and do not generate income.
 // ============================================================
 
-import { RECRUIT_ACTIONS, type RecruitAction } from '../config/roleMechanics';
+// Recruit action constants (inline since roleMechanics.ts was rewritten)
+export const RECRUIT_ACTIONS = {
+  SPOT_SURVEILLANCE: 'spot_surveillance' as const,
+  STEAL_CAR:         'steal_car' as const,
+  VANDALIZE_BLOCK:   'vandalize_block' as const,
+  SCOUT_BLOCK:       'scout_block' as const,
+};
+export type RecruitAction = typeof RECRUIT_ACTIONS[keyof typeof RECRUIT_ACTIONS];
 
 export interface RecruitMission {
   id: string;

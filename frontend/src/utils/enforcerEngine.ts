@@ -8,10 +8,9 @@
 //   3. Combat bonus to the block's defense during raids/drive-bys
 // ============================================================
 
-import {
-  ENFORCER_PATROL_INCOME_PER_TICK,
-  ENFORCER_HEAT_REDUCTION_PER_TICK,
-} from '../config/roleMechanics';
+// Enforcer patrol constants (defined inline since roleMechanics.ts was rewritten)
+const ENFORCER_PATROL_INCOME_PER_TICK = 15;
+const ENFORCER_HEAT_REDUCTION_PER_TICK = 1;
 
 export interface EnforcerContribution {
   memberId: string;
