@@ -1,715 +1,693 @@
 // ============================================================
-// SLIDE Combat - Battleship-Style Grid Combat
-// Attacker (car) shoots at the block grid (macro 8x8)
-// Defender shoots at the car grid (micro 16x16)
+// SlideGame.tsx — SLIDE Drive-By Battleship (Rebuilt)
+//
+// ATTACKER: Picks street stop positions, then shoots at the block.
+// DEFENDER: Picks street squares to shoot back at the car.
+// SHOT SPOTTER: Fires after each spin, reveals area.
+// SPIN THE BLOCK: Attacker can go again, each spin costs ammo + heat.
+// REINFORCEMENTS: Defender can call backup between spins.
 // ============================================================
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
 import { soundManager } from '../../utils/SoundManager';
 import {
-  MACRO_SIZE,
-  MICRO_SIZE,
-  type MacroCoord,
-  type MicroCoord,
-  type MacroCell,
-  type MicroCell,
-  type Vehicle,
-  vehicleFootprint,
-  stampVehicle,
-  VEHICLE_TEMPLATE_2x4,
-} from '../../utils/dualGrid';
-import { patternTargets, type MacroPattern } from '../../utils/attackPatterns';
-import { STREET_PROXIMITY_TABLE } from '../../types/slide.types';
+  BLOCK_COLS,
+  BLOCK_ROWS,
+  STREET_ROW,
+  BLOCK_ZONES,
+  createSlideGrid,
+  processAttackerShot,
+  processDefenderShot,
+  generateShotSpotterReport,
+  calcSpinHeat,
+  checkGameOver,
+  getAttackerShotsAvailable,
+  getDefenderShotsAvailable,
+  type SlideMember,
+  type SlideVehicle,
+  type SlideGameState,
+  type SlidePhase,
+  type SpinResult,
+  type ShotSpotterReport,
+} from '../../utils/slideGameEngine';
 import './SlideGame.css';
 
-// ============ TYPES ============
+// ─── SEED DATA HELPERS ───────────────────────────────────────
 
-type GamePhase = 'setup' | 'attacker_turn' | 'defender_turn' | 'resolution' | 'finished';
-type PlayerRole = 'attacker' | 'defender';
-
-interface PlacedUnit {
-  id: string;
-  name: string;
-  type: 'dealer' | 'shooter' | 'enforcer' | 'pitbull';
-  hp: number;
-  maxHp: number;
-  position: MacroCoord;
-  isAlive: boolean;
-}
-
-interface GameState {
-  phase: GamePhase;
-  role: PlayerRole;
-  turn: number;
-  maxTurns: number;
-  macroGrid: MacroCell[][];
-  microGrid: MicroCell[][];
-  vehicle: Vehicle;
-  placedUnits: PlacedUnit[];
-  attackerShots: MacroCoord[];
-  defenderShots: MicroCoord[];
-  attackerScore: number;
-  defenderScore: number;
-  combatLog: string[];
-  shotsThisTurn: number;
-  maxShotsPerTurn: number;
-}
-
-// ============ HELPERS ============
-
-function createMacroGrid(): MacroCell[][] {
-  return Array.from({ length: MACRO_SIZE }, (_, y) =>
-    Array.from({ length: MACRO_SIZE }, (_, x) => ({
-      coord: { x, y },
-      revealed: false,
-      hit: false,
-    }))
-  );
-}
-
-function createMicroGrid(): MicroCell[][] {
-  return Array.from({ length: MICRO_SIZE }, (_, j) =>
-    Array.from({ length: MICRO_SIZE }, (_, i) => ({
-      coord: { i, j },
-      revealed: false,
-      hit: false,
-    }))
-  );
-}
-
-function createDefaultVehicle(): Vehicle {
+function makeDefender(id: string, name: string, role: SlideMember['role'], row: number, col: number): SlideMember {
+  const stats: Record<SlideMember['role'], { hp: number; ammo: number; damage: number; accuracy: number; weapon: string }> = {
+    shooter:  { hp: 80,  ammo: 15, damage: 25, accuracy: 65, weapon: 'Glock 19' },
+    dealer:   { hp: 60,  ammo: 0,  damage: 0,  accuracy: 0,  weapon: 'None' },
+    enforcer: { hp: 100, ammo: 0,  damage: 0,  accuracy: 0,  weapon: 'Bat' },
+    recruit:  { hp: 50,  ammo: 0,  damage: 0,  accuracy: 0,  weapon: 'Knife' },
+    driver:   { hp: 70,  ammo: 0,  damage: 0,  accuracy: 0,  weapon: 'None' },
+  };
+  const s = stats[role];
   return {
-    id: 'slide-vehicle',
-    origin: { i: 7, j: 6 },
-    facing: 'N',
-    seats: {
-      driver: { alive: true },
-      passenger: { alive: true },
-      rearLeft: { alive: true },
-      rearRight: { alive: true },
-    },
-    hpByPart: {
-      hood: 3,
-      driver_seat: 2,
-      passenger_seat: 2,
-      rear_left: 2,
-      rear_right: 2,
-      trunk: 3,
-    },
+    id, name, role,
+    hp: s.hp, maxHp: s.hp,
+    row, col,
+    ammo: s.ammo, maxAmmo: s.ammo,
+    weaponName: s.weapon,
+    weaponDamage: s.damage,
+    accuracy: s.accuracy,
+    isAlive: true,
+    isRevealed: false,
+    armorLevel: 0,
   };
 }
 
-function getRowType(y: number): string {
-  if (y === 0 || y === 7) return 'street';
-  if (y === 1 || y === 6) return 'sidewalk';
-  if (y === 2 || y === 5) return 'alley';
-  return 'building';
+function makeAttacker(id: string, name: string, role: SlideMember['role']): SlideMember {
+  return makeDefender(id, name, role, STREET_ROW, 0);
 }
 
-function getRowLabel(y: number): string {
-  if (y === 0) return 'STREET';
-  if (y === 1) return 'WALK';
-  if (y === 2) return 'ALLEY';
-  if (y === 3 || y === 4) return 'BLDG';
-  if (y === 5) return 'ALLEY';
-  if (y === 6) return 'WALK';
-  return 'STREET';
+function createDefaultVehicle(members: SlideMember[]): SlideVehicle {
+  return {
+    id: 'slide-car',
+    type: '4door',
+    hp: 100, maxHp: 100,
+    tiresBlown: false,
+    engineDamaged: false,
+    members,
+    stopPositions: [],
+  };
 }
 
-const UNIT_EMOJIS: Record<string, string> = {
-  dealer: '💊',
-  shooter: '🔫',
+function createNPCDefenders(): SlideMember[] {
+  return [
+    makeDefender('d1', 'Lil Smoke',  'shooter',  1, 2),
+    makeDefender('d2', 'Big T',      'shooter',  2, 5),
+    makeDefender('d3', 'Ghost',      'dealer',   3, 1),
+    makeDefender('d4', 'Razor',      'dealer',   3, 6),
+    makeDefender('d5', 'Slim',       'enforcer', 4, 3),
+    makeDefender('d6', 'Ace',        'enforcer', 5, 4),
+  ];
+}
+
+// ─── ROLE ICONS & COLORS ─────────────────────────────────────
+
+const ROLE_ICON: Record<string, string> = {
+  shooter:  '🔫',
+  dealer:   '💊',
   enforcer: '💪',
-  pitbull: '🐕',
+  recruit:  '👟',
+  driver:   '🚗',
 };
 
-const UNIT_TEMPLATES = [
-  { type: 'dealer' as const, name: 'Dealer', hp: 2, maxHp: 2 },
-  { type: 'shooter' as const, name: 'Shooter', hp: 3, maxHp: 3 },
-  { type: 'enforcer' as const, name: 'Enforcer', hp: 4, maxHp: 4 },
-  { type: 'pitbull' as const, name: 'Pit Bull', hp: 2, maxHp: 2 },
-];
+const ROLE_COLOR: Record<string, string> = {
+  shooter:  '#ef4444',
+  dealer:   '#4ade80',
+  enforcer: '#f97316',
+  recruit:  '#facc15',
+  driver:   '#60a5fa',
+};
 
-// ============ COMPONENT ============
+const ZONE_COLORS: Record<number, string> = {
+  0: '#1a1a2e',  // street
+  1: '#16213e',  // curb
+  2: '#0f3460',  // sidewalk
+  3: '#1b4332',  // storefront
+  4: '#212529',  // alley
+  5: '#1c1c1c',  // alley back
+  6: '#2d2d2d',  // parking
+  7: '#4a1942',  // rooftop
+};
+
+// ─── MAIN COMPONENT ──────────────────────────────────────────
 
 const SlideGame: React.FC = () => {
   const { goBack } = useNavigationStore();
   const { player, updateMoney, updateHeat, addXP } = usePlayerStore();
   const { members } = useGangStore();
 
-  // Role selection
-  const [selectedRole, setSelectedRole] = useState<PlayerRole | null>(null);
-  const [selectedUnitType, setSelectedUnitType] = useState<number>(0);
+  const [role, setRole] = useState<'attacker' | 'defender' | null>(null);
+  const [gameState, setGameState] = useState<SlideGameState | null>(null);
+  const [selectedStops, setSelectedStops] = useState<number[]>([]);
+  const [selectedShots, setSelectedShots] = useState<Array<{ row: number; col: number }>>([]);
+  const [defenderSelectedCols, setDefenderSelectedCols] = useState<number[]>([]);
+  const [shotSpotterMsg, setShotSpotterMsg] = useState<ShotSpotterReport | null>(null);
+  const [animatingKill, setAnimatingKill] = useState<string | null>(null);
+  const killFeedRef = useRef<HTMLDivElement>(null);
 
-  // Game state
-  const [game, setGame] = useState<GameState | null>(null);
+  // ── INIT GAME ──
+  const startGame = useCallback((chosenRole: 'attacker' | 'defender') => {
+    setRole(chosenRole);
 
-  // Initialize game
-  const startGame = useCallback((role: PlayerRole) => {
-    const macroGrid = createMacroGrid();
-    const microGrid = createMicroGrid();
-    const vehicle = createDefaultVehicle();
+    const defenders = createNPCDefenders();
+    const attackerMembers = [
+      makeAttacker('a1', 'You',     'shooter'),
+      makeAttacker('a2', 'Trigger', 'shooter'),
+      makeAttacker('a3', 'Ghost',   'driver'),
+    ];
+    const vehicle = createDefaultVehicle(attackerMembers);
+    const grid = createSlideGrid(defenders);
 
-    // Stamp vehicle onto micro grid
-    stampVehicle(vehicle, microGrid);
-
-    // If attacker, place NPC defenders
-    let placedUnits: PlacedUnit[] = [];
-    if (role === 'attacker') {
-      // NPC places units randomly
-      const positions: MacroCoord[] = [];
-      for (let i = 0; i < 6; i++) {
-        let pos: MacroCoord;
-        do {
-          pos = { x: Math.floor(Math.random() * MACRO_SIZE), y: 1 + Math.floor(Math.random() * 6) };
-        } while (positions.some(p => p.x === pos.x && p.y === pos.y));
-        positions.push(pos);
-      }
-
-      placedUnits = positions.map((pos, i) => {
-        const template = UNIT_TEMPLATES[i % UNIT_TEMPLATES.length];
-        return {
-          id: `npc-${i}`,
-          name: `${template.name} ${i + 1}`,
-          type: template.type,
-          hp: template.hp,
-          maxHp: template.maxHp,
-          position: pos,
-          isAlive: true,
-        };
-      });
-
-      // Place units on macro grid (hidden from attacker)
-      placedUnits.forEach(unit => {
-        macroGrid[unit.position.y][unit.position.x].occupantId = unit.id;
-        macroGrid[unit.position.y][unit.position.x].occupantHp = unit.hp;
-      });
-    }
-
-    setGame({
-      phase: role === 'defender' ? 'setup' : 'attacker_turn',
-      role,
-      turn: 1,
-      maxTurns: 5,
-      macroGrid,
-      microGrid,
+    setGameState({
+      phase: chosenRole === 'attacker' ? 'pick_stop' : 'setup_attacker',
+      spinNumber: 1,
+      maxSpins: 5,
       vehicle,
-      placedUnits,
-      attackerShots: [],
-      defenderShots: [],
-      attackerScore: 0,
-      defenderScore: 0,
-      combatLog: [role === 'defender' ? '📍 Place your units on the block' : '🚗 Pick targets on the block!'],
-      shotsThisTurn: 0,
-      maxShotsPerTurn: 3,
+      defenders,
+      grid,
+      spinHistory: [],
+      killFeed: [{ message: chosenRole === 'attacker' ? '🚗 Pick where to stop on the street' : '🏠 Defend the block', timestamp: Date.now(), type: 'system' }],
+      pendingReinforcements: 0,
+      attackerRetreat: false,
+      vehicleDestroyed: false,
+      allDefendersDown: false,
+      totalHeatGenerated: 0,
     });
   }, []);
 
-  // Setup phase: place a unit on the macro grid (defender only)
-  const placeUnit = useCallback((coord: MacroCoord) => {
-    if (!game || game.phase !== 'setup') return;
-    if (game.placedUnits.length >= 6) return;
+  // ── SCROLL KILL FEED ──
+  useEffect(() => {
+    if (killFeedRef.current) {
+      killFeedRef.current.scrollTop = killFeedRef.current.scrollHeight;
+    }
+  }, [gameState?.killFeed]);
 
-    // Can't place on street rows
-    if (coord.y === 0 || coord.y === 7) return;
+  // ── ATTACKER: PICK STOP POSITIONS ──
+  const toggleStopPosition = (col: number) => {
+    if (!gameState || gameState.phase !== 'pick_stop') return;
+    const maxStops = gameState.vehicle.members.filter((m) => m.role === 'shooter').length;
+    setSelectedStops((prev) => {
+      if (prev.includes(col)) return prev.filter((c) => c !== col);
+      if (prev.length >= maxStops) return prev;
+      return [...prev, col];
+    });
+  };
 
-    // Can't place on occupied cell
-    if (game.macroGrid[coord.y][coord.x].occupantId) return;
+  const confirmStopPositions = () => {
+    if (!gameState || selectedStops.length === 0) return;
+    setGameState((prev) => {
+      if (!prev) return null;
+      const newVehicle = { ...prev.vehicle, stopPositions: selectedStops };
+      return {
+        ...prev,
+        phase: 'attacker_shooting',
+        vehicle: newVehicle,
+        killFeed: [...prev.killFeed, { message: `🚗 Car stopped at col(s) ${selectedStops.join(', ')}. Pick targets!`, timestamp: Date.now(), type: 'system' }],
+      };
+    });
+  };
 
-    const template = UNIT_TEMPLATES[selectedUnitType];
-    const newUnit: PlacedUnit = {
-      id: `unit-${game.placedUnits.length}`,
-      name: `${template.name} ${game.placedUnits.length + 1}`,
-      type: template.type,
-      hp: template.hp,
-      maxHp: template.maxHp,
-      position: coord,
-      isAlive: true,
+  // ── ATTACKER: PICK BLOCK SQUARES TO SHOOT ──
+  const toggleAttackerShot = (row: number, col: number) => {
+    if (!gameState || gameState.phase !== 'attacker_shooting') return;
+    if (row === STREET_ROW) return;  // can't shoot the street itself
+    const maxShots = getAttackerShotsAvailable(gameState.vehicle);
+    setSelectedShots((prev) => {
+      const exists = prev.some((s) => s.row === row && s.col === col);
+      if (exists) return prev.filter((s) => !(s.row === row && s.col === col));
+      if (prev.length >= maxShots) return prev;
+      return [...prev, { row, col }];
+    });
+  };
+
+  const fireAttackerShots = () => {
+    if (!gameState || selectedShots.length === 0) return;
+
+    const newDefenders = [...gameState.defenders.map((d) => ({ ...d }))];
+    const newGrid = gameState.grid.map((row) => row.map((cell) => ({ ...cell })));
+    const spinShots: SpinResult['attackerShots'] = [];
+    const newKillFeed = [...gameState.killFeed];
+    const killedIds: string[] = [];
+
+    const shooters = gameState.vehicle.members.filter((m) => m.isAlive && m.role === 'shooter');
+
+    for (let i = 0; i < selectedShots.length; i++) {
+      const { row, col } = selectedShots[i];
+      const shooter = shooters[i % shooters.length];
+      if (!shooter) continue;
+
+      const result = processAttackerShot(shooter, row, col, gameState.vehicle.stopPositions[0] ?? 0, newDefenders, newGrid);
+
+      newGrid[row][col].wasShot = true;
+      spinShots.push({ col, row, hit: result.hit, memberId: result.memberId, damage: result.damage });
+      newKillFeed.push({ message: result.message, timestamp: Date.now(), type: result.hit ? (result.killed ? 'kill' : 'hit') : 'miss' });
+
+      if (result.memberId && result.damage) {
+        const defIdx = newDefenders.findIndex((d) => d.id === result.memberId);
+        if (defIdx >= 0) {
+          newDefenders[defIdx].hp = Math.max(0, newDefenders[defIdx].hp - result.damage);
+          newDefenders[defIdx].isRevealed = true;
+          newGrid[newDefenders[defIdx].row][newDefenders[defIdx].col].wasHit = true;
+          if (newDefenders[defIdx].hp <= 0) {
+            newDefenders[defIdx].isAlive = false;
+            killedIds.push(result.memberId);
+            setAnimatingKill(result.memberId);
+            setTimeout(() => setAnimatingKill(null), 1000);
+          }
+        }
+      }
+
+      // Consume ammo
+      const shooterIdx = gameState.vehicle.members.findIndex((m) => m.id === shooter.id);
+      if (shooterIdx >= 0) {
+        gameState.vehicle.members[shooterIdx].ammo = Math.max(0, shooter.ammo - 1);
+      }
+    }
+
+    // Partial spin result (defender shots come next)
+    const partialSpin: Omit<SpinResult, 'shotSpotter'> = {
+      spinNumber: gameState.spinNumber,
+      attackerShots: spinShots,
+      defenderShots: [],
+      membersKilled: killedIds,
+      carDamageThisSpin: 0,
+      heatGenerated: 0,
     };
 
-    const newGrid = game.macroGrid.map(row => row.map(cell => ({ ...cell })));
-    newGrid[coord.y][coord.x].occupantId = newUnit.id;
-    newGrid[coord.y][coord.x].occupantHp = newUnit.hp;
-
-    setGame(prev => prev ? {
-      ...prev,
-      macroGrid: newGrid,
-      placedUnits: [...prev.placedUnits, newUnit],
-      combatLog: [...prev.combatLog, `${UNIT_EMOJIS[template.type]} ${newUnit.name} placed at (${coord.x}, ${coord.y})`],
-    } : null);
-  }, [game, selectedUnitType]);
-
-  // Start combat after setup
-  const startCombat = useCallback(() => {
-    if (!game || game.placedUnits.length < 3) return;
-    setGame(prev => prev ? {
-      ...prev,
-      phase: 'defender_turn',
-      combatLog: [...prev.combatLog, '⚔️ Combat begins! Defend your block!'],
-    } : null);
-  }, [game]);
-
-  // Attacker shoots at macro grid
-  const attackerShoot = useCallback((coord: MacroCoord) => {
-    if (!game || game.phase !== 'attacker_turn') return;
-    if (game.shotsThisTurn >= game.maxShotsPerTurn) return;
-    if (game.macroGrid[coord.y][coord.x].revealed) return;
-
-    const newGrid = game.macroGrid.map(row => row.map(cell => ({ ...cell })));
-    const cell = newGrid[coord.y][coord.x];
-    cell.revealed = true;
-    cell.hit = true;
-
-    soundManager.play('gunshot');
-    let log = `💥 Shot at (${coord.x}, ${coord.y}) — `;
-    let scoreAdd = 0;
-
-    if (cell.occupantId) {
-      const unit = game.placedUnits.find(u => u.id === cell.occupantId);
-      cell.occupantHp = Math.max(0, (cell.occupantHp ?? 1) - 1);
-
-      if (cell.occupantHp === 0) {
-        cell.occupantId = undefined;
-        log += `💀 ${unit?.name || 'Unit'} KILLED!`;
-        scoreAdd = 100;
-      } else {
-        log += `🎯 HIT ${unit?.name || 'Unit'}! (${cell.occupantHp} HP left)`;
-        scoreAdd = 25;
-      }
-    } else {
-      log += 'MISS! Water...';
-    }
-
-    const newUnits = game.placedUnits.map(u => {
-      if (u.id === newGrid[coord.y][coord.x].occupantId || 
-          (game.macroGrid[coord.y][coord.x].occupantId === u.id && cell.occupantHp === 0)) {
-        return { ...u, hp: cell.occupantHp ?? 0, isAlive: (cell.occupantHp ?? 0) > 0 };
-      }
-      return u;
+    setGameState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        defenders: newDefenders,
+        grid: newGrid,
+        killFeed: newKillFeed,
+        phase: 'defender_shooting',
+      };
     });
 
-    const newShotsThisTurn = game.shotsThisTurn + 1;
-    const allDead = newUnits.every(u => !u.isAlive);
+    setSelectedShots([]);
+    // Store partial spin for later completion
+    sessionStorage.setItem('partialSpin', JSON.stringify(partialSpin));
+  };
 
-    setGame(prev => prev ? {
-      ...prev,
-      macroGrid: newGrid,
-      placedUnits: newUnits,
-      attackerShots: [...prev.attackerShots, coord],
-      attackerScore: prev.attackerScore + scoreAdd,
-      shotsThisTurn: newShotsThisTurn,
-      combatLog: [...prev.combatLog, log],
-      phase: allDead ? 'finished' : (newShotsThisTurn >= prev.maxShotsPerTurn ? 'defender_turn' : 'attacker_turn'),
-    } : null);
-  }, [game]);
+  // ── DEFENDER: PICK STREET SQUARES TO SHOOT AT ──
+  const toggleDefenderShot = (col: number) => {
+    if (!gameState || gameState.phase !== 'defender_shooting') return;
+    const maxShots = getDefenderShotsAvailable(gameState.defenders);
+    setDefenderSelectedCols((prev) => {
+      if (prev.includes(col)) return prev.filter((c) => c !== col);
+      if (prev.length >= maxShots) return prev;
+      return [...prev, col];
+    });
+  };
 
-  // Defender shoots at micro grid (targeting the car)
-  const defenderShoot = useCallback((coord: MicroCoord) => {
-    if (!game || game.phase !== 'defender_turn') return;
-    if (game.shotsThisTurn >= game.maxShotsPerTurn) return;
-    if (game.microGrid[coord.j][coord.i].revealed) return;
+  const fireDefenderShots = () => {
+    if (!gameState) return;
 
-    const newMicroGrid = game.microGrid.map(row => row.map(cell => ({ ...cell })));
-    const cell = newMicroGrid[coord.j][coord.i];
-    cell.revealed = true;
-    cell.hit = true;
+    const newVehicle = { ...gameState.vehicle, members: gameState.vehicle.members.map((m) => ({ ...m })) };
+    const newKillFeed = [...gameState.killFeed];
+    const defenderShotResults: SpinResult['defenderShots'] = [];
+    let carDamageThisSpin = 0;
 
-    soundManager.play('gunshot');
-    let log = `🔫 Shot at car (${coord.i}, ${coord.j}) — `;
-    let scoreAdd = 0;
+    const defenderShooters = gameState.defenders.filter((d) => d.isAlive && d.role === 'shooter');
 
-    const newVehicle = JSON.parse(JSON.stringify(game.vehicle)) as Vehicle;
-
-    if (cell.vehicleId === game.vehicle.id && cell.vehiclePart) {
-      const part = cell.vehiclePart;
-      newVehicle.hpByPart[part] = Math.max(0, newVehicle.hpByPart[part] - 1);
-      cell.partHp = newVehicle.hpByPart[part];
-
-      if (newVehicle.hpByPart[part] === 0) {
-        if (part === 'passenger_seat') newVehicle.seats.passenger.alive = false;
-        if (part === 'rear_left') newVehicle.seats.rearLeft.alive = false;
-        if (part === 'rear_right') newVehicle.seats.rearRight.alive = false;
-        log += `💥 ${part.replace('_', ' ')} DESTROYED!`;
-        scoreAdd = 75;
-      } else {
-        log += `🎯 HIT ${part.replace('_', ' ')}! (${newVehicle.hpByPart[part]} HP)`;
-        scoreAdd = 20;
+    for (let i = 0; i < defenderSelectedCols.length; i++) {
+      const col = defenderSelectedCols[i];
+      const shooter = defenderShooters[i % Math.max(1, defenderShooters.length)];
+      if (!shooter) {
+        defenderShotResults.push({ col, hit: false });
+        newKillFeed.push({ message: 'No shooters available to return fire.', timestamp: Date.now(), type: 'miss' });
+        continue;
       }
-    } else {
-      log += 'MISS!';
+
+      const result = processDefenderShot(shooter, col, newVehicle);
+      defenderShotResults.push({ col, hit: result.hit, carDamage: result.carDamage, memberKilled: result.memberKilled });
+      newKillFeed.push({ message: result.message, timestamp: Date.now(), type: result.hit ? 'hit' : 'miss' });
+
+      if (result.hit && result.carDamage) {
+        newVehicle.hp = Math.max(0, newVehicle.hp - result.carDamage);
+        carDamageThisSpin += result.carDamage;
+      }
+
+      if (result.memberKilled) {
+        const mIdx = newVehicle.members.findIndex((m) => m.id === result.memberKilled);
+        if (mIdx >= 0) {
+          const victimName = newVehicle.members[mIdx].name;
+          newVehicle.members[mIdx].isAlive = false;
+          newKillFeed.push({ message: `💀 ${victimName} in the car was hit!`, timestamp: Date.now(), type: 'kill' });
+        }
+      }
     }
 
-    const newShotsThisTurn = game.shotsThisTurn + 1;
+    // Complete the spin result
+    const partialSpin: Omit<SpinResult, 'shotSpotter'> = JSON.parse(sessionStorage.getItem('partialSpin') || '{}');
+    const completeSpin: Omit<SpinResult, 'shotSpotter'> = {
+      ...partialSpin,
+      defenderShots: defenderShotResults,
+      carDamageThisSpin,
+      membersKilled: partialSpin.membersKilled || [],
+      heatGenerated: calcSpinHeat(gameState.spinNumber, (partialSpin.membersKilled || []).length, carDamageThisSpin > 0),
+    };
 
-    // Check if vehicle is destroyed (driver dead or all shooters dead)
-    const vehicleDestroyed = !newVehicle.seats.driver.alive ||
-      (!newVehicle.seats.passenger.alive && !newVehicle.seats.rearLeft.alive && !newVehicle.seats.rearRight.alive);
+    const spotter = generateShotSpotterReport(completeSpin, newVehicle);
+    const fullSpin: SpinResult = { ...completeSpin, shotSpotter: spotter };
 
-    setGame(prev => prev ? {
-      ...prev,
-      microGrid: newMicroGrid,
-      vehicle: newVehicle,
-      defenderShots: [...prev.defenderShots, coord],
-      defenderScore: prev.defenderScore + scoreAdd,
-      shotsThisTurn: newShotsThisTurn,
-      combatLog: [...prev.combatLog, log],
-      phase: vehicleDestroyed ? 'finished' : (newShotsThisTurn >= prev.maxShotsPerTurn ? 'attacker_turn' : 'defender_turn'),
-    } : null);
-  }, [game]);
+    setShotSpotterMsg(spotter);
+    newKillFeed.push({ message: spotter.message, timestamp: Date.now(), type: 'spotter' });
 
-  // End turn
-  const endTurn = useCallback(() => {
-    if (!game) return;
+    const vehicleDestroyed = newVehicle.hp <= 0 || !newVehicle.members.find((m) => m.role === 'driver' && m.isAlive);
+    const allDefendersDown = gameState.defenders.every((d) => !d.isAlive);
 
-    const nextPhase: GamePhase = game.phase === 'attacker_turn' ? 'defender_turn' : 'attacker_turn';
-    const newTurn = game.phase === 'defender_turn' ? game.turn + 1 : game.turn;
+    updateHeat(completeSpin.heatGenerated);
 
-    if (newTurn > game.maxTurns) {
-      setGame(prev => prev ? { ...prev, phase: 'finished', combatLog: [...prev.combatLog, '⏰ Time\'s up!'] } : null);
-      return;
+    setGameState((prev) => {
+      if (!prev) return null;
+      const newState: SlideGameState = {
+        ...prev,
+        vehicle: newVehicle,
+        killFeed: newKillFeed,
+        spinHistory: [...prev.spinHistory, fullSpin],
+        totalHeatGenerated: prev.totalHeatGenerated + completeSpin.heatGenerated,
+        vehicleDestroyed,
+        allDefendersDown,
+        phase: vehicleDestroyed || allDefendersDown ? 'resolved' : 'spin_decision',
+      };
+      return newState;
+    });
+
+    setDefenderSelectedCols([]);
+    sessionStorage.removeItem('partialSpin');
+  };
+
+  // ── SPIN AGAIN ──
+  const spinAgain = () => {
+    if (!gameState) return;
+    setSelectedStops([]);
+    setSelectedShots([]);
+    setShotSpotterMsg(null);
+
+    // Apply pending reinforcements
+    let newDefenders = [...gameState.defenders];
+    if (gameState.pendingReinforcements > 0) {
+      for (let i = 0; i < gameState.pendingReinforcements; i++) {
+        const newShooter = makeDefender(
+          `reinf-${Date.now()}-${i}`,
+          `Backup ${i + 1}`,
+          'shooter',
+          1 + Math.floor(Math.random() * 4),
+          Math.floor(Math.random() * BLOCK_COLS),
+        );
+        newDefenders.push(newShooter);
+      }
     }
 
-    setGame(prev => prev ? {
-      ...prev,
-      phase: nextPhase,
-      turn: newTurn,
-      shotsThisTurn: 0,
-      combatLog: [...prev.combatLog, `--- Turn ${newTurn} | ${nextPhase === 'attacker_turn' ? '🚗 Attacker' : '🏠 Defender'} ---`],
-    } : null);
-  }, [game]);
+    const newGrid = createSlideGrid(newDefenders);
 
-  // Collect rewards
-  const collectRewards = useCallback(() => {
-    if (!game) return;
-    const isWinner = (game.role === 'attacker' && game.attackerScore > game.defenderScore) ||
-                     (game.role === 'defender' && game.defenderScore > game.attackerScore);
-    const reward = isWinner ? 500 + game.turn * 100 : 100;
-    const heat = game.role === 'attacker' ? 15 : 5;
+    setGameState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        phase: 'pick_stop',
+        spinNumber: prev.spinNumber + 1,
+        defenders: newDefenders,
+        grid: newGrid,
+        pendingReinforcements: 0,
+        killFeed: [...prev.killFeed, { message: `🔄 SPIN ${prev.spinNumber + 1} — Back around the block`, timestamp: Date.now(), type: 'system' }],
+      };
+    });
+  };
 
+  // ── CALL REINFORCEMENTS ──
+  const callReinforcements = () => {
+    if (!gameState || gameState.phase !== 'spin_decision') return;
+    setGameState((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        pendingReinforcements: prev.pendingReinforcements + 1,
+        killFeed: [...prev.killFeed, { message: '📞 Backup called! 1 Shooter arriving next spin.', timestamp: Date.now(), type: 'system' }],
+      };
+    });
+  };
+
+  // ── RETREAT ──
+  const retreat = () => {
+    if (!gameState) return;
+    setGameState((prev) => {
+      if (!prev) return null;
+      return { ...prev, attackerRetreat: true, phase: 'resolved' };
+    });
+  };
+
+  // ── COLLECT REWARDS ──
+  const collectRewards = () => {
+    if (!gameState) return;
+    const attackerWon = gameState.allDefendersDown;
+    const reward = attackerWon ? 800 + gameState.spinNumber * 100 : 200;
     updateMoney(reward);
-    updateHeat(heat);
-    addXP(50 + (isWinner ? 100 : 0));
+    addXP(attackerWon ? 200 : 50);
     goBack();
-  }, [game, updateMoney, updateHeat, addXP, goBack]);
+  };
 
-  // ============ RENDER ============
+  // ─── RENDER ──────────────────────────────────────────────────
 
-  // Role selection screen
-  if (!selectedRole || !game) {
+  if (!role || !gameState) {
     return (
       <div className="slide-game">
         <div className="slide-header">
           <motion.button className="back-button" onClick={goBack} whileTap={{ scale: 0.9 }}>← Back</motion.button>
-          <div className="slide-title">
-            <span className="title-icon">🎯</span>
-            <span className="title-text">SLIDE</span>
-          </div>
+          <div className="slide-title"><span className="title-icon">🚗</span><span className="title-text">SLIDE</span></div>
           <div />
         </div>
-
         <div className="role-selection">
           <h2 className="role-title">CHOOSE YOUR ROLE</h2>
-          <p className="role-subtitle">Battleship-style combat on the block</p>
-
-          <motion.div
-            className="role-card attacker-card"
-            onClick={() => { setSelectedRole('attacker'); startGame('attacker'); }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <p className="role-subtitle">Drive-by Battleship</p>
+          <motion.div className="role-card attacker-card" onClick={() => startGame('attacker')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <span className="role-emoji">🚗</span>
             <h3>SLIDE ON THEM</h3>
-            <p>Drive by the block and shoot at hidden targets. Pick grid squares to find and eliminate defenders.</p>
-            <div className="role-stats">
-              <span>3 shots/turn</span>
-              <span>5 turns</span>
-              <span>+15 Heat</span>
-            </div>
+            <p>Stop on the street and pick squares to shoot. Spin the block for more damage. Watch the shot spotter.</p>
+            <div className="role-stats"><span>Shots = your shooters</span><span>Max 5 spins</span><span>+Heat each spin</span></div>
           </motion.div>
-
-          <motion.div
-            className="role-card defender-card"
-            onClick={() => { setSelectedRole('defender'); startGame('defender'); }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+          <motion.div className="role-card defender-card" onClick={() => startGame('defender')} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <span className="role-emoji">🏠</span>
-            <h3>DEFEND THE BLOCK</h3>
-            <p>Place your crew on the block, then shoot at the sliding car. Closer to street = more money but more danger.</p>
-            <div className="role-stats">
-              <span>6 units to place</span>
-              <span>3 shots/turn</span>
-              <span>+5 Heat</span>
-            </div>
+            <h3>HOLD THE BLOCK</h3>
+            <p>Your shooters return fire at the street. Guess where the car stopped. Call backup between spins.</p>
+            <div className="role-stats"><span>Shots = your shooters</span><span>Call reinforcements</span><span>Destroy the car</span></div>
           </motion.div>
         </div>
       </div>
     );
   }
 
-  // Setup phase (defender places units)
-  if (game.phase === 'setup') {
-    return (
-      <div className="slide-game">
-        <div className="slide-header">
-          <motion.button className="back-button" onClick={goBack} whileTap={{ scale: 0.9 }}>← Back</motion.button>
-          <div className="slide-title">
-            <span className="title-icon">📍</span>
-            <span className="title-text">SETUP</span>
-          </div>
-          <span className="unit-count">{game.placedUnits.length}/6</span>
-        </div>
-
-        <div className="setup-instructions">
-          <p>Place your crew on the block. Closer to the street = more money but easier to hit!</p>
-        </div>
-
-        {/* Unit type selector */}
-        <div className="unit-selector">
-          {UNIT_TEMPLATES.map((t, i) => (
-            <motion.button
-              key={t.type}
-              className={`unit-type-btn ${selectedUnitType === i ? 'selected' : ''}`}
-              onClick={() => setSelectedUnitType(i)}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span>{UNIT_EMOJIS[t.type]}</span>
-              <span className="unit-type-name">{t.name}</span>
-              <span className="unit-type-hp">{t.hp}HP</span>
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Macro grid for placement */}
-        <div className="macro-grid-container">
-          <div className="grid-labels">
-            {Array.from({ length: MACRO_SIZE }, (_, y) => (
-              <div key={y} className={`row-label ${getRowType(y)}`}>{getRowLabel(y)}</div>
-            ))}
-          </div>
-          <div className="macro-grid setup-mode">
-            {game.macroGrid.map((row, y) =>
-              row.map((cell, x) => {
-                const unit = game.placedUnits.find(u => u.position.x === x && u.position.y === y);
-                const rowType = getRowType(y);
-                const proximity = STREET_PROXIMITY_TABLE[Math.min(y, MACRO_SIZE - 1 - y)] || STREET_PROXIMITY_TABLE[4];
-                const isStreet = y === 0 || y === 7;
-
-                return (
-                  <motion.div
-                    key={`${x}-${y}`}
-                    className={`macro-cell ${rowType} ${unit ? 'occupied' : ''} ${isStreet ? 'no-place' : ''}`}
-                    onClick={() => !isStreet && placeUnit({ x, y })}
-                    whileHover={!isStreet ? { scale: 1.1 } : {}}
-                    whileTap={!isStreet ? { scale: 0.9 } : {}}
-                  >
-                    {unit ? (
-                      <span className="cell-unit">{UNIT_EMOJIS[unit.type]}</span>
-                    ) : !isStreet ? (
-                      <span className="cell-income">{proximity.incomeMultiplier}x</span>
-                    ) : (
-                      <span className="cell-street">🚗</span>
-                    )}
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {game.placedUnits.length >= 3 && (
-          <motion.button
-            className="start-combat-btn"
-            onClick={startCombat}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            ⚔️ START COMBAT ({game.placedUnits.length}/6 placed)
-          </motion.button>
-        )}
-      </div>
-    );
-  }
-
-  // Combat phase
-  const isAttackerTurn = game.phase === 'attacker_turn';
-  const isDefenderTurn = game.phase === 'defender_turn';
-  const isFinished = game.phase === 'finished';
-
-  const winner = game.attackerScore > game.defenderScore ? 'attacker' : 
-                 game.defenderScore > game.attackerScore ? 'defender' : 'draw';
+  const gameOver = checkGameOver(gameState);
+  const aliveDefenders = gameState.defenders.filter((d) => d.isAlive);
+  const aliveShootersOnBlock = aliveDefenders.filter((d) => d.role === 'shooter').length;
+  const attackerShootersAlive = gameState.vehicle.members.filter((m) => m.isAlive && m.role === 'shooter').length;
+  const totalAmmoLeft = gameState.vehicle.members.reduce((sum, m) => sum + m.ammo, 0);
 
   return (
     <div className="slide-game">
+      {/* Header */}
       <div className="slide-header">
         <motion.button className="back-button" onClick={goBack} whileTap={{ scale: 0.9 }}>← Back</motion.button>
         <div className="slide-title">
-          <span className="title-icon">🎯</span>
-          <span className="title-text">SLIDE</span>
+          <span className="title-icon">🚗</span>
+          <span className="title-text">SLIDE — Spin {gameState.spinNumber}/{gameState.maxSpins}</span>
         </div>
-        <div className="turn-info">
-          <span className="turn-number">T{game.turn}/{game.maxTurns}</span>
-        </div>
-      </div>
-
-      {/* Score bar */}
-      <div className="score-bar">
-        <div className="score attacker-score">
-          <span className="score-label">🚗 ATK</span>
-          <span className="score-value">{game.attackerScore}</span>
-        </div>
-        <div className="phase-indicator">
-          {isFinished ? '🏁 FINISHED' : isAttackerTurn ? '🚗 ATTACKER SHOOTS' : '🏠 DEFENDER SHOOTS'}
-        </div>
-        <div className="score defender-score">
-          <span className="score-label">🏠 DEF</span>
-          <span className="score-value">{game.defenderScore}</span>
+        <div className="slide-stats">
+          <span className="stat-chip">🔫 {attackerShootersAlive} shooters</span>
+          <span className="stat-chip">💊 {totalAmmoLeft} ammo</span>
+          <span className="stat-chip">🏠 {aliveShootersOnBlock} defenders</span>
         </div>
       </div>
 
-      {/* Shots remaining */}
-      {!isFinished && (
-        <div className="shots-remaining">
-          <span>Shots: {game.maxShotsPerTurn - game.shotsThisTurn} remaining</span>
-          <motion.button
-            className="end-turn-btn"
-            onClick={endTurn}
-            whileTap={{ scale: 0.95 }}
-          >
-            END TURN →
-          </motion.button>
-        </div>
-      )}
+      {/* Phase Banner */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={gameState.phase}
+          className={`phase-banner phase-${gameState.phase}`}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+        >
+          {gameState.phase === 'pick_stop' && '🚗 Pick where to STOP on the street (row 0)'}
+          {gameState.phase === 'attacker_shooting' && `🔫 Pick squares to SHOOT (${getAttackerShotsAvailable(gameState.vehicle) - selectedShots.length} shots left)`}
+          {gameState.phase === 'defender_shooting' && `🏠 Pick STREET squares to return fire (${getDefenderShotsAvailable(gameState.defenders) - defenderSelectedCols.length} shots left)`}
+          {gameState.phase === 'spin_decision' && '🔄 Spin again or retreat?'}
+          {gameState.phase === 'resolved' && (gameOver.winner === 'attacker' ? '🏆 Block taken!' : '🛡️ Block held!')}
+        </motion.div>
+      </AnimatePresence>
 
-      {/* Grid area */}
-      <div className="combat-grids">
-        {/* Macro grid (block) */}
-        <div className="grid-section">
-          <h3 className="grid-title">🏠 THE BLOCK (8x8)</h3>
-          <div className="macro-grid combat-mode">
-            {game.macroGrid.map((row, y) =>
-              row.map((cell, x) => {
-                const unit = game.placedUnits.find(u => u.position.x === x && u.position.y === y && u.isAlive);
-                const isRevealed = cell.revealed;
-                const canShoot = isAttackerTurn && !isRevealed && game.role === 'attacker';
-                const showUnit = game.role === 'defender' || isRevealed;
-
-                return (
-                  <motion.div
-                    key={`m-${x}-${y}`}
-                    className={`macro-cell ${getRowType(y)} ${isRevealed ? 'revealed' : ''} ${cell.occupantId && isRevealed ? 'hit-unit' : ''} ${canShoot ? 'targetable' : ''}`}
-                    onClick={() => canShoot && attackerShoot({ x, y })}
-                    whileHover={canShoot ? { scale: 1.15, boxShadow: '0 0 10px rgba(255,0,0,0.5)' } : {}}
-                    whileTap={canShoot ? { scale: 0.9 } : {}}
-                  >
-                    {showUnit && unit ? (
-                      <span className="cell-unit">{UNIT_EMOJIS[unit.type]}</span>
-                    ) : isRevealed && cell.hit ? (
-                      cell.occupantId ? <span className="cell-hit">💥</span> : <span className="cell-miss">•</span>
-                    ) : (
-                      <span className="cell-fog">?</span>
-                    )}
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Micro grid (car) */}
-        <div className="grid-section">
-          <h3 className="grid-title">🚗 THE CAR (16x16)</h3>
-          <div className="micro-grid">
-            {game.microGrid.map((row, j) =>
-              row.map((cell, i) => {
-                const isRevealed = cell.revealed;
-                const isVehicle = !!cell.vehicleId;
-                const canShoot = isDefenderTurn && !isRevealed && game.role === 'defender';
-                const showPart = game.role === 'attacker' || isRevealed;
-
-                return (
-                  <motion.div
-                    key={`u-${i}-${j}`}
-                    className={`micro-cell ${isVehicle && showPart ? `vehicle-part ${cell.vehiclePart || ''}` : ''} ${isRevealed ? 'revealed' : ''} ${canShoot ? 'targetable' : ''}`}
-                    onClick={() => canShoot && defenderShoot({ i, j })}
-                    whileHover={canShoot ? { scale: 1.3 } : {}}
-                    whileTap={canShoot ? { scale: 0.8 } : {}}
-                  >
-                    {isRevealed && cell.hit ? (
-                      isVehicle ? <span className="micro-hit">💥</span> : <span className="micro-miss">·</span>
-                    ) : null}
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Combat log */}
-      <div className="combat-log">
-        <h4>📋 Combat Log</h4>
-        <div className="log-entries">
-          {game.combatLog.slice(-6).map((entry, i) => (
-            <motion.div
-              key={i}
-              className="log-entry"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              {entry}
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Finished overlay */}
+      {/* Shot Spotter Alert */}
       <AnimatePresence>
-        {isFinished && (
+        {shotSpotterMsg && shotSpotterMsg.triggered && (
           <motion.div
-            className="finish-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            className={`shot-spotter-alert severity-${shotSpotterMsg.severity}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
           >
-            <motion.div
-              className="finish-card"
-              initial={{ scale: 0.5, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-            >
-              <h2 className="finish-title">
-                {winner === game.role ? '🏆 VICTORY!' : winner === 'draw' ? '🤝 DRAW' : '💀 DEFEAT'}
-              </h2>
-              <div className="finish-scores">
-                <div className="finish-score">
-                  <span>🚗 Attacker</span>
-                  <span className="big-score">{game.attackerScore}</span>
-                </div>
-                <span className="vs">VS</span>
-                <div className="finish-score">
-                  <span>🏠 Defender</span>
-                  <span className="big-score">{game.defenderScore}</span>
-                </div>
-              </div>
-              <div className="finish-rewards">
-                <span>💰 +${winner === game.role ? 500 + game.turn * 100 : 100}</span>
-                <span>⭐ +{50 + (winner === game.role ? 100 : 0)} XP</span>
-                <span>🔥 +{game.role === 'attacker' ? 15 : 5} Heat</span>
-              </div>
-              <motion.button
-                className="collect-btn"
-                onClick={collectRewards}
-                whileTap={{ scale: 0.95 }}
-              >
-                COLLECT REWARDS
-              </motion.button>
-            </motion.div>
+            <span className="spotter-icon">📡</span>
+            <span className="spotter-text">{shotSpotterMsg.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Main Grid */}
+      <div className="slide-grid-container">
+        <div className="slide-grid" style={{ gridTemplateColumns: `repeat(${BLOCK_COLS}, 1fr)` }}>
+          {Array.from({ length: BLOCK_ROWS }, (_, row) =>
+            Array.from({ length: BLOCK_COLS }, (_, col) => {
+              const cell = gameState.grid[row]?.[col];
+              const zone = BLOCK_ZONES[row];
+              const isStreet = row === STREET_ROW;
+              const defender = gameState.defenders.find((d) => d.row === row && d.col === col);
+              const isSelectedStop = selectedStops.includes(col) && isStreet;
+              const isSelectedShot = selectedShots.some((s) => s.row === row && s.col === col);
+              const isDefenderSelected = defenderSelectedCols.includes(col) && isStreet;
+              const isCarStop = gameState.vehicle.stopPositions.includes(col) && isStreet;
+              const isSpotterRevealed = shotSpotterMsg?.revealedCols.includes(col) && isStreet;
+
+              return (
+                <motion.div
+                  key={`${row}-${col}`}
+                  className={[
+                    'slide-cell',
+                    `zone-row-${row}`,
+                    isStreet ? 'street-row' : '',
+                    isSelectedStop ? 'selected-stop' : '',
+                    isSelectedShot ? 'selected-shot' : '',
+                    isDefenderSelected ? 'defender-selected' : '',
+                    isCarStop && gameState.phase !== 'pick_stop' ? 'car-stop-revealed' : '',
+                    isSpotterRevealed ? 'spotter-revealed' : '',
+                    cell?.wasShot ? 'was-shot' : '',
+                    cell?.wasHit ? 'was-hit' : '',
+                  ].filter(Boolean).join(' ')}
+                  style={{ backgroundColor: ZONE_COLORS[row] }}
+                  onClick={() => {
+                    if (isStreet && gameState.phase === 'pick_stop') toggleStopPosition(col);
+                    else if (!isStreet && gameState.phase === 'attacker_shooting') toggleAttackerShot(row, col);
+                    else if (isStreet && gameState.phase === 'defender_shooting') toggleDefenderShot(col);
+                  }}
+                  whileTap={{ scale: 0.92 }}
+                >
+                  {/* Row label on first column */}
+                  {col === 0 && <span className="zone-label">{zone.shortLabel}</span>}
+
+                  {/* Car stop indicator */}
+                  {isStreet && isCarStop && gameState.phase !== 'pick_stop' && (
+                    <span className="car-icon">🚗</span>
+                  )}
+
+                  {/* Defender unit */}
+                  {defender && (
+                    <motion.div
+                      className={`defender-token role-${defender.role} ${!defender.isAlive ? 'dead' : ''} ${animatingKill === defender.id ? 'kill-anim' : ''}`}
+                      animate={animatingKill === defender.id ? { scale: [1, 1.5, 0], rotate: [0, 15, -15, 0] } : {}}
+                    >
+                      <span className="token-icon">{ROLE_ICON[defender.role]}</span>
+                      {defender.isRevealed && (
+                        <div className="token-hp-bar">
+                          <div className="token-hp-fill" style={{ width: `${(defender.hp / defender.maxHp) * 100}%`, backgroundColor: ROLE_COLOR[defender.role] }} />
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Shot markers */}
+                  {cell?.wasShot && !cell.wasHit && <span className="miss-marker">·</span>}
+                  {cell?.wasHit && <span className="hit-marker">✕</span>}
+                </motion.div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="slide-actions">
+        {gameState.phase === 'pick_stop' && (
+          <motion.button
+            className="action-btn primary"
+            onClick={confirmStopPositions}
+            disabled={selectedStops.length === 0}
+            whileTap={{ scale: 0.95 }}
+          >
+            🚗 STOP HERE ({selectedStops.length} spot{selectedStops.length !== 1 ? 's' : ''}) — SHOOT
+          </motion.button>
+        )}
+
+        {gameState.phase === 'attacker_shooting' && (
+          <motion.button
+            className="action-btn fire-btn"
+            onClick={fireAttackerShots}
+            disabled={selectedShots.length === 0}
+            whileTap={{ scale: 0.95 }}
+          >
+            🔥 FIRE ({selectedShots.length} shot{selectedShots.length !== 1 ? 's' : ''})
+          </motion.button>
+        )}
+
+        {gameState.phase === 'defender_shooting' && (
+          <motion.button
+            className="action-btn fire-btn"
+            onClick={fireDefenderShots}
+            whileTap={{ scale: 0.95 }}
+          >
+            🔫 RETURN FIRE ({defenderSelectedCols.length} shot{defenderSelectedCols.length !== 1 ? 's' : ''})
+          </motion.button>
+        )}
+
+        {gameState.phase === 'spin_decision' && (
+          <div className="spin-decision-row">
+            <motion.button
+              className="action-btn primary"
+              onClick={spinAgain}
+              disabled={gameState.spinNumber >= gameState.maxSpins || totalAmmoLeft === 0}
+              whileTap={{ scale: 0.95 }}
+            >
+              🔄 SPIN AGAIN ({gameState.maxSpins - gameState.spinNumber} left)
+            </motion.button>
+            <motion.button
+              className="action-btn secondary"
+              onClick={callReinforcements}
+              whileTap={{ scale: 0.95 }}
+            >
+              📞 CALL BACKUP (+1 Shooter next spin)
+            </motion.button>
+            <motion.button
+              className="action-btn danger"
+              onClick={retreat}
+              whileTap={{ scale: 0.95 }}
+            >
+              🏃 RETREAT
+            </motion.button>
+          </div>
+        )}
+
+        {gameState.phase === 'resolved' && (
+          <motion.button
+            className="action-btn primary"
+            onClick={collectRewards}
+            whileTap={{ scale: 0.95 }}
+          >
+            {gameOver.winner === 'attacker' ? '🏆 Collect Loot' : '🛡️ Collect Reward'}
+          </motion.button>
+        )}
+      </div>
+
+      {/* Kill Feed */}
+      <div className="kill-feed" ref={killFeedRef}>
+        {gameState.killFeed.slice(-8).map((entry, i) => (
+          <motion.div
+            key={`${entry.timestamp}-${i}`}
+            className={`kill-entry type-${entry.type}`}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            {entry.message}
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Vehicle HP Bar */}
+      <div className="vehicle-status">
+        <span className="vehicle-label">🚗 Car HP</span>
+        <div className="vehicle-hp-bar">
+          <motion.div
+            className="vehicle-hp-fill"
+            animate={{ width: `${(gameState.vehicle.hp / gameState.vehicle.maxHp) * 100}%` }}
+            style={{ backgroundColor: gameState.vehicle.hp < 30 ? '#ef4444' : '#4ade80' }}
+          />
+        </div>
+        <span className="vehicle-hp-text">{gameState.vehicle.hp}/{gameState.vehicle.maxHp}</span>
+      </div>
     </div>
   );
 };

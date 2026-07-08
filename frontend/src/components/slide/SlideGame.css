@@ -455,6 +455,235 @@
   border-radius: 3px;
 }
 
+/* ============================================================
+   NEW SLIDE GAME STYLES (rebuilt drive-by battleship)
+   ============================================================ */
+
+.phase-banner {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.phase-pick_stop        { background: #1e1e2d; color: #60a5fa; border-bottom: 2px solid #60a5fa; }
+.phase-attacker_shooting { background: #1e1e2d; color: #ef4444; border-bottom: 2px solid #ef4444; }
+.phase-defender_shooting { background: #1e1e2d; color: #4ade80; border-bottom: 2px solid #4ade80; }
+.phase-spin_decision    { background: #1e1e2d; color: #fbbf24; border-bottom: 2px solid #fbbf24; }
+.phase-resolved         { background: #1e1e2d; color: #a78bfa; border-bottom: 2px solid #a78bfa; }
+
+.shot-spotter-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.severity-clear          { background: #1b4332; color: #4ade80; }
+.severity-shots_fired    { background: #1e1e2d; color: #fbbf24; }
+.severity-multiple_shots { background: #2d1a00; color: #f97316; }
+.severity-heavy_fire     { background: #2d0000; color: #ef4444; animation: pulse-red 1s infinite; }
+
+@keyframes pulse-red {
+  0%, 100% { background: #2d0000; }
+  50%       { background: #4d0000; }
+}
+
+.spotter-icon { font-size: 16px; }
+.spotter-text { flex: 1; }
+
+.slide-grid-container {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+}
+
+.slide-grid {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.slide-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  min-height: 40px;
+}
+
+.slide-cell:active { transform: scale(0.92); }
+
+.street-row {
+  border-top: 2px solid #fbbf24 !important;
+  border-bottom: 2px solid #fbbf24 !important;
+}
+
+.selected-stop {
+  border: 2px solid #60a5fa !important;
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
+}
+
+.selected-shot {
+  border: 2px solid #ef4444 !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.defender-selected {
+  border: 2px solid #4ade80 !important;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.car-stop-revealed {
+  background: rgba(251, 191, 36, 0.15) !important;
+  border: 2px solid #fbbf24 !important;
+}
+
+.spotter-revealed { background: rgba(251, 191, 36, 0.08) !important; }
+.was-shot { opacity: 0.7; }
+.was-hit  { background: rgba(239, 68, 68, 0.2) !important; }
+
+.zone-label {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 8px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+.car-icon {
+  font-size: 18px;
+  animation: bounce-car 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes bounce-car {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-3px); }
+}
+
+.defender-token {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 2px;
+}
+
+.defender-token.dead { opacity: 0.2; filter: grayscale(1); }
+.kill-anim { pointer-events: none; }
+.token-icon { font-size: 16px; }
+
+.token-hp-bar {
+  width: 80%;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.token-hp-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.miss-marker { font-size: 20px; color: rgba(255,255,255,0.2); pointer-events: none; }
+.hit-marker  { font-size: 16px; color: #ef4444; font-weight: 900; pointer-events: none; }
+
+.slide-actions { padding: 10px 14px; flex-shrink: 0; }
+
+.action-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+}
+
+.action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.action-btn.primary  { background: #4ade80; color: #0a0a0f; }
+.action-btn.fire-btn { background: #ef4444; color: white; }
+.action-btn.secondary { background: #1e1e2d; color: #fbbf24; border: 1px solid #fbbf24; }
+.action-btn.danger   { background: transparent; color: #ef4444; border: 1px solid #ef4444; }
+
+.spin-decision-row { display: flex; flex-direction: column; gap: 6px; }
+
+.kill-feed {
+  height: 80px;
+  overflow-y: auto;
+  padding: 4px 14px;
+  background: #0d0d14;
+  border-top: 1px solid #1e1e2d;
+  flex-shrink: 0;
+}
+
+.kill-entry { font-size: 11px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.kill-entry.type-kill    { color: #ef4444; }
+.kill-entry.type-hit     { color: #f97316; }
+.kill-entry.type-miss    { color: #555; }
+.kill-entry.type-spotter { color: #fbbf24; font-weight: 600; }
+.kill-entry.type-system  { color: #60a5fa; }
+
+.vehicle-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #111118;
+  border-top: 1px solid #222;
+  flex-shrink: 0;
+}
+
+.vehicle-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+
+.vehicle-hp-bar {
+  flex: 1;
+  height: 6px;
+  background: #1e1e2d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vehicle-hp-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s, background-color 0.4s;
+}
+
+.vehicle-hp-text { font-size: 11px; color: #aaa; white-space: nowrap; }
+
+.slide-stats { display: flex; gap: 6px; }
+
+.stat-chip {
+  background: #1e1e2d;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #ccc;
+}
+
 /* ============ FINISH OVERLAY ============ */
 
 .finish-overlay {
