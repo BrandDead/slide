@@ -458,7 +458,20 @@ const Contacts: React.FC = () => {
             onBackdoor={() => { handleBackdoor(selectedContact.memberId ?? selectedContact.id); setSelectedContact(null); }}
             onDeploy={() => handleDeploy(selectedContact.memberId ?? selectedContact.id)}
             onEquipDrug={(drugId) => {
-              transferItemToMember(drugId, selectedContact.memberId ?? selectedContact.id, 1);
+              const memberId = selectedContact.memberId ?? selectedContact.id;
+              const role = selectedContact.role ?? 'dealer';
+              // Only dealers can hold drugs
+              if (role !== 'dealer' && role !== 'boss') {
+                const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+                addNotification({
+                  type: 'warning',
+                  title: 'Cannot Equip',
+                  message: `${roleLabel}s can\'t hold drugs. Only Dealers carry product.`,
+                  priority: 'high',
+                });
+                return;
+              }
+              transferItemToMember(drugId, memberId, 1);
               addNotification({ type: 'info', title: 'Product Equipped', message: `Equipped ${drugId} to ${selectedContact.name}.`, priority: 'normal' });
             }}
           />

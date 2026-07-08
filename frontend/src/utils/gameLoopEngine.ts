@@ -16,6 +16,7 @@ import {
 } from './heatSystem';
 import { getMemberHeatContribution } from './memberProgression';
 import { calculateTotalIncome, estimateIncomePerMinute, type ODEvent } from './incomeEngine';
+import { calculateBlockEnforcerContributions } from './enforcerEngine';
 import {
   calculateMorale,
   getMoraleConsequences,
@@ -283,6 +284,34 @@ export function useGameLoop(): GameLoopState {
     }
 
     setIncomePerMinute(estimateIncomePerMinute(incomeResult.totalIncome));
+
+    // 3b. ENFORCER PATROL INCOME + HEAT REDUCTION
+    const blockEnforcers = blocks.map((block) => ({
+      blockId: block.id,
+      enforcers: block.units
+        .filter((u) => (u as any).role === 'enforcer')
+        .map((u) => {
+          const member = members.find((m) => m.id === u.gangMemberId);
+          const pos = u.position as any;
+          return {
+            memberId: u.gangMemberId ?? '',
+            memberName: (u as any).memberName || member?.name || 'Enforcer',
+            level: member?.level ?? 1,
+            row: pos ? (pos.row ?? pos.y ?? 4) : 4,
+          };
+        }),
+    }));
+    for (const blockData of blockEnforcers) {
+      if (blockData.enforcers.length === 0) continue;
+      const enforcerResult = calculateBlockEnforcerContributions(blockData.enforcers);
+      if (enforcerResult.totalPatrolIncome > 0) {
+        const currentBank = usePlayerStore.getState().player.bankBalance ?? 0;
+        stores.player.updatePlayer({ bankBalance: currentBank + enforcerResult.totalPatrolIncome });
+      }
+      if (enforcerResult.totalHeatReduction > 0) {
+        stores.player.updateHeat(-enforcerResult.totalHeatReduction);
+      }
+    }
 
     // 4. OD EVENTS
     for (const od of incomeResult.allOdEvents) {
