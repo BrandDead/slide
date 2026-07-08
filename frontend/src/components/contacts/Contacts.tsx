@@ -466,7 +466,7 @@ const Contacts: React.FC = () => {
                 addNotification({
                   type: 'warning',
                   title: 'Cannot Equip',
-                  message: `${roleLabel}s can\'t hold drugs. Only Dealers carry product.`,
+                  message: `${roleLabel}s cannot hold drugs. Only Dealers carry product.`,
                   priority: 'high',
                 });
                 return;

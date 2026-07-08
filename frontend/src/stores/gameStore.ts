@@ -607,7 +607,7 @@ export const useEconomyStore = create<EconomyState>()(
           if (!member) return;
 
           // ── Role-based inventory restriction ──────────────────────────
-          // Import lazily to avoid circular deps at module init time
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
           const { canRoleHoldItem, getEquipRejectionMessage } = require('../config/roleMechanics');
           const memberRole = (member.role ?? 'dealer') as any;
           const itemType = item.type as any;
