@@ -196,7 +196,10 @@ const generateDefenders = (count: number, gangColor: string): CombatUnit[] => {
   
   for (let i = 0; i < count; i++) {
     const role = roles[i % roles.length];
-    const weapon = role === 'dealer' ? null : weapons[Math.floor(Math.random() * (weapons.length - 1))];
+      // ROLE RULES: Dealers hold drugs only — no weapons.
+      // Only shooters, enforcers, and bosses can be armed.
+      const canBeArmed = role === 'shooter' || role === 'enforcer' || role === 'boss';
+      const weapon = canBeArmed ? weapons[Math.floor(Math.random() * (weapons.length - 1))] : null;
     const y = sidewalkYs[i % 2];
     const x = 2 + Math.floor(Math.random() * 6);
     
@@ -331,7 +334,13 @@ const TopDownShooter: React.FC = () => {
       
       const memberAny = member as any;
       const isDriver = seat.seat === 'driver';
-      const canShoot = !isDriver && (memberAny.role !== 'dealer' || memberAny.shooting > 40);
+      // ROLE RULES: Only shooters, enforcers, and bosses can return fire.
+      // Dealers cannot shoot — their job is to make money, not fight.
+      const canShoot = !isDriver && (
+        memberAny.role === 'shooter' ||
+        memberAny.role === 'enforcer' ||
+        memberAny.role === 'boss'
+      );
       
       const weapon = canShoot ? {
         name: memberAny.inventory?.find((i: any) => i.type === 'weapon')?.name || 'Glock 19',

@@ -605,6 +605,27 @@ export const useEconomyStore = create<EconomyState>()(
           const member = gangStore.getMemberById(memberId);
           
           if (!member) return;
+
+          // ── Role-based inventory restriction ──────────────────────────
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { canRoleHoldItem, getEquipRejectionMessage } = require('../config/roleMechanics');
+          const memberRole = (member.role ?? 'dealer') as any;
+          const itemType = item.type as any;
+          if (!canRoleHoldItem(memberRole, itemType)) {
+            const msg = getEquipRejectionMessage(memberRole, itemType);
+            // Surface the rejection via notification store
+            try {
+              const notifStore = useNotificationStore.getState();
+              notifStore.addNotification({
+                type: 'warning',
+                title: 'Cannot Equip',
+                message: msg,
+                priority: 'high',
+                timestamp: Date.now(),
+              });
+            } catch { /* silent fallback */ }
+            return;
+          }
           
           // Remove from player inventory
           set((state) => ({

@@ -256,3 +256,124 @@ export function createInitialLevel(): MemberLevel {
     totalXp: 0,
   };
 }
+
+// ============================================================
+// ROLE UPGRADE & GIFTING SYSTEM (added in role-mechanics sprint)
+// ============================================================
+
+import {
+  UPGRADE_PATHS,
+  GIFT_CATALOG,
+  canUpgradeToRole,
+  getShooterTier,
+  SHOOTER_TIER_LABELS,
+  type MemberRole,
+  type GiftItem,
+  type UpgradePath,
+} from '../config/roleMechanics';
+
+// ─── ROLE UPGRADE HELPERS ────────────────────────────────────
+
+export interface RoleUpgradeResult {
+  success: boolean;
+  newRole?: MemberRole;
+  cost?: number;
+  reason?: string;
+  description?: string;
+}
+
+/**
+ * Attempt to upgrade a member to a new role.
+ */
+export function attemptRoleUpgrade(
+  currentRole: MemberRole,
+  targetRole: MemberRole,
+  level: number,
+  completedMissions: number,
+  playerMoney: number,
+): RoleUpgradeResult {
+  const check = canUpgradeToRole(currentRole, targetRole, level, completedMissions, playerMoney);
+  if (!check.eligible) {
+    return { success: false, reason: check.reason };
+  }
+  const path = UPGRADE_PATHS.find((p) => p.fromRole === currentRole && p.toRole === targetRole)!;
+  return {
+    success: true,
+    newRole: targetRole,
+    cost: path.cost,
+    description: path.description,
+  };
+}
+
+/**
+ * Get all available upgrade paths for a member.
+ */
+export function getAvailableUpgrades(
+  currentRole: MemberRole,
+  level: number,
+  completedMissions: number,
+  playerMoney: number,
+): Array<UpgradePath & { eligible: boolean; reason?: string }> {
+  return UPGRADE_PATHS
+    .filter((p) => p.fromRole === currentRole)
+    .map((path) => {
+      const check = canUpgradeToRole(currentRole, path.toRole, level, completedMissions, playerMoney);
+      return { ...path, eligible: check.eligible, reason: check.reason };
+    });
+}
+
+// ─── GIFTING SYSTEM ──────────────────────────────────────────
+
+export interface GiftResult {
+  success: boolean;
+  moraleGained: number;
+  xpGained: number;
+  cost: number;
+  message: string;
+}
+
+/**
+ * Apply a gift to a member. Returns morale and XP gains.
+ */
+export function applyGift(
+  giftId: string,
+  memberName: string,
+  playerMoney: number,
+): GiftResult {
+  const gift = GIFT_CATALOG.find((g) => g.id === giftId);
+  if (!gift) {
+    return { success: false, moraleGained: 0, xpGained: 0, cost: 0, message: 'Gift not found.' };
+  }
+  if (playerMoney < gift.cost) {
+    return {
+      success: false,
+      moraleGained: 0,
+      xpGained: 0,
+      cost: gift.cost,
+      message: `Not enough money. ${gift.name} costs $${gift.cost.toLocaleString()}.`,
+    };
+  }
+  return {
+    success: true,
+    moraleGained: gift.moraleBonus,
+    xpGained: gift.xpBonus,
+    cost: gift.cost,
+    message: `${memberName} got a ${gift.name}. +${gift.moraleBonus} morale, +${gift.xpBonus} XP.`,
+  };
+}
+
+/**
+ * Get all gifts available within a budget.
+ */
+export function getAffordableGifts(budget: number): GiftItem[] {
+  return GIFT_CATALOG.filter((g) => g.cost <= budget);
+}
+
+// ─── SHOOTER TIER LABEL HELPER ───────────────────────────────
+
+/**
+ * Get the display tier label for a shooter at a given level.
+ */
+export function getShooterTierLabel(level: number): string {
+  return SHOOTER_TIER_LABELS[getShooterTier(level)];
+}
