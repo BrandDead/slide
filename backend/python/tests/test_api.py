@@ -439,3 +439,32 @@ class TestScheduler:
 
 if __name__ == '__main__':
     pytest.main([__file__, '-v', '--tb=short'])
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PAID ACCESS ENTITLEMENTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestEntitlementEndpoints:
+    """Paid access is read-only and fails closed when no grant exists."""
+
+    def test_paid_beta_access_defaults_closed(self, client, monkeypatch):
+        monkeypatch.delenv('DEV_PAID_BETA_ACCESS', raising=False)
+
+        response = client.get('/api/entitlements/me')
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['user_id'] == 'dev-user-001'
+        assert data['access']['paid_beta'] is False
+        assert data['entitlements'] == []
+
+    def test_development_access_switch_is_explicit(self, client, monkeypatch):
+        monkeypatch.setenv('DEV_PAID_BETA_ACCESS', 'true')
+
+        response = client.get('/api/entitlements/me')
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['access']['paid_beta'] is True
+        assert data['entitlements'][0]['entitlement_key'] == 'paid_beta'

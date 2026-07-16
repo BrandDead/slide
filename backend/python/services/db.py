@@ -25,6 +25,7 @@ _mock_profiles: Dict[str, Dict] = {}
 _mock_blocks: Dict[str, Dict] = {}
 _mock_inventory: Dict[str, List[Dict]] = {}
 _mock_combat_sessions: Dict[str, Dict] = {}
+_mock_entitlements: Dict[str, List[Dict]] = {}
 
 
 def _make_id() -> str:
@@ -76,6 +77,42 @@ class DBAdapter:
             return created.data[0] if created.data else new_profile
         except Exception as e:
             logger.error(f"get_or_create_profile failed: {e}")
+            raise
+
+    # ─── Paid access entitlements ─────────────────────────────────────────
+
+    def get_active_entitlements(self, user_id: str) -> List[Dict]:
+        """Return effective paid-access entitlements for the authenticated owner."""
+        if self._dev_mode:
+            if os.getenv('DEV_PAID_BETA_ACCESS', 'false').lower() == 'true':
+                return [{
+                    'id': 'dev-paid-beta',
+                    'user_id': user_id,
+                    'entitlement_key': 'paid_beta',
+                    'product_id': 'founders-access',
+                    'source': 'manual',
+                    'status': 'active',
+                    'expires_at': None,
+                    'granted_at': _now(),
+                }]
+            return _mock_entitlements.get(user_id, [])
+
+        try:
+            result = (
+                self._sb.table('entitlements')
+                .select('id, entitlement_key, product_id, source, status, granted_at, expires_at')
+                .eq('user_id', user_id)
+                .eq('status', 'active')
+                .execute()
+            )
+            entitlements = result.data or []
+            now = _utc_now()
+            return [
+                entitlement for entitlement in entitlements
+                if _entitlement_is_effective(entitlement, now)
+            ]
+        except Exception as e:
+            logger.error(f"get_active_entitlements failed: {e}")
             raise
 
     # ─── Blocks ────────────────────────────────────────────────────────────
@@ -404,6 +441,29 @@ def get_db() -> DBAdapter:
         _db_instance = DBAdapter(None)
 
     return _db_instance
+
+
+def _utc_now():
+    """Return an aware UTC datetime for expiry comparisons."""
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc)
+
+
+def _entitlement_is_effective(entitlement: Dict, now=None) -> bool:
+    """An active entitlement is effective until its optional UTC expiry."""
+    from datetime import datetime
+
+    expires_at = entitlement.get('expires_at')
+    if not expires_at:
+        return True
+
+    reference = now or _utc_now()
+    try:
+        expiry = datetime.fromisoformat(str(expires_at).replace('Z', '+00:00'))
+        return expiry > reference
+    except (TypeError, ValueError):
+        logger.warning("Ignoring entitlement with invalid expires_at value")
+        return False
 
 
 def _now() -> str:
