@@ -26,6 +26,8 @@ _mock_blocks: Dict[str, Dict] = {}
 _mock_inventory: Dict[str, List[Dict]] = {}
 _mock_combat_sessions: Dict[str, Dict] = {}
 _mock_entitlements: Dict[str, List[Dict]] = {}
+_mock_placements: Dict[str, List[Dict]] = {}  # block_id -> placements
+_mock_player_heat: Dict[str, int] = {}
 
 
 def _make_id() -> str:
@@ -55,11 +57,14 @@ class DBAdapter:
                     'id': user_id,
                     'username': f'player_{user_id[:6]}',
                     'cash': 10000,
+                    'heat': 0,
                     'level': 1,
                     'xp': 0,
                     'created_at': _now(),
                 }
-            return _mock_profiles[user_id]
+            profile = _mock_profiles[user_id]
+            profile.setdefault('heat', _mock_player_heat.get(user_id, 0))
+            return profile
 
         try:
             result = self._sb.table('profiles').select('*').eq('id', user_id).execute()
@@ -77,6 +82,196 @@ class DBAdapter:
             return created.data[0] if created.data else new_profile
         except Exception as e:
             logger.error(f"get_or_create_profile failed: {e}")
+            raise
+
+    def get_player_state(self, user_id: str) -> Dict:
+        """Return authoritative cash/heat/level for the player."""
+        profile = self.get_or_create_profile(user_id)
+        return {
+            'user_id': user_id,
+            'cash': int(profile.get('cash', 0)),
+            'heat': int(profile.get('heat', _mock_player_heat.get(user_id, 0))),
+            'level': int(profile.get('level', 1)),
+            'xp': int(profile.get('xp', 0)),
+            'username': profile.get('username', ''),
+        }
+
+    def deduct_cash(self, user_id: str, amount: int) -> Optional[Dict]:
+        """Deduct cash if funds allow. Returns updated player state or None."""
+        if amount < 0:
+            raise ValueError('amount must be non-negative')
+        profile = self.get_or_create_profile(user_id)
+        cash = int(profile.get('cash', 0))
+        if cash < amount:
+            return None
+        return self.apply_economy_delta(user_id, cash_delta=-amount, heat_delta=0)
+
+    def apply_economy_delta(
+        self,
+        user_id: str,
+        cash_delta: int = 0,
+        heat_delta: int = 0,
+    ) -> Dict:
+        """Apply cash/heat deltas and return the updated player state."""
+        profile = self.get_or_create_profile(user_id)
+        new_cash = max(0, int(profile.get('cash', 0)) + cash_delta)
+        new_heat = max(0, min(100, int(profile.get('heat', 0)) + heat_delta))
+
+        if self._dev_mode:
+            profile['cash'] = new_cash
+            profile['heat'] = new_heat
+            _mock_player_heat[user_id] = new_heat
+            _mock_profiles[user_id] = profile
+            return self.get_player_state(user_id)
+
+        try:
+            self._sb.table('profiles').update({
+                'cash': new_cash,
+                'heat': new_heat,
+            }).eq('id', user_id).execute()
+            profile['cash'] = new_cash
+            profile['heat'] = new_heat
+            return self.get_player_state(user_id)
+        except Exception as e:
+            logger.error(f"apply_economy_delta failed: {e}")
+            raise
+
+    def find_block_by_hash(self, block_hash: str) -> Optional[Dict]:
+        if self._dev_mode:
+            for block in _mock_blocks.values():
+                if block.get('block_hash') == block_hash:
+                    return block
+            return None
+        try:
+            result = (
+                self._sb.table('blocks')
+                .select('*')
+                .eq('block_hash', block_hash)
+                .limit(1)
+                .execute()
+            )
+            return result.data[0] if result.data else None
+        except Exception as e:
+            logger.error(f"find_block_by_hash failed: {e}")
+            return None
+
+    def save_placements(self, block_id: str, placements: List[Dict]) -> List[Dict]:
+        """Replace placements for a block and bump live revision."""
+        normalized = list(placements)
+        if self._dev_mode:
+            _mock_placements[block_id] = normalized
+            if block_id in _mock_blocks:
+                block = _mock_blocks[block_id]
+                block['placements'] = normalized
+                block['live_revision'] = int(block.get('live_revision', 0)) + 1
+                block['pending_income'] = int(block.get('pending_income', 0))
+                income = sum(int(p.get('incomePerTick') or p.get('income_per_tick') or 0) for p in normalized)
+                block['income_per_tick'] = income
+            return normalized
+
+        try:
+            self._sb.table('block_placements').delete().eq('block_id', block_id).execute()
+            rows = []
+            for p in normalized:
+                rows.append({
+                    'block_id': block_id,
+                    'member_id': p.get('memberId') or p.get('member_id'),
+                    'role': p.get('role'),
+                    'x': p.get('gridX', p.get('x')),
+                    'y': p.get('gridY', p.get('y')),
+                    'anchor_id': p.get('anchorId') or p.get('anchor_id'),
+                    'health': p.get('health', 100),
+                    'income_per_tick': p.get('incomePerTick') or p.get('income_per_tick') or 0,
+                    'payload': p,
+                })
+            if rows:
+                self._sb.table('block_placements').insert(rows).execute()
+            block = self.get_block(block_id)
+            if block:
+                rev = int(block.get('live_revision', 0)) + 1
+                self._sb.table('blocks').update({
+                    'live_revision': rev,
+                    'income_per_tick': sum(int(r.get('income_per_tick') or 0) for r in rows),
+                }).eq('id', block_id).execute()
+            return normalized
+        except Exception as e:
+            logger.error(f"save_placements failed: {e}")
+            raise
+
+    def get_placements(self, block_id: str) -> List[Dict]:
+        if self._dev_mode:
+            if block_id in _mock_placements:
+                return list(_mock_placements[block_id])
+            block = _mock_blocks.get(block_id) or {}
+            return list(block.get('placements') or [])
+        try:
+            result = (
+                self._sb.table('block_placements')
+                .select('*')
+                .eq('block_id', block_id)
+                .execute()
+            )
+            rows = result.data or []
+            out = []
+            for row in rows:
+                payload = row.get('payload') or {}
+                out.append({
+                    **payload,
+                    'memberId': row.get('member_id') or payload.get('memberId'),
+                    'role': row.get('role') or payload.get('role'),
+                    'gridX': row.get('x'),
+                    'gridY': row.get('y'),
+                    'anchorId': row.get('anchor_id') or payload.get('anchorId'),
+                    'health': row.get('health', 100),
+                    'incomePerTick': row.get('income_per_tick', 0),
+                })
+            return out
+        except Exception as e:
+            logger.error(f"get_placements failed: {e}")
+            return []
+
+    def collect_block_income(self, user_id: str, block_id: str) -> Optional[Dict]:
+        """Move pending_income to player cash. Returns {collected, player, block}."""
+        block = self.get_block(block_id)
+        if not block or block.get('owner_id') != user_id:
+            return None
+        pending = int(block.get('pending_income') or 0)
+        if pending <= 0:
+            player = self.get_player_state(user_id)
+            return {'collected': 0, 'player': player, 'block': block}
+
+        if self._dev_mode:
+            block['pending_income'] = 0
+            _mock_blocks[block_id] = block
+            player = self.apply_economy_delta(user_id, cash_delta=pending, heat_delta=0)
+            return {'collected': pending, 'player': player, 'block': block}
+
+        try:
+            self._sb.table('blocks').update({'pending_income': 0}).eq('id', block_id).execute()
+            player = self.apply_economy_delta(user_id, cash_delta=pending, heat_delta=0)
+            block['pending_income'] = 0
+            return {'collected': pending, 'player': player, 'block': block}
+        except Exception as e:
+            logger.error(f"collect_block_income failed: {e}")
+            raise
+
+    def tick_block_income(self, block_id: str) -> Optional[Dict]:
+        """Add income_per_tick into pending_income (world/earn step)."""
+        block = self.get_block(block_id)
+        if not block:
+            return None
+        income = int(block.get('income_per_tick') or block.get('income_per_hour') or 0)
+        pending = int(block.get('pending_income') or 0) + income
+        if self._dev_mode:
+            block['pending_income'] = pending
+            _mock_blocks[block_id] = block
+            return block
+        try:
+            self._sb.table('blocks').update({'pending_income': pending}).eq('id', block_id).execute()
+            block['pending_income'] = pending
+            return block
+        except Exception as e:
+            logger.error(f"tick_block_income failed: {e}")
             raise
 
     # ─── Paid access entitlements ─────────────────────────────────────────
@@ -127,9 +322,13 @@ class DBAdapter:
         gang_name: str = '',
         grid_data: Optional[Dict] = None,
         traffic_score: float = 0.5,
+        block_hash: str = '',
+        scene_manifest: Optional[Dict] = None,
+        heat_level: int = 0,
     ) -> Dict:
         """Claim a block for a user. Returns the created block record."""
         block_id = _make_id()
+        scene_version = f"scene-{block_id[:8]}-v1"
         block = {
             'id': block_id,
             'owner_id': user_id,
@@ -145,12 +344,20 @@ class DBAdapter:
             'grid_data': grid_data or {},
             'traffic_score': traffic_score,
             'income_per_hour': traffic_score * 10,
-            'heat_level': 0,
+            'income_per_tick': 0,
+            'pending_income': 0,
+            'heat_level': heat_level,
+            'block_hash': block_hash,
+            'scene_version': scene_version,
+            'scene_manifest': scene_manifest or {},
+            'live_revision': 1,
+            'placements': [],
             'claimed_at': _now(),
         }
 
         if self._dev_mode:
             _mock_blocks[block_id] = block
+            _mock_placements[block_id] = []
             return block
 
         try:

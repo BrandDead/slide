@@ -77,6 +77,13 @@ def create_app():
         logger.info("✓ Registered blocks blueprint")
     except Exception as e:
         logger.error(f"✗ Failed to register blocks blueprint: {e}")
+
+    try:
+        from api.player import player_bp
+        app.register_blueprint(player_bp)
+        logger.info("✓ Registered player blueprint")
+    except Exception as e:
+        logger.error(f"✗ Failed to register player blueprint: {e}")
     
     # Register other blueprints as they're implemented
     try:
