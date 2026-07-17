@@ -152,17 +152,34 @@ export const blocksApi = {
   },
 
   /** POST /api/blocks/claim */
-  claim: async (data: { block_hash: string; gang_name: string }) => {
-    const response = await apiClient.post<{ success: boolean; block: Block }>(
-      '/blocks/claim',
-      data,
+  claim: async (data: {
+    address: string;
+    coordinates?: { lat: number; lng: number };
+    lat?: number;
+    lng?: number;
+    city?: string;
+    gangName?: string;
+  }) => {
+    const response = await apiClient.post<{
+      success: boolean;
+      block: Record<string, unknown>;
+      player: { user_id: string; cash: number; heat: number; level: number; xp: number };
+      claimCost: number;
+    }>('/blocks/claim', data);
+    return response.data;
+  },
+
+  /** GET /api/blocks/my-blocks */
+  getOwned: async () => {
+    const response = await apiClient.get<{ blocks: Record<string, unknown>[]; count: number }>(
+      '/blocks/my-blocks',
     );
     return response.data;
   },
 
   /** GET /api/blocks/availability/<block_hash> */
   checkAvailability: async (blockHash: string) => {
-    const response = await apiClient.get<{ available: boolean; owner?: string }>(
+    const response = await apiClient.get<{ available: boolean; isAvailable?: boolean; owner?: string }>(
       `/blocks/availability/${blockHash}`,
     );
     return response.data;
@@ -170,14 +187,38 @@ export const blocksApi = {
 
   /** GET /api/blocks/<block_id> */
   getById: async (blockId: string) => {
-    const response = await apiClient.get<{ block: Block }>(`/blocks/${blockId}`);
-    return response.data.block;
+    const response = await apiClient.get<Record<string, unknown>>(`/blocks/${blockId}`);
+    return response.data;
   },
 
-  /** GET /api/blocks/my-blocks */
-  getOwned: async () => {
-    const response = await apiClient.get<{ blocks: Block[] }>('/blocks/my-blocks');
-    return response.data.blocks;
+  /** POST /api/blocks/:id/members/place */
+  placeMembers: async (blockId: string, placements: Record<string, unknown>[]) => {
+    const response = await apiClient.post<{
+      success: boolean;
+      placements: Record<string, unknown>[];
+      liveRevision: number;
+      incomePerTick: number;
+    }>(`/blocks/${blockId}/members/place`, { placements });
+    return response.data;
+  },
+
+  /** POST /api/blocks/:id/tick-income */
+  tickIncome: async (blockId: string) => {
+    const response = await apiClient.post<{ success: boolean; block: Record<string, unknown> }>(
+      `/blocks/${blockId}/tick-income`,
+    );
+    return response.data;
+  },
+
+  /** POST /api/blocks/:id/collect */
+  collect: async (blockId: string) => {
+    const response = await apiClient.post<{
+      success: boolean;
+      collected: number;
+      player: { cash: number; heat: number };
+      block: Record<string, unknown>;
+    }>(`/blocks/${blockId}/collect`);
+    return response.data;
   },
 
   /** GET /api/blocks/nearby?lat=&lng=&radius= */
@@ -506,6 +547,20 @@ export const worldApi = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PLAYER STATE (Gate 0B)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const playerApi = {
+  /** GET /api/player/state */
+  getState: async () => {
+    const response = await apiClient.get<{
+      player: { user_id: string; cash: number; heat: number; level: number; xp: number; username: string };
+    }>('/player/state');
+    return response.data.player;
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // EXPORT ALL
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -518,6 +573,7 @@ export const api = {
   gang: gangApi,
   alchemy: alchemyApi,
   world: worldApi,
+  player: playerApi,
 };
 
 export default api;

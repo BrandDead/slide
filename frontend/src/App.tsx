@@ -10,6 +10,7 @@ import { useGameLoop } from './utils/gameLoopEngine';
 import { useHeatDecay } from './hooks/useHeatDecay';
 import { useRaidCheck } from './hooks/useRaidCheck';
 import { useBlockSync } from './hooks/useBlockSync';
+import { useEmpireHydration } from './hooks/useEmpireHydration';
 import { useSoundManager } from './hooks/useSoundManager';
 import { useSalarySystem } from './hooks/useSalarySystem';
 import PayrollModal from './components/economy/PayrollModal';
@@ -111,6 +112,7 @@ const App: React.FC = () => {
   useHeatDecay();
   const { raidBlockId, clearRaid } = useRaidCheck();
   useBlockSync();
+  useEmpireHydration(Boolean(authUser) && authChecked);
   useSoundManager();
   const salarySystem = useSalarySystem();
   useNPCRetaliation();

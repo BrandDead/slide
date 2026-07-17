@@ -158,21 +158,38 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
   const activeEvent = selectedBlockId ? activeDriveBys[selectedBlockId] : undefined;
 
-  const handleCollect = useCallback(() => {
+  const handleCollect = useCallback(async () => {
     if (!selectedBlockId || !block) return;
-    const amount = collectIncome(selectedBlockId);
-    if (amount > 0) {
-      // Route collected income to Shoebox (bankBalance)
-      updatePlayer({ bankBalance: (player.bankBalance ?? 0) + amount });
-      showToast(`💰 Collected $${amount}!`);
-      soundManager.play('cash_register');
-      // Tutorial: first income collected
-      const reward = completeStep('first_income_collected');
-      if (reward.cashReward > 0) updateMoney(reward.cashReward);
-    } else {
-      showToast('No income to collect yet.');
+    try {
+      const { blocksApi } = await import('../../services/api.service');
+      const result = await blocksApi.collect(selectedBlockId);
+      if (result.collected > 0) {
+        updatePlayer({
+          money: result.player.cash,
+          heat: result.player.heat,
+          bankBalance: (player.bankBalance ?? 0) + result.collected,
+        });
+        // Mirror pendingIncome locally
+        collectIncome(selectedBlockId);
+        showToast(`💰 Collected $${result.collected}!`);
+        soundManager.play('cash_register');
+        const reward = completeStep('first_income_collected');
+        if (reward.cashReward > 0) updateMoney(reward.cashReward);
+      } else {
+        showToast('No income to collect yet.');
+      }
+    } catch {
+      // Fallback to local collect if backend offline
+      const amount = collectIncome(selectedBlockId);
+      if (amount > 0) {
+        updatePlayer({ bankBalance: (player.bankBalance ?? 0) + amount });
+        showToast(`💰 Collected $${amount}! (local)`);
+        soundManager.play('cash_register');
+      } else {
+        showToast('No income to collect yet.');
+      }
     }
-  }, [selectedBlockId, block, collectIncome, updateMoney, showToast, completeStep]);
+  }, [selectedBlockId, block, collectIncome, updateMoney, updatePlayer, player.bankBalance, showToast, completeStep]);
 
   const handleDeploy = useCallback(
     (memberId: string, memberName: string, role: string, level: number) => {
