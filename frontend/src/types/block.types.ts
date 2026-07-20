@@ -137,6 +137,14 @@ export interface DriveByEvent {
 
 // ─── Block Store State ───────────────────────────────────────
 
+/** Snapshot of the member being placed, captured at deploy time */
+export interface PendingPlacementMember {
+  memberId: string;
+  memberName: string;
+  role: MemberRole;
+  level: number;
+}
+
 export interface BlockStoreState {
   /** All blocks the player has claimed or is watching */
   blocks: Record<string, BlockData>;
@@ -148,6 +156,8 @@ export interface BlockStoreState {
   isPlacementMode: boolean;
   /** Member being dragged for placement */
   pendingPlacementMemberId: string | null;
+  /** Identity/role/level of the member being placed */
+  pendingPlacementMember: PendingPlacementMember | null;
 }
 
 export interface BlockStoreActions {
@@ -175,8 +185,8 @@ export interface BlockStoreActions {
   collectIncome: (blockId: string) => number;
   /** Tick income for all blocks (call from game loop) */
   tickIncome: () => void;
-  /** Set placement mode */
-  setPlacementMode: (active: boolean, memberId?: string) => void;
+  /** Set placement mode; pass the member snapshot when activating */
+  setPlacementMode: (active: boolean, member?: PendingPlacementMember) => void;
   /** Generate a default 8×8 grid for a block */
   generateDefaultGrid: () => BlockZone[][];
   /** Get all resolved drive-by events for news feed / replays */

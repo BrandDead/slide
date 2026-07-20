@@ -9,7 +9,12 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
-import type { BlockData, BlockViewMode } from '../../types/block.types';
+import type { BlockData, BlockViewMode, MemberRole } from '../../types/block.types';
+import {
+  getDefaultTopdownBgUrl,
+  getDefaultStreetBackdropUrl,
+  preloadBlockAssets,
+} from '../../services/assetResolver';
 import type { IncidentMember } from '../gang/BailModal';
 import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
@@ -37,6 +42,8 @@ function buildDefaultBlock(id: string, address: string): BlockData {
     members: 0,
     viewMode: 'topdown',
     pendingIncome: 0,
+    topdownBgUrl: getDefaultTopdownBgUrl(),
+    streetBackdropUrl: getDefaultStreetBackdropUrl(),
   };
 }
 
@@ -126,6 +133,11 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     setTimeout(() => setToast(null), duration);
   }, []);
 
+  // ── Warm block art (portraits, sprites, backdrops) ──
+  useEffect(() => {
+    preloadBlockAssets();
+  }, []);
+
   // ── Seed a default block if none exists ──
   useEffect(() => {
     const targetId = initialBlockId ?? 'home-block';
@@ -175,21 +187,18 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       }
       soundManager.play('ui_tap');
 
-      setPlacementMode(true, memberId);
+      setPlacementMode(true, {
+        memberId,
+        memberName,
+        role: role as MemberRole,
+        level,
+      });
       setShowDeployPanel(false);
       showToast(`📍 Tap a zone to place ${memberName}`);
       // Tutorial: first member deployed (fires on first successful placement intent)
       completeStep('first_member_deployed');
-      useBlockStore.setState((state) => {
-        const b = state.blocks[selectedBlockId];
-        if (!b) return state;
-        return {
-          ...state,
-          _pendingMemberData: { memberId, memberName, role, level },
-        } as any;
-      });
     },
-    [selectedBlockId, setPlacementMode, showToast, checkMoraleOnDeploy]
+    [selectedBlockId, setPlacementMode, showToast, checkMoraleOnDeploy, completeStep]
   );
 
   const handleDriveByResolved = useCallback(

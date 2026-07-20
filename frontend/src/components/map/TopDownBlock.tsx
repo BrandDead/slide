@@ -8,12 +8,25 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { BlockData, BlockZone, BlockPlacement, BlockZoneType } from '../../types/block.types';
 import { useBlockStore } from '../../stores/blockStore';
-import { GameSprite, getMemberFrame } from '../common/GameSprite';
+import { getPortraitUrl, getDefaultTopdownBgUrl } from '../../services/assetResolver';
 import './TopDownBlock.css';
 
 // ─── Zone styling ────────────────────────────────────────────
+// Cells are translucent tints over the block's top-down art so the
+// place reads through the tactical grid.
 
 const ZONE_COLORS: Record<BlockZoneType, string> = {
+  street:     'rgba(26, 26, 46, 0.30)',
+  curb:       'rgba(22, 33, 62, 0.32)',
+  sidewalk:   'rgba(15, 52, 96, 0.32)',
+  storefront: 'rgba(27, 67, 50, 0.34)',
+  alley:      'rgba(33, 37, 41, 0.42)',
+  parking:    'rgba(52, 58, 64, 0.34)',
+  rooftop:    'rgba(74, 25, 66, 0.38)',
+  building:   'rgba(8, 8, 10, 0.62)',
+};
+
+const ZONE_LEGEND_COLORS: Record<BlockZoneType, string> = {
   street:     '#1a1a2e',
   curb:       '#16213e',
   sidewalk:   '#0f3460',
@@ -89,11 +102,14 @@ const ZoneCell: React.FC<ZoneCellProps> = ({
           animate={{ scale: 1 }}
           exit={{ scale: 0 }}
         >
-          <GameSprite
-            sheet="gang_members"
-            frame={getMemberFrame(placement.role)}
-            size={28}
-            fallback={placement.role === 'dealer' ? '💊' : placement.role === 'shooter' ? '🔫' : '👤'}
+          <img
+            className="td-member-portrait"
+            src={placement.portraitUrl ?? getPortraitUrl(placement.role)}
+            alt={placement.memberName}
+            draggable={false}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
           />
           <span className="td-member-level" style={{ color: roleColor }}>
             {placement.level}
@@ -133,6 +149,7 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
     removeMemberFromBlock,
     isPlacementMode,
     pendingPlacementMemberId,
+    pendingPlacementMember,
     setPlacementMode,
     setBlockViewMode,
   } = useBlockStore();
@@ -154,18 +171,20 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
       // If we have a member pending placement
       if (isPlacementMode && pendingPlacementMemberId) {
         if (!zone.occupantId) {
-          // Place the member
+          // Place the member with the identity captured at deploy time
+          const role = pendingPlacementMember?.role ?? 'dealer';
           placeMember(block.id, {
             memberId: pendingPlacementMemberId,
-            memberName: 'Member',
-            role: 'dealer',
+            memberName: pendingPlacementMember?.memberName ?? 'Member',
+            role,
             x: zone.x,
             y: zone.y,
             zoneType: zone.zoneType,
             incomePerTick: 0,
             exposureRisk: zone.exposureRisk,
-            level: 1,
+            level: pendingPlacementMember?.level ?? 1,
             health: 100,
+            portraitUrl: getPortraitUrl(role),
           });
           setPlacementMode(false);
           setTooltip(`Placed on ${ZONE_LABELS[zone.zoneType]}`);
@@ -198,6 +217,7 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
       readOnly,
       isPlacementMode,
       pendingPlacementMemberId,
+      pendingPlacementMember,
       selectedZone,
       block.id,
       getPlacementAt,
@@ -235,8 +255,13 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
         </button>
       </div>
 
-      {/* Grid */}
-      <div className="td-grid">
+      {/* Grid over the block's top-down art */}
+      <div
+        className="td-grid has-bg"
+        style={{
+          backgroundImage: `url(${block.topdownBgUrl ?? getDefaultTopdownBgUrl()})`,
+        }}
+      >
         {block.grid.map((row, y) =>
           row.map((zone, x) => {
             const placement = getPlacementAt(x, y);
@@ -263,7 +288,7 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
           <span key={zt} className="td-legend-item">
             <span
               className="td-legend-dot"
-              style={{ backgroundColor: ZONE_COLORS[zt] }}
+              style={{ backgroundColor: ZONE_LEGEND_COLORS[zt] }}
             />
             {ZONE_LABELS[zt]}
           </span>

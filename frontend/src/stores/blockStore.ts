@@ -82,6 +82,7 @@ export const useBlockStore = create<BlockStore>()(
         activeDriveBys: {},
         isPlacementMode: false,
         pendingPlacementMemberId: null,
+        pendingPlacementMember: null,
 
         // ── Actions ──
         generateDefaultGrid,
@@ -272,10 +273,11 @@ export const useBlockStore = create<BlockStore>()(
             return { blocks: updatedBlocks };
           }),
 
-        setPlacementMode: (active, memberId) =>
+        setPlacementMode: (active, member) =>
           set({
             isPlacementMode: active,
-            pendingPlacementMemberId: memberId ?? null,
+            pendingPlacementMemberId: active ? member?.memberId ?? null : null,
+            pendingPlacementMember: active ? member ?? null : null,
           }),
 
         getResolvedDriveBys: () => {
