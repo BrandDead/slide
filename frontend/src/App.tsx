@@ -3,7 +3,7 @@
 // Sprint 8: Auth, Salary System, NPC Retaliation, new screens
 // ============================================================
 
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
@@ -16,7 +16,9 @@ import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import { supabase } from './services/supabase';
+import type { User } from '@supabase/supabase-js';
 import type { GangProfile } from './types/game.types';
+import { isAccountSwitch, toPlayerIdentity } from './utils/authPlayer';
 
 // Layout
 import OSShell from './components/layout/OSShell';
@@ -31,6 +33,7 @@ import TerritoryMap from './components/map/TerritoryMap';
 import Onboarding from './components/onboarding/Onboarding';
 import SettingsPage from './components/settings/SettingsPage';
 import AuthScreen from './components/auth/AuthScreen';
+import AgeGate, { hasAgeAffirmation } from './components/compliance/AgeGate';
 
 // Lazy-loaded mini-games and heavy screens
 const SlideGame         = React.lazy(() => import('./components/slide/SlideGame'));
@@ -72,10 +75,30 @@ const pageVariants = {
 // ─── App ──────────────────────────────────────────────────────
 const App: React.FC = () => {
   const { currentApp } = useNavigationStore();
-  const { player, updatePlayer } = usePlayerStore();
+  const { player, updatePlayer, logout } = usePlayerStore();
   const [showOnboarding, setShowOnboarding] = useState(!player?.gangProfile);
-  const [authUser, setAuthUser] = useState<any>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [ageAffirmed, setAgeAffirmed] = useState(() => hasAgeAffirmation());
+
+  const hydrateAuthenticatedPlayer = useCallback((user: User | null) => {
+    setAuthUser(user);
+    if (!user) return;
+
+    const cachedPlayer = usePlayerStore.getState().player;
+    const switchedAccounts = isAccountSwitch(cachedPlayer.id, user.id);
+
+    if (switchedAccounts) {
+      // Player persistence predates account-scoped storage. Reset the player profile
+      // rather than leaking the previous account's gang, money, or progression.
+      logout();
+    }
+
+    updatePlayer(toPlayerIdentity(user));
+
+    const hydratedPlayer = usePlayerStore.getState().player;
+    setShowOnboarding(switchedAccounts || !hydratedPlayer.gangProfile);
+  }, [logout, updatePlayer]);
 
   // Core game systems
   const gameLoop = useGameLoop();
@@ -91,14 +114,14 @@ const App: React.FC = () => {
   // Check Supabase auth session on mount
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthUser(session?.user ?? null);
+      hydrateAuthenticatedPlayer(session?.user ?? null);
       setAuthChecked(true);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthUser(session?.user ?? null);
+      hydrateAuthenticatedPlayer(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [hydrateAuthenticatedPlayer]);
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
@@ -157,6 +180,11 @@ const App: React.FC = () => {
     }
   };
 
+  // Mature-content notice must be accepted before account creation or gameplay.
+  if (!ageAffirmed) {
+    return <AgeGate onConfirm={() => setAgeAffirmed(true)} />;
+  }
+
   // Show loading while checking auth
   if (!authChecked) {
     return (
@@ -168,7 +196,7 @@ const App: React.FC = () => {
 
   // Show auth screen if not logged in
   if (!authUser) {
-    return <AuthScreen onAuthSuccess={(user) => setAuthUser(user)} />;
+    return <AuthScreen onAuthSuccess={hydrateAuthenticatedPlayer} />;
   }
 
   // Show onboarding if gang not set up yet
