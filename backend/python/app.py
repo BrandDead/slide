@@ -115,6 +115,16 @@ def create_app():
     except Exception as e:
         logger.error(f"✗ Failed to register driveby blueprint: {e}")
     
+    # Paid access entitlement status (read-only for authenticated players)
+    try:
+        from api.entitlements import entitlements_bp
+        app.register_blueprint(entitlements_bp)
+        logger.info("✓ Registered entitlements blueprint")
+    except ImportError:
+        logger.warning("Entitlements blueprint not found - paid access disabled")
+    except Exception as e:
+        logger.error(f"✗ Failed to register entitlements blueprint: {e}")
+
     # Art generation blueprint
     try:
         from routes.art import art_bp
