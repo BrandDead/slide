@@ -1,5 +1,9 @@
 # AGENTS.md
 
+> **Start here:** `docs/PROJECT_LOG.md` is the running record of decisions, current
+> direction, active roadmap order, and rollback anchors. Read it before starting work
+> and append a dated entry when you land meaningful changes.
+
 ## Cursor Cloud specific instructions
 
 This repo is **DEALT / SLIDE**, an iOS-style urban-warfare game with two services:

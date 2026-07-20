@@ -1,0 +1,364 @@
+{
+  "root": "/home/ubuntu/slide-audit/frontend/public/assets",
+  "asset_count": 86,
+  "total_bytes": 289562856,
+  "extensions": {
+    ".jpg": 6,
+    ".png": 80
+  },
+  "dimensions": {
+    "1536x2752": 1,
+    "1920x1071": 3,
+    "1920x1920": 25,
+    "800x536": 1,
+    "1536x2304": 18,
+    "2560x1440": 9,
+    "2048x2048": 10,
+    "512x512": 12,
+    "1920x814": 3,
+    "2752x1536": 4
+  },
+  "modes": {
+    "RGB": 44,
+    "RGBA": 42
+  },
+  "alpha_asset_count": 42,
+  "fully_opaque_alpha_assets": [],
+  "high_green_fringe_assets": [
+    {
+      "path": "generated/characters/street/character_dealer_male_street_aim_v001.png",
+      "green_fringe_fraction": 0.430717
+    },
+    {
+      "path": "generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png",
+      "green_fringe_fraction": 0.41516
+    },
+    {
+      "path": "generated/characters/street/character_enforcer_male_street_idle_v001.png",
+      "green_fringe_fraction": 0.116864
+    },
+    {
+      "path": "icons/icon_cook.png",
+      "green_fringe_fraction": 0.084795
+    },
+    {
+      "path": "generated/characters/street/character_dealer_male_street_hit_v001.png",
+      "green_fringe_fraction": 0.068221
+    },
+    {
+      "path": "generated/characters/street/character_shooter_male_street_hit_v001.png",
+      "green_fringe_fraction": 0.059406
+    },
+    {
+      "path": "icons/icon_shoebox.png",
+      "green_fringe_fraction": 0.037425
+    },
+    {
+      "path": "generated/characters/street/character_dealer_male_street_downed_v001.png",
+      "green_fringe_fraction": 0.010627
+    },
+    {
+      "path": "generated/characters/topdown/character_shooter_male_topdown_v001.png",
+      "green_fringe_fraction": 0.002442
+    },
+    {
+      "path": "generated/characters/street/character_shooter_male_street_downed_v001.png",
+      "green_fringe_fraction": 0.001551
+    }
+  ],
+  "largest_assets": [
+    {
+      "path": "sprites/weapons.png",
+      "bytes": 7441883,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "generated/environments/topdown/block_stripplaza_topdown_v001.png",
+      "bytes": 6939268,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "sprites/terrain.png",
+      "bytes": 6382528,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "icons/icon_ops.png",
+      "bytes": 6022611,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "sprites/gang_members.png",
+      "bytes": 5912513,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "icons/icon_map.png",
+      "bytes": 5906190,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "generated/characters/portraits/character_enforcer_male_portrait_v002.png",
+      "bytes": 5887691,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "generated/characters/portraits/character_enforcer_male_portrait_v001.png",
+      "bytes": 5881853,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "icons/icon_shoebox.png",
+      "bytes": 5878637,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "sprites/drugs.png",
+      "bytes": 5874710,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "icons/icon_casino.png",
+      "bytes": 5836949,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "generated/characters/portraits/character_dealer_male_blacktee_portrait_v001.png",
+      "bytes": 5791691,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "icons/icon_market.png",
+      "bytes": 5704197,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "icons/icon_dealt.png",
+      "bytes": 5658587,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "icons/icon_settings.png",
+      "bytes": 5629597,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "icons/icon_crew.png",
+      "bytes": 5588636,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "icons/icon_slide.png",
+      "bytes": 5563172,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "generated/characters/portraits/character_shooter_male_portrait_v001.png",
+      "bytes": 5380641,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "icons/icon_cook.png",
+      "bytes": 5327535,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "generated/characters/street/character_dealer_male_street_aim_v001.png",
+      "bytes": 5229886,
+      "width": 1536,
+      "height": 2304
+    },
+    {
+      "path": "generated/environments/street/block_stripplaza_day_street_v001.png",
+      "bytes": 5175719,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png",
+      "bytes": 5036734,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "generated/environments/street/block_stripplaza_night_street_v001.png",
+      "bytes": 5016940,
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "path": "generated/ui/icons/icon_news_v001.png",
+      "bytes": 4942282,
+      "width": 1920,
+      "height": 1920
+    },
+    {
+      "path": "generated/characters/street/character_shooter_male_street_hit_v001.png",
+      "bytes": 4903415,
+      "width": 1536,
+      "height": 2304
+    }
+  ],
+  "topdown_assets": [
+    {
+      "path": "generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 2870410,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/characters/topdown/character_driver_male_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 3324098,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "transparent_fraction": 0.744794,
+      "partial_alpha_fraction": 0.008477,
+      "green_fringe_fraction": 0.000572,
+      "opaque_black_fraction": 0.025307
+    },
+    {
+      "path": "generated/characters/topdown/character_driver_male_topdown_v001_original.png",
+      "extension": ".png",
+      "bytes": 3391349,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/characters/topdown/character_enforcer_male_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 3083702,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/characters/topdown/character_lookout_female_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 3547342,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "transparent_fraction": 0.774324,
+      "partial_alpha_fraction": 0.012473,
+      "green_fringe_fraction": 0.00093,
+      "opaque_black_fraction": 0.015675
+    },
+    {
+      "path": "generated/characters/topdown/character_lookout_female_topdown_v001_original.png",
+      "extension": ".png",
+      "bytes": 3550408,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/characters/topdown/character_shooter_male_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 2971161,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGBA",
+      "has_alpha": true,
+      "transparent_fraction": 0.807531,
+      "partial_alpha_fraction": 0.01018,
+      "green_fringe_fraction": 0.002442,
+      "opaque_black_fraction": 0.019439
+    },
+    {
+      "path": "generated/characters/topdown/character_shooter_male_topdown_v001_original.png",
+      "extension": ".png",
+      "bytes": 3114983,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/environments/topdown/block_stripplaza_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 6939268,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    },
+    {
+      "path": "generated/vehicles/topdown/vehicle_luxury_sedan_black_topdown_v001.png",
+      "extension": ".png",
+      "bytes": 2786405,
+      "width": 1920,
+      "height": 1920,
+      "aspect_ratio": 1.0,
+      "mode": "RGB",
+      "has_alpha": false,
+      "transparent_fraction": 0.0,
+      "partial_alpha_fraction": 0.0,
+      "green_fringe_fraction": 0.0,
+      "opaque_black_fraction": 0.0
+    }
+  ],
+  "errors": []
+}

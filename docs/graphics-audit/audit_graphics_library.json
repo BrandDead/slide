@@ -1,0 +1,564 @@
+{
+  "results": [
+    {
+      "input": "/home/ubuntu/slide-audit/DEV_PLAN_FORWARD.md",
+      "output": {
+        "graphics_intent": "The game currently uses emoji sprites and aims to upgrade to 64x64 pixel art sprites for all game entities. It also plans to generate custom app icons with a dark theme and neon accent colors. The DriveByEngine canvas will be upgraded to use sprite-based rendering with parallax scrolling and particle effects.",
+        "important_evidence": "L36: Game uses emoji sprites; needs pixel art or AI-generated assets; L49-L54: Create a sprite system that replaces emoji with pixel art assets; L56-L59: Generate custom app icons for the iOS desktop... Dark theme, neon accent colors; L62-L66: Upgrade the DriveByEngine canvas to use sprite-based rendering... Add parallax scrolling background layers... Add muzzle flash and explosion particle effects",
+        "mechanism": "The current implementation uses emoji sprites. The proposed mechanism involves generating 64x64 pixel art sprites, building a SpriteAtlas utility, and creating a GameSprite React component. The DriveByEngine canvas will load sprite sheets, replace rectangle drawing with sprite blitting, and add parallax scrolling and particle effects.",
+        "relevance_score": 90,
+        "reuse_recommendation": "The proposed SpriteAtlas utility and GameSprite React component should be retained for efficient rendering. The DriveByEngine canvas upgrade with sprite blitting and parallax scrolling should be adapted for the future graphics architecture.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/DEV_PLAN_FORWARD.md",
+        "visual_risks": "The current game relies on placeholder emoji sprites, which is a significant quality risk for a professional game. The transition to pixel art requires a consistent art direction and asset generation pipeline, which may be challenging to maintain across all entities and icons."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/NEXT_DEV_PLAN.md",
+      "output": {
+        "graphics_intent": "The game intends a GTA-style dark cinematic visual overhaul with a gritty, visceral feel. It features procedural blood splatters, glass breaking, and screen shake via the ImpactEngine. The graphics use AI-generated assets replacing old emoji placeholders.",
+        "important_evidence": "GTA-style dark cinematic visual overhaul combined with the ImpactEngine (blood splatters, glass breaking, screen shake) (L14-L15); DriveByEngine and TopDownShooter modes provide fast-paced action (L15); Graphics are significantly better following the integration of the AI-generated Batch 1-4 assets (replacing the old emoji placeholders) (L15-L16); Optimize the ImpactEngine and CanvasStreetRenderer to maintain 60 FPS on mid-tier phones (L50)",
+        "mechanism": "The game uses an ImpactEngine for procedural effects like blood splatters, glass breaking, and screen shake. It features a CanvasStreetRenderer for rendering. It includes a DriveByEngine and TopDownShooter mode for action sequences. Mapbox GL JS is integrated for the Territory Map.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the ImpactEngine for procedural effects and the CanvasStreetRenderer. Keep the AI-generated assets and the Mapbox GL JS integration for the territory map.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/NEXT_DEV_PLAN.md",
+        "visual_risks": "Performance risks exist on mobile devices, requiring optimization of the ImpactEngine and CanvasStreetRenderer to maintain 60 FPS on mid-tier phones."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/ELEMENTS_NEEDING_WORK.md",
+      "output": {
+        "graphics_intent": "The file outlines a roadmap for integrating Mapbox for satellite imagery and real-world location display, as well as using Banana Nano for AI generation of building images. It also mentions a UI shell and combat systems (SLIDE vs AI/players) but focuses primarily on backend and systems integration rather than detailed art direction.",
+        "important_evidence": "Mapbox API integration for satellite imagery (L104); Satellite imagery display to show real location (L107); Banana Nano integration for AI asset generation (L112); Building image generation via prompts (L113); SLIDE vs AI opponents works locally (L76); UI shell is marked as DONE (L151).",
+        "mechanism": "The document proposes using Mapbox API for geocoding and satellite imagery display to represent real-world locations. It also proposes using Banana Nano API to generate building images based on prompts, with a caching system for asset hashes to prevent regeneration.",
+        "relevance_score": 60,
+        "reuse_recommendation": "The proposed integration of Mapbox for satellite imagery and Banana Nano for AI building generation should be evaluated for feasibility and cost in the future graphics architecture. The existing UI shell and local combat engine can be retained as a foundation.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/docs/ELEMENTS_NEEDING_WORK.md",
+        "visual_risks": "The reliance on AI generation (Banana Nano) for building images poses a risk of inconsistent visual quality and style. The real-world location system (Mapbox) and AI asset generation are marked as low priority (Post-Beta), meaning the Beta launch will likely rely on placeholder or pre-generated assets (fake blocks), which could impact early visual fidelity."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/GAMEPLAY_EXPLANATION.md",
+      "output": {
+        "graphics_intent": "The file outlines a mobile-first urban warfare RPG with a top-down perspective and various mini-games, including an iOS-style desktop shell, a territory map, an 8x8 tactical block grid, and a drive-by FPS. It intends to transition from CSS grids to a WebGL rendering engine and incorporate AI-generated GTA-style assets.",
+        "important_evidence": "iOS-style desktop shell (OSShell) with app icons (L30); Territory Map with Mapbox GL (L31); 8x8 tactical block grid (TopDownBlock + BlockModeView) (L32); Drive-By FPS (canvas + parallax, from car perspective) (L35); Top-Down Shooter (Clash-of-Clans-style block assault) (L36); PixiJS rendering engine (replace CSS grids with WebGL) (L60); AI-generated assets (GTA-style sprites, tiles, portraits via Nano Banana/Scenario) (L62); First-person drive-by (inside-the-car FPS with window roll-down mechanic) (L63)",
+        "mechanism": "Currently uses React, TailwindCSS, Mapbox GL JS, and Framer Motion for UI and animations, with CSS grids for the tactical block grid and canvas with parallax for the drive-by FPS. It proposes replacing CSS grids with PixiJS for WebGL rendering, adding Matter.js for physics (bullet ballistics, vehicle damage, ragdoll), and using Nano Banana/Scenario for AI-generated assets.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox GL integration for the territory map and the Framer Motion animations. The proposed transition to PixiJS and Matter.js should be evaluated for performance and feasibility in the future graphics architecture.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/docs/GAMEPLAY_EXPLANATION.md",
+        "visual_risks": "The current reliance on CSS grids for the tactical block grid may pose performance and scalability risks, which the proposed transition to PixiJS aims to address. The reliance on AI-generated assets (Nano Banana/Scenario) introduces potential quality and consistency risks."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/GAME_DESIGN_BIBLE_PART1.md",
+      "output": {
+        "graphics_intent": "The file intends a mobile-first urban RPG with a mix of first-person and top-down perspectives. The Drive-By Engine features a first-person view from inside a moving car with scrolling street backgrounds and tinted windows. The Block Assault mode uses a top-down tactical view reminiscent of Clash of Clans. The UI relies heavily on emojis for member status.",
+        "important_evidence": "First-person view from inside a moving car (L13); Block scrolls past car windows (L13); Shooter's window is tinted and starts rolled up (L22); Top-down tactical view for Block Assault (L59); Member visually present at exact placed location (L28); Emojis used for member status (L186-L194).",
+        "mechanism": "The Drive-By Engine renders a scrolling street from a fixed first-person perspective inside a car, with mechanics for rolling down tinted windows to shoot. The Block Assault mode shifts to a top-down tactical camera for directing units. The game also includes a grid-based tactical mode (SLIDE) using cars and guns. Visual representation of characters on the block corresponds to their strategic placement.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the dual-perspective approach (first-person vehicle interior and top-down tactical). The scrolling street background mechanism and window-tinting mechanics should be adapted for the Drive-By Engine. The emoji-based UI status system is a lightweight approach that could be retained or adapted for mobile.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/GAME_DESIGN_BIBLE_PART1.md",
+        "visual_risks": "The transition between first-person scrolling and top-down tactical views may be jarring without proper visual continuity. The SLIDE mini-game mechanics are marked as TBD (L183), indicating placeholder or incomplete design. Relying on emojis for UI might clash with a gritty urban art direction."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/DEALT_SLIDE_MVP_STRUCTURE.md",
+      "output": {
+        "graphics_intent": "The game intends a hybrid visual style combining 100% hyper-realistic standard items with futuristic neon glow effects for super items. It features a dark theme with neon accents, iOS-style glassmorphism UI, and photo-realistic urban street scenes. Characters are hyper-realistic portraits with dramatic lighting, while weapons use 8K studio lighting aesthetics.",
+        "important_evidence": "Hybrid Style Approach: Standard Items: 100% hyper-realistic... Super Items: 80% realistic + 20% futuristic glow effects (L307-L309); Drive-By (FPS) - First-person shooting from vehicle ✓ (L258); AI Asset Generation - On-demand graphics via Banana Nano (needs full integration) (L264); Mapbox GL JS integration in MapView.tsx (L277); Fallback (if image analysis fails): Generate procedural grid using Perlin noise (L614-L615)",
+        "mechanism": "Uses Mapbox GL JS for satellite/streets hybrid map views and PostGIS for geospatial data. Employs Phaser 3 for Battleship-style grid combat and first-person Drive-By shooting with parallax scrolling. Integrates Banana Nano API for on-demand AI generation of characters, weapons, and environments. Uses Cloudinary for user photo cropping, background removal, and AI enhancement.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox GL JS integration for real-world territory mapping and Phaser 3 for 2D combat rendering. Isolate and replace the on-demand Banana Nano AI generation with a pre-generated or heavily cached asset pipeline to ensure style consistency and reduce latency. Adapt the user photo upload system to enforce stricter visual filters before AI enhancement.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/docs/DEALT_SLIDE_MVP_STRUCTURE.md",
+        "visual_risks": "On-demand AI asset generation via Banana Nano risks high latency, API rate limits, and inconsistent art styles across characters and weapons. The grid generator relies on basic satellite image processing to detect buildings and streets, which may fail and fallback to Perlin noise, risking visual and gameplay inconsistency. Mixing user-uploaded photos with AI enhancements may lead to uncanny or mismatched character portraits."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/ARCHITECTURE.md",
+      "output": {
+        "graphics_intent": "The game intends to use a top-down Mapbox satellite, Street View, and 3D Tiles as visual 'Recon' views to render the real-world geography of a claimed block. These visual views are strictly read-only overlays and do not affect gameplay mechanics.",
+        "important_evidence": "Visual \"Recon\" views (top-down Mapbox satellite, Street View, 3D Tiles) are read-only overlays that render the real-world geography of a claimed block L253-L254; They never affect game mechanics L254",
+        "mechanism": "The game uses an 8x8 block grid generated by grid_generator.py as the authoritative game state for mechanics. Visuals are provided via Mapbox API for geocoding and map visualization, acting as read-only overlays over the gameplay grid.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the clear separation between the authoritative gameplay grid and the read-only visual overlays. The Mapbox integration for real-world geography visualization should be kept as it provides the intended 'Recon' aesthetic without complicating game logic.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/docs/ARCHITECTURE.md",
+        "visual_risks": "None material"
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/AI_MODEL_PROMPTS.md",
+      "output": {
+        "graphics_intent": "The file intends a dark-themed, top-down territory map using Mapbox, with specific color overlays for territory control (green/red/yellow). It also describes an iOS-style UI shell with a dark gradient background, glass morphism effects, and app icons arranged in a grid.",
+        "important_evidence": "Dark theme (mapbox://styles/mapbox/dark-v11) (L88); Territory overlays (green=yours, red=enemy, yellow=contested) (L89); Tile type colors: STREET: #2a2a2a, SIDEWALK: #3a3a3a, BUILDING: #1a1a1a, ALLEY: #333333, CORNER: #4a4a4a (L109-L114); Show deployed members as circular avatars on their tiles (L115); The game UI looks like an iOS home screen: Dark gradient background, App icons arranged in a grid (L266-L268); Glass Morphism Effect (L461-L467)",
+        "mechanism": "Uses Mapbox GL JS for the main map view with GeoJSON layers for territory polygons. Implements an 8x8 visual grid overlay for block editing. Uses Framer Motion for UI animations like tap scaling and page transitions. Employs CSS variables and Tailwind CSS for styling.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox integration and GeoJSON layer approach for territory visualization. The iOS-style UI shell with Framer Motion animations provides a solid foundation for mobile-first game navigation and should be adapted.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/AI_MODEL_PROMPTS.md",
+        "visual_risks": "The reliance on CSS variables and basic shapes (circular avatars) for the 8x8 grid might result in a visually simplistic or placeholder-like appearance compared to a fully rendered 3D or high-fidelity 2D environment. The iOS UI shell might feel too much like a standard app rather than an immersive game."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/FABLE_5_MASTER_PROMPT.md",
+      "output": {
+        "graphics_intent": "The new art direction is GTA V Cel-Shaded Semi-Realistic with bold ink outlines, gritty urban textures, and dramatic neon lighting. It aims to move away from abstracted CSS grids and pixelated emoji tokens to a premium, high-fidelity visual experience.",
+        "important_evidence": "Migrate Rendering to PixiJS (L29); Dynamic Isometric/Top-Down Grids using high-res textured tiles (L30); Character Sprites using animated 2D skeletal sprites (L31); Lighting Engine with 2D normal mapping and dynamic lighting (L32); Integrate Matter.js or Planck.js for physics (L42); Ballistics as physical projectiles (L44); Ragdoll \u0026 Kinematics for gang members (L45); Particle Systems for shell casings, smoke, and blood (L46).",
+        "mechanism": "The rendering engine is proposed to be migrated to PixiJS for dynamic isometric/top-down grids and animated 2D skeletal sprites. A 2D physics engine (Matter.js or Planck.js) is proposed to be integrated for vehicle physics, physical projectile ballistics, and 2D ragdoll physics. Dynamic lighting with 2D normal mapping and particle systems are also proposed.",
+        "relevance_score": 95,
+        "reuse_recommendation": "The proposed PixiJS and Matter.js integration for rendering and physics should be evaluated for feasibility and performance. The shift to a GTA V Cel-Shaded Semi-Realistic art style should be retained as a target for the visual overhaul.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/FABLE_5_MASTER_PROMPT.md",
+        "visual_risks": "The proposed integration of PixiJS and Matter.js may introduce significant technical debt and performance issues if not implemented carefully. The transition from CSS grids to a full 2D rendering and physics engine is a major architectural shift that requires thorough testing and optimization."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/SLIDE_GLM52_CANVAS_LEADERBOARD_PROMPT.md",
+      "output": {
+        "graphics_intent": "The file intends to upgrade the game's rendering system from DOM-based (divs and imgs) to an HTML5 canvas-based system for better performance and visual fidelity during active combat phases. It aims to implement parallax scrolling backgrounds, sprite rendering for characters, animated vehicles, and particle effects for muzzle flashes and hit sparks.",
+        "important_evidence": "Upgrade the DriveByEngine and StreetBlock to use an HTML5 \u003ccanvas\u003e based rendering system instead of DOM nodes (L10); Parallax scrolling background (sky, buildings, storefront) (L24); Sprite rendering for members using the existing GameSprite logic (L25); Car rendering animating across the screen based on the DriveByPhase (L26); Muzzle flash and hit spark particle effects using simple canvas arc drawing (L27); Character sprite sheet is 4 columns x 1 row. Image URL: '/assets/sprites/gang_members.png' (L67).",
+        "mechanism": "The proposed mechanism involves a generic CanvasStreetRenderer component that takes block data and drive-by event state to render them onto a single canvas. It uses requestAnimationFrame for the render loop and handles click events on the canvas to trigger defensive shots. The rendering includes parallax backgrounds, sprite sheets for characters, and simple canvas arc drawing for particle effects.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The proposed canvas-based rendering architecture should be retained and adapted as it addresses layout thrashing issues with the DOM-heavy approach. The sprite mapping logic and parallax scrolling concepts are solid foundations for the future graphics architecture.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/SLIDE_GLM52_CANVAS_LEADERBOARD_PROMPT.md",
+        "visual_risks": "The file indicates a current risk of layout thrashing during active combat phases due to the DOM-heavy approach (L19). The proposed particle effects using simple canvas arc drawing might be a placeholder behavior that lacks the visual fidelity expected in a professional game-graphics audit."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/SLIDE_GLM52_DESTRUCTION_ENGINE_PROMPT.md",
+      "output": {
+        "graphics_intent": "The file intends to create a high-performance Canvas Destruction \u0026 Impact Engine for an urban warfare RPG. It aims for a luxury-noir aesthetic with stylized 2.5D blood effects, environmental destruction like glass shards and concrete dust, and high-velocity sparks.",
+        "important_evidence": "L9: You are building a high-performance Canvas Destruction \u0026 Impact Engine for the SLIDE / DEALT urban warfare RPG; L11: We recently upgraded our DriveByEngine to use an HTML5 canvas renderer; L29: We need stylized, 2.5D appropriate blood effects; L75: Keep the gore stylized (dark red, fast fade, high velocity) to match the luxury-noir aesthetic.",
+        "mechanism": "The mechanism is a pure TypeScript class `ImpactEngine` that takes a `CanvasRenderingContext2D` and a `deltaTime`. It uses an HTML5 canvas renderer and requires typed arrays (`Float32Array`) or object pooling to handle thousands of particles efficiently without garbage collection pauses. It implements particle physics including gravity, friction, air resistance, and ground bouncing.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The HTML5 canvas renderer and object pooling approach for particle systems should be retained for performance. The stylized 2.5D particle effects (blood, glass, sparks) should be adapted to fit the luxury-noir aesthetic in future graphics architectures.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/SLIDE_GLM52_DESTRUCTION_ENGINE_PROMPT.md",
+        "visual_risks": "The reliance on a 2D canvas renderer for a 2.5D aesthetic might limit depth perception and visual fidelity. There is a risk of performance degradation if the object pooling or typed arrays are not implemented correctly, leading to garbage collection pauses during heavy combat."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/SLIDE_OLLAMA_BULLETCAM_PROMPT.md",
+      "output": {
+        "graphics_intent": "The file intends to create a cinematic \"bullet-cam\" replay engine for critical shots, similar to Sniper Elite. It features slow-motion bullet travel with speed lines, an X-Ray impact mode with high contrast, and stylized bone/organ fractures. It also proposes a secondary grainy CCTV security camera perspective.",
+        "important_evidence": "Proposes a Bullet-Cam Renderer overlaying the screen on critical hits (L19-L20); Specifies three phases: Travel with radial blur, Impact/X-Ray, and Damage with stylized fractures (L21-L24); Requires standard HTML5 Canvas API, explicitly forbidding Three.js or WebGL (L61); Suggests ctx.filter for the X-Ray effect (L62).",
+        "mechanism": "The mechanism relies on the standard HTML5 CanvasRenderingContext2D API, explicitly avoiding WebGL or Three.js. It uses a state machine to manage the animation timeline from travel to impact. The X-Ray effect is achieved using canvas filters like invert and contrast.",
+        "relevance_score": 75,
+        "reuse_recommendation": "The state machine concept for managing replay timelines should be retained. The rendering mechanism should be adapted to use a proper WebGL shader pipeline instead of standard 2D canvas filters for better quality.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/SLIDE_OLLAMA_BULLETCAM_PROMPT.md",
+        "visual_risks": "Relying solely on the 2D Canvas API and CSS filters for complex cinematic effects like X-Ray and stylized fractures may result in low visual fidelity. The lack of a 3D engine contradicts the ambition of a \"Sniper Elite\" style bullet-cam."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/SLIDE_OLLAMA_SECURITYCAM_PROMPT.md",
+      "output": {
+        "graphics_intent": "The file intends to create a grainy, black-and-white security camera replay of drive-bys and altercations from a high-angle, third-party civilian perspective. It aims for a high contrast look with heavy film grain, static noise, scanlines, and overlays like a blinking REC indicator and timestamp.",
+        "important_evidence": "L11: watch replays of drive-bys and altercations from a \"third-party\" civilian perspective — specifically, a grainy, black-and-white security camera; L20: A \u003ccanvas\u003e component that takes an array of DriveByEvent data and replays the entire sequence from a high-angle perspective; L21: Visual Style: Black and white, high contrast, heavy film grain / static noise, scanlines; L70: For the film grain, generate a static noise pattern once on an off-screen canvas and draw it over the main canvas with globalAlpha = 0.1 and a random offset every frame",
+        "mechanism": "The mechanism is a React `\u003ccanvas\u003e` component (`SecurityCamRenderer.tsx`) that replays `DriveByEvent` data. It uses an off-screen canvas to generate a static noise pattern once, which is then drawn over the main canvas with `globalAlpha = 0.1` and a random offset every frame to simulate film grain efficiently.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The off-screen canvas noise generation technique is highly efficient and should be retained for any CCTV or grainy effects. The overall concept of replaying event data via a canvas renderer can be adapted for other in-game replay systems.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/SLIDE_OLLAMA_SECURITYCAM_PROMPT.md",
+        "visual_risks": "The prompt asks an LLM to generate the renderer, which carries a high risk of placeholder or unoptimized code if not reviewed. The 2D canvas approach for replaying 3D or complex event data might lack visual fidelity or fail to accurately represent the game world if the event data (`DriveByEvent`) lacks sufficient spatial context."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/prompts/PROMPT_1_SLIDE_COMBAT_UI.md",
+      "output": {
+        "graphics_intent": "The file intends a Battleship-style grid combat UI with a dark theme, glass morphism effects, and specific accent colors. It specifies a dual-grid architecture (8x8 macro, 16x16 micro) with distinct terrain and vehicle part colors, and uses Framer Motion for cell reveal, hit flash, and miss splash animations.",
+        "important_evidence": "Dual-grid architecture (8x8 macro, 16x16 micro) (L11); Dark theme with specific colors (L183); Grid cell sizes and hover glow (L184); Terrain colors (L185); Unit icons (L186); Vehicle part colors (L187); Framer Motion animations for reveal, hit, and miss (L188); Responsive grid scaling (L189)",
+        "mechanism": "The UI is built with React 18, TypeScript, Tailwind CSS, and Framer Motion. It renders an 8x8 macro grid for the block and a 16x16 micro grid for the vehicle, with cells colored based on terrain or vehicle part. Animations include scaling for cell reveal, red pulse for hits, and blue ripple for misses.",
+        "relevance_score": 80,
+        "reuse_recommendation": "The dual-grid concept and specific color palettes for terrain and vehicle parts should be retained for consistency. The Framer Motion animation definitions (scale, pulse, ripple) can be adapted for other grid-based interactions.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/prompts/PROMPT_1_SLIDE_COMBAT_UI.md",
+        "visual_risks": "The use of emoji for unit icons (L186) is a placeholder behavior that poses a quality risk for a professional game UI. The fixed pixel sizes for grid cells (40px and 24px) combined with responsive scaling (L189) might lead to layout contradictions or blurry rendering on different screen sizes."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/prompts/PROMPT_3_TERRITORY_MAP_UI.md",
+      "output": {
+        "graphics_intent": "The file intends to create a dark-themed, real-world map interface where players can view and claim city blocks. Player territories are visualized as green semi-transparent polygons with a pulsing glow, while enemy territories are red. Neutral blocks have gray outlines, and block markers indicate heat levels using colored circles.",
+        "important_evidence": "Mapbox GL JS with dark style (mapbox://styles/mapbox/dark-v11) (L110); Player territory: Green semi-transparent polygons with green borders. Pulsing glow effect (L127); Enemy territory: Red semi-transparent polygons with red borders (L128); Block markers: Custom markers showing the block's heat level (green/yellow/red circle) (L130); Grid overlay: Semi-transparent grid over the map, cells are clickable (L133); Generate a square polygon approximately 100m x 100m (L150)",
+        "mechanism": "The map is rendered using Mapbox GL JS with a dark theme. Territories are drawn using GeoJSON sources and map.addLayer for polygons, generated mathematically as 100m x 100m squares around a center coordinate. UI panels use Tailwind CSS for styling and Framer Motion for slide-in animations, featuring a glass morphism effect.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox GL JS integration and GeoJSON polygon generation for real-world map visualization. The dark theme and color-coded territory polygons (green/red) should be adapted for the final UI. The Framer Motion animations and glass morphism panels are good UI patterns to keep.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/prompts/PROMPT_3_TERRITORY_MAP_UI.md",
+        "visual_risks": "The 100m x 100m square polygon generation is a simplistic placeholder that does not match actual real-world city block shapes, which could look unnatural on a real-world map. The pulsing glow effect might be computationally expensive if applied to many polygons simultaneously in Mapbox."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/prompts/SPRINT_2_PROMPTS.md",
+      "output": {
+        "graphics_intent": "The file intends an iOS-style desktop interface where players tap app icons to play mini-games. It features full-screen overlays with flashing borders for events, particle effects for level-ups, and UI indicators like morale badges and heat meters.",
+        "important_evidence": "iOS-style desktop where players tap app icons (L11); Full-screen overlay that appears when a raid or major event occurs (L204); Raid overlay: Red flashing border (L205); Gold/yellow theme with particle effects (CSS animations) (L311); Stat Radar Chart: Pentagon/radar visualization of the 5 stats using CSS or canvas (L300)",
+        "mechanism": "The UI is built using React/TypeScript with Zustand for state management. Visual effects are implemented using CSS animations, framer-motion for entrance/exit animations, and potentially canvas for radar charts.",
+        "relevance_score": 30,
+        "reuse_recommendation": "The React/Zustand architecture and framer-motion animations can be retained for UI-heavy management games. The iOS-style desktop metaphor is a specific design choice that should be evaluated per project.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/prompts/SPRINT_2_PROMPTS.md",
+        "visual_risks": "The document focuses entirely on 2D UI and management systems, lacking any 3D rendering, world rendering, or character animation contracts. The visual fidelity relies heavily on CSS and basic animations rather than a dedicated graphics engine."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/prompts/SPRINT_3_4_PROMPTS.md",
+      "output": {
+        "graphics_intent": "The file intends to render a street gang strategy game with a dark-themed Mapbox GL JS map for territory visualization and an 8x8 grid for battleship-style combat. It also aims to display rich grid features with icons or CSS sprites and destructible elements with HP bars.",
+        "important_evidence": "Mapbox GL JS map in the \"Hood\" view; Show claimed blocks as colored polygons on the map (L221-L224); Dark style (mapbox://styles/mapbox/dark-v11) (L387); Render claimed blocks as colored GeoJSON polygons (L399); Show feature icons on tiles (emoji or CSS sprites) (L546); Destructible features show HP bar (L548)",
+        "mechanism": "The game uses Mapbox GL JS for the territory map, rendering claimed blocks as colored GeoJSON polygons. For combat, it uses an 8x8 grid where tiles have different terrain types and features (e.g., dumpsters, parked cars) that affect cover and visibility. Features are rendered using icons or CSS sprites, and destructible features display HP bars.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox GL JS integration for real-world territory visualization. Adapt the 8x8 grid system to support more complex 3D rendering if the game transitions from 2D sprites/icons to a 3D environment.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/prompts/SPRINT_3_4_PROMPTS.md",
+        "visual_risks": "The use of emoji or CSS sprites for grid features may clash with the dark-themed Mapbox map, leading to an inconsistent art style. The hardcoded 8x8 grid might limit visual fidelity and scale."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/prompts/SPRINT_5_DELEGATED.md",
+      "output": {
+        "graphics_intent": "The game intends a top-down car chase with sprite-based rendering, parallax scrolling, and particle effects. It aims for a dark glassmorphism aesthetic with neon accent colors. The visual style includes detailed programmatic shapes for cars and buildings, and specific particle effects like muzzle flashes, sparks, explosions, and blood splatter.",
+        "important_evidence": "L8: \"upgrade it to use sprite-based rendering with parallax scrolling and particle effects\"; L20-L47: \"Current render function (simplified)... ctx.fillRect... ctx.arc\"; L77-L82: \"ParticleSystem... Muzzle flash particles... Bullet impact sparks... Explosion particles... Blood splatter\"; L84-L87: \"ParallaxBackground... 3 layers: far buildings (slow), near buildings (medium), street details (fast)... Programmatic rendering\"; L95: \"Until actual sprite images exist, draw detailed programmatic shapes\"; L213: \"dark glassmorphism aesthetic with neon accent colors\"",
+        "mechanism": "The rendering uses HTML5 Canvas with a 60fps game loop via requestAnimationFrame. It proposes a SpriteLoader utility for caching and drawing sprite sheets. A ParticleSystem handles various effects with properties like velocity, life, and alpha. A ParallaxBackground creates depth with three scrolling layers, currently using programmatic rendering instead of images.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Canvas-based rendering architecture and the proposed SpriteLoader for asset management. Adapt the ParticleSystem and ParallaxBackground for enhanced visual depth and effects. Isolate the programmatic shape rendering as a fallback until actual sprite assets are available.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/prompts/SPRINT_5_DELEGATED.md",
+        "visual_risks": "The current implementation relies on simple colored rectangles and circles, which is a placeholder behavior. The proposed programmatic rendering of detailed shapes (cars, buildings) is also a temporary solution until actual sprite images are created, posing a risk of inconsistent visual quality if assets are delayed."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/map/StreetBlock.tsx",
+      "output": {
+        "graphics_intent": "The file intends to render a 2.5D street-level block view where gang members are positioned on a street backdrop. It visually handles drive-by incoming events with animations for cars, muzzle flashes, and shot effects.",
+        "important_evidence": "2.5D street-level block view (L2); Zone lane positions (% from top of backdrop) (L20-L29); Drive-by car animations (L63-L79); Muzzle flash animations (L88-L99); Member sprite on street with GameSprite (L148-L153); Fallback gradient backdrop (L260-L268); Shot effects (L316-L328); Top-Down view toggle (L348-L355)",
+        "mechanism": "The rendering mechanism uses React and Framer Motion for 2.5D positioning and animations. Members are placed in specific zones (street, curb, sidewalk, etc.) using percentage-based coordinates. Drive-by events trigger CSS/Framer Motion animations for cars moving across the screen, muzzle flashes, and shot effects. A fallback gradient backdrop is used if a custom image is not provided.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The 2.5D positioning logic and Framer Motion animation patterns for drive-by events should be retained or adapted. The fallback gradient backdrop and emoji-based placeholders should be replaced with proper 2D/3D assets in the future architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/map/StreetBlock.tsx",
+        "visual_risks": "The use of emojis for cars (🚗, 🚙, 🚐) and dead members (💀) indicates placeholder behavior. The fallback gradient backdrop is a temporary solution for missing art assets. The 60% hit chance base for defending shots is hardcoded and might lack a proper production contract."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/map/StreetBlock.css",
+      "output": {
+        "graphics_intent": "The file intends to render a 2.5D street view using a layered flexbox layout with fallback gradients for sky, buildings, storefront, sidewalk, curb, and street. It also includes visual effects for combat such as shaking, grayscale for dead members, muzzle flashes, and shot FX.",
+        "important_evidence": "L2: \"StreetBlock — 2.5D street view\"; L39-L44: Fallback gradient backdrop with layers for sky, buildings, storefront, sidewalk, curb, and street; L87-L100: \"under-fire\" shake animation and \"dead\" grayscale filter; L144-L153: \"muzzle-flash\" radial gradient; L177-L187: \"shot-fx\" radial gradient; L208-L213: \"topdown\" control button.",
+        "mechanism": "The rendering mechanism relies on CSS flexbox and linear gradients to create a pseudo-3D (2.5D) layered background. Animations are handled via CSS keyframes (e.g., shake, pulse-red). Visual effects like muzzle flashes and shot impacts use CSS radial gradients. Characters and cars are positioned absolutely over the background layers.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The CSS-based 2.5D layered approach and simple CSS animations (shake, pulse) should be replaced with a proper WebGL/Canvas rendering engine for better performance and visual fidelity in a professional game. The UI overlay components (health bars, labels) can be adapted.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/map/StreetBlock.css",
+        "visual_risks": "The use of CSS gradients and DOM elements for rendering a 2.5D game scene and particle effects (muzzle flashes, shot FX) is a significant performance and quality risk. It indicates placeholder behavior or technical debt that will not scale for complex scenes or professional graphics."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/map/TerritoryMap.tsx",
+      "output": {
+        "graphics_intent": "The file intends to provide a multi-view map interface, including a top-down block view for positioning crew members and a hood view for territory management. It uses emojis and colors to represent different character roles and statuses.",
+        "important_evidence": "Block view powered by BlockModeView (TopDownBlock + StreetBlock + DriveByEngine) (L3-L4); Hood view uses Mapbox (L4); Role emojis and colors defined for characters (L23-L43); Mapbox flyTo animation for search results (L76); Legend with colored dots for territory ownership (L253-L256)",
+        "mechanism": "The component switches between 'block', 'hood', and 'roster' views. The 'hood' view integrates Mapbox for map rendering and uses a flyTo animation for navigation. The 'block' view delegates to BlockModeView for top-down rendering. Character roles are visually distinguished using predefined emojis and hex colors.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox integration for the hood view and the clear separation of view modes. The emoji-based character representation should be replaced with actual 2D/3D assets in a more advanced graphics architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/map/TerritoryMap.tsx",
+        "visual_risks": "The use of emojis for character representation is a placeholder behavior that limits visual fidelity. The reliance on Mapbox for the hood view might contrast visually with the top-down block view if not styled consistently."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/map/TerritoryMap.css",
+      "output": {
+        "graphics_intent": "The file intends to present a 2D grid-based territory map and hood view using CSS styling. It relies on emojis, simple shapes, and color-coded borders to represent map tiles, occupants, and statuses rather than 3D rendering or complex textures.",
+        "important_evidence": "Grid-based layout using CSS Grid (L174-L175, L364-L365); Emoji usage for occupants and tiles (L215, L225, L284, L396, L469); Color-coded borders for tile types like street, sidewalk, alley, building, trap_house (L193-L197); Simple CSS animations for placement and danger indicators (L201-L206, L228-L242).",
+        "mechanism": "The map is rendered using HTML/CSS grid layouts (`display: grid`) with colored borders and backgrounds to denote different tile types and ownership. Visual feedback is provided through CSS animations like `placePulse` and `dangerBlink`. Characters and map features are represented by emojis rather than custom sprites or 3D models.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The CSS grid approach and color-coding logic can be retained for a 2D mini-map or abstract strategy view. However, the reliance on emojis should be replaced with proper 2D sprites or 3D assets in a professional graphics architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/map/TerritoryMap.css",
+        "visual_risks": "The heavy reliance on emojis for visual representation is a significant placeholder behavior and quality risk for a professional game. The UI-based rendering lacks the fidelity expected of modern game graphics and may not scale well to complex scenes."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/driveby/DriveByEngine.tsx",
+      "output": {
+        "graphics_intent": "The file intends to create a cinematic urban warfare, GTA-style first-person drive-by shooter. It aims for a dark, gritty atmosphere with parallax backgrounds, particle effects (sparks, blood, smoke, shells, glass), screen shake, and muzzle flashes. The visual style relies on stylized 2D canvas rendering with dynamic lighting, gradients, and shadows.",
+        "important_evidence": "L2: Cinematic urban warfare with parallax backgrounds, particle effects, screen shake; L138-L185: Particle system implementation for sparks, blood, smoke, shells, and glass; L365-L510: Procedural 2D character drawing with hit flashes, shadows, and health bars; L738-L801: Multi-layered parallax background rendering (skyline, buildings) with procedural fallbacks; L944-L1030: Car interior frame rendering with dashboard, gun, and dynamic muzzle/damage flashes.",
+        "mechanism": "The engine uses HTML5 Canvas 2D rendering for all visuals. It implements a multi-layered parallax scrolling system for the background (skyline, buildings, street). Characters and vehicles are drawn procedurally using canvas primitives (rectangles, arcs, gradients) rather than sprite images. Visual feedback includes a particle system, screen shake, hit flashes, and dynamic lighting effects like muzzle flashes and street light pools.",
+        "relevance_score": 90,
+        "reuse_recommendation": "The procedural 2D rendering and particle system are effective for a lightweight web game but may not scale for high-fidelity 3D graphics. The parallax background logic and screen shake mechanics could be adapted for 2D/2.5D projects. The canvas-based character drawing should be replaced with actual sprites or 3D models for better visual quality.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/driveby/DriveByEngine.tsx",
+        "visual_risks": "The reliance on procedural canvas drawing for characters and buildings (as fallbacks) may result in a flat or inconsistent visual style compared to pre-rendered assets. The hardcoded colors and basic shapes for characters lack detailed animation frames, which could look stiff. The fallback procedural skyline and buildings might clash with the preloaded image assets if the images fail to load."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/slide/BlockDriveByEngine.tsx",
+      "output": {
+        "graphics_intent": "The file intends to render a dynamic, real-time combat sequence (a \"drive-by\") using a hybrid rendering approach. It switches from a standard DOM-based view to a canvas-based street renderer during active combat, overlaid with a first-person shooter (FPS) view showing gun hands, crosshairs, and bullet casings.",
+        "important_evidence": "Switches to CanvasStreetRenderer during combat (L274-L293); Uses FPSOverlay for first-person elements like gun hands and crosshairs (L294-L314); Uses StreetBlock (DOM renderer) when not in combat (L316-L322); Defines specific phases for the drive-by event: incoming, active, retreating (L30-L37).",
+        "mechanism": "The component orchestrates a state machine for the drive-by event (incoming, active, retreating, resolved). During the active phase, it conditionally renders a `CanvasStreetRenderer` for the 3D/2D canvas environment and an `FPSOverlay` for the player's weapon and HUD. When not in combat, it falls back to a standard `StreetBlock` DOM component.",
+        "relevance_score": 90,
+        "reuse_recommendation": "The hybrid rendering approach (switching between DOM and Canvas based on game state) is a strong pattern to retain. The FPSOverlay and CanvasStreetRenderer components should be isolated and potentially adapted for a more unified graphics architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/slide/BlockDriveByEngine.tsx",
+        "visual_risks": "The hardcoded aspect ratio (16/9) and fixed dimensions (480x270) for the canvas renderer (L275, L279-L280, L296-L297) risk visual scaling issues on different devices. The abrupt switch between DOM and Canvas rendering might cause visual jarring or state synchronization issues."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/slide/BlockDriveByEngine.css",
+      "output": {
+        "graphics_intent": "The file intends to provide a 2D UI overlay for a combat loop, specifically a 'DriveByEngine' attack/defend sequence. It uses glowing buttons and blinking phase indicators to convey combat states.",
+        "important_evidence": "DriveByEngine — Attack / Defend Loop L2; .dbe-btn.attack with red gradient and box-shadow L38-L42; .dbe-phase.phase-incoming and .dbe-phase.phase-active with blink animation L67-L79",
+        "mechanism": "The mechanism is a CSS-based UI layout using flexbox, gradients, box-shadows for glowing effects, and keyframe animations for blinking phase indicators.",
+        "relevance_score": 40,
+        "reuse_recommendation": "Retain the UI styling for combat state indication. Ensure it integrates properly with the actual 3D scene or game engine rendering the drive-by action.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/slide/BlockDriveByEngine.css",
+        "visual_risks": "This is purely a 2D UI overlay and does not contain actual 3D graphics, character animation, or world rendering for the 'drive-by' combat. It risks being disconnected from the actual game rendering."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/slide/BulletCamReplay.tsx",
+      "output": {
+        "graphics_intent": "The file intends to render a cinematic bullet-cam replay with two distinct modes: a dark cinematic vignette 'bulletcam' mode and a grayscale, grainy 'cctv' security camera mode. It also includes a signature Sniper Elite-style X-Ray impact view for damage analysis.",
+        "important_evidence": "Two replay modes: 'bulletcam' and 'cctv' (L34); Cinematic bullet-cam mode with dark vignette, trail, speed lines, impact flash, and shockwave ring (L240-L371); CCTV mode with grayscale, grainy base, scanlines, and high-angle camera (L377-L548); X-Ray layer for Sniper Elite-style impact view with body silhouette, skeleton, and fracture lines (L722-L903).",
+        "mechanism": "The component uses a full-screen HTML5 \u003ccanvas\u003e overlay to render the replay, driven by a `BulletCamEngine` for math and state updates. It implements custom rendering functions for different modes (`renderBulletCam`, `renderCCTV`) and sub-renderers for trails, bullets, speed lines, particles, and the X-Ray layer. The rendering loop uses `requestAnimationFrame` and applies transformations (translate, rotate, scale) for camera movement and zoom.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The dual-mode rendering approach (cinematic vs. CCTV) and the modular sub-renderers (trail, bullet, particles, X-Ray) are highly reusable for future graphics architectures requiring dynamic, multi-perspective replays. The canvas-based rendering logic can be adapted or isolated for similar 2D overlay effects.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/slide/BulletCamReplay.tsx",
+        "visual_risks": "The X-Ray filter implementation notes a potential issue with `ctx.drawImage(ctx.canvas)` and opts for a simpler approach using `ctx.filter` on subsequent draws, which might have performance or compatibility implications (L851-L858). The environment representation is very simple (gradient floor or basic rectangles), which might look placeholder-like compared to the detailed bullet and X-Ray effects."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/slide/FPSOverlay.tsx",
+      "output": {
+        "graphics_intent": "Provides a first-person shooter overlay during active drive-by sequences. Renders gloved hands, a gun, crosshair, ammo counter, bullet casings, reload bar, and recoil animation on top of the CanvasStreetRenderer.",
+        "important_evidence": "L2-L5: FPSOverlay.tsx — First-person gun overlay Renders on top of CanvasStreetRenderer during active drive-by. Shows: gloved hands + gun, crosshair, ammo counter, bullet casings ejecting, reload bar, recoil animation; L65-L123: drawGunHand function implementing canvas-based fallback for gun rendering; L238-L240: Crosshair rendering with spread based on firing state; L242-L247: Gun hand and bullet casings rendering.",
+        "mechanism": "Uses HTML5 Canvas 2D API to draw the FPS overlay. Implements a fallback 2D rendering for the gun hand, crosshair with dynamic spread, reload progress bar, and ammo counter. Handles recoil and casing ejection through a separate FPSGunState class.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The 2D canvas fallback for the gun hand is likely placeholder and should be replaced with proper 3D models or high-quality 2D sprites in a modern graphics architecture. The overlay logic (crosshair, ammo, reload) can be adapted to a standard UI layer.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/slide/FPSOverlay.tsx",
+        "visual_risks": "The gun hand is drawn using basic 2D canvas primitives (rectangles, arcs) which is a significant quality risk and placeholder behavior for a professional game. It lacks realistic textures, lighting, and 3D perspective."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/news/SecurityCamRenderer.tsx",
+      "output": {
+        "graphics_intent": "The file intends to render a CCTV-style canvas replay component for a drive-by event from a high-angle security-camera perspective. It aims to achieve a gritty, lo-fi aesthetic with film grain, scanlines, VHS jitter, and vignette effects.",
+        "important_evidence": "A CCTV-style canvas replay component for the SLIDE / DEALT RPG (L4); Takes a DriveByEvent and replays the entire sequence from a high-angle security-camera perspective with film grain, scanlines, and VHS jitter (L5-L6); Film grain is generated ONCE on a 128x128 offscreen canvas and tiled via CanvasPattern (L12-L13); Bullet positions are computed analytically from the timeline (no physics simulation, no per-frame allocations) (L15-L16); Vehicle dimensions in world units (for top-down rendering) (L70-L76); Flinch effect: expand briefly after being hit (L513); Post-processing: tracking error (VHS glitch) (L1012-L1014); Vignette (L1024-L1033).",
+        "mechanism": "The rendering is done using a 2D HTML5 Canvas API. It uses a deterministic seeded RNG for building layouts and analytical computation for bullet trails and impacts without physics simulation. Post-processing effects like film grain, scanlines, VHS tracking errors, and vignettes are applied directly via canvas drawing operations.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The analytical bullet computation and deterministic scene generation are highly efficient and should be retained for similar top-down replays. The canvas-based post-processing effects (grain, scanlines, VHS jitter) could be adapted into a reusable WebGL/shader pipeline for better performance in a more complex graphics architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/news/SecurityCamRenderer.tsx",
+        "visual_risks": "The implementation relies heavily on 2D canvas drawing for complex effects like VHS jitter and film grain, which might not scale well or could cause performance bottlenecks on lower-end devices despite the optimizations mentioned. The top-down perspective and simple geometric shapes for vehicles and buildings might clash with higher-fidelity 3D assets if the game's art direction evolves."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/backend/python/routes/art.py",
+      "output": {
+        "graphics_intent": "The file intends to provide an API for generating AI art assets, specifically mentioning styles like 'gta_realistic' and asset types like headshots, fullbody, topdown_sprites, and icons.",
+        "important_evidence": "L71: style = data.get('style', 'gta_realistic'); L74: asset_type = data.get('type', 'headshot'); L97-L99: Provider 1: OpenAI DALL-E (for icons only per user preference); L115: Provider 2: Banana Nano / Other model (for characters, scenes); L138-L151: Fallback: Return a placeholder indicator (SVG)",
+        "mechanism": "The file implements a Flask blueprint that proxies requests to AI image generation services (OpenAI DALL-E 3 and Banana Nano). It uses DALL-E 3 for icons (weapon, drug, icon) and Banana Nano for characters and scenes. It includes an in-memory cache, rate limiting, and a fallback to SVG placeholders if generation fails.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The proxy architecture and caching mechanism for AI art generation should be retained. The specific provider logic (DALL-E for icons, Banana for scenes) could be adapted or expanded based on future AI model capabilities.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/backend/python/routes/art.py",
+        "visual_risks": "The in-memory cache is noted as not for production (L16), which could lead to performance issues or lost assets. The fallback to SVG placeholders (L138-L151) means users might see basic colored squares instead of actual art if the API fails, which is a placeholder behavior risk."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/backend/python/services/grid_generator.py",
+      "output": {
+        "graphics_intent": "The file intends to generate a top-down tactical grid representing urban environments with streets, sidewalks, and cover objects. It provides a structured, tile-based visual layout for gameplay.",
+        "important_evidence": "Converts real-world location data into playable tactical grids (L3); Grid Layout (8x8 default) with sidewalks and street (L5-8); Tile features include cover_bonus, visibility_penalty, and destructible properties (L200-207); GridTile includes sprite_key, rotation, and elevation for rendering (L224-226)",
+        "mechanism": "Uses a seeded random number generator to deterministically place tiles and populate them with features based on spawn weights. The grid is serialized to JSON with properties like sprite_key, rotation, and elevation for rendering.",
+        "relevance_score": 80,
+        "reuse_recommendation": "Retain the deterministic grid generation logic and feature placement weights. Adapt the output to interface with a more robust 3D scene generator or higher-fidelity rendering system rather than relying solely on 2D sprite keys.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/backend/python/services/grid_generator.py",
+        "visual_risks": "The grid generation is highly abstracted and relies on 2D tile properties like sprite keys, which might contradict a fully 3D or high-fidelity art direction. The hardcoded 8x8 grid and simplistic feature placement may result in repetitive or placeholder-like visuals."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/standalone/complete-asset-generator.html",
+      "output": {
+        "graphics_intent": "The file intends to generate 2D game assets including characters, weapons, vehicles, drugs, city blocks, and visual effects. The art direction targets an urban street game style with stylized realistic rendering, clean lines, and high detail. It specifically aims for top-down isometric or bird's eye views for vehicles and effects, and sprite or icon formats for characters and items.",
+        "important_evidence": "L1117: '256x256 pixels, game character sprite'; L1139: 'game inventory icon style'; L1156: 'top-down bird's eye view, directly overhead'; L1217: 'satellite aerial photograph view, directly overhead'; L1256: 'top-down isometric view'; L1378: 'model: state.modelId || 'sdxl''",
+        "mechanism": "The file implements a web-based UI for generating prompts based on selected categories and attributes. It uses the Banana Nano API (specifically Stable Diffusion XL or custom models) to generate images from these prompts. The generated prompts enforce specific perspectives (e.g., top-down, isometric, side profile), resolutions (e.g., 64x64, 128x128, 256x256, 512x512), and styles (e.g., game sprite, inventory icon).",
+        "relevance_score": 90,
+        "reuse_recommendation": "The prompt generation logic and category taxonomies should be retained and adapted for future asset generation pipelines. The direct integration with Banana Nano API might need to be isolated or replaced with a more robust backend service to handle API keys securely and support multiple generation models.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/standalone/complete-asset-generator.html",
+        "visual_risks": "The reliance on a client-side API call to Banana Nano exposes API keys and risks inconsistent asset quality depending on the model used. The hardcoded resolutions in prompts (e.g., 256x256, 128x128) might conflict with the API call's fixed 512x512 width/height parameters (L1381-1382), potentially causing stretching or scaling issues."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/standalone/dealt-slide-standalone.html",
+      "output": {
+        "graphics_intent": "The file intends to present a top-down, mobile-style interface for a drug dealing mini-game called 'DEALT/SLIDE'. It uses a dark theme with neon accents (cyan, magenta, lime) and a grid overlay to simulate a digital or cyberpunk aesthetic. The interface relies heavily on CSS gradients, emojis for icons, and simple swipe animations for interaction.",
+        "important_evidence": "L45-L56: Grid overlay using linear-gradient to create a digital aesthetic; L123-L137: App icons with gradients, box-shadows, and hover effects; L252-L283: Client card with swipe animations (swiping-right, swiping-left) and indicators (accept, reject); L484-L494: Use of emojis (👤, 💀, 🎒, ⭐, 👮, 📸, 🔫, 📚) to represent different client types.",
+        "mechanism": "The rendering mechanism is entirely HTML and CSS, utilizing CSS Grid and Flexbox for layout. Animations are handled via CSS keyframes (fadeIn, pulse, slideUp, glow) and transitions for swipe interactions. Visual assets are primarily CSS gradients, box-shadows, and Unicode emojis rather than external image files.",
+        "relevance_score": 80,
+        "reuse_recommendation": "The CSS-based swipe card interaction and gradient-heavy UI styling could be adapted for other mobile-style mini-games or menus. The reliance on emojis for character representation should be replaced with actual 2D or 3D assets for higher visual fidelity.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/standalone/dealt-slide-standalone.html",
+        "visual_risks": "The heavy reliance on emojis for visual representation (characters, items, outcomes) is a significant placeholder behavior that limits visual quality and consistency. The UI is strictly 2D and HTML/CSS-based, which may contradict expectations for a high-fidelity 3D game environment if this is meant to be integrated into a larger 3D game."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/services/avatarGeneration.service.ts",
+      "output": {
+        "graphics_intent": "The file intends to support a photo-to-member generation pipeline, producing character assets for different roles (dealer, enforcer, lookout, driver) in specific styles like 'south_florida_streetwear'. It aims to generate multiple asset types per character: portraits, full-body front views, and top-down views.",
+        "important_evidence": "Photo-to-member generation pipeline (L3); Mock assets for portraits, fullbody, and topdown views (L17-L34); Roles include dealer, enforcer, lookout, driver (L18-L21); Style example 'south_florida_streetwear' (L104).",
+        "mechanism": "The file implements a frontend service that sends user-uploaded photos and generation parameters (role, style, desired outputs) to a backend API. It expects the backend to generate portrait, full-body, and top-down image assets. It includes a fallback mechanism to return pre-generated mock assets if the backend is unavailable.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the frontend service structure for handling generation requests and polling status. The mock asset fallback mechanism is useful for development and should be kept. The specific asset types (portrait, fullbody, topdown) should be aligned with the final game engine requirements.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/services/avatarGeneration.service.ts",
+        "visual_risks": "The file relies on a backend API for asset generation, which may introduce latency or quality inconsistencies. The mock assets are static and may not reflect the final visual quality or diversity required. The top-down assets are only mocked for 'dealer' and 'enforcer', indicating incomplete coverage for all roles."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/backend/python/api/avatar.py",
+      "output": {
+        "graphics_intent": "The file intends to generate semi-realistic playable game characters inspired by uploaded reference images, stylized into a 2.5D urban strategy game universe. It aims for clean silhouettes, transparent-background friendly, game-asset-ready outputs with no scenery or real brand logos. The art direction includes specific styles like 'South Florida streetwear' and 'luxury noir'.",
+        "important_evidence": "L105-L110: \"Create a semi-realistic playable game character inspired by the uploaded reference image... stylize into a 2.5D urban strategy game universe.\"; L97-L102: Defines camera angles for portrait (\"chest-up portrait, dramatic noir lighting\"), fullbody (\"full body, front-facing neutral pose, feet visible\"), and topdown (\"overhead 85-degree tactical view, full figure\"); L114-L120: Uses OpenAI DALL-E 2 image.edit API for generation.",
+        "mechanism": "The file implements a photo-to-member generation API using OpenAI's DALL-E 2 image editing endpoint. It takes a source image, role, and style, and generates portrait, fullbody, and topdown assets using specific camera prompts. A mock provider is also included, which returns hardcoded placeholder asset URLs when the OpenAI API key is not present.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The prompt engineering for different camera angles (portrait, fullbody, topdown) and style mappings should be retained or adapted. The direct use of DALL-E 2 might need to be replaced with a more modern or specialized character generation pipeline if higher fidelity or consistency is required.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/backend/python/api/avatar.py",
+        "visual_risks": "The use of DALL-E 2 for image-to-image generation may produce inconsistent character likenesses or artifacts, especially for game-ready assets requiring clean silhouettes and transparent backgrounds. The mock provider uses hardcoded paths which might mask generation failures during development."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/backend/python/api/blocks.py",
+      "output": {
+        "graphics_intent": "The file intends to provide top-down satellite imagery and optional street-level views for claimed city blocks. It uses real-world coordinates to generate an 8x8 grid of anchors for gameplay positioning.",
+        "important_evidence": "L524: Mapbox static satellite image (top-down view); L525-L526: Street View images for N/E/S/W headings (optional, requires GOOGLE_MAPS_API_KEY and ENABLE_STREET_VIEW=true); L527: 8x8 lat/lon anchor grid stored in block_grid_anchors table; L567-L568: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/{center_lng},{center_lat},17,0/800x600; L579-L582: Street View URLs with headings 0, 90, 180, 270",
+        "mechanism": "The system fetches a static 800x600 satellite image from Mapbox for a top-down view. It optionally fetches four 800x400 Google Street View images facing North, East, South, and West. It calculates an 8x8 grid of latitude/longitude anchors based on the block's bounding box to map gameplay coordinates to real-world locations.",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox satellite integration for top-down map views. The Street View integration is a good fallback but might need to be adapted or replaced if a more cohesive 3D environment is desired. The 8x8 coordinate anchor system is highly reusable for grid-based gameplay.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/backend/python/api/blocks.py",
+        "visual_risks": "Relying on static Google Street View images for N/E/S/W views might create a disjointed visual experience compared to a fully rendered 3D scene. The Street View feature is marked as optional and disabled by default, which could lead to inconsistent presentation across different blocks if not handled carefully in the UI."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/missions/AttackPlanner.tsx",
+      "output": {
+        "graphics_intent": "The file implements a 2D UI menu for planning an attack, serving as a transition screen before launching into a top-down shooter mode. It uses basic CSS styling and Framer Motion for simple button animations.",
+        "important_evidence": "UI transition to top-down mode (L24-L25); Basic Framer Motion button animation (L31); Emoji usage for icons (L32)",
+        "mechanism": "The file uses React state to manage target selection and role assignments. It uses Framer Motion for a simple scale animation on the back button. It triggers a navigation state change to 'topdown' when the attack is launched.",
+        "relevance_score": 20,
+        "reuse_recommendation": "The UI logic for role assignment and target selection can be retained for the meta-game layer. The transition mechanism to the top-down shooter should be integrated with the actual 3D/2D game engine entry point.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/missions/AttackPlanner.tsx",
+        "visual_risks": "The UI relies on basic HTML selects and emojis, which may clash with a high-fidelity graphics direction. The transition to 'topdown' is a simple state change without any visual loading or transition effects."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/slide/SlideGame.css",
+      "output": {
+        "graphics_intent": "The file intends to present a top-down, grid-based \"Battleship-style\" combat game with a \"GTA Dark Theme\". It uses a dark aesthetic with neon accents, a drive-by background image, and distinct visual states for streets, sidewalks, alleys, and buildings.",
+        "important_evidence": "\"SLIDE Combat - Battleship-Style Grid Combat / GTA Dark Theme\" (L2-3); \"background: url('/assets/bg_driveby.jpg') center/cover no-repeat\" (L22); \".macro-cell.street { background: rgba(80, 40, 40, 0.3)...\" (L280); \".micro-cell.vehicle-part.hood { background: rgba(100, 100, 100, 0.15); }\" (L409); \".car-icon { ... animation: bounce-car 0.5s ease-in-out infinite alternate; }\" (L569-571)",
+        "mechanism": "The UI relies on CSS Grid to render macro and micro combat grids. It uses CSS animations for simple effects like a bouncing car icon and pulsing red alerts. Visual states (revealed, hit, miss, occupied) are handled via CSS classes applying background colors, borders, and opacity changes.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The grid-based layout and CSS state management can be adapted for 2D UI overlays or mini-games. The specific \"GTA Dark Theme\" styling and simple CSS animations should be replaced with more robust 3D or high-fidelity 2D assets if aiming for a modern graphics architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/slide/SlideGame.css",
+        "visual_risks": "The graphics rely heavily on basic CSS styling (colors, borders, simple animations) and a single background image, which may look placeholder or low-fidelity compared to modern game expectations. The \"GTA Dark Theme\" might conflict with other art directions if not unified."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/frontend/src/components/map/BlockModeView.css",
+      "output": {
+        "graphics_intent": "The file defines a UI overlay for block management, featuring a dark theme with neon accents (green, orange, red, blue, purple). It presents a top-down, data-driven aesthetic with monospace fonts and compact stats, rather than 3D scene rendering.",
+        "important_evidence": "L11-L15: background: #0a0a0f; font-family: 'SF Mono', 'Fira Code', monospace; L62-L64: .bmv-stat.income { color: #4ade80; } .bmv-stat.heat { color: #f97316; } .bmv-stat.morale { color: #fb7185; }; L133-L163: Button styles with neon colors (blue, green, purple, red) and translucent backgrounds.",
+        "mechanism": "The file implements a CSS-based UI layout using Flexbox for a block management view. It includes a top bar for stats, view tabs, an action bar for deployment/collection, a deploy panel for member selection, and a toast notification system. Animations are limited to a simple pulse effect for loading states.",
+        "relevance_score": 30,
+        "reuse_recommendation": "The UI styling (colors, flex layouts, typography) can be retained for 2D overlay menus or HUD elements. However, it is entirely decoupled from any actual 3D graphics or scene rendering architecture.",
+        "shipped_or_proposed": "Shipped",
+        "source_path": "/home/ubuntu/slide-audit/frontend/src/components/map/BlockModeView.css",
+        "visual_risks": "None material"
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/README_MVP.md",
+      "output": {
+        "graphics_intent": "The game features an iOS-style desktop interface where each game mode appears as a separate \"app\". It includes a \"Drive-By\" mode which is a first-person shooter from a moving vehicle with parallax effects, and a \"SLIDE\" mode which is a Battleship-style grid combat with fog of war. It also uses real-world locations via Mapbox and AI stylization for assets.",
+        "important_evidence": "L14: \"The game features an iOS-style desktop interface where each game mode appears as a separate 'app'\"; L21: \"First-person shooting from moving vehicle\"; L37: \"Banana Nano API key (for AI asset generation)\"; L134: \"Parallax shooter from vehicle\"; L147: \"Banana Nano Pipeline: AI stylization integration\"",
+        "mechanism": "The game uses React, Framer Motion, and Tailwind CSS for the UI. Mapbox GL is used for territory maps and satellite imagery. Banana Nano is used for AI asset generation and stylization. The Drive-By mode uses a parallax shooter mechanism.",
+        "relevance_score": 85,
+        "reuse_recommendation": "The iOS-style desktop interface and React/Framer Motion UI stack should be retained as they are complete. The Banana Nano AI asset generation pipeline and Mapbox integration are still in progress and should be evaluated for performance and cost before full adoption.",
+        "shipped_or_proposed": "Both",
+        "source_path": "/home/ubuntu/slide-audit/docs/README_MVP.md",
+        "visual_risks": "The Banana Nano AI stylization integration is still in progress, which poses a risk to the visual consistency of the game. The \"Friend Selfie Gang Members\" feature relies on AI-powered face recognition, which may have quality and privacy risks."
+      },
+      "error": ""
+    },
+    {
+      "input": "/home/ubuntu/slide-audit/docs/CODE_GENERATION_PROMPT.md",
+      "output": {
+        "graphics_intent": "The game intends to have a dark mode UI with neon glow effects, noise texture overlays, and smoke/fog gradients. It features multiple visual modes including a full-screen 3D Mapbox map, an isometric or top-down grid view for combat, and a first-person perspective with parallax scrolling for drive-by shooting.",
+        "important_evidence": "L208-L210: Full-screen Mapbox map component with 3D buildings layer; L249-L251: Parallax scrolling street background and First-person shooting mechanics; L261: Isometric or top-down grid view; L320-L324: Dark mode only, Neon glow effects, Noise texture overlay, Smoke/fog gradients, Card-based layouts with backdrop blur",
+        "mechanism": "The game uses Mapbox API for geocoding and satellite imagery, rendering a 3D map with territory overlays. Combat uses an 8x8 grid with fog of war shaders and isometric/top-down unit sprites. Drive-by mode uses a first-person perspective with parallax scrolling backgrounds. The UI relies on CSS variables for neon colors and specific typography (Oswald, Bebas Neue, Inter, JetBrains Mono).",
+        "relevance_score": 85,
+        "reuse_recommendation": "Retain the Mapbox integration for real-world location fidelity and the distinct visual styles for different game modes. The CSS-based neon and dark mode design system should be adapted for the final UI architecture.",
+        "shipped_or_proposed": "Proposed",
+        "source_path": "/home/ubuntu/slide-audit/docs/CODE_GENERATION_PROMPT.md",
+        "visual_risks": "The document is a prompt for AI code generation, meaning the described graphics features (like 3D buildings, fog of war shaders, and parallax scrolling) are proposed and not yet implemented. There is a risk of inconsistent visual quality if these disparate rendering styles (Mapbox 3D, Phaser 2D grid, Phaser FPS) are generated by AI without a unified graphics pipeline."
+      },
+      "error": ""
+    }
+  ]
+}

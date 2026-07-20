@@ -13,7 +13,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives",
     "preview": "vite preview",
     "seed": "tsx src/scripts/seed.ts",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "vitest run"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
