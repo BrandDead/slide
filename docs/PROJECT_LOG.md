@@ -65,6 +65,24 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-07-20 (later) — #78 milestone: art library wired into live renderers
+
+- New `frontend/src/services/assetResolver.ts`: the single role→art lookup layer.
+  Guarantees returned URLs exist on disk with usable alpha, per-state fallback chains,
+  preloading, and load-time chroma defringe for canvas sprites. All renderers must use
+  it — no hardcoded sprite URLs in components.
+- `TopDownBlock`: aerial block art under a translucent tactical grid; circular portrait
+  tokens (role ring, level, health) replace the pixel-sheet/emoji tokens.
+- `StreetBlock`: real night-street backdrop by default; members render photoreal street
+  sprites (dealer/shooter/enforcer) or portrait chips (lookout/driver — art pending).
+- `CanvasStreetRendererV3`: standing actors now draw defringed hi-res street art;
+  legacy sheet/vector body remain as fallback; ragdoll impact takeover unchanged.
+- Placement identity bug fixed: `pendingPlacementMember` (name/role/level) flows through
+  `blockStore` → board; the untyped `_pendingMemberData` hack is gone.
+- Evidence in `docs/qa/2026-07-20-*.png`; full report in
+  `docs/REPORT_2026-07-20_GRAPHICS_WIRING.md`. Issue #78 remains open for the missing
+  art generation + vehicle cutouts (#79 overlap).
+
 ### 2026-07-20 — Graphics audit intake, #76 merge, roadmap reset (Claude session)
 
 - Verified the external graphics audit zip against the repo: all code files were

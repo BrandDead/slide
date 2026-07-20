@@ -14,7 +14,11 @@ import type {
   DriveByShot,
 } from '../../types/block.types';
 import { useBlockStore } from '../../stores/blockStore';
-import { GameSprite, getMemberFrame } from '../common/GameSprite';
+import {
+  getStreetSpriteUrl,
+  getPortraitUrl,
+  getDefaultStreetBackdropUrl,
+} from '../../services/assetResolver';
 import './StreetBlock.css';
 
 // ─── Zone lane positions (% from top of backdrop) ────────────
@@ -119,10 +123,14 @@ const StreetMember: React.FC<StreetMemberProps> = ({
   const roleColor = ROLE_COLORS[placement.role] ?? '#fff';
   const isDead = placement.health <= 0;
 
+  const spriteState = isDead ? 'downed' : isUnderFire ? 'hit' : 'idle';
+  const spriteUrl = getStreetSpriteUrl(placement.role, spriteState);
+
   return (
     <motion.div
       className={[
         'street-member',
+        spriteUrl ? 'has-sprite' : '',
         isSelected ? 'selected' : '',
         isUnderFire ? 'under-fire' : '',
         isDead ? 'dead' : '',
@@ -132,25 +140,35 @@ const StreetMember: React.FC<StreetMemberProps> = ({
       style={{
         left: `${pos.x}%`,
         top: `${pos.y}%`,
-        borderColor: roleColor,
+        borderColor: spriteUrl ? 'transparent' : roleColor,
       }}
       onClick={onClick}
       animate={
         isUnderFire && !isDead
           ? { x: [0, -4, 4, -4, 0] }
-          : isDead
+          : isDead && !spriteUrl
           ? { rotate: 90, opacity: 0.4 }
           : {}
       }
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.15 }}
     >
-      <GameSprite
-        sheet="gang_members"
-        frame={getMemberFrame(placement.role)}
-        size={32}
-        fallback={isDead ? '💀' : placement.role === 'dealer' ? '💊' : '👤'}
-      />
+      {spriteUrl ? (
+        <img
+          className="sm-sprite"
+          src={spriteUrl}
+          alt={placement.memberName}
+          draggable={false}
+        />
+      ) : (
+        <img
+          className="sm-portrait-chip"
+          src={getPortraitUrl(placement.role)}
+          alt={placement.memberName}
+          draggable={false}
+          style={{ borderColor: roleColor }}
+        />
+      )}
       <span className="sm-name">{placement.memberName.split(' ')[0]}</span>
       {placement.health < 100 && (
         <div
@@ -247,26 +265,13 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
 
   return (
     <div className="street-block" ref={containerRef} onClick={handleDefendClick}>
-      {/* Backdrop */}
+      {/* Backdrop — always real environment art */}
       <div
         className="street-backdrop"
-        style={
-          block.streetBackdropUrl
-            ? { backgroundImage: `url(${block.streetBackdropUrl})` }
-            : undefined
-        }
+        style={{
+          backgroundImage: `url(${block.streetBackdropUrl ?? getDefaultStreetBackdropUrl()})`,
+        }}
       >
-        {/* Fallback gradient backdrop */}
-        {!block.streetBackdropUrl && (
-          <div className="street-backdrop-fallback">
-            <div className="sb-sky" />
-            <div className="sb-buildings" />
-            <div className="sb-storefront" />
-            <div className="sb-sidewalk" />
-            <div className="sb-curb" />
-            <div className="sb-street" />
-          </div>
-        )}
 
         {/* Zone labels */}
         <div className="street-zone-labels">

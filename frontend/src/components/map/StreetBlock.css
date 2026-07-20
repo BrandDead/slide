@@ -79,6 +79,30 @@
   transition: border-color 0.15s;
 }
 
+/* Members rendered with real street art drop the chip background */
+.street-member.has-sprite {
+  background: transparent;
+  border-radius: 6px;
+}
+
+.sm-sprite {
+  height: 78px;
+  width: auto;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+  user-select: none;
+}
+
+.sm-portrait-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid transparent;
+  pointer-events: none;
+  user-select: none;
+}
+
 .street-member.selected {
   border-color: #facc15;
   box-shadow: 0 0 8px rgba(250,204,21,0.4);
@@ -91,6 +115,11 @@
 .street-member.dead {
   opacity: 0.4;
   filter: grayscale(1);
+}
+
+.street-member.dead.has-sprite {
+  opacity: 0.85;
+  filter: grayscale(0.7);
 }
 
 @keyframes shake {

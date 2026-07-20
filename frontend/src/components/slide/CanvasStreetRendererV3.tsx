@@ -23,6 +23,7 @@ import {
   type NormalizedRect,
   type SceneSurface,
 } from '../../config/lasOlas1208Scene';
+import { getStreetSpriteUrl, loadDefringedSprite } from '../../services/assetResolver';
 
 export interface CanvasStreetRendererProps {
   placements: BlockPlacement[];
@@ -500,6 +501,7 @@ export function CanvasStreetRenderer({
 
   const spriteRef = useRef<HTMLImageElement | null>(null);
   const spriteReadyRef = useRef(false);
+  const hiResSpritesRef = useRef<Map<string, HTMLCanvasElement>>(new Map());
   const [dpr, setDpr] = useState(1);
 
   useEffect(() => {
@@ -518,6 +520,36 @@ export function CanvasStreetRenderer({
       spriteReadyRef.current = false;
     };
     image.src = SPRITE_URL;
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // High-fidelity standing sprites from the generated art library.
+  // Roles without usable street art keep the legacy sheet / vector body.
+  useEffect(() => {
+    let cancelled = false;
+    const roles: MemberRole[] = [
+      'dealer',
+      'shooter',
+      'enforcer',
+      'lookout',
+      'driver',
+      'chemist',
+      'runner',
+      'boss',
+    ];
+    for (const role of roles) {
+      const url = getStreetSpriteUrl(role, 'idle');
+      if (!url) continue;
+      loadDefringedSprite(url)
+        .then((sprite) => {
+          if (!cancelled) hiResSpritesRef.current.set(role, sprite);
+        })
+        .catch(() => {
+          /* keep legacy rendering for this role */
+        });
+    }
     return () => {
       cancelled = true;
     };
@@ -1198,7 +1230,18 @@ export function CanvasStreetRenderer({
         ctx.ellipse(point.x, point.y + MEMBER_RENDER_HEIGHT * 0.5 + 4, 14, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        if (sprite && spriteReadyRef.current) {
+        const hiRes = hiResSpritesRef.current.get(member.role);
+        if (hiRes && hiRes.width > 0 && hiRes.height > 0) {
+          const renderHeight = MEMBER_RENDER_HEIGHT * 1.04;
+          const renderWidth = renderHeight * (hiRes.width / hiRes.height);
+          ctx.drawImage(
+            hiRes,
+            point.x - renderWidth / 2,
+            point.y - renderHeight / 2,
+            renderWidth,
+            renderHeight,
+          );
+        } else if (sprite && spriteReadyRef.current) {
           const frame = MEMBER_FRAMES[member.role] ?? 0;
           const sourceX = (frame % SPRITE_SHEET_COLS) * SPRITE_FRAME_WIDTH;
           ctx.drawImage(
