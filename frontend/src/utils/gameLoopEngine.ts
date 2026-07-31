@@ -2,6 +2,7 @@
 // gameLoopEngine.ts - Central game tick system
 // Runs every 30 seconds, processes heat decay, raids, income,
 // member heat contribution, morale checks, and random events
+// Sprint 9: live drug inventory wiring, morale consequences enforced
 // ============================================================
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -32,6 +33,43 @@ import {
   useNotificationStore,
 } from '../stores/gameStore';
 import { useBlockStore } from '../stores/blockStore';
+import { useDrugInventory } from '../stores/useDrugInventory';
+
+// ============ DRUG-AWARE INCOME HELPERS ============
+/**
+ * Build the dealer list for calculateTotalIncome, reading live drug
+ * assignments from useDrugInventory so purity and OD-risk are real.
+ */
+function buildBlockDealers(
+  blocks: ReturnType<typeof useTerritoryStore.getState>['blocks'],
+  members: ReturnType<typeof useGangStore.getState>['members'],
+) {
+  const drugStore = useDrugInventory.getState();
+  return blocks.map((block) => ({
+    blockId: block.id,
+    blockName: (block as any).name || `Block ${block.id}`,
+    dealers: block.units
+      .filter((u) => (u as any).role === 'dealer' || u.type === 'dealer')
+      .map((u) => {
+        const member = members.find((m) => m.id === u.gangMemberId);
+        const pos = u.position as any;
+        const dealerId = u.gangMemberId ?? '';
+        const equippedDrug = drugStore.getDealerDrug(dealerId);
+        return {
+          memberId: dealerId,
+          memberName: (u as any).memberName || member?.name || 'Unknown',
+          row: pos ? (pos.row ?? pos.y ?? 4) : 4,
+          dealingStat: (member?.stats as any)?.dealing ?? 50,
+          // Live drug quality drives income and OD risk
+          drugPurity: equippedDrug?.quality ?? 40,
+          drugOdRisk: equippedDrug
+            ? (equippedDrug.effects?.includes('high_od') ? 65 : 15)
+            : 10,
+          drugName: equippedDrug?.name ?? 'Product',
+        };
+      }),
+  }));
+}
 
 // ============ GAME EVENT TYPES ============
 
@@ -130,7 +168,7 @@ const RANDOM_EVENTS: RandomEventTemplate[] = [
   },
   {
     title: '🐀 Snitch Alert',
-    message: 'Word on the street is someone\'s talking. Heat +15.',
+    message: "Word on the street is someone's talking. Heat +15.",
     severity: 'danger',
     effect: (s) => s.player.updateHeat(15),
   },
@@ -243,26 +281,14 @@ export function useGameLoop(): GameLoopState {
       }
     }
 
-    // 3. PASSIVE INCOME
-    const blockDealers = blocks.map((block) => ({
-      blockId: block.id,
-      blockName: (block as any).name || `Block ${block.id}`,
-      dealers: block.units
-        .filter((u) => (u as any).role === 'dealer' || u.type === 'dealer')
-        .map((u) => {
-          const member = members.find((m) => m.id === u.gangMemberId);
-          const pos = u.position as any;
-          return {
-            memberId: u.gangMemberId ?? '',
-            memberName: (u as any).memberName || member?.name || 'Unknown',
-            row: pos ? (pos.row ?? pos.y ?? 4) : 4,
-            dealingStat: (member?.stats as any)?.dealing ?? 50,
-            drugPurity: 60, // Default; would come from equipped drug
-            drugOdRisk: 20,
-            drugName: 'Product',
-          };
-        }),
-    }));
+    // 3. PASSIVE INCOME — uses live drug assignments from useDrugInventory
+    const blockDealers = buildBlockDealers(blocks, members);
+
+    // Consume drugs proportional to active dealers (1 tick of supply)
+    const activeDealerCount = blockDealers.reduce((n, b) => n + b.dealers.length, 0);
+    if (activeDealerCount > 0) {
+      useDrugInventory.getState().consumeAssignedDrugs(1);
+    }
 
     const incomeResult = calculateTotalIncome(blockDealers);
 
@@ -369,6 +395,33 @@ export function useGameLoop(): GameLoopState {
           stores.economy.removeInventoryItem(drug.itemId, toRemove);
           remaining -= toRemove;
         }
+        // Also confiscate from the drug inventory store
+        const drugInv = useDrugInventory.getState();
+        const drugList = drugInv.getInventoryList();
+        let drugRemaining = raidResult.confiscatedDrugs;
+        for (const d of drugList) {
+          if (drugRemaining <= 0) break;
+          // If the raid takes all of this drug, remove it entirely
+          if (d.quantity <= drugRemaining) {
+            drugInv.removeDrug(d.id);
+            drugRemaining -= d.quantity;
+          } else {
+            // Partial confiscation: reduce quantity via consumeAssignedDrugs proxy
+            // (removeDrug only does full removal; partial handled by consuming ticks)
+            drugInv.removeDrug(d.id);
+            // Re-add with reduced quantity
+            drugInv.addDrug({
+              id: d.id,
+              name: d.name,
+              tier: d.tier,
+              quality: d.quality,
+              quantity: d.quantity - drugRemaining,
+              craftedAt: d.craftedAt,
+              effects: d.effects,
+            });
+            drugRemaining = 0;
+          }
+        }
       }
 
       // Jail arrested members
@@ -420,7 +473,7 @@ export function useGameLoop(): GameLoopState {
       });
     }
 
-    // 6. MORALE CHECK (every 5 ticks)
+    // 6. MORALE CHECK (every 5 ticks) — enforces real consequences
     if (tickRef.current % LOOP_CONFIG.MORALE_CHECK_INTERVAL === 0) {
       const gangSize = members.length;
       if (gangSize > 0) {
@@ -451,6 +504,107 @@ export function useGameLoop(): GameLoopState {
             morale < 15 ? 'critical' : 'warning',
           );
           setLastEvent(moraleEvent);
+          stores.notifications.addNotification({
+            type: morale < 15 ? 'danger' : 'warning',
+            title: moraleEvent.title,
+            message: moraleEvent.message,
+            priority: morale < 15 ? 'critical' : 'high',
+            timestamp: Date.now(),
+          });
+        }
+
+        // ── Enforce morale consequences on each active member ──
+        const activeMembers = stores.gang.getActiveMembers();
+        for (const member of activeMembers) {
+          const memberMorale = member.morale ?? morale;
+          const consequences = getMoraleConsequences(memberMorale, member.id);
+          const triggered = rollMoraleConsequences(consequences);
+
+          for (const c of triggered) {
+            switch (c.type) {
+              case 'no_show': {
+                // Member is deployed on a block — remove them silently
+                const blockStore = useBlockStore.getState();
+                for (const blockId of Object.keys(blockStore.blocks)) {
+                  const block = blockStore.blocks[blockId];
+                  if (block?.placements.some((p) => p.memberId === member.id)) {
+                    blockStore.removeMemberFromBlock(blockId, member.id);
+                  }
+                }
+                stores.notifications.addNotification({
+                  type: 'warning',
+                  title: `👻 No-Show: ${member.name}`,
+                  message: `${member.name} didn't show up for their shift. Morale is too low.`,
+                  priority: 'high',
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+              case 'desertion': {
+                stores.gang.backdoorMember(member.id, 'Deserted due to low morale');
+                stores.notifications.addNotification({
+                  type: 'danger',
+                  title: `🏃 Deserted: ${member.name}`,
+                  message: `${member.name} left the crew. They couldn't take the pressure anymore.`,
+                  priority: 'critical',
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+              case 'betrayal': {
+                // Betrayal: member tips off police — big heat spike
+                stores.player.updateHeat(20);
+                stores.gang.backdoorMember(member.id, 'Betrayed the crew');
+                stores.notifications.addNotification({
+                  type: 'danger',
+                  title: `🐀 Betrayal: ${member.name}`,
+                  message: `${member.name} snitched! Heat +20. They're gone.`,
+                  priority: 'critical',
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+              case 'friendly_fire': {
+                // Friendly fire: wound a random other member
+                const target = activeMembers.find((m) => m.id !== member.id);
+                if (target) {
+                  const newHp = Math.max(0, (target.health ?? 100) - 30);
+                  stores.gang.updateMember(target.id, {
+                    health: newHp,
+                    status: newHp <= 0 ? 'hospital' : 'active',
+                  });
+                  stores.notifications.addNotification({
+                    type: 'danger',
+                    title: `🔫 Friendly Fire!`,
+                    message: `${member.name} shot ${target.name} in a rage. ${target.name} is ${newHp <= 0 ? 'in the hospital' : 'wounded'}.`,
+                    priority: 'critical',
+                    timestamp: Date.now(),
+                  });
+                }
+                break;
+              }
+              case 'mutiny': {
+                // Mutiny: all members take a morale hit and one random member deserts
+                for (const m of activeMembers) {
+                  stores.gang.updateMember(m.id, {
+                    morale: Math.max(0, (m.morale ?? 50) - 15),
+                  });
+                }
+                const victim = activeMembers[Math.floor(Math.random() * activeMembers.length)];
+                if (victim) {
+                  stores.gang.backdoorMember(victim.id, 'Mutiny');
+                }
+                stores.notifications.addNotification({
+                  type: 'danger',
+                  title: '💀 MUTINY',
+                  message: 'The crew is turning on each other. Someone left and everyone is shaken.',
+                  priority: 'critical',
+                  timestamp: Date.now(),
+                });
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -538,9 +692,9 @@ export function useGameLoop(): GameLoopState {
 
     // Apply morale penalty
     const gangStore = useGangStore.getState();
-    const members = gangStore.getActiveMembers();
+    const currentMembers = gangStore.getActiveMembers();
     // Morale drop for everyone
-    for (const member of members) {
+    for (const member of currentMembers) {
       const currentMorale = member.morale ?? 50;
       gangStore.updateMember(member.id, {
         morale: Math.max(0, currentMorale - 10),
