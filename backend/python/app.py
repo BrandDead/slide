@@ -125,6 +125,16 @@ def create_app():
     except Exception as e:
         logger.error(f"✗ Failed to register entitlements blueprint: {e}")
 
+    # NPC gang AI blueprint
+    try:
+        from api.npc import npc_bp
+        app.register_blueprint(npc_bp)
+        logger.info("✓ Registered npc blueprint")
+    except ImportError:
+        logger.warning("NPC blueprint not found - will be implemented")
+    except Exception as e:
+        logger.error(f"✗ Failed to register npc blueprint: {e}")
+
     # Art generation blueprint
     try:
         from routes.art import art_bp
