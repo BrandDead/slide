@@ -23,6 +23,7 @@ import TopDownBlock from './TopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
+import DrugAssignmentPanel from './DrugAssignmentPanel';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -271,6 +272,12 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         >
           🚗 Drive-By
         </button>
+        <button
+          className={`bmv-tab ${!showDriveBy && viewMode === 'drugs' ? 'active' : ''}`}
+          onClick={() => { setShowDriveBy(false); setBlockViewMode(block.id, 'drugs'); }}
+        >
+          💊 Drugs
+        </button>
       </div>
 
       {/* Main view */}
@@ -280,6 +287,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
             blockId={block.id}
             onResolved={handleDriveByResolved}
           />
+        ) : viewMode === 'drugs' ? (
+          <DrugAssignmentPanel block={block} />
         ) : viewMode === 'topdown' ? (
           <TopDownBlock block={block} />
         ) : (
