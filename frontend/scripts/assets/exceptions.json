@@ -1,0 +1,5 @@
+{
+  "_comment": "Approved runtime-asset exceptions. Every entry MUST carry a reason or the audit fails.",
+  "budgetMB": null,
+  "assets": {}
+}

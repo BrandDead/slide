@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { BlockData, BlockZone, BlockPlacement, BlockZoneType } from '../../types/block.types';
 import { useBlockStore } from '../../stores/blockStore';
 import { getPortraitUrl, getDefaultTopdownBgUrl } from '../../services/assetResolver';
+import { getWorldActor, preloadActors, type ActorState } from '../../render/worldActorResolver';
 import './TopDownBlock.css';
 
 // ─── Zone styling ────────────────────────────────────────────
@@ -69,6 +70,11 @@ interface ZoneCellProps {
   onClick: (zone: BlockZone) => void;
 }
 
+// Warm only the roles this block actually uses, for the states it can show.
+// Global preloading of the whole library was part of what made first paint
+// slow; this is scene-scoped.
+const BLOCK_STATES: ActorState[] = ['idle', 'aim', 'wounded', 'downed'];
+
 const ZoneCell: React.FC<ZoneCellProps> = ({
   zone,
   placement,
@@ -94,33 +100,58 @@ const ZoneCell: React.FC<ZoneCellProps> = ({
       whileHover={zone.passable ? { scale: 1.05, zIndex: 10 } : {}}
       whileTap={zone.passable ? { scale: 0.97 } : {}}
     >
-      {placement && (
-        <motion.div
-          className="td-member-token"
-          style={{ borderColor: roleColor }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          exit={{ scale: 0 }}
-        >
-          <img
-            className="td-member-portrait"
-            src={placement.portraitUrl ?? getPortraitUrl(placement.role)}
-            alt={placement.memberName}
-            draggable={false}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-          <span className="td-member-level" style={{ color: roleColor }}>
-            {placement.level}
-          </span>
-          {placement.health < 50 && (
-            <span className="td-member-hp" style={{ color: placement.health < 25 ? '#ef4444' : '#facc15' }}>
-              {placement.health}%
+      {placement && (() => {
+        // A portrait is a headshot on an opaque plate. Dropping one into a
+        // world cell is what made the block read as a spreadsheet. World
+        // cells get a standing figure with a ground shadow; portraits stay
+        // on cards and rosters where they belong.
+        const state: ActorState =
+          placement.health <= 0 ? 'downed'
+          : placement.health < 35 ? 'wounded'
+          : placement.role === 'shooter' || placement.role === 'enforcer' ? 'aim'
+          : 'idle';
+        const actor = getWorldActor(placement.role, state, 'topdown');
+
+        return (
+          <motion.div
+            className="td-member-actor"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+          >
+            <span className="td-actor-shadow" aria-hidden="true" />
+            {actor ? (
+              <img
+                className="td-actor-sprite"
+                src={actor.url}
+                alt={placement.memberName}
+                draggable={false}
+                style={{ filter: state === 'downed' ? 'saturate(0.35) brightness(0.7)' : undefined }}
+              />
+            ) : (
+              // Last-resort diagnostic only. Never emoji, never a role circle.
+              <span className="td-actor-missing" style={{ background: roleColor }} />
+            )}
+            <span className="td-member-level" style={{ color: roleColor }}>
+              {placement.level}
             </span>
-          )}
-        </motion.div>
-      )}
+            {placement.health < 100 && (
+              <span
+                className="td-member-hpbar"
+                aria-label={`${placement.health}% health`}
+              >
+                <span
+                  style={{
+                    width: `${Math.max(0, Math.min(100, placement.health))}%`,
+                    background: placement.health < 25 ? '#ef4444'
+                      : placement.health < 50 ? '#facc15' : '#4ade80',
+                  }}
+                />
+              </span>
+            )}
+          </motion.div>
+        );
+      })()}
       {!placement && zone.passable && (
         <span className="td-zone-label">{ZONE_LABELS[zone.zoneType]}</span>
       )}
@@ -143,6 +174,14 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
   onZoneClick,
   readOnly = false,
 }) => {
+  React.useEffect(() => {
+    preloadActors(
+      Array.from(new Set((block.placements ?? []).map((p) => p.role))),
+      BLOCK_STATES,
+      'topdown',
+    );
+  }, [block.placements]);
+
   const {
     placeMember,
     moveMember,

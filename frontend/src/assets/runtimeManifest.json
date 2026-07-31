@@ -1,0 +1,1322 @@
+{
+  "generatedAt": "2026-07-31T00:31:43.737Z",
+  "budgetMB": 20,
+  "totalBytes": 4224336,
+  "qualityPass": "standard",
+  "entries": [
+    {
+      "id": "bg_desktop",
+      "runtimePath": "/assets/runtime/bg_desktop.webp",
+      "sourcePath": "art-src/bg_desktop.jpg",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 714,
+      "height": 1280,
+      "bytes": 105464,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "bg_driveby",
+      "runtimePath": "/assets/runtime/bg_driveby.webp",
+      "sourcePath": "art-src/bg_driveby.jpg",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 1280,
+      "height": 714,
+      "bytes": 79716,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "bg_menu",
+      "runtimePath": "/assets/runtime/bg_menu.webp",
+      "sourcePath": "art-src/bg_menu.jpg",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 1280,
+      "height": 714,
+      "bytes": 77736,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "car_interior_frame",
+      "runtimePath": "/assets/runtime/car_interior_frame.webp",
+      "sourcePath": "art-src/car_interior_frame.png",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 1280,
+      "height": 714,
+      "bytes": 40024,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "crosshair",
+      "runtimePath": "/assets/runtime/crosshair.webp",
+      "sourcePath": "art-src/crosshair.png",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 1280,
+      "height": 1280,
+      "bytes": 68552,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "game_logo",
+      "runtimePath": "/assets/runtime/game_logo.webp",
+      "sourcePath": "art-src/game_logo.png",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 800,
+      "height": 536,
+      "bytes": 76176,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.fullbody.character_dealer_male_blacktee_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_dealer_male_blacktee_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_dealer_male_blacktee_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "dealer",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 34932,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.fullbody.character_driver_male_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_driver_male_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_driver_male_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "driver",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 34242,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.fullbody.character_enforcer_male_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_enforcer_male_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_enforcer_male_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "enforcer",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 34582,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.fullbody.character_lookout_female_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "lookout",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 35442,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.fullbody.character_shooter_male_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_shooter_male_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_shooter_male_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "shooter",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 84016,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.portraits.character_dealer_male_blacktee_portrait_v001",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_dealer_male_blacktee_portrait_v001.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_dealer_male_blacktee_portrait_v001.png",
+      "class": "portrait",
+      "role": "dealer",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 67688,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.portraits.character_driver_male_portrait_v001",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_driver_male_portrait_v001.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_driver_male_portrait_v001.png",
+      "class": "portrait",
+      "role": "driver",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 50630,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.portraits.character_enforcer_male_portrait_v001",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_enforcer_male_portrait_v001.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_enforcer_male_portrait_v001.png",
+      "class": "portrait",
+      "role": "enforcer",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 165062,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.portraits.character_enforcer_male_portrait_v002",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_enforcer_male_portrait_v002.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_enforcer_male_portrait_v002.png",
+      "class": "portrait",
+      "role": "enforcer",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 142868,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.portraits.character_lookout_female_portrait_v001",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_lookout_female_portrait_v001.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_lookout_female_portrait_v001.png",
+      "class": "portrait",
+      "role": "lookout",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 56976,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.portraits.character_shooter_male_portrait_v001",
+      "runtimePath": "/assets/runtime/generated/characters/portraits/character_shooter_male_portrait_v001.webp",
+      "sourcePath": "art-src/generated/characters/portraits/character_shooter_male_portrait_v001.png",
+      "class": "portrait",
+      "role": "shooter",
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 126726,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.street.character_dealer_male_street_aim_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_dealer_male_street_aim_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_dealer_male_street_aim_v001.png",
+      "class": "actor-street",
+      "role": "dealer",
+      "state": "aim",
+      "width": 427,
+      "height": 640,
+      "bytes": 34392,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_dealer_male_street_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_dealer_male_street_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_dealer_male_street_downed_v001.png",
+      "class": "actor-street",
+      "role": "dealer",
+      "state": "downed",
+      "width": 427,
+      "height": 640,
+      "bytes": 155180,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_dealer_male_street_hit_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_dealer_male_street_hit_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_dealer_male_street_hit_v001.png",
+      "class": "actor-street",
+      "role": "dealer",
+      "state": "hit",
+      "width": 427,
+      "height": 640,
+      "bytes": 31400,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_enforcer_male_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_enforcer_male_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_enforcer_male_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "enforcer",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 26934,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_shooter_male_street_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_shooter_male_street_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_shooter_male_street_downed_v001.png",
+      "class": "actor-street",
+      "role": "shooter",
+      "state": "downed",
+      "width": 427,
+      "height": 640,
+      "bytes": 19888,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_shooter_male_street_hit_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_shooter_male_street_hit_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_shooter_male_street_hit_v001.png",
+      "class": "actor-street",
+      "role": "shooter",
+      "state": "hit",
+      "width": 427,
+      "height": 640,
+      "bytes": 56790,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.topdown.character_dealer_male_blacktee_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.png",
+      "class": "actor-topdown",
+      "role": "dealer",
+      "state": null,
+      "width": 384,
+      "height": 384,
+      "bytes": 12014,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_driver_male_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_driver_male_topdown_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_driver_male_topdown_v001.png",
+      "class": "actor-topdown",
+      "role": "driver",
+      "state": null,
+      "width": 384,
+      "height": 384,
+      "bytes": 16482,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.topdown.character_enforcer_male_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_enforcer_male_topdown_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_enforcer_male_topdown_v001.png",
+      "class": "actor-topdown",
+      "role": "enforcer",
+      "state": null,
+      "width": 384,
+      "height": 384,
+      "bytes": 16570,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_lookout_female_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_lookout_female_topdown_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_lookout_female_topdown_v001.png",
+      "class": "actor-topdown",
+      "role": "lookout",
+      "state": null,
+      "width": 384,
+      "height": 384,
+      "bytes": 18998,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.topdown.character_shooter_male_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_shooter_male_topdown_v001.png",
+      "class": "actor-topdown",
+      "role": "shooter",
+      "state": null,
+      "width": 384,
+      "height": 384,
+      "bytes": 11120,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.effects.fx_combat_sprite_sheet_v001",
+      "runtimePath": "/assets/runtime/generated/effects/fx_combat_sprite_sheet_v001.webp",
+      "sourcePath": "art-src/generated/effects/fx_combat_sprite_sheet_v001.png",
+      "class": "effect",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 288,
+      "bytes": 46466,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.environments.street.block_stripplaza_day_street_v001",
+      "runtimePath": "/assets/runtime/generated/environments/street/block_stripplaza_day_street_v001.webp",
+      "sourcePath": "art-src/generated/environments/street/block_stripplaza_day_street_v001.png",
+      "class": "env-street",
+      "role": null,
+      "state": null,
+      "width": 1920,
+      "height": 1080,
+      "bytes": 216188,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.street.block_stripplaza_night_street_v001",
+      "runtimePath": "/assets/runtime/generated/environments/street/block_stripplaza_night_street_v001.webp",
+      "sourcePath": "art-src/generated/environments/street/block_stripplaza_night_street_v001.png",
+      "class": "env-street",
+      "role": null,
+      "state": null,
+      "width": 1920,
+      "height": 1080,
+      "bytes": 230730,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.topdown.block_stripplaza_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/environments/topdown/block_stripplaza_topdown_v001.webp",
+      "sourcePath": "art-src/generated/environments/topdown/block_stripplaza_topdown_v001.png",
+      "class": "env-topdown",
+      "role": null,
+      "state": null,
+      "width": 1536,
+      "height": 1536,
+      "bytes": 390420,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.products.product_rarity_set_v001",
+      "runtimePath": "/assets/runtime/generated/products/product_rarity_set_v001.webp",
+      "sourcePath": "art-src/generated/products/product_rarity_set_v001.png",
+      "class": "product-icon",
+      "role": null,
+      "state": null,
+      "width": 256,
+      "height": 256,
+      "bytes": 20304,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.bullet_cam_ui_v001",
+      "runtimePath": "/assets/runtime/generated/ui/bullet_cam_ui_v001.webp",
+      "sourcePath": "art-src/generated/ui/bullet_cam_ui_v001.png",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 1024,
+      "height": 576,
+      "bytes": 50252,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.fps_hud_elements_v001",
+      "runtimePath": "/assets/runtime/generated/ui/fps_hud_elements_v001.webp",
+      "sourcePath": "art-src/generated/ui/fps_hud_elements_v001.png",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 1024,
+      "height": 576,
+      "bytes": 101400,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.icons.app_icon_set_v001",
+      "runtimePath": "/assets/runtime/generated/ui/icons/app_icon_set_v001.webp",
+      "sourcePath": "art-src/generated/ui/icons/app_icon_set_v001.png",
+      "class": "ui-icon",
+      "role": null,
+      "state": null,
+      "width": 192,
+      "height": 192,
+      "bytes": 12582,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.icons.icon_news_v001",
+      "runtimePath": "/assets/runtime/generated/ui/icons/icon_news_v001.webp",
+      "sourcePath": "art-src/generated/ui/icons/icon_news_v001.png",
+      "class": "ui-icon",
+      "role": null,
+      "state": null,
+      "width": 192,
+      "height": 192,
+      "bytes": 30362,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.security_cam_overlay_v001",
+      "runtimePath": "/assets/runtime/generated/ui/security_cam_overlay_v001.webp",
+      "sourcePath": "art-src/generated/ui/security_cam_overlay_v001.png",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 1024,
+      "height": 576,
+      "bytes": 351810,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.vehicles.damage.vehicle_luxury_sedan_black_damage_light_v001",
+      "runtimePath": "/assets/runtime/generated/vehicles/damage/vehicle_luxury_sedan_black_damage_light_v001.webp",
+      "sourcePath": "art-src/generated/vehicles/damage/vehicle_luxury_sedan_black_damage_light_v001.png",
+      "class": "vehicle-street",
+      "role": null,
+      "state": null,
+      "width": 768,
+      "height": 768,
+      "bytes": 71750,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.vehicles.overlays.vehicle_luxury_sedan_passenger_overlay_v001",
+      "runtimePath": "/assets/runtime/generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.webp",
+      "sourcePath": "art-src/generated/vehicles/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png",
+      "class": "vehicle-street",
+      "role": null,
+      "state": null,
+      "width": 768,
+      "height": 432,
+      "bytes": 34260,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.vehicles.street.vehicle_luxury_sedan_black_street_side_v001",
+      "runtimePath": "/assets/runtime/generated/vehicles/street/vehicle_luxury_sedan_black_street_side_v001.webp",
+      "sourcePath": "art-src/generated/vehicles/street/vehicle_luxury_sedan_black_street_side_v001.png",
+      "class": "vehicle-street",
+      "role": null,
+      "state": "side",
+      "width": 768,
+      "height": 432,
+      "bytes": 32982,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.vehicles.topdown.vehicle_luxury_sedan_black_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/vehicles/topdown/vehicle_luxury_sedan_black_topdown_v001.webp",
+      "sourcePath": "art-src/generated/vehicles/topdown/vehicle_luxury_sedan_black_topdown_v001.png",
+      "class": "vehicle-topdown",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 18930,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.weapons.weapon_compact_prop_black_icon_v001",
+      "runtimePath": "/assets/runtime/generated/weapons/weapon_compact_prop_black_icon_v001.webp",
+      "sourcePath": "art-src/generated/weapons/weapon_compact_prop_black_icon_v001.png",
+      "class": "weapon-icon",
+      "role": null,
+      "state": null,
+      "width": 256,
+      "height": 256,
+      "bytes": 11154,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.weapons.weapon_long_prop_black_icon_v001",
+      "runtimePath": "/assets/runtime/generated/weapons/weapon_long_prop_black_icon_v001.webp",
+      "sourcePath": "art-src/generated/weapons/weapon_long_prop_black_icon_v001.png",
+      "class": "weapon-icon",
+      "role": null,
+      "state": null,
+      "width": 256,
+      "height": 256,
+      "bytes": 8710,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "icons.icon_casino",
+      "runtimePath": "/assets/runtime/icons/icon_casino.webp",
+      "sourcePath": "art-src/icons/icon_casino.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 19150,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_casino_new",
+      "runtimePath": "/assets/runtime/icons/icon_casino_new.webp",
+      "sourcePath": "art-src/icons/icon_casino_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 28314,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_cook",
+      "runtimePath": "/assets/runtime/icons/icon_cook.webp",
+      "sourcePath": "art-src/icons/icon_cook.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 18292,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_cook_new",
+      "runtimePath": "/assets/runtime/icons/icon_cook_new.webp",
+      "sourcePath": "art-src/icons/icon_cook_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 32334,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_crew",
+      "runtimePath": "/assets/runtime/icons/icon_crew.webp",
+      "sourcePath": "art-src/icons/icon_crew.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 10612,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_crew_new",
+      "runtimePath": "/assets/runtime/icons/icon_crew_new.webp",
+      "sourcePath": "art-src/icons/icon_crew_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 26136,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_dealt",
+      "runtimePath": "/assets/runtime/icons/icon_dealt.webp",
+      "sourcePath": "art-src/icons/icon_dealt.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 18528,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_dealt_new",
+      "runtimePath": "/assets/runtime/icons/icon_dealt_new.webp",
+      "sourcePath": "art-src/icons/icon_dealt_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 54286,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_driveby_new",
+      "runtimePath": "/assets/runtime/icons/icon_driveby_new.webp",
+      "sourcePath": "art-src/icons/icon_driveby_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 48432,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_graffiti_new",
+      "runtimePath": "/assets/runtime/icons/icon_graffiti_new.webp",
+      "sourcePath": "art-src/icons/icon_graffiti_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 48950,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_map",
+      "runtimePath": "/assets/runtime/icons/icon_map.webp",
+      "sourcePath": "art-src/icons/icon_map.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 27412,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_map_new",
+      "runtimePath": "/assets/runtime/icons/icon_map_new.webp",
+      "sourcePath": "art-src/icons/icon_map_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 73236,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_market",
+      "runtimePath": "/assets/runtime/icons/icon_market.webp",
+      "sourcePath": "art-src/icons/icon_market.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 11278,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_market_new",
+      "runtimePath": "/assets/runtime/icons/icon_market_new.webp",
+      "sourcePath": "art-src/icons/icon_market_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 19484,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_ops",
+      "runtimePath": "/assets/runtime/icons/icon_ops.webp",
+      "sourcePath": "art-src/icons/icon_ops.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 19612,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_ops_new",
+      "runtimePath": "/assets/runtime/icons/icon_ops_new.webp",
+      "sourcePath": "art-src/icons/icon_ops_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 41048,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_settings",
+      "runtimePath": "/assets/runtime/icons/icon_settings.webp",
+      "sourcePath": "art-src/icons/icon_settings.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 15084,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_settings_new",
+      "runtimePath": "/assets/runtime/icons/icon_settings_new.webp",
+      "sourcePath": "art-src/icons/icon_settings_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 34438,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_shoebox",
+      "runtimePath": "/assets/runtime/icons/icon_shoebox.webp",
+      "sourcePath": "art-src/icons/icon_shoebox.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 12252,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_shoebox_new",
+      "runtimePath": "/assets/runtime/icons/icon_shoebox_new.webp",
+      "sourcePath": "art-src/icons/icon_shoebox_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 39906,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_slide",
+      "runtimePath": "/assets/runtime/icons/icon_slide.webp",
+      "sourcePath": "art-src/icons/icon_slide.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 20670,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_slide_new",
+      "runtimePath": "/assets/runtime/icons/icon_slide_new.webp",
+      "sourcePath": "art-src/icons/icon_slide_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 26092,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "muzzle_flash",
+      "runtimePath": "/assets/runtime/muzzle_flash.webp",
+      "sourcePath": "art-src/muzzle_flash.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 35446,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "skyline_layer",
+      "runtimePath": "/assets/runtime/skyline_layer.webp",
+      "sourcePath": "art-src/skyline_layer.jpg",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 217,
+      "bytes": 26244,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "sprites.drugs",
+      "runtimePath": "/assets/runtime/sprites/drugs.webp",
+      "sourcePath": "art-src/sprites/drugs.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 286,
+      "bytes": 28518,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "sprites.terrain",
+      "runtimePath": "/assets/runtime/sprites/terrain.webp",
+      "sourcePath": "art-src/sprites/terrain.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 286,
+      "bytes": 42542,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "sprites.weapons",
+      "runtimePath": "/assets/runtime/sprites/weapons.webp",
+      "sourcePath": "art-src/sprites/weapons.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 286,
+      "bytes": 19932,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "street_bg_layer",
+      "runtimePath": "/assets/runtime/street_bg_layer.webp",
+      "sourcePath": "art-src/street_bg_layer.jpg",
+      "class": "backdrop",
+      "role": null,
+      "state": null,
+      "width": 1280,
+      "height": 543,
+      "bytes": 91604,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "street_fg_layer",
+      "runtimePath": "/assets/runtime/street_fg_layer.webp",
+      "sourcePath": "art-src/street_fg_layer.jpg",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 217,
+      "bytes": 25604,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    }
+  ]
+}
