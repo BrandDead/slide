@@ -292,3 +292,68 @@
   z-index: 30;
   pointer-events: none;
 }
+
+/* ── World actors (replaces portrait tokens) ─────────────────
+   A member on the block is a standing figure with a ground shadow,
+   not a headshot in a bordered box. */
+.td-member-actor {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.td-actor-sprite {
+  /* Bottom-anchored so the sprite's foot-contact pivot (0.5, 1.0) sits on
+     the cell floor. Matches projection.ts drawActor(). */
+  position: relative;
+  z-index: 2;
+  max-height: 132%;
+  max-width: 116%;
+  object-fit: contain;
+  object-position: bottom center;
+  transform: translateY(6%);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+}
+.td-actor-shadow {
+  position: absolute;
+  z-index: 1;
+  bottom: 6%;
+  left: 50%;
+  width: 62%;
+  height: 16%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 70%);
+  pointer-events: none;
+}
+.td-actor-missing {
+  z-index: 2;
+  width: 42%;
+  height: 62%;
+  clip-path: polygon(38% 0,62% 0,72% 22%,72% 58%,64% 100%,36% 100%,28% 58%,28% 22%);
+  opacity: 0.75;
+}
+.td-member-hpbar {
+  position: absolute;
+  z-index: 3;
+  bottom: 2%;
+  left: 18%;
+  width: 64%;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.td-member-hpbar > span { display: block; height: 100%; }
+
+/* Grid reads as a location first. It asserts itself during placement and
+   targeting, and stays quiet the rest of the time. */
+.td-cell { transition: box-shadow 140ms ease, background-color 140ms ease; }
+.td-grid:not(.placing):not(.targeting) .td-cell { box-shadow: none; }
+.td-grid:not(.placing):not(.targeting) .td-cell .td-zone-label { opacity: 0.18; }
+.td-grid.placing .td-cell.drop-target,
+.td-grid.targeting .td-cell.drop-target {
+  box-shadow: inset 0 0 0 2px rgba(74, 222, 128, 0.85);
+}

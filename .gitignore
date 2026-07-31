@@ -48,3 +48,8 @@ coverage/
 # Misc
 *.log
 *.tmp
+
+# Master art. 277 MB of source-resolution renders — never in the browser
+# bundle and too heavy for plain git. Store via Git LFS or object storage;
+# scripts/assets/process.mjs regenerates every runtime derivative from it.
+/art-src/
