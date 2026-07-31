@@ -67,7 +67,7 @@ export interface BlockPlacement {
 
 export type BlockOwner = 'player' | 'npc' | 'unclaimed';
 
-export type BlockViewMode = 'topdown' | 'street';
+export type BlockViewMode = 'topdown' | 'street' | 'drugs';
 
 export interface BlockData {
   id: string;
