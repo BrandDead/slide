@@ -15,6 +15,8 @@ import { useSalarySystem } from './hooks/useSalarySystem';
 import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
+import { useNPCTick } from './stores/npcStore';
+import { useTerritoryStore } from './stores/gameStore';
 import { supabase } from './services/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { GangProfile } from './types/game.types';
@@ -25,6 +27,7 @@ import OSShell from './components/layout/OSShell';
 import GameEventOverlay from './components/layout/GameEventOverlay';
 import RaidEventOverlay from './components/layout/RaidEventOverlay';
 import TutorialOverlay from './components/tutorial/TutorialOverlay';
+import NPCThreatBanner from './components/map/NPCThreatBanner';
 
 // Always-loaded core screens
 import DealtMode from './components/dealt/DealtMode';
@@ -108,6 +111,9 @@ const App: React.FC = () => {
   useSoundManager();
   const salarySystem = useSalarySystem();
   useNPCRetaliation();
+  // NPC AI Tick — drives rival gang behavior every 30s
+  const playerBlockIds = useTerritoryStore((s) => s.blocks.map((b) => b.id));
+  useNPCTick(playerBlockIds);
 
   const { completeStep } = useTutorialProgressStore();
 
@@ -206,6 +212,8 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
+      {/* NPC threat banner — fixed top bar, shows on any screen */}
+      <NPCThreatBanner />
       <TutorialOverlay />
 
       {/* Payroll modal — renders when Shoebox can't cover weekly wages */}
