@@ -24,6 +24,13 @@ import {
   type SceneSurface,
 } from '../../config/lasOlas1208Scene';
 import { getStreetSpriteUrl, loadDefringedSprite } from '../../services/assetResolver';
+import {
+  project,
+  effectAnchor,
+  DEFAULT_PROFILE,
+  type SceneViewport,
+  type ScenePoint,
+} from '../../render/projection';
 
 export interface CanvasStreetRendererProps {
   placements: BlockPlacement[];
@@ -124,16 +131,8 @@ const MEMBER_RENDER_HEIGHT = Math.round(
   MEMBER_RENDER_WIDTH * (SPRITE_FRAME_HEIGHT / SPRITE_FRAME_WIDTH),
 );
 
-const ZONE_Y_MAP: Record<string, number> = {
-  rooftop: 0.25,
-  building: 0.35,
-  storefront: 0.57,
-  alley: 0.59,
-  sidewalk: 0.68,
-  parking: 0.73,
-  curb: 0.76,
-  street: 0.83,
-};
+// ZONE_Y_MAP removed — coordinate math is now delegated to projection.ts.
+// All renderers share one ground-truth transform: project({col, row}, view).
 
 const SCENE_SURFACES = getAllSceneSurfaces();
 
@@ -216,11 +215,24 @@ function pointInRect(x: number, y: number, rect: PixelRect): boolean {
   );
 }
 
+/**
+ * Project a BlockPlacement grid position into scene space.
+ * BlockPlacement.x = column (0-7), BlockPlacement.y = row (0-7).
+ * Delegates to the shared projection layer so all renderers stay in sync.
+ */
+function memberScenePoint(
+  member: BlockPlacement,
+  width: number,
+  height: number,
+): ScenePoint {
+  const view: SceneViewport = { width, height };
+  return project({ col: member.x, row: member.y }, view, DEFAULT_PROFILE);
+}
+
+/** Legacy shim — callers that only need {x, y} can keep using this. */
 function memberRenderPoint(member: BlockPlacement, width: number, height: number): RenderPoint {
-  const x = ((member.x + 0.5) / 8) * width;
-  const baseY = height * (ZONE_Y_MAP[member.zoneType] ?? 0.68);
-  const stagger = ((member.y % 3) - 1) * 2.2;
-  return { x, y: baseY + stagger };
+  const pt = memberScenePoint(member, width, height);
+  return { x: pt.x, y: pt.y };
 }
 
 function getCarGeometry(
@@ -305,10 +317,14 @@ function findMemberNearPixel(
   let nearest: BlockPlacement | undefined;
   let nearestDistance = Number.POSITIVE_INFINITY;
   for (const member of placements) {
-    const point = memberRenderPoint(member, width, height);
-    const dx = x - point.x;
-    const dy = y - (point.y - MEMBER_RENDER_HEIGHT * 0.25);
-    const normalized = (dx * dx) / (24 * 24) + (dy * dy) / (48 * 48);
+    const pt = memberScenePoint(member, width, height);
+    // Hit ellipse derived from the projected actor size — no magic constants.
+    const hitW = pt.cellWidth * 0.55;
+    const hitH = pt.actorHeight * 0.9;
+    const torsoY = pt.y - pt.actorHeight * 0.5; // vertical centre of the body
+    const dx = x - pt.x;
+    const dy = y - torsoY;
+    const normalized = (dx * dx) / (hitW * hitW) + (dy * dy) / (hitH * hitH);
     if (normalized <= 1 && normalized < nearestDistance) {
       nearestDistance = normalized;
       nearest = member;
@@ -740,14 +756,18 @@ export function CanvasStreetRenderer({
         if (gridCoordinates) {
           targetMember = findMemberAtGrid(placementsNow, shot.targetX, shot.targetY);
           if (targetMember) {
-            const point = memberRenderPoint(targetMember, sceneWidth, sceneHeight);
-            targetX = point.x + (hashNumber(shotSeed) - 0.5) * 12;
-            targetY =
-              point.y -
-              MEMBER_RENDER_HEIGHT * (0.16 + hashNumber(shotSeed + 3) * 0.45);
+            const pt = memberScenePoint(targetMember, sceneWidth, sceneHeight);
+            const anchor = effectAnchor(pt, 'torso');
+            targetX = anchor.x + (hashNumber(shotSeed) - 0.5) * pt.cellWidth * 0.4;
+            targetY = anchor.y + (hashNumber(shotSeed + 3) - 0.5) * pt.actorHeight * 0.35;
           } else {
-            targetX = ((shot.targetX + 0.5) / 8) * sceneWidth;
-            targetY = ((shot.targetY + 0.5) / 8) * sceneHeight;
+            const fallback = project(
+              { col: shot.targetX, row: shot.targetY },
+              { width: sceneWidth, height: sceneHeight },
+              DEFAULT_PROFILE,
+            );
+            targetX = fallback.x;
+            targetY = fallback.y;
           }
         } else if (kind === 'attack') {
           targetMember = findMemberNearPixel(
@@ -773,14 +793,14 @@ export function CanvasStreetRenderer({
           spawnMuzzleFlash(originX, originY, angle, 1.15);
 
           if (shot.hit && targetMember) {
-            const memberPoint = memberRenderPoint(targetMember, sceneWidth, sceneHeight);
+            const memberPt = memberScenePoint(targetMember, sceneWidth, sceneHeight);
             const roleColor = ROLE_COLORS[targetMember.role];
             const skinColor = SKIN_TONES[hashString(targetMember.memberId) % SKIN_TONES.length];
             ragdollRef.current.ensure(
               targetMember.memberId,
-              memberPoint.x,
-              memberPoint.y,
-              1,
+              memberPt.x,
+              memberPt.y,
+              memberPt.scale,
               roleColor,
               skinColor,
             );
@@ -790,17 +810,19 @@ export function CanvasStreetRenderer({
             const nextHealth = Math.max(0, previousHealth - Math.max(1, shot.damage));
             visualHealthRef.current.set(targetMember.memberId, nextHealth);
             const lethal = nextHealth <= 0;
+            // effectAnchor ensures blood lands on the drawn body, not beside it.
+            const hitAnchor = effectAnchor(memberPt, 'torso');
             ragdollRef.current.applyHit(targetMember.memberId, {
-              hitX: targetX,
-              hitY: targetY,
-              directionX: targetX - originX,
-              directionY: targetY - originY,
+              hitX: hitAnchor.x,
+              hitY: hitAnchor.y,
+              directionX: hitAnchor.x - originX,
+              directionY: hitAnchor.y - originY,
               force: 130 + shot.damage * 4.2,
               lethal,
             });
             impactRef.current.spawnBlood(
-              targetX,
-              targetY,
+              hitAnchor.x,
+              hitAnchor.y,
               angle,
               lethal ? 1.55 : 0.75 + shot.damage / 90,
             );
@@ -1214,78 +1236,82 @@ export function CanvasStreetRenderer({
       const sprite = spriteRef.current;
       const activeIds = new Set<string>();
 
-      for (const member of placementsRef.current) {
+      // Sort far-to-near so nearer actors overdraw farther ones (painter's algorithm).
+      const view: SceneViewport = { width: sceneWidth, height: sceneHeight };
+      const sorted = [...placementsRef.current].sort((a, b) => {
+        const pa = project({ col: a.x, row: a.y }, view, DEFAULT_PROFILE);
+        const pb = project({ col: b.x, row: b.y }, view, DEFAULT_PROFILE);
+        return pa.depth - pb.depth; // ascending = far first
+      });
+
+      for (const member of sorted) {
         activeIds.add(member.memberId);
-        const point = memberRenderPoint(member, sceneWidth, sceneHeight);
+        const pt = memberScenePoint(member, sceneWidth, sceneHeight);
         const clothing = ROLE_COLORS[member.role];
         const skin = SKIN_TONES[hashString(member.memberId) % SKIN_TONES.length];
-        ragdollRef.current.ensure(member.memberId, point.x, point.y, 1, clothing, skin);
+        ragdollRef.current.ensure(member.memberId, pt.x, pt.y, pt.scale, clothing, skin);
 
         const health = visualHealthRef.current.get(member.memberId) ?? member.health;
         if (health <= 0) ragdollRef.current.setDowned(member.memberId, true);
         if (ragdollRef.current.isActive(member.memberId)) continue;
 
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        // Ground shadow — driven by projection so it sits on the ground plane.
+        ctx.fillStyle = `rgba(0,0,0,${pt.shadow.opacity})`;
         ctx.beginPath();
-        ctx.ellipse(point.x, point.y + MEMBER_RENDER_HEIGHT * 0.5 + 4, 14, 5, 0, 0, Math.PI * 2);
+        ctx.ellipse(pt.shadow.cx, pt.shadow.cy, pt.shadow.rx, pt.shadow.ry, 0, 0, Math.PI * 2);
         ctx.fill();
 
         const hiRes = hiResSpritesRef.current.get(member.role);
+        // Sprites are authored pivot (0.5, 1.0): foot contact at (pt.x, pt.y).
+        const renderH = pt.actorHeight;
         if (hiRes && hiRes.width > 0 && hiRes.height > 0) {
-          const renderHeight = MEMBER_RENDER_HEIGHT * 1.04;
-          const renderWidth = renderHeight * (hiRes.width / hiRes.height);
-          ctx.drawImage(
-            hiRes,
-            point.x - renderWidth / 2,
-            point.y - renderHeight / 2,
-            renderWidth,
-            renderHeight,
-          );
+          const renderW = renderH * (hiRes.width / hiRes.height);
+          ctx.drawImage(hiRes, pt.x - renderW / 2, pt.y - renderH, renderW, renderH);
         } else if (sprite && spriteReadyRef.current) {
           const frame = MEMBER_FRAMES[member.role] ?? 0;
           const sourceX = (frame % SPRITE_SHEET_COLS) * SPRITE_FRAME_WIDTH;
+          const renderW = renderH * (SPRITE_FRAME_WIDTH / SPRITE_FRAME_HEIGHT);
           ctx.drawImage(
             sprite,
-            sourceX,
-            0,
-            SPRITE_FRAME_WIDTH,
-            SPRITE_FRAME_HEIGHT,
-            point.x - MEMBER_RENDER_WIDTH / 2,
-            point.y - MEMBER_RENDER_HEIGHT / 2,
-            MEMBER_RENDER_WIDTH,
-            MEMBER_RENDER_HEIGHT,
+            sourceX, 0, SPRITE_FRAME_WIDTH, SPRITE_FRAME_HEIGHT,
+            pt.x - renderW / 2, pt.y - renderH, renderW, renderH,
           );
         } else {
+          // Vector fallback — foot-contact pivot at (pt.x, pt.y).
+          const bh = renderH;
+          const bw = bh * 0.52;
           ctx.fillStyle = clothing;
-          roundedRectPath(ctx, point.x - 11, point.y - 22, 22, 42, 5);
+          roundedRectPath(ctx, pt.x - bw / 2, pt.y - bh * 0.78, bw, bh * 0.68, 4 * pt.scale);
           ctx.fill();
           ctx.fillStyle = skin;
           ctx.beginPath();
-          ctx.arc(point.x, point.y - 28, 8, 0, Math.PI * 2);
+          ctx.arc(pt.x, pt.y - bh * 0.88, bh * 0.14, 0, Math.PI * 2);
           ctx.fill();
           ctx.strokeStyle = '#171b20';
-          ctx.lineWidth = 4;
+          ctx.lineWidth = 3 * pt.scale;
           ctx.beginPath();
-          ctx.moveTo(point.x - 5, point.y + 18);
-          ctx.lineTo(point.x - 7, point.y + 34);
-          ctx.moveTo(point.x + 5, point.y + 18);
-          ctx.lineTo(point.x + 7, point.y + 34);
+          ctx.moveTo(pt.x - bw * 0.22, pt.y - bh * 0.06);
+          ctx.lineTo(pt.x - bw * 0.28, pt.y);
+          ctx.moveTo(pt.x + bw * 0.22, pt.y - bh * 0.06);
+          ctx.lineTo(pt.x + bw * 0.28, pt.y);
           ctx.stroke();
         }
 
+        // Health bar — anchored above the head via effectAnchor.
+        const headAnchor = effectAnchor(pt, 'head');
         const healthRatio = clamp(health / 100, 0, 1);
-        const barWidth = 29;
-        const barY = point.y - MEMBER_RENDER_HEIGHT / 2 - 9;
+        const barWidth = Math.max(20, pt.cellWidth * 0.72);
+        const barY = headAnchor.y - 8 * pt.scale;
         ctx.fillStyle = 'rgba(7,8,10,0.85)';
-        ctx.fillRect(point.x - barWidth / 2, barY, barWidth, 4);
+        ctx.fillRect(pt.x - barWidth / 2, barY, barWidth, 3 * pt.scale);
         ctx.fillStyle =
           healthRatio > 0.55 ? '#48d17a' : healthRatio > 0.25 ? '#e6b74b' : '#ef4e58';
-        ctx.fillRect(point.x - barWidth / 2, barY, barWidth * healthRatio, 4);
+        ctx.fillRect(pt.x - barWidth / 2, barY, barWidth * healthRatio, 3 * pt.scale);
 
         ctx.fillStyle = 'rgba(245,247,250,0.72)';
-        ctx.font = '9px ui-monospace, monospace';
+        ctx.font = `${Math.max(7, 9 * pt.scale)}px ui-monospace, monospace`;
         ctx.textAlign = 'center';
-        ctx.fillText(member.memberName, point.x, barY - 4);
+        ctx.fillText(member.memberName, pt.x, barY - 3 * pt.scale);
       }
 
       ctx.textAlign = 'left';
