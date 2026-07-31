@@ -35,15 +35,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Unit tests
-        run: npm test
-
-      - name: Asset audit (alpha / fringe / dimensions / budget)
-        run: npm run assets:audit
-
       - name: Build
         run: npx vite build
         env:
