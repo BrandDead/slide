@@ -10,7 +10,8 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { useNavigationStore, usePlayerStore, useGangStore, useNotificationStore } from '../../stores/gameStore';
+import { addXp, xpForLevel, XP_CONFIG, type MemberLevel } from '../../utils/memberProgression';
 import { soundManager } from '../../utils/SoundManager';
 import {
   BLOCK_COLS,
@@ -296,6 +297,8 @@ const SlideGame: React.FC = () => {
     let carDamageThisSpin = 0;
 
     const defenderShooters = gameState.defenders.filter((d) => d.isAlive && d.role === 'shooter');
+    const gangStore = useGangStore.getState();
+    const notifStore = useNotificationStore.getState();
 
     for (let i = 0; i < defenderSelectedCols.length; i++) {
       const col = defenderSelectedCols[i];
@@ -321,6 +324,35 @@ const SlideGame: React.FC = () => {
           const victimName = newVehicle.members[mIdx].name;
           newVehicle.members[mIdx].isAlive = false;
           newKillFeed.push({ message: `💀 ${victimName} in the car was hit!`, timestamp: Date.now(), type: 'kill' });
+        }
+        // Award XP to the shooter who got the kill
+        const gangMember = gangStore.members.find(
+          (m) => m.name === shooter.name || m.id === shooter.id
+        );
+        if (gangMember) {
+          const currentLevel: MemberLevel = {
+            level: gangMember.level ?? 1,
+            xp: gangMember.experience ?? 0,
+            xpToNext: xpForLevel(gangMember.level ?? 1),
+            totalXp: gangMember.experience ?? 0,
+          };
+          const { level: newLevel, levelUps } = addXp(currentLevel, XP_CONFIG.XP_PER_KILL, 'shooter');
+          gangStore.updateMember(gangMember.id, {
+            level: newLevel.level,
+            experience: newLevel.totalXp,
+            kills: (gangMember.kills ?? 0) + 1,
+          });
+          for (const lu of levelUps) {
+            notifStore.addNotification({
+              type: 'info',
+              title: `⬆️ ${gangMember.name} leveled up!`,
+              message: `${gangMember.name} reached Level ${lu.newLevel}.${
+                lu.unlockedAbility ? ` Unlocked: ${lu.unlockedAbility}` : ''
+              }`,
+              priority: 'normal',
+              timestamp: Date.now(),
+            });
+          }
         }
       }
     }
