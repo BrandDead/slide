@@ -15,7 +15,13 @@ import {
   type RaidResult,
   HEAT_CONFIG,
 } from './heatSystem';
-import { getMemberHeatContribution } from './memberProgression';
+import {
+  getMemberHeatContribution,
+  addXp,
+  xpForLevel,
+  XP_CONFIG,
+  type MemberLevel,
+} from './memberProgression';
 import { calculateTotalIncome, estimateIncomePerMinute, type ODEvent } from './incomeEngine';
 import { calculateBlockEnforcerContributions } from './enforcerEngine';
 import {
@@ -310,6 +316,40 @@ export function useGameLoop(): GameLoopState {
     }
 
     setIncomePerMinute(estimateIncomePerMinute(incomeResult.totalIncome));
+
+    // 3c. DEALER XP AWARDS — every tick, active dealers earn XP for working the block
+    for (const blockData of blockDealers) {
+      for (const dealer of blockData.dealers) {
+        const member = members.find((m) => m.id === dealer.memberId);
+        if (!member) continue;
+        const currentLevel: MemberLevel = {
+          level: member.level ?? 1,
+          xp: member.experience ?? 0,
+          xpToNext: xpForLevel(member.level ?? 1),
+          totalXp: member.experience ?? 0,
+        };
+        const { level: newLevel, levelUps } = addXp(
+          currentLevel,
+          XP_CONFIG.XP_PER_DEAL,
+          'dealer',
+        );
+        stores.gang.updateMember(member.id, {
+          level: newLevel.level,
+          experience: newLevel.totalXp,
+        });
+        for (const lu of levelUps) {
+          stores.notifications.addNotification({
+            type: 'info',
+            title: `⬆️ ${member.name} leveled up!`,
+            message: `${member.name} reached Level ${lu.newLevel}.${
+              lu.unlockedAbility ? ` Unlocked: ${lu.unlockedAbility}` : ''
+            }`,
+            priority: 'normal',
+            timestamp: Date.now(),
+          });
+        }
+      }
+    }
 
     // 3b. ENFORCER PATROL INCOME + HEAT REDUCTION
     const blockEnforcers = blocks.map((block) => ({
