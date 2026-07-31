@@ -155,6 +155,52 @@ function calculateLevelUp(
 }
 
 /**
+ * Exported ability milestone list for UI display (MemberProgressPanel).
+ */
+export const ABILITY_MILESTONES: Record<string, Array<{ level: number; ability: string }>> = {
+  shooter: [
+    { level: 5,  ability: 'Double Tap - Two shots per turn' },
+    { level: 10, ability: 'Headshot - 20% instant kill chance' },
+    { level: 20, ability: 'Suppressive Fire - 3x3 burst pattern' },
+    { level: 30, ability: 'Sniper - Can target specific vehicle parts' },
+    { level: 40, ability: 'One Shot One Kill - 50% crit chance' },
+    { level: 50, ability: 'Legend - Never misses' },
+  ],
+  dealer: [
+    { level: 5,  ability: 'Smooth Talker - 10% better prices' },
+    { level: 10, ability: 'Bulk Deals - Can sell 2x quantity' },
+    { level: 20, ability: 'Sixth Sense - Detects undercovers 50% of time' },
+    { level: 30, ability: 'Kingpin Deals - Celebrity clients appear more' },
+    { level: 40, ability: 'Empire Builder - Passive income +50%' },
+    { level: 50, ability: 'Untouchable - Immune to minor raids' },
+  ],
+  enforcer: [
+    { level: 5,  ability: 'Intimidate - Enemies less accurate' },
+    { level: 10, ability: 'Bodyguard - Absorbs damage for nearby units' },
+    { level: 20, ability: 'Berserker - Double damage when HP < 50%' },
+    { level: 30, ability: 'Iron Will - Cannot be one-shot killed' },
+    { level: 40, ability: 'Warlord - Boosts all nearby unit damage' },
+    { level: 50, ability: 'Immortal - Survives lethal damage once per battle' },
+  ],
+  driver: [
+    { level: 5,  ability: 'Quick Getaway - Escape raids 30% of time' },
+    { level: 10, ability: 'Drift - Vehicle harder to hit' },
+    { level: 20, ability: 'Ramming Speed - Vehicle deals contact damage' },
+    { level: 30, ability: 'Phantom - Vehicle invisible for first 2 turns' },
+    { level: 40, ability: 'Speed Demon - Extra attack phase per turn' },
+    { level: 50, ability: 'Ghost Rider - Vehicle cannot be destroyed' },
+  ],
+  chemist: [
+    { level: 5,  ability: 'Precise Measurements - +10% purity' },
+    { level: 10, ability: 'Batch Processing - Craft 2x quantity' },
+    { level: 20, ability: 'Master Cook - Unlock super drug recipes' },
+    { level: 30, ability: 'Alchemist - 0% craft failure rate' },
+    { level: 40, ability: 'Pharmacist - Reduce OD risk by 50%' },
+    { level: 50, ability: 'Heisenberg - All crafts are max purity' },
+  ],
+};
+
+/**
  * Get ability unlocked at a milestone level.
  */
 function getAbilityUnlock(level: number, role: string): string | undefined {
