@@ -7,6 +7,7 @@ import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, useGangStore, usePlayerStore } from '../../stores/gameStore';
 import { MemberGrid } from './GangMemberCard';
+import { MemberProgressPanel } from './MemberProgressPanel';
 import type { GangMember } from '../../types/game.types';
 
 type TabType = 'active' | 'jailed' | 'dead';
@@ -27,9 +28,11 @@ const GangManagement: React.FC = () => {
     activeTab === 'jailed' ? jailedMembers :
     deadMembers;
 
-  const handleSelectMember = useCallback(() => {
-    navigateTo('contacts');
-  }, [navigateTo]);
+  const [selectedMember, setSelectedMember] = useState<GangMember | null>(null);
+
+  const handleSelectMember = useCallback((member: GangMember) => {
+    setSelectedMember((prev) => prev?.id === member.id ? null : member);
+  }, []);
 
   const handleQuickRecruit = useCallback(() => {
     const cost = 500;
@@ -90,7 +93,25 @@ const GangManagement: React.FC = () => {
             <p>{activeTab === 'active' ? 'No active members. Recruit from CONTACTS.' : activeTab === 'jailed' ? 'No one locked up. Stay low.' : 'No fallen soldiers. Keep it that way.'}</p>
           </div>
         ) : (
-          <MemberGrid members={currentList} onSelect={handleSelectMember} variant="compact" />
+          <>
+            <MemberGrid members={currentList} onSelect={handleSelectMember} variant="compact" />
+            <AnimatePresence>
+              {selectedMember && (
+                <motion.div
+                  key={selectedMember.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  style={{ marginTop: 12 }}
+                >
+                  <div style={{ fontSize: 11, color: '#888', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 }}>
+                    {selectedMember.name} · Progression
+                  </div>
+                  <MemberProgressPanel member={selectedMember} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
       </div>
       {activeTab === 'active' && (
