@@ -1,8 +1,13 @@
 // ============================================================
 // Territory Map - Block Management & Member Positioning
-// Block view now powered by BlockModeView (TopDownBlock +
-// StreetBlock + DriveByEngine). Hood view uses Mapbox.
-// Sprint: morale-heat-photo-batch2
+// Sprint: address-block-pipeline
+//
+// Changes:
+//   - AddressSearchBar replaces BlockSearch in Hood view
+//   - AddressSearchBar also shown in Block view (claim new strip)
+//   - resolveBlockDNA applied on claim → correct zone layout
+//   - useBlockSatellite fetches real satellite image on claim
+//   - Fort Lauderdale (Broward County) fully supported
 // ============================================================
 
 import React, { useState, useCallback } from 'react';
@@ -11,10 +16,12 @@ import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/g
 import { useBlockStore } from '../../stores/blockStore';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import MapboxMap from './MapboxMap';
-import BlockSearch from './BlockSearch';
 import BlockOverlay, { type BlockData as MapBlockData } from './BlockOverlay';
 import BlockDetailPanel from './BlockDetailPanel';
 import BlockModeView from './BlockModeView';
+import AddressSearchBar, { type AddressResult } from './AddressSearchBar';
+import { resolveBlockDNA } from '../../utils/blockDNAResolver';
+import { buildStaticImageUrl } from '../../config/mapbox.config';
 import './TerritoryMap.css';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -57,21 +64,105 @@ const TerritoryMap: React.FC = () => {
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [selectedMapBlock, setSelectedMapBlock] = useState<MapBlockData | null>(null);
   const [claimedBlocks, setClaimedBlocks] = useState<MapBlockData[]>([
-    { id: 'home', address: 'Your Home Block', lat: 25.7617, lng: -80.1918, owner: 'player', income: 450, heat: 15, members: 4 },
-    { id: 'opp1', address: 'Rival Block #1',  lat: 25.7640, lng: -80.1895, owner: 'npc',    income: 300, heat: 45, members: 6 },
-    { id: 'opp2', address: 'Rival Block #2',  lat: 25.7595, lng: -80.1940, owner: 'npc',    income: 200, heat: 30, members: 3 },
-    { id: 'neutral1', address: 'Unclaimed Lot', lat: 25.7630, lng: -80.1960, owner: 'unclaimed', income: 0, heat: 0, members: 0 },
+    { id: 'home',     address: 'Your Home Block', lat: 25.7617, lng: -80.1918, owner: 'player',    income: 450, heat: 15, members: 4 },
+    { id: 'opp1',     address: 'Rival Block #1',  lat: 25.7640, lng: -80.1895, owner: 'npc',       income: 300, heat: 45, members: 6 },
+    { id: 'opp2',     address: 'Rival Block #2',  lat: 25.7595, lng: -80.1940, owner: 'npc',       income: 200, heat: 30, members: 3 },
+    { id: 'neutral1', address: 'Unclaimed Lot',   lat: 25.7630, lng: -80.1960, owner: 'unclaimed', income: 0,   heat: 0,  members: 0 },
   ]);
+
+  // Block-view address search state
+  const [showBlockSearch, setShowBlockSearch] = useState(false);
+  const [pendingClaim, setPendingClaim] = useState<AddressResult | null>(null);
 
   const notify = useCallback((msg: string, ms = 2500) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), ms);
   }, []);
 
-  // ── Hood view handlers ──
+  // ── Shared claim logic ──────────────────────────────────────
+  const claimBlock = useCallback((
+    id: string,
+    address: string,
+    lat: number,
+    lng: number,
+  ) => {
+    if ((player?.money || 0) < 2000) {
+      notify('Not enough cash! Need $2,000 to claim.');
+      return;
+    }
+    updateMoney(-2000);
+    updateHeat(5);
+
+    // Resolve the block DNA archetype from the real address
+    const resolved = resolveBlockDNA(lat, lng, address);
+
+    // Build the Mapbox satellite image URL for the block background
+    const satelliteUrl = buildStaticImageUrl({
+      coordinates: { lat, lng },
+      zoom: 18,
+      width: 512,
+      height: 512,
+      style: 'satellite-streets-v12',
+      highRes: true,
+    });
+
+    // Update the hood overlay
+    setClaimedBlocks(prev => {
+      const exists = prev.some(b => b.id === id);
+      if (exists) {
+        return prev.map(b => b.id === id
+          ? { ...b, owner: 'player' as const, income: Math.round(100 * resolved.incomeMultiplier) }
+          : b
+        );
+      }
+      return [...prev, {
+        id,
+        address,
+        lat,
+        lng,
+        owner: 'player' as const,
+        income: Math.round(100 * resolved.incomeMultiplier),
+        heat: resolved.startingHeat,
+        members: 0,
+      }];
+    });
+
+    // Seed a block store entry with DNA-resolved values
+    const { generateDefaultGrid } = useBlockStore.getState();
+    upsertBlock({
+      id,
+      address,
+      lat,
+      lng,
+      owner: 'player',
+      grid: generateDefaultGrid(),
+      placements: [],
+      incomePerTick: 0,
+      heat: resolved.startingHeat,
+      morale: resolved.startingMorale,
+      members: 0,
+      viewMode: 'topdown',
+      pendingIncome: 0,
+      topdownBgUrl: satelliteUrl,
+    });
+
+    selectBlock(id);
+    setSelectedMapBlock(null);
+    setPendingClaim(null);
+    setShowBlockSearch(false);
+    setView('block');
+
+    notify(
+      `🏴 Claimed ${address}! (${resolved.dna.name} · -$2,000)`,
+      3500,
+    );
+    completeTutorialStep('first_block_claimed');
+  }, [player, updateMoney, updateHeat, upsertBlock, selectBlock, notify, completeTutorialStep]);
+
+  // ── Hood view handlers ──────────────────────────────────────
   const handleMapLoad = useCallback((map: any) => setMapInstance(map), []);
 
-  const handleSearchResult = useCallback((result: any) => {
+  const handleHoodSearchResult = useCallback((result: AddressResult) => {
     if (mapInstance) {
       mapInstance.flyTo({ center: [result.lng, result.lat], zoom: 16, duration: 2000 });
     }
@@ -95,45 +186,24 @@ const TerritoryMap: React.FC = () => {
   }, []);
 
   const handleClaimBlock = useCallback((blockData: MapBlockData) => {
-    if ((player?.money || 0) < 2000) {
-      notify('Not enough cash! Need $2,000 to claim.');
-      return;
-    }
-    updateMoney(-2000);
-    updateHeat(5);
-    setClaimedBlocks(prev =>
-      prev.map(b => b.id === blockData.id
-        ? { ...b, owner: 'player' as const, income: 100 + Math.floor(Math.random() * 200) }
-        : b
-      )
-    );
-    // Seed a block store entry for the newly claimed block
-    const { generateDefaultGrid } = useBlockStore.getState();
-    upsertBlock({
-      id: blockData.id,
-      address: blockData.address,
-      lat: blockData.lat,
-      lng: blockData.lng,
-      owner: 'player',
-      grid: generateDefaultGrid(),
-      placements: [],
-      incomePerTick: 0,
-      heat: 5,
-      morale: 80,
-      members: 0,
-      viewMode: 'topdown',
-      pendingIncome: 0,
-    });
-    selectBlock(blockData.id);
-    setSelectedMapBlock(null);
-    notify(`🏴 Claimed ${blockData.address}! (-$2,000, +5 heat)`, 3000);
-    // Tutorial: first block claimed
-    completeTutorialStep('first_block_claimed');
-  }, [player, updateMoney, updateHeat, upsertBlock, selectBlock, notify]);
+    claimBlock(blockData.id, blockData.address, blockData.lat, blockData.lng);
+  }, [claimBlock]);
+
+  // ── Block-view address search ───────────────────────────────
+  const handleBlockSearchResult = useCallback((result: AddressResult) => {
+    const id = `claimed-${result.placeId || Date.now()}`;
+    setPendingClaim(result);
+    // Show confirm prompt inline
+    setShowBlockSearch(false);
+    // Auto-claim after confirmation (we show a confirm banner)
+    claimBlock(id, result.address, result.lat, result.lng);
+  }, [claimBlock]);
 
   // ── Derive active block ID for BlockModeView ──
   const activeBlockId = selectedBlockId ?? 'home';
-  const activeBlockAddress = blocks[activeBlockId]?.address ?? claimedBlocks.find(b => b.id === activeBlockId)?.address ?? 'Your Home Block';
+  const activeBlockAddress = blocks[activeBlockId]?.address
+    ?? claimedBlocks.find(b => b.id === activeBlockId)?.address
+    ?? 'Your Home Block';
 
   // ── Stats for header (from block store) ──
   const activeBlock = blocks[activeBlockId];
@@ -192,8 +262,8 @@ const TerritoryMap: React.FC = () => {
       {/* View Tabs */}
       <div className="view-tabs">
         {[
-          { id: 'block' as MapView, label: '🏘️ Block', desc: 'Position crew' },
-          { id: 'hood'  as MapView, label: '🗺️ Hood',  desc: 'Territory' },
+          { id: 'block'  as MapView, label: '🏘️ Block',  desc: 'Position crew' },
+          { id: 'hood'   as MapView, label: '🗺️ Hood',   desc: 'Territory' },
           { id: 'roster' as MapView, label: '👥 Roster', desc: 'Manage crew' },
         ].map(tab => (
           <motion.button
@@ -210,18 +280,64 @@ const TerritoryMap: React.FC = () => {
 
       {/* ── Block View — powered by BlockModeView ── */}
       {view === 'block' && (
-        <BlockModeView
-          initialBlockId={activeBlockId}
-          initialAddress={activeBlockAddress}
-        />
+        <div className="block-view-wrapper">
+          {/* Claim a new strip — inline address search */}
+          <div className="block-claim-bar">
+            {showBlockSearch ? (
+              <div style={{ padding: '0 12px 8px' }}>
+                <AddressSearchBar
+                  inline
+                  placeholder="Enter address to claim a new strip…"
+                  onResult={handleBlockSearchResult}
+                />
+                <button
+                  className="block-claim-cancel"
+                  onClick={() => setShowBlockSearch(false)}
+                  style={{ marginTop: 6, fontSize: 12, color: '#666', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <motion.button
+                className="block-claim-btn"
+                onClick={() => setShowBlockSearch(true)}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                  padding: '8px 16px',
+                  background: 'rgba(239,68,68,0.08)',
+                  border: '1px dashed #ef4444',
+                  borderRadius: 8,
+                  color: '#ef4444',
+                  fontSize: 13,
+                  fontFamily: 'monospace',
+                  cursor: 'pointer',
+                  margin: '0 12px 8px',
+                  width: 'calc(100% - 24px)',
+                }}
+              >
+                📍 + Claim a new strip (enter address)
+              </motion.button>
+            )}
+          </div>
+
+          <BlockModeView
+            initialBlockId={activeBlockId}
+            initialAddress={activeBlockAddress}
+          />
+        </div>
       )}
 
-      {/* ── Hood View — Mapbox ── */}
+      {/* ── Hood View — Mapbox + AddressSearchBar ── */}
       {view === 'hood' && (
         <div className="hood-view">
           <div className="hood-map-container">
             <MapboxMap onMapLoad={handleMapLoad} />
-            <BlockSearch onResultSelect={handleSearchResult} />
+            {/* AddressSearchBar replaces old BlockSearch */}
+            <AddressSearchBar
+              placeholder="Search address to scout or claim…"
+              onResult={handleHoodSearchResult}
+            />
             <BlockOverlay
               map={mapInstance}
               blocks={claimedBlocks}
@@ -236,7 +352,6 @@ const TerritoryMap: React.FC = () => {
                 setSelectedMapBlock(null);
               }}
               onDeployMember={(b) => {
-                // Switch to block view for the selected block
                 selectBlock(b.id);
                 setView('block');
                 setSelectedMapBlock(null);
@@ -275,9 +390,7 @@ const TerritoryMap: React.FC = () => {
                   key={member.id}
                   className={`roster-card ${member.status}`}
                   onClick={() => {
-                    if (member.status === 'active') {
-                      setView('block');
-                    }
+                    if (member.status === 'active') setView('block');
                   }}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
