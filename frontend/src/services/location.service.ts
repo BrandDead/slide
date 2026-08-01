@@ -281,6 +281,7 @@ export class LocationService {
       chicago: 50,
       detroit: 35,
       nola: 45,
+      fort_lauderdale: 58, // Las Olas Blvd strip — high foot traffic
     };
     
     const baseScore = cityBaseScores[city];
@@ -450,6 +451,7 @@ export class LocationService {
       { code: 'chicago', name: 'Chicago' },
       { code: 'detroit', name: 'Detroit' },
       { code: 'nola', name: 'New Orleans' },
+      { code: 'fort_lauderdale', name: 'Fort Lauderdale' },
     ];
   }
   

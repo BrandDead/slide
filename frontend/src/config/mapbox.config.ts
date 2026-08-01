@@ -204,6 +204,35 @@ export const CITY_CONFIGS: Record<SupportedCity, CityConfig> = {
       },
     },
   },
+
+  // ── Broward County / South Florida ────────────────────────────────────────
+  // Covers Fort Lauderdale, Hollywood, Pompano Beach, Deerfield Beach,
+  // Coral Springs, Plantation, and surrounding Broward County cities.
+  fort_lauderdale: {
+    name: 'fort_lauderdale',
+    displayName: 'Fort Lauderdale',
+    bounds: {
+      north: 26.3200,
+      south: 25.9700,
+      east: -80.0500,
+      west: -80.3500,
+    },
+    centerCoords: { lat: 26.1224, lng: -80.1373 },
+    timezone: 'America/New_York',
+    gangStyle: {
+      primaryColor: '#0a0a1a',
+      secondaryColor: '#ff6b35',
+      accentColor: '#00d4ff',
+      motifs: ['yachts', 'palm_trees', 'strip_clubs', 'ocean', 'lowrider'],
+      slang: {
+        block: 'strip',
+        money: 'bread',
+        gun: 'blick',
+        police: 'boys',
+        run: 'dip',
+      },
+    },
+  },
 };
 
 // ============================================================================

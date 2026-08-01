@@ -19,7 +19,7 @@ export interface BoundingBox {
   west: number;
 }
 
-export type SupportedCity = 'nyc' | 'la' | 'miami' | 'chicago' | 'detroit' | 'nola';
+export type SupportedCity = 'nyc' | 'la' | 'miami' | 'chicago' | 'detroit' | 'nola' | 'fort_lauderdale';
 
 export interface CityConfig {
   name: string;
