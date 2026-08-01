@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigationStore } from '../../stores/gameStore';
 import { usePlayerStore, useEconomyStore } from '../../stores/gameStore';
+import { depositSessionEarnings } from './cocaineCrushPayout';
 import './CocaineCrush.css';
 
 // SVG Icons mapping
@@ -37,6 +38,24 @@ export const CocaineCrush: React.FC = () => {
 
   const boardRef = useRef<HTMLDivElement>(null);
 
+  // Session takings are credited to the block once, on exit or stash-out.
+  // Guarded with a ref because both paths can fire for the same session —
+  // running dry sets 'no_drugs', and the player then still presses Back.
+  const earningsRef = useRef(0);
+  const committedRef = useRef(false);
+  earningsRef.current = sessionEarnings;
+
+  const commitSession = useCallback(() => {
+    if (committedRef.current) return;
+    committedRef.current = true;
+    depositSessionEarnings(earningsRef.current);
+  }, []);
+
+  const exitGame = useCallback(() => {
+    commitSession();
+    goBack();
+  }, [commitSession, goBack]);
+
   // Available drugs based strictly on having quantity > 0
   const getAvailableDrugs = useCallback(() => {
     return inventory
@@ -60,6 +79,7 @@ export const CocaineCrush: React.FC = () => {
     }
     setBoard(newBoard);
     setSessionEarnings(0);
+    committedRef.current = false;
     setGameState('playing');
   }, [getAvailableDrugs]);
 
@@ -267,6 +287,7 @@ export const CocaineCrush: React.FC = () => {
           setGameState('no_drugs'); // Hard stop
           setBoard([...loopBoard]);
           setIsProcessing(false);
+          commitSession();
           return;
         }
 
@@ -352,7 +373,7 @@ export const CocaineCrush: React.FC = () => {
     <div className="cc-container">
       <div className="cc-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button className="cc-back-btn" onClick={goBack}>{'<'}</button>
+          <button className="cc-back-btn" onClick={exitGame}>{'<'}</button>
           <div className="cc-title">Cocaine Crush</div>
         </div>
         <div className="cc-score-container">
@@ -415,7 +436,7 @@ export const CocaineCrush: React.FC = () => {
           <div style={{ marginTop: '20px', color: '#10b981', fontSize: '20px', fontWeight: 'bold' }}>
             Total Earned: ${sessionEarnings}
           </div>
-          <button className="cc-primary-btn" onClick={goBack} style={{ marginTop: '30px', background: '#333' }}>Back to Shoebox</button>
+          <button className="cc-primary-btn" onClick={exitGame} style={{ marginTop: '30px', background: '#333' }}>Back to Shoebox</button>
         </div>
       )}
     </div>

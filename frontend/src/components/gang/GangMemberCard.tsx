@@ -25,6 +25,46 @@ import {
   Flame
 } from 'lucide-react';
 import type { GangMember, MemberStats, CityRegion } from '../../types/game.types';
+import { getPortraitUrl } from '../../services/assetResolver';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PORTRAIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Portrait precedence: an explicitly assigned avatarUrl, then the generated
+ * art for the member's role, then the initial-letter gradient.
+ *
+ * Resolution goes through services/assetResolver — the same layer StreetBlock
+ * and CanvasStreetRendererV3 already use — rather than a card-local mapping,
+ * so a member's face on the roster matches their sprite on the block.
+ *
+ * The onError step is the safety net: assetManifest guarantees the path is
+ * correct, not that the file survived an asset-pipeline run, and a broken
+ * image icon on a roster card is worse than the gradient it replaced.
+ */
+export const MemberPortrait: React.FC<{ member: GangMember }> = ({ member }) => {
+  const [failed, setFailed] = useState(false);
+
+  const resolved = member.avatarUrl || getPortraitUrl(member.role ?? 'dealer');
+
+  if (failed || !resolved) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-neon-purple/50 to-neon-blue/50 flex items-center justify-center">
+        <span className="font-display text-3xl text-white">{member.name.charAt(0)}</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={resolved}
+      alt={member.name}
+      className="w-full h-full object-cover"
+      onError={() => setFailed(true)}
+    />
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // STAT COMPONENTS
@@ -363,13 +403,7 @@ const GeneratedMemberReveal: React.FC<GeneratedMemberRevealProps> = ({ member, o
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: 'spring' }}
             >
-              {member.avatarUrl ? (
-                <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-neon-purple/50 to-neon-blue/50 flex items-center justify-center">
-                  <span className="font-display text-3xl text-white">{member.name.charAt(0)}</span>
-                </div>
-              )}
+              <MemberPortrait member={member} />
             </motion.div>
             
             <div>

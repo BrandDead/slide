@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { usePlayerStore, useGangStore, useNavigationStore, useNotificationStore } from '../../stores/gameStore';
 import { GRAFFITI_STYLES, getStyleConfig, calculateSprayTime, generateGraffiti, generateAllGraffitiOptions } from '../../utils/graffitiEngine';
 import type { GraffitiStyleType, GraffitiOption, GraffitiMember, GangProfile } from '../../types/game.types';
+import { applyTagToBlock } from './graffitiTerritory';
 import './GraffitiGame.css';
 
 // ─── Types ───
@@ -646,6 +647,18 @@ export default function GraffitiGame() {
     // Add heat
     const shootingHeat = encounterLog.filter(l => l.includes('Heat')).length * 5;
     usePlayerStore.getState().updateHeat?.(heatGained + shootingHeat);
+
+    // Record the hit on the territory itself, not just on the player. Without
+    // this the map has no idea the block was attacked.
+    if (success && selectedTarget) {
+      applyTagToBlock({
+        blockId: selectedTarget.id,
+        blockName: selectedTarget.name,
+        gangName,
+        heatGained: heatGained + shootingHeat,
+        moraleChange,
+      });
+    }
 
     // Notification
     if (addNotification) {
