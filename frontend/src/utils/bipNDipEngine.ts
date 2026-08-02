@@ -443,6 +443,131 @@ export function calculateTotalLootValue(loot: LootItem[]): number {
   return loot.reduce((sum, item) => sum + item.value, 0);
 }
 
+// ─── SESSION TRANSITIONS ─────────────────────────────────────
+// The primitives above are pure and phase-agnostic. These lift them
+// to the session so a UI can drive the whole game without holding
+// window/alarm/chase state in three separate React hooks and keeping
+// them in sync by hand.
+
+const WINDOW_SIDES: Array<WindowBreakState['windowSide']> =
+  ['driver', 'passenger', 'rear_left', 'rear_right'];
+
+/**
+ * One hit on a window. Breaking through moves the session to scavenging.
+ *
+ * The alarm starts on the FIRST tap, not on car selection — casing a car
+ * you never touch should not summon police.
+ */
+export function breakWindowTap(
+  session: BipNDipSession,
+  side: WindowBreakState['windowSide'] = 'driver',
+): BipNDipSession {
+  if (!session.car) return session;
+  if (session.phase !== 'window_breaking') return session;
+
+  const current = session.windowStates[side] ?? createWindowBreakState(session.car, side);
+  const next = tapWindow(current);
+
+  return {
+    ...session,
+    windowStates: { ...session.windowStates, [side]: next },
+    phase: next.isBroken ? 'scavenging' : 'window_breaking',
+  };
+}
+
+/**
+ * Reveal one loot slot. Only reachable through a broken window — the
+ * phase guard is what stops a UI bug from handing out free loot.
+ *
+ * Slots are idempotent: re-clicking a scavenged zone returns the session
+ * untouched rather than duplicating its contents.
+ */
+export function revealLootSlot(
+  session: BipNDipSession,
+  side: WindowBreakState['windowSide'],
+): BipNDipSession {
+  if (!session.car) return session;
+  if (session.phase !== 'scavenging') return session;
+
+  if (session.lootCollected.some((i) => i.id.startsWith(`${side}:`))) return session;
+
+  const result = scavengeWindow(session.car, side);
+  // Namespace the id by slot so the idempotency check above is reliable
+  // even when two slots roll the same item template.
+  const tagged = result.itemsFound.map((item) => ({ ...item, id: `${side}:${item.id}` }));
+  const lootCollected = [...session.lootCollected, ...tagged];
+
+  return {
+    ...session,
+    lootCollected,
+    totalValue: calculateTotalLootValue(lootCollected),
+  };
+}
+
+/** Advance the alarm clock. Cops arriving forces the foot chase. */
+export function tickSessionAlarm(
+  session: BipNDipSession,
+  deltaSeconds: number,
+  recruitLevel: number = 1,
+): BipNDipSession {
+  if (!session.alarm.isTriggered) return session;
+  if (session.phase !== 'window_breaking' && session.phase !== 'scavenging') return session;
+
+  const alarm = tickAlarm(session.alarm, deltaSeconds);
+  if (!alarm.copsArrived) return { ...session, alarm };
+
+  return {
+    ...session,
+    alarm,
+    phase: 'foot_chase',
+    footChase: createFootChase(recruitLevel),
+  };
+}
+
+/** Walk away with whatever is already in hand. */
+export function bailOut(session: BipNDipSession): BipNDipSession {
+  return finalizeSession({ ...session, phase: 'escape_success' });
+}
+
+/** A tap during the chase. Escaping or getting caught ends the session. */
+export function footChaseTap(
+  session: BipNDipSession,
+  timingAccuracy: number,
+): BipNDipSession {
+  if (!session.footChase || session.phase !== 'foot_chase') return session;
+
+  const footChase = processFootChaseTap(session.footChase, timingAccuracy);
+  const withChase = { ...session, footChase };
+
+  if (footChase.caught) return finalizeSession({ ...withChase, phase: 'arrested' });
+  if (footChase.escaped) return finalizeSession({ ...withChase, phase: 'escape_success' });
+  return withChase;
+}
+
+/**
+ * Settle the run: totals and XP.
+ *
+ * An arrest zeroes the loot. The member was carrying it when they were
+ * taken, so it goes into evidence, not the stash — otherwise getting
+ * caught is strictly better than bailing early, and the alarm stops
+ * being a threat worth respecting.
+ */
+export function finalizeSession(session: BipNDipSession): BipNDipSession {
+  const arrested = session.phase === 'arrested';
+  const lootCollected = arrested ? [] : session.lootCollected;
+  const settled: BipNDipSession = {
+    ...session,
+    lootCollected,
+    totalValue: calculateTotalLootValue(lootCollected),
+  };
+  return { ...settled, xpEarned: calculateBipXP(settled) };
+}
+
+/** Slots whose window is broken and therefore reachable. */
+export function openSlots(session: BipNDipSession): Array<WindowBreakState['windowSide']> {
+  return WINDOW_SIDES.filter((s) => session.windowStates[s]?.isBroken);
+}
+
 /**
  * Calculate XP earned from a Bip N Dip session.
  */

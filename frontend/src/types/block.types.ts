@@ -100,6 +100,15 @@ export interface BlockData {
   lastCollectedAt?: string;
   /** Pending income not yet collected */
   pendingIncome: number;
+  /**
+   * Gang name of whoever last landed a successful tag here. Set by the
+   * graffiti mission so the territory layer can show a block as contested
+   * even while its owner is unchanged — tagging pressures a block, it does
+   * not capture it.
+   */
+  taggedBy?: string;
+  /** ISO timestamp of the tag recorded in `taggedBy`. */
+  taggedAt?: string;
 }
 
 // ─── Attack / Drive-By ──────────────────────────────────────

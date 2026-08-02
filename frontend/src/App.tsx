@@ -49,6 +49,7 @@ const Market            = React.lazy(() => import('./components/economy/Market')
 const Missions          = React.lazy(() => import('./components/missions/Missions'));
 const Leaderboard       = React.lazy(() => import('./components/hub/Leaderboard'));
 const TopDownShooter    = React.lazy(() => import('./components/topdown/TopDownShooter'));
+const BipNDipGame       = React.lazy(() => import('./components/topdown/BipNDipGame'));
 const GangManagement    = React.lazy(() => import('./components/gang/GangManagement'));
 const DealtModeSelector = React.lazy(() => import('./components/dealt-v2/DealtModeSelector'));
 const CocaineCrush      = React.lazy(() => import('./components/cocaine-crush/CocaineCrush'));
@@ -163,6 +164,7 @@ const App: React.FC = () => {
       case 'slide':       return <Suspense fallback={<LazyFallback />}><SlideGame key="slide" /></Suspense>;
       case 'driveby':     return <Suspense fallback={<LazyFallback />}><DriveByGame key="driveby" /></Suspense>;
       case 'topdown':     return <Suspense fallback={<LazyFallback />}><TopDownShooter key="topdown" /></Suspense>;
+      case 'bipndip':     return <Suspense fallback={<LazyFallback />}><BipNDipGame key="bipndip" /></Suspense>;
       case 'gang_hq':     return <Suspense fallback={<LazyFallback />}><GangManagement key="gang_hq" /></Suspense>;
       case 'alchemy':     return <Suspense fallback={<LazyFallback />}><AlchemyLab key="alchemy" /></Suspense>;
       case 'shoebox':     return <Suspense fallback={<LazyFallback />}><Shoebox key="shoebox" /></Suspense>;

@@ -159,6 +159,14 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Cocaine Crush',
     },
     {
+      id: 'bipndip',
+      label: 'BIP N DIP',
+      icon: '🚙',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Break into cars',
+    },
+    {
       id: 'topdown',
       label: 'ATTACK',
       icon: '🔫',
