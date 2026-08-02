@@ -20,10 +20,12 @@ import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
+import { PhaserTopDownBlock } from '../topdown/PhaserTopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
+import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -123,6 +125,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
   const [showDeployPanel, setShowDeployPanel] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
+  const [showRaid, setShowRaid] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
   const [showBailModal, setShowBailModal] = useState(false);
@@ -239,6 +242,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   }
 
   const viewMode: BlockViewMode = block.viewMode ?? 'topdown';
+  // Auto-trigger raid when heat maxes out
+  const isMaxHeat = (block.heat ?? 0) >= 5;
 
   return (
     <div className="block-mode-view">
@@ -273,6 +278,12 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           🚗 Drive-By
         </button>
         <button
+          className={`bmv-tab ${showRaid ? 'active danger' : ''} ${isMaxHeat ? 'pulse-danger' : ''}`}
+          onClick={() => { setShowDriveBy(false); setShowRaid((v) => !v); }}
+        >
+          🚔 Raid{isMaxHeat ? ' !' : ''}
+        </button>
+        <button
           className={`bmv-tab ${!showDriveBy && viewMode === 'drugs' ? 'active' : ''}`}
           onClick={() => { setShowDriveBy(false); setBlockViewMode(block.id, 'drugs'); }}
         >
@@ -282,7 +293,19 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
       {/* Main view */}
       <div className="bmv-content">
-        {showDriveBy ? (
+        {showRaid ? (
+          <PoliceRaidGame
+            blockId={block.id}
+            onResolved={(caught, cashSeized) => {
+              setShowRaid(false);
+              if (caught.length > 0) {
+                showToast(`🚔 ${caught.length} member(s) jailed! $${cashSeized.toLocaleString()} seized.`, 4000);
+              } else {
+                showToast('✅ Everyone escaped the raid!', 3000);
+              }
+            }}
+          />
+        ) : showDriveBy ? (
           <DriveByEngine
             blockId={block.id}
             onResolved={handleDriveByResolved}
@@ -290,7 +313,18 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         ) : viewMode === 'drugs' ? (
           <DrugAssignmentPanel block={block} />
         ) : viewMode === 'topdown' ? (
-          <TopDownBlock block={block} />
+          // Use the Phaser scene when a real satellite URL is available;
+          // fall back to the CSS grid for dev/no-token environments
+          block.topdownBgUrl && block.topdownBgUrl.startsWith('http') ? (
+            <PhaserTopDownBlock
+              blockId={block.id}
+              onCellClick={(_col, _row) => {}}
+              onMemberClick={(_memberId, _col, _row) => {}}
+              onFirstPersonToggle={(_memberId, _col, _row) => {}}
+            />
+          ) : (
+            <TopDownBlock block={block} />
+          )
         ) : (
           <StreetBlock
             block={block}
