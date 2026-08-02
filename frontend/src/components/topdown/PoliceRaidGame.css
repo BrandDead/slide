@@ -1,0 +1,258 @@
+/* ============================================================
+   PoliceRaidGame.css — Police Raid mini-game styles
+   ============================================================ */
+
+.police-raid-game {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #0a0a0a;
+  min-height: 100%;
+  padding: 8px;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+.raid-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.raid-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+.raid-timer {
+  font-size: 22px;
+  font-weight: 900;
+  color: #fbbf24;
+  min-width: 48px;
+  text-align: center;
+  transition: color 0.3s;
+}
+
+.raid-timer.urgent {
+  color: #ef4444;
+  animation: pulse-red 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-red {
+  from { opacity: 1; }
+  to   { opacity: 0.5; }
+}
+
+.raid-hint {
+  font-size: 9px;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  text-align: right;
+}
+
+/* ── Grid ────────────────────────────────────────────────── */
+.raid-grid {
+  position: relative;
+  background: #111;
+  border: 1px solid #1f2937;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.raid-cell {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.01);
+  box-sizing: border-box;
+}
+
+/* ── Police ──────────────────────────────────────────────── */
+.raid-police {
+  position: absolute;
+  font-size: 22px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.8));
+  z-index: 10;
+}
+
+/* ── Members ─────────────────────────────────────────────── */
+.raid-member {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #4ade80;
+  background: rgba(0, 0, 0, 0.7);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 8;
+  transition: background 0.2s;
+}
+
+.raid-member:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.raid-member.status-evacuating {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+}
+
+.raid-member.status-caught {
+  border-color: #ef4444;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.raid-member-role {
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+/* ── Evac progress bar ───────────────────────────────────── */
+.raid-evac-bar {
+  width: 28px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.raid-evac-fill {
+  height: 100%;
+  background: #fbbf24;
+  border-radius: 2px;
+  transition: width 0.9s linear;
+}
+
+/* ── Evacuated flash ─────────────────────────────────────── */
+.raid-evacuated-flash {
+  position: absolute;
+  font-size: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 12;
+}
+
+/* ── Status bar ──────────────────────────────────────────── */
+.raid-status-bar {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.raid-status-bar span:nth-child(1) { color: #4ade80; }
+.raid-status-bar span:nth-child(2) { color: #ef4444; }
+
+/* ── Results overlay ─────────────────────────────────────── */
+.raid-results {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 50;
+  padding: 24px;
+}
+
+.raid-results h2 {
+  font-size: 28px;
+  font-weight: 900;
+  color: #ef4444;
+  letter-spacing: 3px;
+  margin: 0;
+}
+
+.raid-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.rr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rr-item.good { border-color: rgba(74, 222, 128, 0.3); }
+.rr-item.bad  { border-color: rgba(239, 68, 68, 0.3); }
+
+.rr-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.rr-item.good .rr-val { color: #4ade80; }
+.rr-item.bad  .rr-val { color: #ef4444; }
+
+.rr-label {
+  font-size: 10px;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.rr-note {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  max-width: 280px;
+  margin: 0;
+}
+
+.rr-done-btn {
+  padding: 12px 32px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.rr-done-btn:hover {
+  background: #dc2626;
+}
+
+.raid-loading {
+  color: #6b7280;
+  font-size: 14px;
+  padding: 32px;
+  text-align: center;
+}
