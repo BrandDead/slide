@@ -214,12 +214,12 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     },
     {
       id: 'leaderboard',
-      label: 'RANKINGS',
-      icon: 'RANK',
+      label: 'SHOT CALLER',
+      icon: 'SHOT CALLER',
       spriteIcon: 'leaderboard',
       colorClass: 'app-gold',
       available: true,
-      description: 'Global Leaderboard',
+      description: 'Block Attack Alerts',
     },
     {
       id: 'news',
@@ -237,6 +237,15 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       colorClass: 'app-green',
       available: true,
       description: 'Call Contacts',
+    },
+    {
+      id: 'messages',
+      label: 'MESSAGES',
+      icon: 'MESSAGES',
+      spriteIcon: 'messages',
+      colorClass: 'app-cyan',
+      available: true,
+      description: 'Text Messages',
     },
     {
       id: 'planner',
@@ -260,7 +269,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
   const handleAppClick = (app: AppIcon) => {
     if (app.available) {
-      navigateTo(app.id);
+      navigateTo(app.id === 'messages' ? 'phone' : app.id);
     }
   };
 
@@ -470,7 +479,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           >
             <div className={`icon-container ${app.colorClass}`}>
               {app.spriteIcon ? (
-                <GameSprite icon={app.spriteIcon as any} size={52} fallback={app.icon} />
+                <GameSprite icon={app.spriteIcon as any} hoverIcon={app.spriteIcon as any} size={52} fallback={app.icon} />
               ) : (
                 <span className="icon-text-fallback">{app.icon}</span>
               )}
