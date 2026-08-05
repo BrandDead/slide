@@ -32,6 +32,14 @@ import {
   type MoraleFactors,
 } from './moraleSystem';
 import {
+  overdueMembers,
+  updateHeldSince,
+  applyAbandonmentPenalty,
+  RECOVERY_CONFIG,
+} from './bailHospitalSystem';
+import { selectRaidTarget, suppressesBackgroundRaid } from './raidTrigger';
+import { useNavigationStore } from '../stores/gameStore';
+import {
   usePlayerStore,
   useGangStore,
   useTerritoryStore,
@@ -223,6 +231,15 @@ export function useGameLoop(): GameLoopState {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef(0);
+  /**
+   * memberId -> tick they went down. Held in a ref, not state: it feeds
+   * the next tick's penalty calculation and must never itself trigger a
+   * re-render mid-loop.
+   */
+  const heldSinceRef = useRef<Record<string, number>>({});
+
+  /** blockId -> tick of its last interactive raid, for cooldown. */
+  const lastRaidTickRef = useRef<Record<string, number>>({});
 
   const getStores = useCallback((): GameStores => ({
     player: usePlayerStore.getState(),
@@ -405,7 +422,40 @@ export function useGameLoop(): GameLoopState {
       level: updatedHeat,
     };
 
-    if (rollForRaid(raidHeatState)) {
+    // ── Interactive raid (Sprint 14-B) ──
+    // A block at max heat hands control to PoliceRaidGame instead of
+    // resolving in the background, and suppresses the dice roll below so
+    // the same crew cannot be jailed twice for one tick.
+    const blockStore = useBlockStore.getState();
+    const raidTarget = selectRaidTarget(
+      blockStore.blocks,
+      lastRaidTickRef.current,
+      tickRef.current,
+    );
+
+    if (raidTarget) {
+      lastRaidTickRef.current[raidTarget.blockId] = tickRef.current;
+      blockStore.selectBlock(raidTarget.blockId);
+
+      const raidWarning = createEvent(
+        'raid',
+        '🚨 RAID IN PROGRESS',
+        'Heat maxed out. Police are hitting the block — get your people out.',
+        'critical',
+      );
+      setLastEvent(raidWarning);
+      stores.notifications.addNotification({
+        type: 'danger',
+        title: raidWarning.title,
+        message: raidWarning.message,
+        priority: 'critical',
+        timestamp: Date.now(),
+      });
+
+      useNavigationStore.getState().navigateTo('raid');
+    }
+
+    if (!suppressesBackgroundRaid(raidTarget) && rollForRaid(raidHeatState)) {
       const memberIds = members.map((m) => m.id);
       const drugCount = stores.economy.inventory
         .filter((i) => i.type === 'drug')
@@ -532,7 +582,32 @@ export function useGameLoop(): GameLoopState {
           playerReputation: player.reputation,
         };
 
-        const morale = calculateMorale(factors);
+        let morale = calculateMorale(factors);
+
+        // ── Abandonment penalty (Sprint 14-B) ──
+        // Members left jailed or injured past the grace period cost the
+        // crew morale every check, compounding until they are recovered.
+        heldSinceRef.current = updateHeldSince(
+          stores.gang.members,
+          heldSinceRef.current,
+          tickRef.current,
+        );
+        const abandoned = overdueMembers(
+          stores.gang.members,
+          heldSinceRef.current,
+          tickRef.current,
+        );
+        if (abandoned.length > 0) {
+          morale = applyAbandonmentPenalty(morale, abandoned.length);
+          stores.notifications.addNotification({
+            type: 'warning',
+            title: 'Crew Left Behind',
+            message: `${abandoned.length} ${abandoned.length === 1 ? 'member has' : 'members have'} been down more than ${RECOVERY_CONFIG.ABANDON_GRACE_TICKS} ticks. Morale is slipping — bail them out from the CREW app.`,
+            priority: 'high',
+            timestamp: Date.now(),
+          });
+        }
+
         setGangMorale(morale);
 
         const moraleDesc = getMoraleDescription(morale);
