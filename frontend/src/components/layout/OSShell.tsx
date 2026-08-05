@@ -1,6 +1,7 @@
 // ============================================================
 // OSShell - iOS-Style Desktop Interface for DEALT/SLIDE
 // Live Dashboard: Heat meter, Morale indicator, Income ticker
+// Sprint: trap-app-icon-deemoji — emoji purge + Trap app added
 // ============================================================
 
 import React, { useState, useMemo } from 'react';
@@ -20,8 +21,8 @@ import './OSShell.css';
 interface AppIcon {
   id: string;
   label: string;
-  icon: string;
-  spriteIcon?: string; // GameSprite icon key
+  icon: string;          // text fallback only — never rendered as emoji in UI
+  spriteIcon?: string;   // GameSprite icon key (preferred)
   colorClass: string;
   available: boolean;
   badge?: number | string;
@@ -60,7 +61,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'map',
       label: 'MAP',
-      icon: '📍',
+      icon: 'MAP',
       spriteIcon: 'map',
       colorClass: 'app-green',
       available: true,
@@ -69,17 +70,16 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'dealt_v2',
       label: 'DEALT',
-      icon: '💊',
+      icon: 'DEALT',
       spriteIcon: 'dealt',
       colorClass: 'app-purple',
       available: true,
-      badge: '🔥',
       description: 'Drug Dealing',
     },
     {
       id: 'slide',
       label: 'SLIDE',
-      icon: '🎯',
+      icon: 'SLIDE',
       spriteIcon: 'slide',
       colorClass: 'app-red',
       available: true,
@@ -88,7 +88,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'driveby',
       label: 'DRIVE',
-      icon: '🚗',
+      icon: 'DRIVE',
       spriteIcon: 'driveby',
       colorClass: 'app-orange',
       available: true,
@@ -97,7 +97,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'alchemy',
       label: 'COOK',
-      icon: '⚗️',
+      icon: 'COOK',
       spriteIcon: 'cook',
       colorClass: 'app-cyan',
       available: true,
@@ -106,7 +106,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'gang_hq',
       label: 'CREW',
-      icon: '👥',
+      icon: 'CREW',
       spriteIcon: 'crew',
       colorClass: 'app-blue',
       available: true,
@@ -114,9 +114,18 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Gang Management',
     },
     {
+      id: 'trap',
+      label: 'TRAP',
+      icon: 'TRAP',
+      spriteIcon: 'trap',
+      colorClass: 'app-gold',
+      available: true,
+      description: 'Stash & Inventory',
+    },
+    {
       id: 'shoebox',
       label: 'SHOEBOX',
-      icon: '💰',
+      icon: 'SHOEBOX',
       spriteIcon: 'shoebox',
       colorClass: 'app-gold',
       available: true,
@@ -125,16 +134,25 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'market',
       label: 'MARKET',
-      icon: '🏪',
+      icon: 'MARKET',
       spriteIcon: 'market',
       colorClass: 'app-teal',
       available: true,
       description: 'Underworld Market',
     },
     {
+      id: 'contacts',
+      label: 'CONTACTS',
+      icon: 'CONTACTS',
+      spriteIcon: 'contacts',
+      colorClass: 'app-green',
+      available: true,
+      description: 'Gang Contacts',
+    },
+    {
       id: 'missions',
       label: 'OPS',
-      icon: '📋',
+      icon: 'OPS',
       spriteIcon: 'ops',
       colorClass: 'app-brown',
       available: true,
@@ -143,7 +161,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'casino',
       label: 'CASINO',
-      icon: '🎰',
+      icon: 'CASINO',
       spriteIcon: 'casino',
       colorClass: 'app-pink',
       available: true,
@@ -152,7 +170,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'cocaine_crush',
       label: 'CRUSH',
-      icon: '❄️',
+      icon: 'CRUSH',
       spriteIcon: 'cocaine_crush',
       colorClass: 'app-blue',
       available: true,
@@ -161,7 +179,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'bipndip',
       label: 'BIP N DIP',
-      icon: '🚙',
+      icon: 'BIP',
+      spriteIcon: 'bipndip',
       colorClass: 'app-red',
       available: true,
       description: 'Break into cars',
@@ -169,15 +188,25 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'topdown',
       label: 'ATTACK',
-      icon: '🔫',
+      icon: 'ATTACK',
+      spriteIcon: 'attack',
       colorClass: 'app-red',
       available: true,
       description: 'Block Attack',
     },
     {
+      id: 'raid',
+      label: 'RAID',
+      icon: 'RAID',
+      spriteIcon: 'raid',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Police Raid',
+    },
+    {
       id: 'graffiti',
       label: 'VANDALIZE',
-      icon: '🎨',
+      icon: 'TAG',
       spriteIcon: 'graffiti',
       colorClass: 'app-orange',
       available: true,
@@ -186,7 +215,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'leaderboard',
       label: 'RANKINGS',
-      icon: '🏆',
+      icon: 'RANK',
       spriteIcon: 'leaderboard',
       colorClass: 'app-gold',
       available: true,
@@ -195,7 +224,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'news',
       label: 'LOCAL NEWS',
-      icon: '📰',
+      icon: 'NEWS',
       spriteIcon: 'news',
       colorClass: 'app-cyan',
       available: true,
@@ -204,7 +233,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'phone',
       label: 'PHONE',
-      icon: '📱',
+      icon: 'PHONE',
       colorClass: 'app-green',
       available: true,
       description: 'Call Contacts',
@@ -212,7 +241,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'planner',
       label: 'OPS PLAN',
-      icon: '⚔️',
+      icon: 'PLAN',
+      spriteIcon: 'planner',
       colorClass: 'app-red',
       available: true,
       description: 'Attack Planner',
@@ -220,7 +250,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     {
       id: 'settings',
       label: 'SETTINGS',
-      icon: '⚙️',
+      icon: 'SETTINGS',
       spriteIcon: 'settings',
       colorClass: 'app-dark',
       available: true,
@@ -267,7 +297,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             onClick={() => setShowNotifications(!showNotifications)}
             whileTap={{ scale: 0.9 }}
           >
-            🔔
+            <span className="notif-bell-icon">NOTIF</span>
             {getUnreadCount() > 0 && (
               <span className="notification-badge">{getUnreadCount()}</span>
             )}
@@ -318,7 +348,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           </div>
           {raidProb > 0 && (
             <div className="raid-probability">
-              🚨 {Math.round(raidProb * 100)}% raid
+              {Math.round(raidProb * 100)}% RAID RISK
             </div>
           )}
         </div>
@@ -442,9 +472,9 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
               {app.spriteIcon ? (
                 <GameSprite icon={app.spriteIcon as any} size={52} fallback={app.icon} />
               ) : (
-                <span className="icon-emoji">{app.icon}</span>
+                <span className="icon-text-fallback">{app.icon}</span>
               )}
-              {!app.available && <div className="lock-overlay">🔒</div>}
+              {!app.available && <div className="lock-overlay">LOCKED</div>}
               {app.badge && (
                 <div className={`app-badge ${typeof app.badge === 'number' ? 'app-badge-number' : ''}`}>
                   {app.badge}
@@ -459,16 +489,16 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       {/* Quick Actions Dock */}
       <div className="dock">
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt_v2')}>
-          💊
+          <GameSprite icon="dealt" size={40} fallback="DEALT" />
         </motion.div>
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('slide')}>
-          🎯
+          <GameSprite icon="slide" size={40} fallback="SLIDE" />
         </motion.div>
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('gang_hq')}>
-          👥
+          <GameSprite icon="crew" size={40} fallback="CREW" />
         </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('shoebox')}>
-          💰
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('trap')}>
+          <GameSprite icon="trap" size={40} fallback="TRAP" />
         </motion.div>
       </div>
 
@@ -489,7 +519,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
                     Mark All Read
                   </button>
                 )}
-                <button onClick={() => setShowNotifications(false)}>✕</button>
+                <button onClick={() => setShowNotifications(false)}>X</button>
               </div>
             </div>
             <div className="notification-list">

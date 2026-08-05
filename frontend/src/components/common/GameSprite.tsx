@@ -98,8 +98,15 @@ const APP_ICONS: Record<string, string> = {
   driveby:        '/assets/icons/icon_driveby_new.png',
   graffiti:       '/assets/icons/icon_graffiti_new.png',
   news:           '/assets/generated/ui/icons/icon_news_v001.png',
-  leaderboard:    '/assets/icons/icon_slide_new.png', // fallback until dedicated icon
-  cocaine_crush:  '/assets/icons/icon_casino_new.png', // fallback until dedicated icon
+  // Sprint: trap-app-icon-deemoji — dedicated icons replacing fallbacks
+  leaderboard:    '/assets/icons/icon_leaderboard_new.png',
+  cocaine_crush:  '/assets/icons/icon_casino_new.png',
+  trap:           '/assets/icons/icon_trap_new.png',
+  contacts:       '/assets/icons/icon_contacts_new.png',
+  bipndip:        '/assets/icons/icon_bipndip_new.png',
+  attack:         '/assets/icons/icon_attack_new.png',
+  planner:        '/assets/icons/icon_planner_new.png',
+  raid:           '/assets/icons/icon_raid_new.png',
 };
 
 // Role-to-frame mapping for gang members
