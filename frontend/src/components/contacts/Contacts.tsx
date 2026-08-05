@@ -20,10 +20,12 @@ import {
 import { getMoraleDescription, getMoraleConsequences, rollMoraleConsequences, calculateBailImpact, calculateHospitalImpact } from '../../utils/moraleSystem';
 import { getMemberHeatContribution } from '../../utils/memberProgression';
 import type { GangMember, Contact, MemberStatus, GetBackRequest } from '../../types/game.types';
+import BailHospitalPanel from './BailHospitalPanel';
+import { needsRecovery } from '../../utils/bailHospitalSystem';
 import { soundManager } from '../../utils/SoundManager';
 import './Contacts.css';
 
-type TabType = 'active' | 'jailed' | 'dead' | 'requests';
+type TabType = 'active' | 'jailed' | 'recovery' | 'dead' | 'requests';
 
 // ============ MAIN COMPONENT ============
 
@@ -51,6 +53,9 @@ const Contacts: React.FC = () => {
   const activeMembers = contacts.filter(c => c.status === 'active');
   const jailedMembers = contacts.filter(c => c.status === 'jailed');
   const deadMembers = contacts.filter(c => c.status === 'dead' || c.status === 'backdoored');
+  // Counted off gang members, not contacts: injured statuses live on the
+  // member record and never make it onto a contact card.
+  const recoverableCount = members.filter(needsRecovery).length;
   const pendingRequests = getBackRequests.filter(r => r.status === 'pending');
 
   // Drug inventory for equipping
@@ -256,6 +261,9 @@ const Contacts: React.FC = () => {
         <button className={`tab ${activeTab === 'jailed' ? 'active' : ''}`} onClick={() => setActiveTab('jailed')}>
           ⛓️ Jailed ({jailedMembers.length})
         </button>
+        <button className={`tab ${activeTab === 'recovery' ? 'active' : ''}`} onClick={() => setActiveTab('recovery')}>
+          🏥 Recover ({recoverableCount})
+        </button>
         <button className={`tab ${activeTab === 'dead' ? 'active' : ''}`} onClick={() => setActiveTab('dead')}>
           💀 Dead ({deadMembers.length})
         </button>
@@ -291,6 +299,8 @@ const Contacts: React.FC = () => {
             onClick={() => setSelectedContact(contact)}
           />
         ))}
+
+        {activeTab === 'recovery' && <BailHospitalPanel />}
 
         {activeTab === 'dead' && deadMembers.map(contact => (
           <ContactCard key={contact.id} contact={contact} onClick={() => setSelectedContact(contact)} showDeathInfo />

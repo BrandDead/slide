@@ -1,0 +1,129 @@
+/* ============================================================
+   SLIDE — Bail & Hospital panel  (Sprint 14-B)
+   ============================================================ */
+
+.bhp-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 4px;
+}
+
+.bhp-summary {
+  display: flex;
+  gap: 10px;
+}
+
+.bhp-summary > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bhp-summary-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: #8b8f98;
+  text-transform: uppercase;
+}
+
+.bhp-summary-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.bhp-summary-value.short { color: #ff6b6b; }
+
+.bhp-warning {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #f4a04c;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.bhp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bhp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bhp-row.bleeding {
+  box-shadow: inset 3px 0 0 #ff6b6b;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.bhp-icon { font-size: 1.15rem; }
+
+.bhp-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bhp-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bhp-status {
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  color: #8b8f98;
+}
+
+.bhp-row.bleeding .bhp-status { color: #ff8f8f; }
+
+.bhp-pay {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: #6ee7a8;
+  color: #06210f;
+  font-weight: 800;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bhp-pay.disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: #6b7280;
+  cursor: default;
+}
+
+.bhp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.bhp-empty-icon { font-size: 2rem; }
+.bhp-empty p { margin: 0; font-size: 0.9rem; }
+.bhp-empty .bhp-sub { color: #8b8f98; font-size: 0.78rem; }
