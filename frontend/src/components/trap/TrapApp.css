@@ -1,0 +1,535 @@
+/* ============================================================
+   TrapApp — Stash & Inventory Manager
+   Sprint: trap-app-icon-deemoji
+   ============================================================ */
+
+.trap-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #080810;
+  color: #e8e8e8;
+  font-family: 'Rajdhani', 'Oswald', sans-serif;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+
+.trap-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  background: #0d0d1a;
+  border-bottom: 1px solid #1a1a2e;
+  flex-shrink: 0;
+}
+
+.trap-back {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.trap-back:active { opacity: 0.6; }
+
+.trap-title-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.trap-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #d4a017;
+  margin: 0;
+  line-height: 1;
+}
+
+.trap-value {
+  font-size: 11px;
+  color: #4ade80;
+  letter-spacing: 1px;
+}
+
+/* ─── Tabs ───────────────────────────────────────────────── */
+
+.trap-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #0d0d1a;
+  border-bottom: 1px solid #1a1a2e;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.trap-tabs::-webkit-scrollbar { display: none; }
+
+.trap-tab {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid #222;
+  color: #666;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.trap-tab.active {
+  background: #d4a017;
+  border-color: #d4a017;
+  color: #000;
+  font-weight: 700;
+}
+
+/* ─── Body ───────────────────────────────────────────────── */
+
+.trap-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* ─── Inventory ──────────────────────────────────────────── */
+
+.trap-inventory {
+  flex: 1.4;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid #1a1a2e;
+}
+
+.trap-section-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #555;
+  padding: 8px 12px 4px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.trap-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: #444;
+}
+
+.trap-empty p { margin: 4px 0; font-size: 13px; }
+.trap-empty-hint { font-size: 11px; color: #333; }
+
+.trap-item-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.trap-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 4px;
+  background: #0f0f1c;
+  border: 1px solid #1a1a2e;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.trap-item.selected {
+  border-color: #d4a017;
+  background: #1a1500;
+}
+
+.trap-item-icon {
+  width: 34px;
+  height: 34px;
+  background: #1a1a2e;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trap-item-type-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #d4a017;
+}
+
+.trap-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trap-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8e8e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trap-item-sub {
+  font-size: 10px;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.trap-item-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.trap-item-qty {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.trap-item-value {
+  font-size: 10px;
+  color: #4ade80;
+}
+
+/* ─── Members ────────────────────────────────────────────── */
+
+.trap-members {
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.trap-member-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 6px;
+}
+
+.trap-member-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  margin-bottom: 4px;
+  background: #0f0f1c;
+  border: 1px solid #1a1a2e;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-align: center;
+}
+
+.trap-member-card.targeted {
+  border-color: #d4a017;
+  background: #1a1500;
+}
+
+.trap-member-avatar {
+  width: 36px;
+  height: 36px;
+  background: #1a1a2e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #d4a017;
+}
+
+.trap-member-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.trap-member-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e8e8e8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.trap-member-role {
+  font-size: 9px;
+  color: #555;
+  letter-spacing: 0.5px;
+}
+
+.trap-member-held {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trap-member-items {
+  font-size: 9px;
+  color: #d4a017;
+}
+
+.trap-member-level {
+  font-size: 9px;
+  color: #555;
+}
+
+/* ─── Gift Panel ─────────────────────────────────────────── */
+
+.trap-gift-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #0d0d1a;
+  border-top: 2px solid #d4a017;
+  padding: 12px 16px;
+  z-index: 20;
+}
+
+.trap-gift-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.trap-gift-item { font-size: 14px; font-weight: 700; color: #d4a017; }
+.trap-gift-arrow { font-size: 11px; color: #555; }
+.trap-gift-member { font-size: 14px; font-weight: 700; color: #4ade80; }
+
+.trap-gift-warning {
+  font-size: 10px;
+  color: #ff4444;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.trap-gift-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trap-qty-btn {
+  width: 30px; height: 30px;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  color: #fff;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.trap-qty-val {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+.trap-gift-btn {
+  flex: 1;
+  background: #d4a017;
+  border: none;
+  color: #000;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.trap-cancel-btn {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ─── Member Stash Panel ─────────────────────────────────── */
+
+.trap-member-stash-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 220px;
+  background: #0d0d1a;
+  border-left: 2px solid #1a1a2e;
+  display: flex;
+  flex-direction: column;
+  z-index: 15;
+}
+
+.trap-ms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid #1a1a2e;
+}
+
+.trap-ms-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8e8e8;
+  letter-spacing: 1px;
+}
+
+.trap-ms-close {
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.trap-ms-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.trap-ms-empty {
+  color: #444;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.trap-ms-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid #111;
+  font-size: 12px;
+}
+
+.trap-ms-item-name { color: #ccc; }
+.trap-ms-item-qty { color: #d4a017; font-weight: 700; }
+
+.trap-backdoor-btn {
+  margin: 12px;
+  background: #1a0000;
+  border: 1px solid #ff2222;
+  color: #ff4444;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.trap-backdoor-btn:active { opacity: 0.7; }
+
+/* ─── Backdoor Confirm Modal ─────────────────────────────── */
+
+.trap-backdoor-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.trap-backdoor-modal {
+  background: #0d0d1a;
+  border: 2px solid #ff2222;
+  border-radius: 10px;
+  padding: 24px 20px;
+  max-width: 300px;
+  width: 90%;
+  text-align: center;
+}
+
+.trap-bd-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #ff4444;
+  margin: 0 0 12px;
+}
+
+.trap-bd-body {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.trap-bd-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.trap-bd-confirm {
+  flex: 1;
+  background: #ff2222;
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.trap-bd-cancel {
+  flex: 1;
+  background: none;
+  border: 1px solid #333;
+  color: #888;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}

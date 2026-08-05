@@ -57,6 +57,7 @@ const CocaineCrush      = React.lazy(() => import('./components/cocaine-crush/Co
 const WeeklyUpdateRoute = React.lazy(() => import('./components/news/WeeklyUpdateRoute'));
 const PhoneApp          = React.lazy(() => import('./components/phone/PhoneApp'));
 const AttackPlanner     = React.lazy(() => import('./components/missions/AttackPlanner'));
+const TrapApp           = React.lazy(() => import('./components/trap/TrapApp'));
 
 import './App.css';
 
@@ -179,6 +180,7 @@ const App: React.FC = () => {
       case 'leaderboard': return <Suspense fallback={<LazyFallback />}><Leaderboard key="leaderboard" /></Suspense>;
       case 'news':        return <Suspense fallback={<LazyFallback />}><WeeklyUpdateRoute key="news" /></Suspense>;
       case 'phone':       return <Suspense fallback={<LazyFallback />}><PhoneApp key="phone" /></Suspense>;
+      case 'trap':        return <Suspense fallback={<LazyFallback />}><TrapApp key="trap" /></Suspense>;
       default:
         return (
           <OSShell
