@@ -41,7 +41,12 @@ export type MemberRole =
   | 'driver'
   | 'chemist'
   | 'runner'
-  | 'boss';
+  | 'boss'
+  // Hireable from marketplace — must be kept in sync with HireableRole
+  | 'recruit'  // Entry-level gang member; no dealing, low combat
+  | 'k9'       // Attack dog; no income, high combat
+  // NPC / system roles — never placed by the player directly
+  | 'police';  // Police officer (NPC only)
 
 export interface BlockPlacement {
   memberId: string;

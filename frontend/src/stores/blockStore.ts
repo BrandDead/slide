@@ -62,12 +62,17 @@ function generateDefaultGrid(): BlockZone[][] {
   );
 }
 
+/** Roles that generate income when placed on a block */
+const INCOME_ROLES = new Set<string>(['dealer', 'chemist', 'runner']);
+
 function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][]): number {
   const zone = grid[placement.y]?.[placement.x];
-  if (!zone || placement.role !== 'dealer') return 0;
+  if (!zone || !INCOME_ROLES.has(placement.role)) return 0;
   const base = zone.incomeModifier;
   const levelBonus = 1 + (placement.level - 1) * 0.12; // +12% per level
-  return Math.round(base * levelBonus);
+  // chemist and runner earn at 70% of dealer rate (indirect income)
+  const roleMult = placement.role === 'dealer' ? 1.0 : 0.7;
+  return Math.round(base * levelBonus * roleMult);
 }
 
 // ─── Store ───────────────────────────────────────────────────

@@ -118,6 +118,18 @@ const ROLE_CHAIN: Record<string, string[]> = {
   chemist:  ['chemist', 'dealer'],
   runner:   ['runner', 'driver', 'dealer'],
   boss:     ['boss', 'enforcer', 'shooter'],
+
+  // A dog has no human fallback. Borrowing a person's silhouette for a k9
+  // would put a standing man on a tile the player assigned an animal to,
+  // which misreads worse than no sprite at all — so the chain terminates
+  // here and getWorldActor() returns null, letting the caller draw its own
+  // placeholder.
+  k9:       ['k9'],
+
+  // Police are not gang roles and must never borrow gang art: a raid tile
+  // showing a hooded shooter instead of an officer inverts the threat the
+  // player is reading.
+  police:   ['police'],
 };
 
 /** View degradation: a street pose beats a top-down chip beats a full body. */
@@ -155,6 +167,12 @@ export function getWorldActor(
   const views = VIEW_CHAIN[view];
   const states = STATE_CHAIN[state] ?? [state, 'idle'];
 
+  // A single-entry chain is a declaration that this role must never wear
+  // another role's art. Pass 2 searches by state across ALL roles, so without
+  // this guard an isolated role would leak straight through it — a k9 would
+  // resolve to a hooded man and police would resolve to a gang shooter.
+  const isolated = roles.length === 1;
+
   // Pass 1 — exhaust every (view, role, state) triple in the declared
   // chains before considering anything outside them.
   for (const v of views) {
@@ -182,7 +200,7 @@ export function getWorldActor(
   // than showing a slightly wrong silhouette.
   for (const v of views) {
     for (const s of states) {
-      const match = ASSETS.find(
+      const match = isolated ? undefined : ASSETS.find(
         (a) => VIEW_CLASS[v] === a.class && a.state === s,
       );
       if (!match) continue;

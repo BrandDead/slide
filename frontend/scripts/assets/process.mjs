@@ -83,7 +83,7 @@ function parseName(file) {
   const base = path.basename(file).replace(/\.[^.]+$/, '');
   const parts = base.split('_');
   const STATES = ['idle','walk','aim','fire','reload','hit','downed','dead','arrested','seated','driving','alert','front','side'];
-  const ROLES  = ['dealer','shooter','enforcer','lookout','driver','recruit','chemist','runner','boss','civilian','rival'];
+  const ROLES  = ['dealer','shooter','enforcer','lookout','driver','recruit','chemist','runner','boss','civilian','rival','k9','police'];
   return {
     role:  parts.find((p) => ROLES.includes(p))  ?? null,
     state: parts.reverse().find((p) => STATES.includes(p)) ?? null,
