@@ -64,7 +64,7 @@ const REFRESH_COST = 250;
 
 const MarketMembers: React.FC = () => {
   const { player, updateMoney } = usePlayerStore();
-  const { members, addMember } = useGangStore();
+  const { members, addMember, maxMembers } = useGangStore();
   const { addTransaction } = useEconomyStore();
   const { addNotification } = useNotificationStore();
 
@@ -108,7 +108,7 @@ const MarketMembers: React.FC = () => {
 
     // Roster cap keeps the weekly payroll from becoming unmanageable.
     const activeCount = members.filter((m) => m.status === 'active').length;
-    if (activeCount >= 24) {
+    if (activeCount >= maxMembers) {
       setResult('ROSTER FULL — BACKDOOR SOMEBODY FIRST');
       setTimeout(() => setResult(''), 2200);
       return;

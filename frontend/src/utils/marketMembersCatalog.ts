@@ -465,7 +465,7 @@ export function hireableToMemberPayload(h: HireableMember, gangId: string) {
     avatarUrl: '',
     backstory: h.originStory.body,
     age: h.role === 'k9' ? 3 : 19 + h.level,
-    region: 'east' as const,
+    region: 'miami' as const,  // CityRegion — 'east' is not a valid value
     stats: {
       strength: h.stats.nerve,
       agility: h.stats.stealth,
