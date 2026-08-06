@@ -5,8 +5,11 @@
 // - Persists block updates with debounce
 // - Subscribes to realtime placement changes
 // Sprint: wire-morale-supabase-batch3
+//
+// Birthday-demo patch: accepts an `enabled` flag (default true).
+// When false, all Supabase I/O is skipped so demo mode never
+// leaks network calls or corrupts a real account's data.
 // ============================================================
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useBlockStore } from '../stores/blockStore';
 import { usePlayerStore } from '../stores/gameStore';
@@ -19,7 +22,7 @@ import {
 
 const DEBOUNCE_MS = 3000; // 3 s debounce before writing to Supabase
 
-export function useBlockSync() {
+export function useBlockSync(enabled = true) {
   const { blocks, upsertBlock, generateDefaultGrid } = useBlockStore();
   const { player } = usePlayerStore();
   const userId = player?.id;
@@ -29,7 +32,7 @@ export function useBlockSync() {
 
   // ── Load blocks from Supabase on first mount ──
   useEffect(() => {
-    if (!userId || initialized.current) return;
+    if (!enabled || !userId || initialized.current) return;
     initialized.current = true;
 
     (async () => {
@@ -68,12 +71,12 @@ export function useBlockSync() {
         console.warn('[BlockSync] Failed to load remote blocks:', err);
       }
     })();
-  }, [userId, upsertBlock, generateDefaultGrid]);
+  }, [enabled, userId, upsertBlock, generateDefaultGrid]);
 
   // ── Debounced persist on block changes ──
   const scheduleSync = useCallback(
     (blockId: string) => {
-      if (!userId) return;
+      if (!enabled || !userId) return;
       if (debounceTimers.current[blockId]) {
         clearTimeout(debounceTimers.current[blockId]);
       }
@@ -88,16 +91,17 @@ export function useBlockSync() {
         }
       }, DEBOUNCE_MS);
     },
-    [userId]
+    [enabled, userId]
   );
 
   // Watch for block changes and schedule sync
   useEffect(() => {
+    if (!enabled) return;
     const playerBlockIds = Object.keys(blocks).filter(
       (id) => blocks[id].owner === 'player'
     );
     playerBlockIds.forEach((id) => scheduleSync(id));
-  }, [blocks, scheduleSync]);
+  }, [enabled, blocks, scheduleSync]);
 
   // Cleanup timers on unmount
   useEffect(() => {

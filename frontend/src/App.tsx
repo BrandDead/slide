@@ -1,6 +1,9 @@
 // ============================================================
 // App.tsx - Main Application Component
 // Sprint 8: Auth, Salary System, NPC Retaliation, new screens
+// Birthday-demo patch: VITE_DEMO_MODE=1 bypasses Supabase auth
+//   and seeds a pre-claimed block so the full
+//   claim → place → earn → combat loop is playable without creds.
 // ============================================================
 
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
@@ -22,6 +25,7 @@ import { supabase } from './services/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { GangProfile } from './types/game.types';
 import { isAccountSwitch, toPlayerIdentity } from './utils/authPlayer';
+import { IS_DEMO_MODE, seedDemoState } from './utils/demoSeed';
 
 // Layout
 import OSShell from './components/layout/OSShell';
@@ -86,7 +90,7 @@ const App: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(!player?.gangProfile);
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [ageAffirmed, setAgeAffirmed] = useState(() => hasAgeAffirmation());
+  const [ageAffirmed, setAgeAffirmed] = useState(() => IS_DEMO_MODE || hasAgeAffirmation());
 
   const hydrateAuthenticatedPlayer = useCallback((user: User | null) => {
     setAuthUser(user);
@@ -111,8 +115,8 @@ const App: React.FC = () => {
   const gameLoop = useGameLoop();
   useHeatDecay();
   const { raidBlockId, clearRaid } = useRaidCheck();
-  useBlockSync();
-  useEmpireHydration(Boolean(authUser) && authChecked);
+  useBlockSync(!IS_DEMO_MODE);
+  useEmpireHydration(Boolean(authUser) && authChecked && !IS_DEMO_MODE);
   useSoundManager();
   const salarySystem = useSalarySystem();
   useNPCRetaliation();
@@ -122,8 +126,17 @@ const App: React.FC = () => {
 
   const { completeStep } = useTutorialProgressStore();
 
-  // Check Supabase auth session on mount
+  // Demo mode — seed stores once on mount and skip all auth gates.
+  // In production (VITE_DEMO_MODE !== '1') this branch is dead code and
+  // tree-shaken by Vite/Rollup.
   useEffect(() => {
+    if (IS_DEMO_MODE) {
+      seedDemoState();
+      setAuthChecked(true);
+      setShowOnboarding(false);
+      return;
+    }
+    // Check Supabase auth session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       hydrateAuthenticatedPlayer(session?.user ?? null);
       setAuthChecked(true);
@@ -195,6 +208,7 @@ const App: React.FC = () => {
   };
 
   // Mature-content notice must be accepted before account creation or gameplay.
+  // (Skipped in demo mode — IS_DEMO_MODE sets ageAffirmed true in useState initializer.)
   if (!ageAffirmed) {
     return <AgeGate onConfirm={() => setAgeAffirmed(true)} />;
   }
@@ -208,13 +222,13 @@ const App: React.FC = () => {
     );
   }
 
-  // Show auth screen if not logged in
-  if (!authUser) {
+  // Show auth screen if not logged in (skipped in demo mode)
+  if (!IS_DEMO_MODE && !authUser) {
     return <AuthScreen onAuthSuccess={hydrateAuthenticatedPlayer} />;
   }
 
-  // Show onboarding if gang not set up yet
-  if (showOnboarding) {
+  // Show onboarding if gang not set up yet (skipped in demo mode)
+  if (!IS_DEMO_MODE && showOnboarding) {
     return <Onboarding onComplete={handleOnboardingCompleteWithTutorial} />;
   }
 
