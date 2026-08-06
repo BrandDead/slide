@@ -3,7 +3,8 @@
 // block view.  Renders:
 //   • Satellite image as the ground plane (or a dark fallback)
 //   • 8×8 zone-tinted grid overlay
-//   • Member sprites at their placement positions
+//   • Member sprites at their placement positions (real art via
+//     worldActorResolver — no emoji, no coloured circles)
 //   • Health bars, role-colour indicator dots
 //   • Camera: top-down default; pinch-to-zoom; double-tap
 //     fires 'firstPersonToggle' event so the React wrapper
@@ -14,6 +15,12 @@
 //   'cellClick'          — { col, row }
 //   'memberClick'        — { memberId, col, row }
 //   'firstPersonToggle'  — { col, row } (double-tap on member)
+//
+// Birthday-demo change (feat/birthday-demo-path):
+//   Replaced spriteUrlForRole() (hardcoded filenames that did not
+//   match the actual asset tree) with getWorldActor() from
+//   worldActorResolver, which is driven by runtimeManifest.json
+//   and always returns a URL that exists on disk.
 // ============================================================
 import Phaser from 'phaser';
 import type { BlockData, BlockPlacement } from '../../types/block.types';
@@ -34,8 +41,8 @@ import {
   INDICATOR_R,
   cellToPixel,
   pixelToCell,
-  spriteUrlForRole,
 } from './blockTopDownCoords';
+import { getWorldActor } from '../../render/worldActorResolver';
 
 // ─── Internal types ──────────────────────────────────────────
 interface MemberSprite {
@@ -108,12 +115,17 @@ export class BlockTopDownScene extends Phaser.Scene {
     if (this.satelliteUrl) {
       this.load.image(this.satelliteKey, this.satelliteUrl);
     }
-    // Preload all role sprites
+
+    // Preload all role sprites via worldActorResolver (manifest-driven, always
+    // resolves to a URL that exists on disk).
     const loaded = new Set<string>();
-    const roles = ['dealer', 'shooter', 'enforcer', 'lookout', 'driver', 'chemist', 'runner', 'boss'];
+    const roles = ['dealer', 'shooter', 'enforcer', 'lookout', 'driver', 'chemist', 'runner', 'boss', 'k9', 'recruit', 'police'];
     for (const role of roles) {
-      const url = spriteUrlForRole(role);
+      const resolved = getWorldActor(role, 'idle', 'topdown');
+      if (!resolved) continue;
+      const url = resolved.url;
       if (!loaded.has(url)) {
+        // Key: role name so syncMemberSprites can look it up by role
         this.load.image(`sprite-${role}`, url);
         loaded.add(url);
       }
@@ -234,7 +246,7 @@ export class BlockTopDownScene extends Phaser.Scene {
         ms.hpFg.setSize(HP_BAR_W * hpRatio, HP_BAR_H);
         ms.placement = placement;
       } else {
-        // Create new sprite
+        // Create new sprite — key matches what was loaded in preload()
         const spriteKey = `sprite-${placement.role}`;
         const sprite = this.add.image(x, y, spriteKey)
           .setScale(SPRITE_SCALE)
