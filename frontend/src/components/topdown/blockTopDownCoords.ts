@@ -49,6 +49,11 @@ export const ROLE_TINT: Record<string, number> = {
   chemist:  0xa78bfa,
   runner:   0xfb7185,
   boss:     0xfbbf24,
+  // Hireable marketplace roles
+  recruit:  0x94a3b8,  // slate — unproven
+  k9:       0xd97706,  // amber — dog
+  // NPC
+  police:   0x3b82f6,  // blue
 };
 
 /** Map a role to the topdown sprite filename (without extension) */
@@ -62,6 +67,11 @@ export const ROLE_TO_SPRITE: Record<string, string> = {
   chemist:  'character_dealer_male_blacktee_topdown_v001',
   runner:   'character_lookout_female_topdown_v001',
   boss:     'character_enforcer_male_topdown_v001',
+  // Hireable marketplace roles (worldActorResolver has real art for these)
+  recruit:  'character_recruit_male_topdown_v001',
+  k9:       'character_k9_topdown_v001',
+  // NPC
+  police:   'character_police_male_topdown_v001',
 };
 
 /** Sprite asset path prefix (served from /public) */
