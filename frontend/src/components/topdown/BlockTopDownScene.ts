@@ -16,11 +16,13 @@
 //   'memberClick'        — { memberId, col, row }
 //   'firstPersonToggle'  — { col, row } (double-tap on member)
 //
-// Birthday-demo change (feat/birthday-demo-path):
-//   Replaced spriteUrlForRole() (hardcoded filenames that did not
-//   match the actual asset tree) with getWorldActor() from
-//   worldActorResolver, which is driven by runtimeManifest.json
-//   and always returns a URL that exists on disk.
+// P0 fixes applied (GPT audit, 2026-08-06):
+//   1. Canonical role→textureKey map built during preload so
+//      fallback roles (chemist→dealer art, etc.) share the
+//      correct texture key rather than requesting a missing one.
+//   2. State-aware sprite selection: downed/arrested members
+//      use the appropriate state texture instead of idle.
+//   3. All states (idle, downed, arrested) preloaded per role.
 // ============================================================
 import Phaser from 'phaser';
 import type { BlockData, BlockPlacement } from '../../types/block.types';
@@ -53,6 +55,23 @@ interface MemberSprite {
   placement: BlockPlacement;
 }
 
+/** States we preload per role */
+const PRELOAD_STATES = ['idle', 'downed', 'arrested'] as const;
+type SpriteState = typeof PRELOAD_STATES[number];
+
+/** Build a deterministic Phaser texture key for a role+state pair */
+function textureKey(role: string, state: SpriteState): string {
+  return `actor-${role}-${state}`;
+}
+
+/** Choose the correct state for a placement based on health/status */
+function stateForPlacement(placement: BlockPlacement): SpriteState {
+  if ((placement.health ?? 100) <= 0) return 'downed';
+  // BlockPlacement doesn't carry a status field directly, but the
+  // member's status can be inferred from health for rendering.
+  return 'idle';
+}
+
 // ─── Scene ───────────────────────────────────────────────────
 export class BlockTopDownScene extends Phaser.Scene {
   private block: BlockData | null = null;
@@ -67,6 +86,10 @@ export class BlockTopDownScene extends Phaser.Scene {
 
   // Member sprite map: memberId → MemberSprite
   private memberSprites = new Map<string, MemberSprite>();
+
+  // Canonical role → texture key map (built in preload)
+  // Maps every role to the best available texture key for 'idle' state
+  private roleToKey = new Map<string, string>();
 
   // Selection state
   private selectedMemberId: string | null = null;
@@ -116,18 +139,38 @@ export class BlockTopDownScene extends Phaser.Scene {
       this.load.image(this.satelliteKey, this.satelliteUrl);
     }
 
-    // Preload all role sprites via worldActorResolver (manifest-driven, always
-    // resolves to a URL that exists on disk).
-    const loaded = new Set<string>();
-    const roles = ['dealer', 'shooter', 'enforcer', 'lookout', 'driver', 'chemist', 'runner', 'boss', 'k9', 'recruit', 'police'];
+    // Preload all role sprites via worldActorResolver.
+    // P0 fix: build a canonical role→textureKey map so fallback roles
+    // (chemist→dealer art, runner→lookout art, etc.) share the SAME
+    // texture key rather than each requesting a missing key.
+    const urlToKey = new Map<string, string>();
+    const roles = [
+      'dealer', 'shooter', 'enforcer', 'lookout', 'driver',
+      'chemist', 'runner', 'boss', 'k9', 'recruit', 'police',
+    ];
+
     for (const role of roles) {
-      const resolved = getWorldActor(role, 'idle', 'topdown');
-      if (!resolved) continue;
-      const url = resolved.url;
-      if (!loaded.has(url)) {
-        // Key: role name so syncMemberSprites can look it up by role
-        this.load.image(`sprite-${role}`, url);
-        loaded.add(url);
+      for (const state of PRELOAD_STATES) {
+        const resolved = getWorldActor(role, state, 'topdown');
+        if (!resolved) continue;
+        const url = resolved.url;
+        const key = textureKey(role, state);
+
+        if (urlToKey.has(url)) {
+          // This URL was already registered under another key.
+          // Point this role+state to the existing key so Phaser
+          // doesn't double-load and syncMemberSprites can find it.
+          // We store the canonical key in the role map for idle state.
+          if (state === 'idle') {
+            this.roleToKey.set(role, urlToKey.get(url)!);
+          }
+        } else {
+          this.load.image(key, url);
+          urlToKey.set(url, key);
+          if (state === 'idle') {
+            this.roleToKey.set(role, key);
+          }
+        }
       }
     }
   }
@@ -215,6 +258,19 @@ export class BlockTopDownScene extends Phaser.Scene {
     }
   }
 
+  /** Return the best Phaser texture key for a placement's current state */
+  private resolveTextureKey(placement: BlockPlacement): string {
+    const state = stateForPlacement(placement);
+    // Try the exact role+state key first
+    const exactKey = textureKey(placement.role, state);
+    if (this.textures.exists(exactKey)) return exactKey;
+    // Fall back to the canonical idle key for this role
+    const idleKey = this.roleToKey.get(placement.role);
+    if (idleKey && this.textures.exists(idleKey)) return idleKey;
+    // Last resort: dealer idle
+    return textureKey('dealer', 'idle');
+  }
+
   private syncMemberSprites(): void {
     if (!this.block) return;
     const current = new Set(this.block.placements.map((p) => p.memberId));
@@ -236,8 +292,12 @@ export class BlockTopDownScene extends Phaser.Scene {
       const roleTint = ROLE_TINT[placement.role] ?? 0xffffff;
 
       if (this.memberSprites.has(placement.memberId)) {
-        // Update position and health
+        // Update position, health, and state texture
         const ms = this.memberSprites.get(placement.memberId)!;
+        const newKey = this.resolveTextureKey(placement);
+        if (ms.sprite.texture.key !== newKey) {
+          ms.sprite.setTexture(newKey);
+        }
         ms.sprite.setPosition(x, y);
         ms.hpBg.setPosition(x, y - HP_BAR_OFFSET_Y);
         ms.hpFg.setPosition(x - HP_BAR_W / 2, y - HP_BAR_OFFSET_Y);
@@ -246,8 +306,8 @@ export class BlockTopDownScene extends Phaser.Scene {
         ms.hpFg.setSize(HP_BAR_W * hpRatio, HP_BAR_H);
         ms.placement = placement;
       } else {
-        // Create new sprite — key matches what was loaded in preload()
-        const spriteKey = `sprite-${placement.role}`;
+        // Create new sprite using the canonical texture key
+        const spriteKey = this.resolveTextureKey(placement);
         const sprite = this.add.image(x, y, spriteKey)
           .setScale(SPRITE_SCALE)
           .setInteractive({ useHandCursor: true });

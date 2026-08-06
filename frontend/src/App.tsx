@@ -115,7 +115,7 @@ const App: React.FC = () => {
   const gameLoop = useGameLoop();
   useHeatDecay();
   const { raidBlockId, clearRaid } = useRaidCheck();
-  useBlockSync();
+  useBlockSync(!IS_DEMO_MODE);
   useEmpireHydration(Boolean(authUser) && authChecked && !IS_DEMO_MODE);
   useSoundManager();
   const salarySystem = useSalarySystem();
