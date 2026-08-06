@@ -465,7 +465,12 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <motion.div
             key={app.id}
             className={`app-icon ${!app.available ? 'locked' : ''}`}
+            role="button"
+            tabIndex={app.available ? 0 : -1}
+            aria-label={app.label}
+            aria-disabled={!app.available}
             onClick={() => handleAppClick(app)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleAppClick(app); } }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{

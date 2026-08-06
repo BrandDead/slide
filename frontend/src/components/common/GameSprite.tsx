@@ -91,8 +91,9 @@ const APP_ICONS: Record<string, string> = {
   crew:           '/assets/icons/icon_crew_new.png',
   dealt:          '/assets/icons/icon_dealt_new.png',
   ops:            '/assets/icons/icon_ops_new.png',
-  shoebox:        '/assets/icons/icon_shoebox_new.png',
-  market:         '/assets/icons/icon_market_new.png',
+  // shoebox/market use the new per-app artwork (replaces old icon_*_new.png)
+  shoebox:        '/assets/icons/apps/shoebox/regular.png',
+  market:         '/assets/icons/apps/market/regular.png',
   casino:         '/assets/icons/icon_casino_new.png',
   settings:       '/assets/icons/icon_settings_new.png',
   driveby:        '/assets/icons/icon_driveby_new.png',
@@ -106,8 +107,6 @@ const APP_ICONS: Record<string, string> = {
   attack:         '/assets/icons/icon_attack_new.png',
   planner:        '/assets/icons/icon_planner_new.png',
   raid:           '/assets/icons/icon_raid_new.png',
-  shoebox:        '/assets/icons/apps/shoebox/regular.png',
-  market:         '/assets/icons/apps/market/regular.png',
   messages:       '/assets/icons/apps/messages/regular.png',
   trap_house:     '/assets/icons/apps/trap-house/regular.png',
 };
