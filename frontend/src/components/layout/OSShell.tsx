@@ -12,6 +12,7 @@ import {
   useGangStore,
   useNotificationStore,
 } from '../../stores/gameStore';
+import { useMostWantedStore } from '../../stores/mostWantedStore';
 import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
 import { GameSprite } from '../common/GameSprite';
@@ -56,6 +57,14 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
   const raidProb = useMemo(() => getRaidProbability(player.heat), [player.heat]);
   const moraleDesc = useMemo(() => getMoraleDescription(gangMorale), [gangMorale]);
+
+  // Badge the bounty board with how many contracts are live, including any
+  // posted against this player's own crew.
+  const bountyPosters = useMostWantedStore((s) => s.posters);
+  const openBountyCount = useMemo(
+    () => bountyPosters.filter((p) => p.status === 'open').length,
+    [bountyPosters],
+  );
 
   const appIcons: AppIcon[] = [
     {
@@ -141,6 +150,16 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       description: 'Underworld Market',
     },
     {
+      id: 'most_wanted',
+      label: 'WANTED',
+      icon: 'WANTED',
+      spriteIcon: 'market',
+      colorClass: 'app-red',
+      available: true,
+      badge: openBountyCount > 0 ? openBountyCount : undefined,
+      description: 'Bounty Board',
+    },
+    {
       id: 'contacts',
       label: 'CONTACTS',
       icon: 'CONTACTS',
@@ -214,12 +233,12 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
     },
     {
       id: 'leaderboard',
-      label: 'SHOT CALLER',
-      icon: 'SHOT CALLER',
-      spriteIcon: 'leaderboard',
+      label: 'CLOUT',
+      icon: 'CLOUT',
+      spriteIcon: 'leaderboard',  // uses shot-caller artwork from #96
       colorClass: 'app-gold',
       available: true,
-      description: 'Block Attack Alerts',
+      description: 'Who Runs What',
     },
     {
       id: 'news',

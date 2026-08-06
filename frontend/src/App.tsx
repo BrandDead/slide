@@ -31,6 +31,7 @@ import { IS_DEMO_MODE, seedDemoState } from './utils/demoSeed';
 import OSShell from './components/layout/OSShell';
 import GameEventOverlay from './components/layout/GameEventOverlay';
 import RaidEventOverlay from './components/layout/RaidEventOverlay';
+import GetBackClock from './components/common/GetBackClock';
 import TutorialOverlay from './components/tutorial/TutorialOverlay';
 import NPCThreatBanner from './components/map/NPCThreatBanner';
 
@@ -63,6 +64,7 @@ const WeeklyUpdateRoute = React.lazy(() => import('./components/news/WeeklyUpdat
 const PhoneApp          = React.lazy(() => import('./components/phone/PhoneApp'));
 const AttackPlanner     = React.lazy(() => import('./components/missions/AttackPlanner'));
 const TrapApp           = React.lazy(() => import('./components/trap/TrapApp'));
+const MostWantedApp     = React.lazy(() => import('./components/economy/MostWantedApp'));
 
 import './App.css';
 
@@ -196,6 +198,7 @@ const App: React.FC = () => {
       case 'news':        return <Suspense fallback={<LazyFallback />}><WeeklyUpdateRoute key="news" /></Suspense>;
       case 'phone':       return <Suspense fallback={<LazyFallback />}><PhoneApp key="phone" /></Suspense>;
       case 'trap':        return <Suspense fallback={<LazyFallback />}><TrapApp key="trap" /></Suspense>;
+      case 'most_wanted': return <Suspense fallback={<LazyFallback />}><MostWantedApp key="most_wanted" /></Suspense>;
       default:
         return (
           <OSShell
@@ -237,6 +240,9 @@ const App: React.FC = () => {
       {/* NPC threat banner — fixed top bar, shows on any screen */}
       <NPCThreatBanner />
       <TutorialOverlay />
+
+      {/* Get Back shot clock — global HUD. Hides itself when no debt is open. */}
+      <GetBackClock />
 
       {/* Payroll modal — renders when Shoebox can't cover weekly wages */}
       {salarySystem.payrollDue && <PayrollModal />}

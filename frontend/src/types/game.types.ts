@@ -984,3 +984,226 @@ export interface SelfieUpload {
   status: 'pending' | 'processing' | 'done' | 'failed';
   uploadedAt: string;
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPECIAL PEOPLE & ORIGIN STORIES  (Sprint 15-B)
+//
+// Every member has two people they care about. Opposing players can buy hits
+// on them through the Most Wanted board. How the player responds when a
+// member's people get touched drives that member's loyalty and the gang's
+// morale — ignoring it is how a shooter ends up flipping.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type SpecialPersonRelation =
+  | 'mother'
+  | 'father'
+  | 'brother'
+  | 'sister'
+  | 'son'
+  | 'daughter'
+  | 'girlfriend'
+  | 'boyfriend'
+  | 'cousin'
+  | 'best_friend'
+  | 'grandmother'
+  | 'auntie';
+
+export type SpecialPersonStatus =
+  | 'safe'
+  | 'threatened'      // A hit has been posted, not yet fulfilled
+  | 'hurt'            // Hit fulfilled, non-fatal
+  | 'killed';         // Hit fulfilled, fatal
+
+export interface SpecialPerson {
+  id: string;
+  name: string;
+  relation: SpecialPersonRelation;
+  status: SpecialPersonStatus;
+  /** Where they can be found — used when an opp goes looking. */
+  neighborhood?: string;
+  /** Set when a hit resolves against this person. */
+  touchedAt?: string;
+  touchedBy?: string;
+  /** True once the player has retaliated for this person. */
+  avenged?: boolean;
+}
+
+export interface MemberOriginStory {
+  /** One-line hook shown on the contact card. */
+  hook: string;
+  /** Two to four sentences of backstory. */
+  body: string;
+  /** Where they came up. */
+  cameUpOn: string;
+  /** Why they took the work. */
+  reason: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UNDERWORLD MARKETPLACE — MEMBERS FOR SALE  (Sprint 15-B)
+//
+// Members bought off the underworld come pre-leveled. You pay a premium to
+// skip the grind, and the higher tiers carry baggage: more heat, lower
+// starting loyalty, or a habit of catching cases.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type HireableRole =
+  | 'recruit'
+  | 'dealer'
+  | 'shooter'
+  | 'enforcer'
+  | 'driver'
+  | 'lookout'
+  | 'k9';
+
+export type HireableTier = 'street' | 'seasoned' | 'certified' | 'legend';
+
+export interface HireableMember {
+  id: string;
+  name: string;
+  nickname: string;
+  role: HireableRole;
+  tier: HireableTier;
+  level: number;
+  price: number;
+  /** Weekly wage once hired. */
+  salary: number;
+  /** 0-100. Bought members start lower than recruited ones. */
+  startingLoyalty: number;
+  /** Multiplier on heat this member generates while deployed. */
+  heatFactor: number;
+  stats: {
+    shooting: number;
+    dealing: number;
+    nerve: number;
+    stealth: number;
+  };
+  originStory: MemberOriginStory;
+  specialPeople: SpecialPerson[];
+  /** Honest warning shown on the listing. Empty for clean hires. */
+  baggage: string | null;
+  avatarSpriteKey?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOST WANTED BOARD  (Sprint 15-B)
+//
+// Players post bounties on specific members. Any other player can fulfil one,
+// upload proof, and cash out. The payer's shoebox is debited, the fulfiller is
+// saved as an ally, and the whole transaction is public — which is how wars
+// start.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type BountyStatus =
+  | 'open'
+  | 'claimed'         // Someone submitted proof, awaiting verification
+  | 'paid'
+  | 'expired'
+  | 'cancelled';
+
+export type BountyTargetKind = 'member' | 'special_person';
+
+export interface MostWantedPoster {
+  id: string;
+  /** Player who posted and is paying. */
+  postedBy: string;
+  postedByGangName: string;
+  postedAt: string;
+  expiresAt: string;
+
+  targetKind: BountyTargetKind;
+  /** Member id, or special-person id when targetKind is special_person. */
+  targetId: string;
+  targetName: string;
+  /** For special_person bounties: the member they belong to. */
+  targetOwnerMemberId?: string;
+  targetOwnerName?: string;
+  /** Gang the target runs with. */
+  targetGangName: string;
+  /** Last known block, so hunters know where to post up. */
+  lastKnownBlockId?: string;
+  lastKnownAddress?: string;
+
+  /** Uploaded photo of the target. */
+  posterImageUrl?: string;
+  /** Optional note from the poster. Never required. */
+  note?: string;
+
+  reward: number;
+  status: BountyStatus;
+
+  /** Set when a hunter submits. */
+  claimedBy?: string;
+  claimedByGangName?: string;
+  claimedAt?: string;
+  /** Screenshot the hunter uploaded as proof. */
+  proofImageUrl?: string;
+  paidAt?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET BACK CLOCK  (Sprint 15-B)
+//
+// An NBA-style shot clock on revenge. When a member is lost — to a slide, a
+// bounty, or a raid gone wrong — a window opens. Get back inside it and your
+// gang takes double morale off the other side. Let it run out and your own
+// crew loses faith.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type GetBackOutcome = 'pending' | 'success' | 'expired' | 'forfeited';
+
+export type GetBackTrigger =
+  | 'slide_casualty'      // Lost a member in a drive-by
+  | 'bounty_fulfilled'    // A bounty was cashed on one of yours
+  | 'special_person'      // Someone touched a member's people
+  | 'block_attack';       // Lost a member defending the block
+
+export interface GetBackWindow {
+  id: string;
+  trigger: GetBackTrigger;
+  openedAt: number;
+  /** Wall-clock ms the player has to respond. */
+  durationMs: number;
+
+  /** Who we lost. */
+  lostMemberId: string;
+  lostMemberName: string;
+
+  /** Who did it. Gang name is always known; member ids only when claimed. */
+  offendingGangName: string;
+  offendingPlayerId?: string;
+  /** Members known to have been present. These are the valid revenge targets. */
+  wantedMemberIds: string[];
+  wantedMemberNames: string[];
+
+  /** Morale the offending gang gained from the original hit. */
+  offenderMoraleGained: number;
+
+  outcome: GetBackOutcome;
+  resolvedAt?: number;
+  /** Which wanted member was caught, when successful. */
+  resolvedAgainstMemberId?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ALLIES  (Sprint 15-B)
+//
+// Allies come out of business, not friendship. Someone fulfils your bounty,
+// they go in your book. Allies can be called on, and can turn.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface Ally {
+  id: string;
+  playerId: string;
+  gangName: string;
+  /** How this relationship started. */
+  origin: 'bounty_fulfilled' | 'bounty_paid' | 'mutual_opp' | 'manual';
+  since: string;
+  /** 0-100. Drops if you stiff them or take their contracts. */
+  standing: number;
+  /** Running total of business done together. */
+  jobsCompleted: number;
+  moneyExchanged: number;
+  notes?: string[];
+}

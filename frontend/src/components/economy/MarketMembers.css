@@ -1,0 +1,475 @@
+/* ============================================================
+   MarketMembers — underworld hires board
+   Sprint 15-B
+   ============================================================ */
+
+.mm-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 4px 24px;
+}
+
+/* ── Pitch strip ── */
+.mm-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), rgba(0, 0, 0, 0));
+  border-left: 3px solid #f59e0b;
+}
+
+.mm-pitch-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #f59e0b;
+}
+
+.mm-pitch-copy {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.45;
+}
+
+/* ── Filters ── */
+.mm-filters {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.mm-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.mm-filter {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #9ca3af;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mm-filter.active {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+/* ── Board bar ── */
+.mm-board-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mm-count {
+  font-size: 11px;
+  color: #6b7280;
+  letter-spacing: 0.4px;
+}
+
+.mm-refresh {
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: rgba(96, 165, 250, 0.12);
+  color: #93c5fd;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+}
+
+.mm-refresh:active {
+  transform: scale(0.97);
+}
+
+/* ── Toast ── */
+.mm-toast {
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: center;
+}
+
+.mm-toast.ok {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86efac;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.mm-toast.fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ── Grid ── */
+.mm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 9px;
+}
+
+.mm-empty {
+  grid-column: 1 / -1;
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.mm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(160deg, rgba(24, 24, 27, 0.95), rgba(9, 9, 11, 0.95));
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.15s;
+}
+
+.mm-card.unaffordable {
+  opacity: 0.5;
+}
+
+.mm-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mm-tier {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.mm-level {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.6px;
+}
+
+.mm-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f4f4f5;
+  line-height: 1.2;
+}
+
+.mm-nick {
+  font-size: 11px;
+  color: #a1a1aa;
+  font-style: italic;
+}
+
+.mm-role {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #71717a;
+  margin-top: 1px;
+}
+
+.mm-hook {
+  font-size: 10px;
+  color: #8b8b93;
+  line-height: 1.45;
+  margin: 4px 0 2px;
+  min-height: 28px;
+}
+
+.mm-statline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #71717a;
+  letter-spacing: 0.4px;
+}
+
+.mm-baggage-flag {
+  margin-top: 4px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fbbf24;
+}
+
+.mm-card-bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mm-price {
+  font-size: 14px;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.mm-salary {
+  font-size: 9px;
+  color: #6b7280;
+}
+
+/* ── Modal ── */
+.mm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(3px);
+}
+
+.mm-modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 18px 16px 22px;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(180deg, #18181b, #0a0a0b);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mm-modal-head {
+  margin-bottom: 12px;
+}
+
+.mm-modal-head h3 {
+  margin: 4px 0 2px;
+  font-size: 19px;
+  font-weight: 800;
+  color: #fafafa;
+}
+
+.mm-modal-nick {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.mm-role-desc {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.mm-section {
+  margin-bottom: 14px;
+}
+
+.mm-section-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #52525b;
+  margin-bottom: 6px;
+}
+
+.mm-story {
+  margin: 0;
+  font-size: 12px;
+  color: #d4d4d8;
+  line-height: 1.6;
+}
+
+/* ── Stat bars ── */
+.mm-stat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-stat-row {
+  display: grid;
+  grid-template-columns: 62px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.mm-stat-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #71717a;
+}
+
+.mm-stat-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.mm-stat-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+.mm-stat-val {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a1a1aa;
+  text-align: right;
+}
+
+/* ── Terms ── */
+.mm-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mm-term {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.mm-term-val {
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+/* ── Special people ── */
+.mm-people-warn {
+  margin: 0 0 7px;
+  font-size: 10px;
+  color: #78716c;
+  line-height: 1.5;
+}
+
+.mm-person {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.mm-person-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.mm-person-rel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #a78bfa;
+}
+
+.mm-person-hood {
+  margin-left: auto;
+  font-size: 9px;
+  color: #52525b;
+}
+
+/* ── Warning ── */
+.mm-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  border-left: 3px solid #fbbf24;
+}
+
+.mm-warning-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: #fbbf24;
+}
+
+.mm-warning-copy {
+  font-size: 11px;
+  color: #d4d4d8;
+  line-height: 1.5;
+}
+
+/* ── Actions ── */
+.mm-hire-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.mm-hire-btn:active {
+  transform: scale(0.98);
+}
+
+.mm-modal-result {
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.mm-modal-result.ok {
+  background: rgba(74, 222, 128, 0.15);
+  color: #86efac;
+}
+
+.mm-modal-result.fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.mm-close {
+  width: 100%;
+  margin-top: 9px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: #71717a;
+  font-size: 11px;
+  cursor: pointer;
+}
