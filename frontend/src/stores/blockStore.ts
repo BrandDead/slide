@@ -97,7 +97,7 @@ export const useBlockStore = create<BlockStore>()(
 
         getBlock: (blockId) => get().blocks[blockId],
 
-        placeMember: (blockId, placement) =>
+        placeMember: (blockId, placement) => {
           set((state) => {
             const block = state.blocks[blockId];
             if (!block) return state;
@@ -140,7 +140,37 @@ export const useBlockStore = create<BlockStore>()(
                 },
               },
             };
-          }),
+          });
+
+          // Gate 0B — persist placements to Flask (best-effort)
+          void (async () => {
+            try {
+              const { blocksApi } = await import('../services/api.service');
+              const { placementsToApiPayload } = await import('../utils/blockMappers');
+              const latest = get().blocks[blockId];
+              if (!latest) return;
+              const result = await blocksApi.placeMembers(
+                blockId,
+                placementsToApiPayload(latest.placements),
+              );
+              set((state) => {
+                const b = state.blocks[blockId];
+                if (!b) return state;
+                return {
+                  blocks: {
+                    ...state.blocks,
+                    [blockId]: {
+                      ...b,
+                      incomePerTick: result.incomePerTick ?? b.incomePerTick,
+                    },
+                  },
+                };
+              });
+            } catch (err) {
+              console.warn('[blockStore] place sync skipped:', err);
+            }
+          })();
+        },
 
         removeMemberFromBlock: (blockId, memberId) =>
           set((state) => {

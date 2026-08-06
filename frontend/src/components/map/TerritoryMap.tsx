@@ -52,7 +52,7 @@ const ROLE_COLORS: Record<string, string> = {
 // ─── Component ───────────────────────────────────────────────
 const TerritoryMap: React.FC = () => {
   const { goBack } = useNavigationStore();
-  const { player, updateMoney, updateHeat } = usePlayerStore();
+  const { player, updatePlayer } = usePlayerStore();
   const { members } = useGangStore();
   const { blocks, selectedBlockId, selectBlock, upsertBlock } = useBlockStore();
 
@@ -79,85 +79,88 @@ const TerritoryMap: React.FC = () => {
     setTimeout(() => setNotification(null), ms);
   }, []);
 
-  // ── Shared claim logic ──────────────────────────────────────
-  const claimBlock = useCallback((
-    id: string,
+  // ── Shared claim logic (Gate 0B Flask authority + local DNA/satellite) ──
+  const claimBlock = useCallback(async (
+    _id: string,
     address: string,
     lat: number,
     lng: number,
   ) => {
-    if ((player?.money || 0) < 2000) {
-      notify('Not enough cash! Need $2,000 to claim.');
+    const { CLAIM_BLOCK_COST } = await import('../../config/gameEconomy');
+    if ((player?.money || 0) < CLAIM_BLOCK_COST) {
+      notify(`Not enough cash! Need $${CLAIM_BLOCK_COST.toLocaleString()} to claim.`);
       return;
     }
-    updateMoney(-2000);
-    updateHeat(5);
 
-    // Resolve the block DNA archetype from the real address
-    const resolved = resolveBlockDNA(lat, lng, address);
-
-    // Build the Mapbox satellite image URL for the block background
-    const satelliteUrl = buildStaticImageUrl({
-      coordinates: { lat, lng },
-      zoom: 18,
-      width: 512,
-      height: 512,
-      style: 'satellite-streets-v12',
-      highRes: true,
-    });
-
-    // Update the hood overlay
-    setClaimedBlocks(prev => {
-      const exists = prev.some(b => b.id === id);
-      if (exists) {
-        return prev.map(b => b.id === id
-          ? { ...b, owner: 'player' as const, income: Math.round(100 * resolved.incomeMultiplier) }
-          : b
-        );
-      }
-      return [...prev, {
-        id,
+    try {
+      const { blocksApi } = await import('../../services/api.service');
+      const { apiBlockToBlockData } = await import('../../utils/blockMappers');
+      const result = await blocksApi.claim({
         address,
-        lat,
-        lng,
-        owner: 'player' as const,
-        income: Math.round(100 * resolved.incomeMultiplier),
-        heat: resolved.startingHeat,
-        members: 0,
-      }];
-    });
+        coordinates: { lat, lng },
+        city: 'miami',
+        gangName: player?.gangName || 'Crew',
+      });
 
-    // Seed a block store entry with DNA-resolved values
-    const { generateDefaultGrid } = useBlockStore.getState();
-    upsertBlock({
-      id,
-      address,
-      lat,
-      lng,
-      owner: 'player',
-      grid: generateDefaultGrid(),
-      placements: [],
-      incomePerTick: 0,
-      heat: resolved.startingHeat,
-      morale: resolved.startingMorale,
-      members: 0,
-      viewMode: 'topdown',
-      pendingIncome: 0,
-      topdownBgUrl: satelliteUrl,
-    });
+      updatePlayer({
+        money: result.player.cash,
+        heat: result.player.heat,
+      });
 
-    selectBlock(id);
-    setSelectedMapBlock(null);
-    setPendingClaim(null);
-    setShowBlockSearch(false);
-    setView('block');
+      const live = apiBlockToBlockData(result.block as Record<string, unknown>);
+      const resolved = resolveBlockDNA(lat, lng, address);
+      const satelliteUrl = buildStaticImageUrl({
+        coordinates: { lat, lng },
+        zoom: 18,
+        width: 512,
+        height: 512,
+        style: 'satellite-streets-v12',
+        highRes: true,
+      });
 
-    notify(
-      `🏴 Claimed ${address}! (${resolved.dna.name} · -$2,000)`,
-      3500,
-    );
-    completeTutorialStep('first_block_claimed');
-  }, [player, updateMoney, updateHeat, upsertBlock, selectBlock, notify, completeTutorialStep]);
+      upsertBlock({
+        ...live,
+        heat: live.heat || resolved.startingHeat,
+        morale: resolved.startingMorale,
+        topdownBgUrl: satelliteUrl,
+      });
+      selectBlock(live.id);
+
+      setClaimedBlocks((prev) => {
+        const without = prev.filter(
+          (b) => b.id !== _id && b.id !== live.id && b.address !== address,
+        );
+        return [
+          ...without,
+          {
+            id: live.id,
+            address: live.address,
+            lat: live.lat,
+            lng: live.lng,
+            owner: 'player' as const,
+            income: Math.round(100 * resolved.incomeMultiplier),
+            heat: live.heat || resolved.startingHeat,
+            members: live.members,
+          },
+        ];
+      });
+
+      setSelectedMapBlock(null);
+      setPendingClaim(null);
+      setShowBlockSearch(false);
+      setView('block');
+      notify(
+        `🏴 Claimed ${live.address}! (${resolved.dna.name} · -$${result.claimCost.toLocaleString()})`,
+        3500,
+      );
+      completeTutorialStep('first_block_claimed');
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'Claim failed — is the backend running?';
+      notify(message, 3500);
+    }
+  }, [player, updatePlayer, upsertBlock, selectBlock, notify, completeTutorialStep]);
 
   // ── Hood view handlers ──────────────────────────────────────
   const handleMapLoad = useCallback((map: any) => setMapInstance(map), []);
@@ -186,17 +189,15 @@ const TerritoryMap: React.FC = () => {
   }, []);
 
   const handleClaimBlock = useCallback((blockData: MapBlockData) => {
-    claimBlock(blockData.id, blockData.address, blockData.lat, blockData.lng);
+    void claimBlock(blockData.id, blockData.address, blockData.lat, blockData.lng);
   }, [claimBlock]);
 
   // ── Block-view address search ───────────────────────────────
   const handleBlockSearchResult = useCallback((result: AddressResult) => {
     const id = `claimed-${result.placeId || Date.now()}`;
     setPendingClaim(result);
-    // Show confirm prompt inline
     setShowBlockSearch(false);
-    // Auto-claim after confirmation (we show a confirm banner)
-    claimBlock(id, result.address, result.lat, result.lng);
+    void claimBlock(id, result.address, result.lat, result.lng);
   }, [claimBlock]);
 
   // ── Derive active block ID for BlockModeView ──
@@ -347,7 +348,7 @@ const TerritoryMap: React.FC = () => {
               block={selectedMapBlock}
               onClose={() => setSelectedMapBlock(null)}
               onCollectIncome={(b) => {
-                updateMoney(b.income || 0);
+                updatePlayer({ money: (player?.money || 0) + (b.income || 0) });
                 notify(`💰 Collected $${b.income} from ${b.address}`);
                 setSelectedMapBlock(null);
               }}

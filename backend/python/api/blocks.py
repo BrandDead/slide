@@ -1,16 +1,21 @@
 """
 DEALT/SLIDE - Block API Routes
-Handles block claiming, lookup, and management
+Handles block claiming, lookup, and management via DBAdapter.
 """
 
-from flask import Blueprint, request, jsonify, current_app, g
-from typing import Optional
-import logging
+from __future__ import annotations
 
-from services.geocoding_service import get_geocoding_service, GeocodingService
-from services.grid_generator import generate_block_grid, GridConfig
+from flask import Blueprint, request, jsonify, g
+from typing import Any, Dict
+import logging
+import uuid
+
+from services.geocoding_service import get_geocoding_service
+from services.grid_generator import generate_block_grid
+from services.db import get_db
 from middleware.auth import require_auth
-# from models.block import Block, SUPPORTED_CITIES  # Commented out - using Supabase now
+from config.game_constants import CLAIM_BLOCK_COST, CLAIM_HEAT_DELTA
+from schemas.block_contracts import build_default_manifest, grid_cell_to_anchor_id
 
 SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 
@@ -19,35 +24,60 @@ logger = logging.getLogger(__name__)
 blocks_bp = Blueprint('blocks', __name__, url_prefix='/api/blocks')
 
 
-# ============================================================================
-# ROUTES
-# ============================================================================
+def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[str, Any]:
+    """Normalize DBAdapter block records for the frontend."""
+    out = {
+        'id': block.get('id'),
+        'ownerId': block.get('owner_id'),
+        'address': block.get('address'),
+        'city': block.get('city'),
+        'coordinates': {'lat': block.get('lat'), 'lng': block.get('lng')},
+        'lat': block.get('lat'),
+        'lng': block.get('lng'),
+        'gangName': block.get('gang_name'),
+        'trafficScore': block.get('traffic_score'),
+        'incomePerHour': block.get('income_per_hour'),
+        'incomePerTick': block.get('income_per_tick', 0),
+        'pendingIncome': block.get('pending_income', 0),
+        'heatLevel': block.get('heat_level', 0),
+        'blockHash': block.get('block_hash'),
+        'sceneVersion': block.get('scene_version'),
+        'liveRevision': block.get('live_revision', 1),
+        'claimedAt': block.get('claimed_at'),
+        'bounds': {
+            'north': block.get('bounds_north'),
+            'south': block.get('bounds_south'),
+            'east': block.get('bounds_east'),
+            'west': block.get('bounds_west'),
+        },
+        'placements': block.get('placements') or [],
+        'backgrounds': block.get('backgrounds') or {},
+    }
+    if include_grid:
+        out['gridData'] = block.get('grid_data') or {}
+        out['sceneManifest'] = block.get('scene_manifest') or {}
+    return out
+
+
+def _extract_coords(data: Dict[str, Any]):
+    coords = data.get('coordinates') or {}
+    lat = coords.get('lat', data.get('lat'))
+    lng = coords.get('lng', data.get('lng'))
+    return lat, lng
+
 
 @blocks_bp.route('/search', methods=['GET'])
 def search_address():
-    """
-    Search for addresses
-    
-    Query params:
-        q: Search query (required)
-        limit: Max results (default 5)
-    
-    Returns:
-        List of address suggestions
-    """
+    """Search for addresses."""
     query = request.args.get('q', '')
     limit = min(int(request.args.get('limit', 5)), 10)
-    
+
     if len(query) < 3:
-        return jsonify({
-            'results': [],
-            'query': query,
-        })
-    
+        return jsonify({'results': [], 'query': query})
+
     try:
         geocoding = get_geocoding_service()
         results = geocoding.search_address(query, limit=limit)
-        
         return jsonify({
             'results': [
                 {
@@ -62,7 +92,6 @@ def search_address():
             ],
             'query': query,
         })
-    
     except Exception as e:
         logger.error(f"Address search failed: {e}")
         return jsonify({'error': 'Search failed'}), 500
@@ -70,43 +99,25 @@ def search_address():
 
 @blocks_bp.route('/preview', methods=['POST'])
 def get_block_preview():
-    """
-    Get preview of a block before claiming
-    
-    Body:
-        address: Optional address string
-        lat: Optional latitude
-        lng: Optional longitude
-    
-    Returns:
-        Block preview with satellite image and estimates
-    """
-    data = request.get_json()
-    
+    """Get preview of a block before claiming."""
+    data = request.get_json() or {}
     address = data.get('address')
-    lat = data.get('lat')
-    lng = data.get('lng')
-    
+    lat, lng = _extract_coords(data)
+
     if not address and (lat is None or lng is None):
         return jsonify({'error': 'Address or coordinates required'}), 400
-    
+
     try:
         geocoding = get_geocoding_service()
-        location = geocoding.get_block_location(
-            address=address,
-            lat=lat,
-            lng=lng
-        )
-        
+        location = geocoding.get_block_location(address=address, lat=lat, lng=lng)
         if not location:
             return jsonify({
                 'error': 'Location not found or outside service area',
-                'reason': 'outside_service_area'
+                'reason': 'outside_service_area',
             }), 404
-        
-        # Check if block already exists
-        existing = Block.find_by_hash(location.block_hash)
-        
+
+        db = get_db()
+        existing = db.find_block_by_hash(location.block_hash)
         return jsonify({
             'address': location.address,
             'formattedAddress': location.formatted_address,
@@ -116,13 +127,13 @@ def get_block_preview():
             'satelliteImageUrl': location.satellite_url,
             'estimatedTraffic': location.traffic_score,
             'estimatedIncome': location.traffic_score * 10,
-            'isAvailable': existing is None or not existing.is_claimed,
+            'claimCost': CLAIM_BLOCK_COST,
+            'isAvailable': existing is None,
             'currentOwner': {
-                'gangName': existing.owner_gang_name,
-                'claimedAt': existing.claimed_at.isoformat(),
-            } if existing and existing.is_claimed else None,
+                'gangName': existing.get('gang_name'),
+                'claimedAt': existing.get('claimed_at'),
+            } if existing else None,
         })
-    
     except Exception as e:
         logger.error(f"Block preview failed: {e}")
         return jsonify({'error': 'Preview failed'}), 500
@@ -131,104 +142,107 @@ def get_block_preview():
 @blocks_bp.route('/claim', methods=['POST'])
 @require_auth
 def claim_block():
-    """
-    Claim a block for the user
-    
-    Body:
-        address: Full address string
-        coordinates: {lat, lng}
-        city: City code
-    
-    Returns:
-        Complete block data with grid
-    """
-    data = request.get_json()
+    """Claim a block for the user (server-authoritative cost)."""
+    data = request.get_json() or {}
     user_id = g.user['id']
     address = data.get('address')
-    coords = data.get('coordinates', {})
+    lat, lng = _extract_coords(data)
     city = data.get('city')
-    
-    lat = coords.get('lat')
-    lng = coords.get('lng')
-    
+    gang_name = data.get('gangName') or data.get('gang_name') or 'Unknown Gang'
+
     if not address or lat is None or lng is None:
         return jsonify({'error': 'Address and coordinates required'}), 400
-    
-    if city not in SUPPORTED_CITIES:
-        return jsonify({
-            'error': f'City not supported. Valid cities: {", ".join(SUPPORTED_CITIES)}',
-            'reason': 'outside_service_area'
-        }), 400
-    
+
     try:
         geocoding = get_geocoding_service()
-        location = geocoding.get_block_location(lat=lat, lng=lng)
-        
+        location = geocoding.get_block_location(
+            address=address, lat=float(lat), lng=float(lng),
+        )
         if not location:
             return jsonify({
                 'error': 'Could not verify location',
-                'reason': 'invalid_address'
+                'reason': 'invalid_address',
             }), 400
-        
-        # Check if block exists
-        existing = Block.find_by_hash(location.block_hash)
-        
-        if existing and existing.is_claimed:
+
+        city = city or location.city
+        if city not in SUPPORTED_CITIES:
+            return jsonify({
+                'error': f'City not supported. Valid cities: {", ".join(SUPPORTED_CITIES)}',
+                'reason': 'outside_service_area',
+            }), 400
+
+        db = get_db()
+        existing = db.find_block_by_hash(location.block_hash)
+        if existing:
             return jsonify({
                 'error': 'Block already claimed',
                 'reason': 'already_claimed',
                 'currentOwner': {
-                    'gangName': existing.owner_gang_name,
-                    'claimedAt': existing.claimed_at.isoformat(),
-                }
+                    'gangName': existing.get('gang_name'),
+                    'claimedAt': existing.get('claimed_at'),
+                },
             }), 409
-        
-        # Generate grid
+
+        player = db.get_player_state(user_id)
+        if player['cash'] < CLAIM_BLOCK_COST:
+            return jsonify({
+                'error': 'Insufficient funds',
+                'reason': 'insufficient_funds',
+                'required': CLAIM_BLOCK_COST,
+                'cash': player['cash'],
+            }), 400
+
         grid_result = generate_block_grid(
             city=city,
             traffic_score=location.traffic_score,
-            seed=location.block_hash,  # Deterministic grid
+            seed=location.block_hash,
         )
-        
-        # Create or update block
-        if existing:
-            block = existing
-        else:
-            block = Block(
-                address=address,
-                formatted_address=location.formatted_address,
-                city=city,
-                lat=lat,
-                lng=lng,
-                block_hash=location.block_hash,
-            )
-        
-        # Set block properties
-        block.neighborhood = location.neighborhood
-        block.satellite_image_url = location.satellite_url
-        block.grid_data = grid_result.to_dict()
-        block.traffic_score = location.traffic_score
-        block.income_per_hour = location.traffic_score * 10
-        block.cover_density = grid_result.stats.get('averageCover', 0.3)
-        
-        # Set bounds
-        block.bounds_north = location.bounds['north']
-        block.bounds_south = location.bounds['south']
-        block.bounds_east = location.bounds['east']
-        block.bounds_west = location.bounds['west']
-        
-        # Claim for user
-        # TODO: Get gang name from user profile
-        gang_name = data.get('gangName', 'Unknown Gang')
-        block.claim(user_id, gang_name)
-        
-        # Save to database
-        from extensions import db
-        db.session.add(block)
-        db.session.commit()
-        
-        return jsonify(block.to_dict(include_grid=True)), 201
-    
+
+        updated_player = db.apply_economy_delta(
+            user_id,
+            cash_delta=-CLAIM_BLOCK_COST,
+            heat_delta=CLAIM_HEAT_DELTA,
+        )
+
+        temp_id = str(uuid.uuid4())
+        manifest = build_default_manifest(
+            temp_id,
+            scene_version=f'scene-{temp_id[:8]}-v1',
+            address_display=address,
+            lat=location.lat,
+            lng=location.lng,
+            bounds=location.bounds,
+            created_at='',
+        )
+
+        block = db.claim_block(
+            user_id=user_id,
+            address=address,
+            coords={'lat': location.lat, 'lng': location.lng},
+            city=city,
+            bounds=location.bounds,
+            gang_name=gang_name,
+            grid_data=grid_result.to_dict(),
+            traffic_score=location.traffic_score,
+            block_hash=location.block_hash,
+            scene_manifest=manifest.to_dict(),
+            heat_level=CLAIM_HEAT_DELTA,
+        )
+
+        manifest.block_id = block['id']
+        manifest.scene_version = block.get('scene_version') or manifest.scene_version
+        block['scene_manifest'] = manifest.to_dict()
+        if getattr(db, '_dev_mode', False):
+            from services.db import _mock_blocks
+            _mock_blocks[block['id']] = block
+
+        return jsonify({
+            'success': True,
+            'block': _serialize_block(block, include_grid=True),
+            'player': updated_player,
+            'claimCost': CLAIM_BLOCK_COST,
+        }), 201
+
     except Exception as e:
         logger.error(f"Block claim failed: {e}")
         return jsonify({'error': 'Claim failed'}), 500
@@ -236,116 +250,83 @@ def claim_block():
 
 @blocks_bp.route('/availability/<block_hash>', methods=['GET'])
 def check_availability(block_hash: str):
-    """
-    Check if a block is available for claiming
-    
-    Returns:
-        Availability status and current owner if claimed
-    """
+    """Check if a block is available for claiming."""
     try:
-        block = Block.find_by_hash(block_hash)
-        
+        db = get_db()
+        block = db.find_block_by_hash(block_hash)
         if not block:
-            return jsonify({
-                'isAvailable': True,
-                'exists': False,
-            })
-        
+            return jsonify({'isAvailable': True, 'exists': False, 'available': True})
         return jsonify({
-            'isAvailable': not block.is_claimed,
+            'isAvailable': False,
+            'available': False,
             'exists': True,
             'currentOwner': {
-                'gangName': block.owner_gang_name,
-                'claimedAt': block.claimed_at.isoformat(),
-            } if block.is_claimed else None,
+                'gangName': block.get('gang_name'),
+                'claimedAt': block.get('claimed_at'),
+            },
         })
-    
     except Exception as e:
         logger.error(f"Availability check failed: {e}")
         return jsonify({'error': 'Check failed'}), 500
 
 
-@blocks_bp.route('/<block_id>', methods=['GET'])
-def get_block(block_id: str):
-    """
-    Get block by ID
-    
-    Query params:
-        includeGrid: Include full grid data (default false)
-    
-    Returns:
-        Block data
-    """
-    include_grid = request.args.get('includeGrid', 'false').lower() == 'true'
-    
-    try:
-        block = Block.query.get(block_id)
-        
-        if not block:
-            return jsonify({'error': 'Block not found'}), 404
-        
-        return jsonify(block.to_dict(include_grid=include_grid))
-    
-    except Exception as e:
-        logger.error(f"Block fetch failed: {e}")
-        return jsonify({'error': 'Fetch failed'}), 500
-
-
 @blocks_bp.route('/my-blocks', methods=['GET'])
 @require_auth
 def get_my_blocks():
-    """
-    Get all blocks owned by current user
-    
-    Returns:
-        List of owned blocks
-    """
+    """Get all blocks owned by current user."""
     user_id = g.user['id']
-    
     try:
-        blocks = Block.query.filter_by(owner_id=user_id).all()
-        
+        db = get_db()
+        blocks = db.get_user_blocks(user_id)
+        serialized = []
+        for b in blocks:
+            item = _serialize_block(b, include_grid=True)
+            item['placements'] = db.get_placements(b['id'])
+            serialized.append(item)
         return jsonify({
-            'blocks': [b.to_dict() for b in blocks],
-            'count': len(blocks),
-            'totalIncome': sum(b.income_per_hour for b in blocks),
+            'blocks': serialized,
+            'count': len(serialized),
+            'totalIncome': sum(float(b.get('incomePerHour') or 0) for b in serialized),
         })
-    
     except Exception as e:
         logger.error(f"My blocks fetch failed: {e}")
         return jsonify({'error': 'Fetch failed'}), 500
 
 
+@blocks_bp.route('/<block_id>', methods=['GET'])
+def get_block(block_id: str):
+    """Get block by ID."""
+    include_grid = request.args.get('includeGrid', 'false').lower() == 'true'
+    try:
+        db = get_db()
+        block = db.get_block(block_id)
+        if not block:
+            return jsonify({'error': 'Block not found'}), 404
+        payload = _serialize_block(block, include_grid=include_grid)
+        payload['placements'] = db.get_placements(block_id)
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f"Block fetch failed: {e}")
+        return jsonify({'error': 'Fetch failed'}), 500
+
+
 @blocks_bp.route('/nearby', methods=['GET'])
 def get_nearby_blocks():
-    """
-    Get blocks near a location
-    
-    Query params:
-        lat: Latitude (required)
-        lng: Longitude (required)
-        radius: Radius in km (default 1)
-    
-    Returns:
-        List of nearby blocks
-    """
+    """Get blocks near a location (city filter for MVP)."""
     lat = request.args.get('lat', type=float)
     lng = request.args.get('lng', type=float)
-    radius = request.args.get('radius', 1.0, type=float)
-    
     if lat is None or lng is None:
         return jsonify({'error': 'Coordinates required'}), 400
-    
     try:
-        blocks = Block.find_nearby(lat, lng, radius_km=radius)
-        
+        geocoding = get_geocoding_service()
+        city = geocoding._get_city_from_coordinates(lat, lng)
+        db = get_db()
+        blocks = db.get_blocks_for_city(city, limit=100) if city else []
         return jsonify({
-            'blocks': [b.to_dict() for b in blocks],
+            'blocks': [_serialize_block(b) for b in blocks],
             'count': len(blocks),
             'searchCenter': {'lat': lat, 'lng': lng},
-            'radiusKm': radius,
         })
-    
     except Exception as e:
         logger.error(f"Nearby blocks fetch failed: {e}")
         return jsonify({'error': 'Fetch failed'}), 500
@@ -353,37 +334,18 @@ def get_nearby_blocks():
 
 @blocks_bp.route('/city/<city>', methods=['GET'])
 def get_city_blocks(city: str):
-    """
-    Get blocks in a specific city
-    
-    Path params:
-        city: City code (nyc, la, etc.)
-    
-    Query params:
-        limit: Max results (default 100)
-        unclaimed: Only show unclaimed (default false)
-    
-    Returns:
-        List of blocks in city
-    """
+    """Get blocks in a specific city."""
     if city not in SUPPORTED_CITIES:
         return jsonify({'error': f'Invalid city. Valid: {SUPPORTED_CITIES}'}), 400
-    
     limit = min(int(request.args.get('limit', 100)), 500)
-    unclaimed_only = request.args.get('unclaimed', 'false').lower() == 'true'
-    
     try:
-        if unclaimed_only:
-            blocks = Block.find_unclaimed(city=city, limit=limit)
-        else:
-            blocks = Block.find_by_city(city, limit=limit)
-        
+        db = get_db()
+        blocks = db.get_blocks_for_city(city, limit=limit)
         return jsonify({
-            'blocks': [b.to_dict() for b in blocks],
+            'blocks': [_serialize_block(b) for b in blocks],
             'count': len(blocks),
             'city': city,
         })
-    
     except Exception as e:
         logger.error(f"City blocks fetch failed: {e}")
         return jsonify({'error': 'Fetch failed'}), 500
@@ -391,61 +353,111 @@ def get_city_blocks(city: str):
 
 @blocks_bp.route('/cities', methods=['GET'])
 def get_supported_cities():
-    """
-    Get list of supported cities
-    
-    Returns:
-        List of city codes and names
-    """
+    """Get list of supported cities."""
     geocoding = get_geocoding_service()
-    return jsonify({
-        'cities': geocoding.get_supported_cities()
-    })
+    return jsonify({'cities': geocoding.get_supported_cities()})
+
+
+@blocks_bp.route('/<block_id>/members/place', methods=['POST'])
+@require_auth
+def place_members(block_id: str):
+    """Replace crew placements on a block (owner only)."""
+    user_id = g.user['id']
+    data = request.get_json() or {}
+    placements = data.get('placements') or []
+    try:
+        db = get_db()
+        block = db.get_block(block_id)
+        if not block:
+            return jsonify({'error': 'Block not found'}), 404
+        if block.get('owner_id') != user_id:
+            return jsonify({'error': 'Not authorized'}), 403
+
+        normalized = []
+        for p in placements:
+            x = int(p.get('gridX', p.get('x', 0)))
+            y = int(p.get('gridY', p.get('y', 0)))
+            if not (0 <= x < 8 and 0 <= y < 8):
+                return jsonify({'error': f'Invalid grid cell ({x},{y})'}), 400
+            if y in (0, 7):
+                return jsonify({'error': 'Cannot place on street lane'}), 400
+            normalized.append({
+                'memberId': p.get('memberId') or p.get('member_id'),
+                'memberName': p.get('memberName') or p.get('member_name') or 'Member',
+                'role': p.get('role', 'dealer'),
+                'anchorId': p.get('anchorId') or p.get('anchor_id') or grid_cell_to_anchor_id(x, y),
+                'gridX': x,
+                'gridY': y,
+                'x': x,
+                'y': y,
+                'zoneType': p.get('zoneType') or p.get('zone_type') or 'sidewalk',
+                'incomePerTick': int(p.get('incomePerTick') or p.get('income_per_tick') or 0),
+                'exposureRisk': int(p.get('exposureRisk') or 50),
+                'level': int(p.get('level') or 1),
+                'health': int(p.get('health') or 100),
+                'facingDeg': float(p.get('facingDeg') or 0),
+                'loadout': p.get('loadout') or {},
+            })
+
+        saved = db.save_placements(block_id, normalized)
+        block = db.get_block(block_id)
+        return jsonify({
+            'success': True,
+            'blockId': block_id,
+            'placements': saved,
+            'liveRevision': block.get('live_revision', 1) if block else 1,
+            'incomePerTick': block.get('income_per_tick', 0) if block else 0,
+        })
+    except Exception as e:
+        logger.error(f"Place members failed: {e}")
+        return jsonify({'error': 'Place failed'}), 500
+
+
+@blocks_bp.route('/<block_id>/tick-income', methods=['POST'])
+@require_auth
+def tick_income(block_id: str):
+    """Accumulate one income tick into pending_income (owner only)."""
+    user_id = g.user['id']
+    try:
+        db = get_db()
+        block = db.get_block(block_id)
+        if not block:
+            return jsonify({'error': 'Block not found'}), 404
+        if block.get('owner_id') != user_id:
+            return jsonify({'error': 'Not authorized'}), 403
+        updated = db.tick_block_income(block_id)
+        return jsonify({'success': True, 'block': _serialize_block(updated or block)})
+    except Exception as e:
+        logger.error(f"Tick income failed: {e}")
+        return jsonify({'error': 'Tick failed'}), 500
+
+
+@blocks_bp.route('/<block_id>/collect', methods=['POST'])
+@require_auth
+def collect_income(block_id: str):
+    """Collect pending income into player cash."""
+    user_id = g.user['id']
+    try:
+        db = get_db()
+        result = db.collect_block_income(user_id, block_id)
+        if result is None:
+            return jsonify({'error': 'Block not found or not owned'}), 404
+        return jsonify({
+            'success': True,
+            'collected': result['collected'],
+            'player': result['player'],
+            'block': _serialize_block(result['block']),
+        })
+    except Exception as e:
+        logger.error(f"Collect income failed: {e}")
+        return jsonify({'error': 'Collect failed'}), 500
 
 
 @blocks_bp.route('/<block_id>/regenerate-grid', methods=['POST'])
 @require_auth
 def regenerate_block_grid(block_id: str):
-    """
-    Regenerate grid for a block (owner only)
-    
-    Returns:
-        Updated block with new grid
-    """
-    # TODO: Implement with Supabase instead of SQLAlchemy
-    return jsonify({'error': 'Not implemented yet - use Supabase'}), 501
-    
-    # user_id = request.user_id
-    # 
-    # try:
-    #     block = Block.query.get(block_id)
-    #     
-    #     if not block:
-    #         return jsonify({'error': 'Block not found'}), 404
-    #     
-    #     if str(block.owner_id) != user_id:
-    #         return jsonify({'error': 'Not authorized'}), 403
-    #     
-    #     # Generate new grid with new seed
-    #     grid_result = generate_block_grid(
-    #         city=block.city,
-    #         traffic_score=block.traffic_score,
-    #     )
-    #     
-    #     block.grid_data = grid_result.to_dict()
-    #     block.cover_density = grid_result.stats.get('averageCover', 0.3)
-    #     block.generation_version = '1.0.1'  # Increment version
-    #     
-    #     from extensions import db
-    #     db.session.commit()
-    #     
-    #     return jsonify(block.to_dict(include_grid=True))
-    # 
-    # except Exception as e:
-    #     logger.error(f"Grid regeneration failed: {e}")
-    #     return jsonify({'error': 'Regeneration failed'}), 500
-
-
+    """Regenerate grid for a block (owner only) — deferred."""
+    return jsonify({'error': 'Not implemented yet'}), 501
 # ============================================================================
 # BLOCK SNAPSHOT ROUTES (for BlockStateEngine integration)
 # ============================================================================

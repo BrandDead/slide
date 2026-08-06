@@ -4,9 +4,12 @@ Validates Supabase JWT tokens and extracts user identity.
 Falls back to dev mode when SUPABASE_URL is not configured.
 """
 
+from __future__ import annotations
+
 import os
 import logging
 from functools import wraps
+from typing import Optional
 from flask import request, jsonify, g, current_app
 
 logger = logging.getLogger(__name__)
@@ -42,7 +45,7 @@ def _get_supabase_client():
     return g._supabase
 
 
-def _verify_token(token: str) -> dict | None:
+def _verify_token(token: str) -> Optional[dict]:
     """Verify a JWT token against Supabase and return user data."""
     try:
         sb = _get_supabase_client()

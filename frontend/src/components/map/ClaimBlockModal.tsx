@@ -6,27 +6,25 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockClaim } from '../../hooks/useBlockClaim';
 import { usePlayerStore } from '../../stores/gameStore';
+import { CLAIM_BLOCK_COST } from '../../config/gameEconomy';
 import './ClaimBlockModal.css';
 
 interface ClaimBlockModalProps {
   onClose: () => void;
 }
 
-const CLAIM_COST = 5000;
-
 const ClaimBlockModal: React.FC<ClaimBlockModalProps> = ({ onClose }) => {
-  const { player, updateMoney } = usePlayerStore();
+  const { player } = usePlayerStore();
   const [{ searchQuery, suggestions, isSearching, preview, isClaiming, claimError, claimedBlock, selectedLocation },
          { setSearchQuery, selectSuggestion, claimBlock, reset }] = useBlockClaim(player.id ?? '');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const canAfford = player.money >= CLAIM_COST;
+  const canAfford = player.money >= CLAIM_BLOCK_COST;
 
   const handleClaim = async () => {
     if (!canAfford) return;
-    await claimBlock(player.gangName ?? 'My Gang');
-    if (!claimError) {
-      updateMoney(-CLAIM_COST);
+    const result = await claimBlock(player.gangName ?? 'My Gang');
+    if (result.success) {
       setShowSuccess(true);
     }
   };
@@ -63,7 +61,7 @@ const ClaimBlockModal: React.FC<ClaimBlockModalProps> = ({ onClose }) => {
               <div className="cbm-success-icon">✅</div>
               <h3>Block Claimed!</h3>
               <p className="cbm-address">{(claimedBlock as any).address}</p>
-              <p className="cbm-cost-note">-${CLAIM_COST.toLocaleString()} deducted</p>
+              <p className="cbm-cost-note">-${CLAIM_BLOCK_COST.toLocaleString()} deducted</p>
               <button className="cbm-btn" onClick={onClose}>DONE</button>
             </motion.div>
           ) : (
@@ -122,7 +120,7 @@ const ClaimBlockModal: React.FC<ClaimBlockModalProps> = ({ onClose }) => {
                     </div>
                     <div className="cbm-stat">
                       <span className="cbm-stat-label">Claim Cost</span>
-                      <span className="cbm-stat-val gold">${CLAIM_COST.toLocaleString()}</span>
+                      <span className="cbm-stat-val gold">${CLAIM_BLOCK_COST.toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -130,7 +128,7 @@ const ClaimBlockModal: React.FC<ClaimBlockModalProps> = ({ onClose }) => {
 
                   {!canAfford && (
                     <div className="cbm-error">
-                      Insufficient funds. Need ${CLAIM_COST.toLocaleString()}, have ${player.money.toLocaleString()}
+                      Insufficient funds. Need ${CLAIM_BLOCK_COST.toLocaleString()}, have ${player.money.toLocaleString()}
                     </div>
                   )}
 
@@ -139,7 +137,7 @@ const ClaimBlockModal: React.FC<ClaimBlockModalProps> = ({ onClose }) => {
                     onClick={handleClaim}
                     disabled={!canAfford || isClaiming}
                   >
-                    {isClaiming ? 'CLAIMING...' : `CLAIM THIS BLOCK ($${CLAIM_COST.toLocaleString()})`}
+                    {isClaiming ? 'CLAIMING...' : `CLAIM THIS BLOCK ($${CLAIM_BLOCK_COST.toLocaleString()})`}
                   </button>
                 </motion.div>
               )}
