@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-31T00:31:43.737Z",
+  "generatedAt": "2026-08-06T02:36:25.102Z",
   "budgetMB": 20,
-  "totalBytes": 4224336,
+  "totalBytes": 5605208,
   "qualityPass": "standard",
   "entries": [
     {
@@ -167,6 +167,24 @@
       "alphaRepaired": true
     },
     {
+      "id": "generated.characters.fullbody.character_k9_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_k9_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_k9_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "k9",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 42850,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
       "id": "generated.characters.fullbody.character_lookout_female_fullbody_front_v001",
       "runtimePath": "/assets/runtime/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.webp",
       "sourcePath": "art-src/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.png",
@@ -176,6 +194,24 @@
       "width": 427,
       "height": 640,
       "bytes": 35442,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.fullbody.character_recruit_male_fullbody_front_v001",
+      "runtimePath": "/assets/runtime/generated/characters/fullbody/character_recruit_male_fullbody_front_v001.webp",
+      "sourcePath": "art-src/generated/characters/fullbody/character_recruit_male_fullbody_front_v001.png",
+      "class": "actor-fullbody",
+      "role": "recruit",
+      "state": "front",
+      "width": 427,
+      "height": 640,
+      "bytes": 23084,
       "hasAlpha": true,
       "fringeRatio": 0,
       "pivot": {
@@ -365,6 +401,42 @@
       "alphaRepaired": false
     },
     {
+      "id": "generated.characters.street.character_dealer_male_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_dealer_male_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_dealer_male_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "dealer",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 26868,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.street.character_driver_male_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_driver_male_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_driver_male_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "driver",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 23622,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
       "id": "generated.characters.street.character_enforcer_male_street_idle_v001",
       "runtimePath": "/assets/runtime/generated/characters/street/character_enforcer_male_street_idle_v001.webp",
       "sourcePath": "art-src/generated/characters/street/character_enforcer_male_street_idle_v001.png",
@@ -381,6 +453,78 @@
         "y": 1
       },
       "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.street.character_k9_street_alert_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_k9_street_alert_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_k9_street_alert_v001.png",
+      "class": "actor-street",
+      "role": "k9",
+      "state": "alert",
+      "width": 427,
+      "height": 640,
+      "bytes": 36352,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.street.character_k9_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_k9_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_k9_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "k9",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 46378,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.street.character_lookout_female_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_lookout_female_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_lookout_female_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "lookout",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 21858,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.street.character_recruit_male_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_recruit_male_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_recruit_male_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "recruit",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 21348,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
     },
     {
       "id": "generated.characters.street.character_shooter_male_street_downed_v001",
@@ -419,12 +563,30 @@
       "alphaRepaired": false
     },
     {
-      "id": "generated.characters.topdown.character_dealer_male_blacktee_topdown_v001",
-      "runtimePath": "/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.webp",
-      "sourcePath": "art-src/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.png",
+      "id": "generated.characters.street.character_shooter_male_street_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/street/character_shooter_male_street_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/street/character_shooter_male_street_idle_v001.png",
+      "class": "actor-street",
+      "role": "shooter",
+      "state": "idle",
+      "width": 427,
+      "height": 640,
+      "bytes": 29510,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_dealer_male_blacktee_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.png",
       "class": "actor-topdown",
       "role": "dealer",
-      "state": null,
+      "state": "idle",
       "width": 384,
       "height": 384,
       "bytes": 12014,
@@ -437,12 +599,48 @@
       "alphaRepaired": true
     },
     {
-      "id": "generated.characters.topdown.character_driver_male_topdown_v001",
-      "runtimePath": "/assets/runtime/generated/characters/topdown/character_driver_male_topdown_v001.webp",
-      "sourcePath": "art-src/generated/characters/topdown/character_driver_male_topdown_v001.png",
+      "id": "generated.characters.topdown.character_dealer_male_topdown_arrested_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_arrested_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_dealer_male_topdown_arrested_v001.png",
+      "class": "actor-topdown",
+      "role": "dealer",
+      "state": "arrested",
+      "width": 384,
+      "height": 384,
+      "bytes": 16738,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_dealer_male_topdown_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_dealer_male_topdown_downed_v001.png",
+      "class": "actor-topdown",
+      "role": "dealer",
+      "state": "downed",
+      "width": 384,
+      "height": 384,
+      "bytes": 19238,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_driver_male_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_driver_male_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_driver_male_topdown_idle_v001.png",
       "class": "actor-topdown",
       "role": "driver",
-      "state": null,
+      "state": "idle",
       "width": 384,
       "height": 384,
       "bytes": 16482,
@@ -455,12 +653,48 @@
       "alphaRepaired": false
     },
     {
-      "id": "generated.characters.topdown.character_enforcer_male_topdown_v001",
-      "runtimePath": "/assets/runtime/generated/characters/topdown/character_enforcer_male_topdown_v001.webp",
-      "sourcePath": "art-src/generated/characters/topdown/character_enforcer_male_topdown_v001.png",
+      "id": "generated.characters.topdown.character_enforcer_male_topdown_arrested_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_enforcer_male_topdown_arrested_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_enforcer_male_topdown_arrested_v001.png",
       "class": "actor-topdown",
       "role": "enforcer",
-      "state": null,
+      "state": "arrested",
+      "width": 384,
+      "height": 384,
+      "bytes": 17978,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_enforcer_male_topdown_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_enforcer_male_topdown_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_enforcer_male_topdown_downed_v001.png",
+      "class": "actor-topdown",
+      "role": "enforcer",
+      "state": "downed",
+      "width": 384,
+      "height": 384,
+      "bytes": 18776,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_enforcer_male_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_enforcer_male_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_enforcer_male_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "enforcer",
+      "state": "idle",
       "width": 384,
       "height": 384,
       "bytes": 16570,
@@ -473,12 +707,84 @@
       "alphaRepaired": true
     },
     {
-      "id": "generated.characters.topdown.character_lookout_female_topdown_v001",
-      "runtimePath": "/assets/runtime/generated/characters/topdown/character_lookout_female_topdown_v001.webp",
-      "sourcePath": "art-src/generated/characters/topdown/character_lookout_female_topdown_v001.png",
+      "id": "generated.characters.topdown.character_k9_topdown_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_k9_topdown_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_k9_topdown_downed_v001.png",
+      "class": "actor-topdown",
+      "role": "k9",
+      "state": "downed",
+      "width": 384,
+      "height": 384,
+      "bytes": 25074,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_k9_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_k9_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_k9_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "k9",
+      "state": "idle",
+      "width": 384,
+      "height": 384,
+      "bytes": 18856,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_lookout_female_topdown_arrested_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_lookout_female_topdown_arrested_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_lookout_female_topdown_arrested_v001.png",
       "class": "actor-topdown",
       "role": "lookout",
-      "state": null,
+      "state": "arrested",
+      "width": 384,
+      "height": 384,
+      "bytes": 15534,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_lookout_female_topdown_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_lookout_female_topdown_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_lookout_female_topdown_downed_v001.png",
+      "class": "actor-topdown",
+      "role": "lookout",
+      "state": "downed",
+      "width": 384,
+      "height": 384,
+      "bytes": 19380,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_lookout_female_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_lookout_female_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_lookout_female_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "lookout",
+      "state": "idle",
       "width": 384,
       "height": 384,
       "bytes": 18998,
@@ -491,12 +797,84 @@
       "alphaRepaired": false
     },
     {
-      "id": "generated.characters.topdown.character_shooter_male_topdown_v001",
-      "runtimePath": "/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_v001.webp",
-      "sourcePath": "art-src/generated/characters/topdown/character_shooter_male_topdown_v001.png",
+      "id": "generated.characters.topdown.character_police_male_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_police_male_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_police_male_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "police",
+      "state": "idle",
+      "width": 384,
+      "height": 384,
+      "bytes": 52134,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.characters.topdown.character_recruit_male_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_recruit_male_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_recruit_male_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "recruit",
+      "state": "idle",
+      "width": 384,
+      "height": 384,
+      "bytes": 13186,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_shooter_male_topdown_arrested_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_arrested_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_shooter_male_topdown_arrested_v001.png",
       "class": "actor-topdown",
       "role": "shooter",
-      "state": null,
+      "state": "arrested",
+      "width": 384,
+      "height": 384,
+      "bytes": 13774,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_shooter_male_topdown_downed_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_downed_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_shooter_male_topdown_downed_v001.png",
+      "class": "actor-topdown",
+      "role": "shooter",
+      "state": "downed",
+      "width": 384,
+      "height": 384,
+      "bytes": 21134,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "generated.characters.topdown.character_shooter_male_topdown_idle_v001",
+      "runtimePath": "/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_idle_v001.webp",
+      "sourcePath": "art-src/generated/characters/topdown/character_shooter_male_topdown_idle_v001.png",
+      "class": "actor-topdown",
+      "role": "shooter",
+      "state": "idle",
       "width": 384,
       "height": 384,
       "bytes": 11120,
@@ -573,6 +951,24 @@
       "height": 1536,
       "bytes": 390420,
       "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.topdown.vehicle_police_car_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/environments/topdown/vehicle_police_car_topdown_v001.webp",
+      "sourcePath": "art-src/generated/environments/topdown/vehicle_police_car_topdown_v001.png",
+      "class": "env-topdown",
+      "role": "police",
+      "state": null,
+      "width": 1536,
+      "height": 1536,
+      "bytes": 416160,
+      "hasAlpha": true,
       "fringeRatio": 0,
       "pivot": {
         "x": 0.5,
@@ -797,6 +1193,42 @@
       "alphaRepaired": true
     },
     {
+      "id": "icons.icon_attack_new",
+      "runtimePath": "/assets/runtime/icons/icon_attack_new.webp",
+      "sourcePath": "art-src/icons/icon_attack_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 44922,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "icons.icon_bipndip_new",
+      "runtimePath": "/assets/runtime/icons/icon_bipndip_new.webp",
+      "sourcePath": "art-src/icons/icon_bipndip_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 31620,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
       "id": "icons.icon_casino",
       "runtimePath": "/assets/runtime/icons/icon_casino.webp",
       "sourcePath": "art-src/icons/icon_casino.png",
@@ -831,6 +1263,24 @@
         "y": 0.5
       },
       "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_contacts_new",
+      "runtimePath": "/assets/runtime/icons/icon_contacts_new.webp",
+      "sourcePath": "art-src/icons/icon_contacts_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 137556,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
     },
     {
       "id": "icons.icon_cook",
@@ -977,6 +1427,24 @@
       "alphaRepaired": false
     },
     {
+      "id": "icons.icon_leaderboard_new",
+      "runtimePath": "/assets/runtime/icons/icon_leaderboard_new.webp",
+      "sourcePath": "art-src/icons/icon_leaderboard_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 70408,
+      "hasAlpha": true,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
       "id": "icons.icon_map",
       "runtimePath": "/assets/runtime/icons/icon_map.webp",
       "sourcePath": "art-src/icons/icon_map.png",
@@ -1085,6 +1553,42 @@
       "alphaRepaired": false
     },
     {
+      "id": "icons.icon_planner_new",
+      "runtimePath": "/assets/runtime/icons/icon_planner_new.webp",
+      "sourcePath": "art-src/icons/icon_planner_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 59088,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
+      "id": "icons.icon_raid_new",
+      "runtimePath": "/assets/runtime/icons/icon_raid_new.webp",
+      "sourcePath": "art-src/icons/icon_raid_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 46500,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
+    },
+    {
       "id": "icons.icon_settings",
       "runtimePath": "/assets/runtime/icons/icon_settings.webp",
       "sourcePath": "art-src/icons/icon_settings.png",
@@ -1191,6 +1695,24 @@
         "y": 0.5
       },
       "alphaRepaired": false
+    },
+    {
+      "id": "icons.icon_trap_new",
+      "runtimePath": "/assets/runtime/icons/icon_trap_new.webp",
+      "sourcePath": "art-src/icons/icon_trap_new.png",
+      "class": "misc",
+      "role": null,
+      "state": null,
+      "width": 512,
+      "height": 512,
+      "bytes": 50946,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": true
     },
     {
       "id": "muzzle_flash",
