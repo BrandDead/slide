@@ -252,6 +252,13 @@ export const environmentAssets: Record<string, EnvironmentAsset> = {
     streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.png`,
     streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.png`,
   },
+  block_lasolas_miami_001: {
+    id: 'block_lasolas_miami_001',
+    displayName: 'Las Olas Boulevard',
+    topdownBg:           `/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.png`,
+    streetBackdropDay:   `/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.png`,
+    streetBackdropNight: `/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.png`,
+  },
 };
 
 // ─── UI Icons (generated set) ────────────────────────────────

@@ -70,12 +70,11 @@ import './App.css';
 
 // ─── Lazy fallback ────────────────────────────────────────────
 const LazyFallback: React.FC = () => (
-  <div style={{
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    height: '100%', background: '#0a0a0f', color: '#4ade80',
-    fontFamily: 'monospace', fontSize: 12,
-  }}>
-    Loading...
+  <div className="loading-screen">
+    <div className="loading-content">
+      <div className="loading-spinner" />
+      <div className="loading-text">INITIALIZING SYSTEMS...</div>
+    </div>
   </div>
 );
 
@@ -218,11 +217,7 @@ const App: React.FC = () => {
 
   // Show loading while checking auth
   if (!authChecked) {
-    return (
-      <div style={{ height: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#4ade80', fontFamily: 'monospace', fontSize: 14 }}>Loading...</div>
-      </div>
-    );
+    return <LazyFallback />;
   }
 
   // Show auth screen if not logged in (skipped in demo mode)

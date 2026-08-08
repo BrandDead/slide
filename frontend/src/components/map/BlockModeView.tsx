@@ -332,7 +332,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         ) : viewMode === 'topdown' ? (
           // Use the Phaser scene when a real satellite URL is available;
           // fall back to the CSS grid for dev/no-token environments
-          block.topdownBgUrl && block.topdownBgUrl.startsWith('http') ? (
+          block.topdownBgUrl && (block.topdownBgUrl.startsWith('http') || block.topdownBgUrl.startsWith('/assets/')) ? (
             <PhaserTopDownBlock
               blockId={block.id}
               onCellClick={(_col, _row) => {}}
