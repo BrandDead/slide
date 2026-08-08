@@ -59,8 +59,14 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
         display: 'grid',
         placeItems: 'center',
         padding: 16,
-        background:
-          'radial-gradient(circle at 50% 18%, rgba(103, 55, 42, 0.34), transparent 38%), #070910',
+        backgroundColor: '#070910',
+        backgroundImage:
+          'radial-gradient(circle at 50% 18%, rgba(103, 55, 42, 0.34), transparent 38%), ' +
+          'linear-gradient(rgba(5, 6, 12, 0.62), rgba(5, 6, 12, 0.86)), ' +
+          'url(/assets/runtime/generated/ui/loading_screen_v001.png)',
+        backgroundSize: 'auto, auto, cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <section style={panelStyle} aria-labelledby="age-gate-title">
