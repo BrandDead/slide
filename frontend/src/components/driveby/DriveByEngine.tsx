@@ -67,6 +67,10 @@ interface GameStats {
 // ============ CONSTANTS ============
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
+
+// Sprint 16 (P0): in-car POV plate — storefront strip seen through the
+// passenger window (matches the drive-by HUD concept art shot-for-shot).
+const DRIVEBY_POV_BG = '/assets/runtime/generated/environments/street/bg_driveby_pov_v001.png';
 const CAR_SPEED = 3;
 const BULLET_SPEED = 15;
 const SHOT_COOLDOWN = 250;
@@ -125,11 +129,15 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
 
   // Preload images
   useEffect(() => {
+    // Sprint 16 (P0): paths previously pointed at /assets/*.jpg which do not
+    // exist (real files are /assets/runtime/*.webp), so the engine always fell
+    // back to the procedural solid-color background. Fixed + POV plate added.
     preloadImages([
-      '/assets/skyline_layer.jpg',
-      '/assets/street_bg_layer.jpg',
-      '/assets/street_fg_layer.jpg',
-      '/assets/bg_driveby.jpg',
+      '/assets/runtime/skyline_layer.webp',
+      '/assets/runtime/street_bg_layer.webp',
+      '/assets/runtime/street_fg_layer.webp',
+      '/assets/runtime/bg_driveby.webp',
+      DRIVEBY_POV_BG,
     ]).then(imgs => {
       imagesRef.current = imgs;
     });
@@ -745,7 +753,7 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     // === SKYLINE LAYER (slowest parallax) ===
-    const skyImg = imagesRef.current['/assets/skyline_layer.jpg'];
+    const skyImg = imagesRef.current['/assets/runtime/skyline_layer.webp'];
     if (skyImg && skyImg.complete && skyImg.naturalWidth > 0) {
       const skyW = GAME_WIDTH * 2;
       const skyH = GAME_HEIGHT * 0.35;
@@ -765,7 +773,7 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     }
 
     // === BUILDINGS LAYER (medium parallax) ===
-    const bgImg = imagesRef.current['/assets/street_bg_layer.jpg'];
+    const bgImg = imagesRef.current['/assets/runtime/street_bg_layer.webp'];
     if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
       const bgW = GAME_WIDTH * 2;
       const bgH = GAME_HEIGHT * 0.45;
@@ -866,6 +874,19 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
       // Tail lights
       ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
       ctx.fillRect(x, GAME_HEIGHT * 0.59, 3, 6);
+    }
+
+    // === POV BACKDROP (Sprint 16, P0) ===
+    // Full-scene art plate replaces the procedural background when loaded.
+    // Drawn cover-fit and static — the car-window frame is baked into the
+    // plate, so it must not sway. Targets/bullets/FX composite on top.
+    // Procedural drawing above remains the no-asset fallback.
+    const povImg = imagesRef.current[DRIVEBY_POV_BG];
+    if (povImg && povImg.complete && povImg.naturalWidth > 0) {
+      const povScale = Math.max(GAME_WIDTH / povImg.naturalWidth, GAME_HEIGHT / povImg.naturalHeight);
+      const povW = povImg.naturalWidth * povScale;
+      const povH = povImg.naturalHeight * povScale;
+      ctx.drawImage(povImg, (GAME_WIDTH - povW) / 2, (GAME_HEIGHT - povH) / 2, povW, povH);
     }
 
     // === DRAW TARGETS ===
