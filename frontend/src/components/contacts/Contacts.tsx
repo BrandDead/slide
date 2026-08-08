@@ -21,6 +21,8 @@ import { getMoraleDescription, getMoraleConsequences, rollMoraleConsequences, ca
 import { getMemberHeatContribution } from '../../utils/memberProgression';
 import type { GangMember, Contact, MemberStatus, GetBackRequest } from '../../types/game.types';
 import BailHospitalPanel from './BailHospitalPanel';
+import RoleContactCard, { getRoleCardStats } from './RoleContactCard';
+import MemberCreation, { segmentsToStat, type MemberCreationResult } from '../gang/MemberCreation';
 import { needsRecovery } from '../../utils/bailHospitalSystem';
 import { soundManager } from '../../utils/SoundManager';
 import './Contacts.css';
@@ -30,7 +32,7 @@ type TabType = 'active' | 'jailed' | 'recovery' | 'dead' | 'requests';
 // ============ MAIN COMPONENT ============
 
 const Contacts: React.FC = () => {
-  const { goBack } = useNavigationStore();
+  const { goBack, navigateTo } = useNavigationStore();
   const { members, contacts, addMember, backdoorMember, killMember, updateMember, releaseMember } = useGangStore();
   const { getBackRequests, resolveGetBackRequest } = useMoraleStore();
   const { uploads, addUpload } = useSelfieStore();
@@ -43,6 +45,52 @@ const Contacts: React.FC = () => {
   const [showAddMember, setShowAddMember] = useState(false);
   const [showSelfieUpload, setShowSelfieUpload] = useState(false);
   const [showPhotoCreator, setShowPhotoCreator] = useState(false);
+  const [showMemberCreation, setShowMemberCreation] = useState(false);
+
+  // Sprint 16 (P1): mockup member-creation flow → GangMember record.
+  // Starter segments (1–4) map onto the 0–100 stat scale; role picks
+  // which stats the segments feed hardest.
+  const handleMemberCreation = ({ name, role, attributes }: MemberCreationResult) => {
+    const a = attributes;
+    const newMember: any = {
+      id: `member-${Date.now()}`,
+      name,
+      nickname: '',
+      role,
+      status: 'active',
+      level: 1,
+      xp: segmentsToStat(a.potential) - 35, // potential seeds a small XP head start
+      shooting: role === 'shooter' ? segmentsToStat(a.nerve) : segmentsToStat(a.nerve) - 10,
+      driving: segmentsToStat(a.speed),
+      dealing: role === 'dealer' ? segmentsToStat(a.potential) : segmentsToStat(a.potential) - 15,
+      loyalty: segmentsToStat(a.loyalty),
+      morale: segmentsToStat(a.heart),
+      heatResistance: segmentsToStat(a.nerve),
+      stealth: role === 'recruit' || role === 'k9' ? segmentsToStat(a.speed) : segmentsToStat(a.speed) - 10,
+      health: 100,
+      maxHealth: 100,
+      armor: 0,
+      weaponMods: [],
+      gear: [],
+      inventory: [],
+      appearance: {
+        gender: 'male', skinTone: '#8B4513', hairStyle: 'short', hairColor: 'black',
+        jewelry: [], tattoos: [], top: 'hoodie', bottom: 'jeans', shoes: 'jordans',
+        gangColorAccent: true,
+      },
+      backstory: generateBackstory(),
+      connections: generateConnections(),
+      hiredAt: new Date().toISOString(),
+    };
+    addMember(newMember);
+    setShowMemberCreation(false);
+    addNotification({
+      id: `notif-${Date.now()}`,
+      type: 'success',
+      message: `${name} joined the crew as ${role.toUpperCase()}`,
+      timestamp: new Date().toISOString(),
+    } as any);
+  };
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showDeployWarning, setShowDeployWarning] = useState<string | null>(null);
   const [deployConsequences, setDeployConsequences] = useState<any[]>([]);
@@ -278,13 +326,28 @@ const Contacts: React.FC = () => {
           const member = members.find(m => m.id === contact.memberId);
           const morale = (member as any)?.morale ?? 50;
           const moraleInfo = getMoraleDescription(morale);
+          // Sprint 16 (P1): mockup card, themed per role — one template
+          // covers dealer / shooter / enforcer / lookout / k9 / recruit.
           return (
-            <ContactCard
+            <RoleContactCard
               key={contact.id}
-              contact={contact}
-              moraleBadge={moraleInfo}
-              memberLevel={(member as any)?.level}
-              onClick={() => setSelectedContact(contact)}
+              name={contact.nickname || contact.name}
+              role={contact.role}
+              level={(member as any)?.level ?? 1}
+              avatarUrl={contact.customAvatarUrl}
+              stats={getRoleCardStats(member as any, contact.role)}
+              statusNote={moraleInfo.warning ? `${moraleInfo.label} — ${moraleInfo.warning}` : moraleInfo.label}
+              onOpen={() => setSelectedContact(contact)}
+              onSendToBlock={() => {
+                addNotification({
+                  id: `notif-${Date.now()}`,
+                  type: 'info',
+                  message: `Pick a corner for ${contact.nickname || contact.name}`,
+                  timestamp: new Date().toISOString(),
+                } as any);
+                navigateTo('map');
+              }}
+              onCallBack={() => setSelectedContact(contact)}
               onBackdoor={() => handleBackdoor(contact.memberId ?? contact.id)}
             />
           );
@@ -334,6 +397,16 @@ const Contacts: React.FC = () => {
         )}
       </div>
 
+      {/* Member Creation — full-screen mockup flow (Sprint 16, P1) */}
+      <AnimatePresence>
+        {showMemberCreation && (
+          <MemberCreation
+            onCreate={handleMemberCreation}
+            onClose={() => setShowMemberCreation(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Add Member Modal */}
       <AnimatePresence>
         {showAddMember && (
@@ -341,6 +414,11 @@ const Contacts: React.FC = () => {
             <motion.div className="modal-content" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={(e) => e.stopPropagation()}>
               <h2>Add New Member</h2>
               <div className="add-options">
+                <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowMemberCreation(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <span className="option-icon">🧬</span>
+                  <span className="option-title">Member Creation</span>
+                  <span className="option-desc">Pick a role, roll starter attributes, name your soldier</span>
+                </motion.button>
                 <motion.button className="add-option" onClick={() => { setShowAddMember(false); setShowPhotoCreator(true); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <span className="option-icon">📸</span>
                   <span className="option-title">Create from Photo</span>
