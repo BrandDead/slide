@@ -252,9 +252,11 @@ export const environmentAssets: Record<string, EnvironmentAsset> = {
     streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.png`,
     streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.png`,
   },
-  block_lasolas_miami_001: {
-    id: 'block_lasolas_miami_001',
-    displayName: 'Las Olas Boulevard',
+  // Sprint 16 (P0): Las Olas hero block. Street plates reuse stripplaza
+  // night/day until dedicated Las Olas street photography lands.
+  block_lasolas_1208_001: {
+    id: 'block_lasolas_1208_001',
+    displayName: '1208 Las Olas',
     topdownBg:           `/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.png`,
     streetBackdropDay:   `/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.png`,
     streetBackdropNight: `/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.png`,
