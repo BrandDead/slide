@@ -119,6 +119,9 @@ const ROLE_COLORS: Record<MemberRole, string> = {
   chemist: '#247d80',
   runner: '#8a7225',
   boss: '#8c315e',
+  recruit: '#a0a0a0',
+  k9: '#8b4513',
+  police: '#0000ff',
 };
 
 const SKIN_TONES = ['#6d442f', '#8b5a3c', '#a86f4b', '#c58c65', '#7b5038'];

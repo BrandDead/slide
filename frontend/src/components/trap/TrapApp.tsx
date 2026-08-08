@@ -107,7 +107,7 @@ const TrapApp: React.FC = () => {
   // ── Active members (can receive gifts) ────────────────────
 
   const activeMembers = useMemo(
-    () => members.filter((m) => m.status === 'active' || m.status === 'deployed'),
+    () => members.filter((m) => m.status === 'active' || (m.status as any) === 'deployed'),
     [members],
   );
 

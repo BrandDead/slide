@@ -50,7 +50,7 @@ const BlockOverlay: React.FC<BlockOverlayProps> = ({ map, blocks, onBlockClick }
     const outlineLayerId = 'blocks-outline';
 
     // Build GeoJSON
-    const geojson: GeoJSON.FeatureCollection = {
+    const geojson: any = {
       type: 'FeatureCollection',
       features: blocks.map((block) => ({
         type: 'Feature',
@@ -115,7 +115,7 @@ const BlockOverlay: React.FC<BlockOverlayProps> = ({ map, blocks, onBlockClick }
     if (onBlockClick) {
       map.on('click', fillLayerId, (e) => {
         if (e.features && e.features.length > 0) {
-          const props = e.features[0].properties;
+          const props = (e.features[0] as any).properties;
           if (props) {
             const block = blocks.find((b) => b.id === props.id);
             if (block) onBlockClick(block);
