@@ -252,6 +252,7 @@ export const environmentAssets: Record<string, EnvironmentAsset> = {
     streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.png`,
     streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.png`,
   },
+// Las Olas hero block. Processed WebP paths keep shipped runtime assets within budget.
   block_lasolas_miami_001: {
     id: 'block_lasolas_miami_001',
     displayName: 'Las Olas Boulevard',
