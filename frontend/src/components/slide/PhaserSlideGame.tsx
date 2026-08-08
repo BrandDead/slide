@@ -82,7 +82,6 @@ export const PhaserSlideGame: React.FC<PhaserSlideGameProps> = ({
 
       scene.events.on('cell_click', handleCellClick);
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('[PhaserSlideGame] failed to init Phaser', err);
       setError(err instanceof Error ? err.message : 'Unknown Phaser error');
     }
