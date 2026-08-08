@@ -67,7 +67,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/bg_desktop.jpg') center/cover no-repeat;
+  background: url('/assets/runtime/generated/ui/os_shell_wallpaper_v001.png') center/cover no-repeat;
   opacity: 0.15;
   filter: brightness(0.5);
 }
