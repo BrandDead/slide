@@ -191,6 +191,7 @@ const DEFAULT_GANGS: NPCGang[] = [
     members: [
       makeNPCMember('n9-1', 'Cloud 9', 'shooter', 2),
       makeNPCMember('n9-2', 'Nine-Life', 'dealer', 2),
+      makeNPCMember('n9-3', 'Lil Niner', 'enforcer', 2),
     ],
   },
   {
