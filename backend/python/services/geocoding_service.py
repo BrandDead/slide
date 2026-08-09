@@ -357,8 +357,11 @@ class GeocodingService:
             Dict with north, south, east, west bounds
         """
         # Approximate meters to degrees conversion
+        # Longitude degrees shrink by cos(latitude), NOT by abs(latitude).
+        # The previous abs(lat) form squashed blocks ~29x east-west at
+        # South Florida latitudes (cos(26.1°)=0.898 vs abs=26.1).
         lat_offset = size_meters / 111320
-        lng_offset = size_meters / (111320 * abs(lat) if lat != 0 else 111320)
+        lng_offset = size_meters / (111320 * math.cos(math.radians(lat)))
         
         return {
             'north': lat + lat_offset / 2,

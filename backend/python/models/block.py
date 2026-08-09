@@ -3,7 +3,8 @@ DEALT/SLIDE - Block Model
 SQLAlchemy model for territory blocks with PostGIS support
 """
 
-from datetime import datetime
+from datetime import math
+import datetime
 from typing import Optional, Dict, Any, List
 from uuid import uuid4
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, JSON, ForeignKey, Index, text
@@ -258,7 +259,8 @@ class Block(db.Model):
         """
         # Approximate degree offset for km
         lat_offset = radius_km / 111.0
-        lng_offset = radius_km / (111.0 * abs(lat) if lat != 0 else 111.0)
+        # cos(latitude), not abs(latitude) — see geocoding_service.
+        lng_offset = radius_km / (111.0 * math.cos(math.radians(lat)))
         
         return cls.query.filter(
             cls.lat.between(lat - lat_offset, lat + lat_offset),
