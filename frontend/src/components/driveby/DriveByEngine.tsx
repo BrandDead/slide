@@ -1,7 +1,16 @@
 // DriveByEngine.tsx - GTA-Style First-Person Drive-By Shooter
 // Cinematic urban warfare with parallax backgrounds, particle effects, screen shake
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { soundManager } from '../../utils/SoundManager';
+import { useBlockStore } from '../../stores/blockStore';
+import { resolveBlockDNA } from '../../utils/blockDNAResolver';
+import { generateStreetSegments, type StreetSegment } from '../../render/proceduralStreet';
+import { drawProceduralStreet, drawWindowGlass } from '../../render/driveByStreetRenderer';
+import {
+  createWindowState, toggleWindow, tickWindow, canShoot,
+  incomingDamageMultiplier, applyGlassHit, windowHudLabel,
+  type WindowState,
+} from '../../utils/windowMechanic';
 
 // ============ TYPES ============
 type TargetType = 'gang' | 'civilian' | 'leader';
@@ -67,6 +76,9 @@ interface GameStats {
 // ============ CONSTANTS ============
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
+
+/** Car interior framing for the passenger-seat POV (UI overlay). */
+const CAR_INTERIOR_FRAME = '/assets/runtime/car_interior_frame.webp';
 const CAR_SPEED = 3;
 const BULLET_SPEED = 15;
 const SHOT_COOLDOWN = 250;
@@ -123,13 +135,36 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const damageFlashRef = useRef(0);
 
+  // ── Sprint 17: address-seeded procedural street ──
+  // The street is generated from the SAME block the player claimed,
+  // so the drive-by runs down their own address, not a stock plate.
+  const selectedBlockId = useBlockStore((st) => st.selectedBlockId);
+  const blocksById = useBlockStore((st) => st.blocks);
+  const streetSegments = useMemo<StreetSegment[]>(() => {
+    const blk: any = selectedBlockId ? (blocksById as any)?.[selectedBlockId] : null;
+    const lat = blk?.lat ?? blk?.centerLat ?? 26.1224;   // Fort Lauderdale default
+    const lng = blk?.lng ?? blk?.centerLng ?? -80.1373;
+    const address = blk?.address ?? blk?.name ?? 'Las Olas Blvd';
+    const resolved = resolveBlockDNA(lat, lng, address);
+    return generateStreetSegments({
+      seed: resolved.seed,
+      zoneLayout: resolved.zoneLayout,
+    });
+  }, [selectedBlockId, blocksById]);
+
+  // ── Sprint 17: passenger window ──
+  const [windowState, setWindowState] = useState<WindowState>(() => createWindowState(true));
+  const windowRef = useRef(windowState);
+  windowRef.current = windowState;
+  const streetOffsetRef = useRef(0);
+
   // Preload images
   useEffect(() => {
+    // Sprint 17: scenery is procedural now. The only bitmap the
+    // drive-by needs is the car interior frame (a UI overlay, not
+    // generated scenery). The old /assets/*.jpg paths never existed.
     preloadImages([
-      '/assets/skyline_layer.jpg',
-      '/assets/street_bg_layer.jpg',
-      '/assets/street_fg_layer.jpg',
-      '/assets/bg_driveby.jpg',
+      CAR_INTERIOR_FRAME,
     ]).then(imgs => {
       imagesRef.current = imgs;
     });
@@ -289,6 +324,11 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
   // ============ SHOOTING ============
   const shoot = useCallback((x: number, y: number) => {
     if (gameState !== 'playing' || ammo <= 0) return;
+    // Sprint 17: cannot fire through raised/moving glass.
+    if (!canShoot(windowRef.current)) {
+      playSound('miss');
+      return;
+    }
     
     const now = Date.now();
     if (now - lastShotRef.current < SHOT_COOLDOWN) return;
@@ -668,8 +708,17 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
               });
             } else {
               // Enemy bullet hits player
+              // Sprint 17: raised glass absorbs most of the hit and
+              // takes damage itself until it shatters.
+              const winNow = windowRef.current;
+              const mult = incomingDamageMultiplier(winNow);
+              const glassResult = applyGlassHit(winNow);
+              if (glassResult.state !== winNow) {
+                setWindowState(glassResult.state);
+                playSound(glassResult.shatteredNow ? 'death' : 'hit');
+              }
               setCarHealth(h => {
-                const newHealth = h - 10;
+                const newHealth = h - Math.max(1, Math.round(10 * mult));
                 if (newHealth <= 0) {
                   setGameState('gameover');
                   if (onComplete) onComplete(stats);
@@ -735,138 +784,16 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
       ctx.translate(shakeRef.current.x, shakeRef.current.y);
     }
 
-    // === BACKGROUND: Dark sky with city glow ===
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT * 0.45);
-    skyGrad.addColorStop(0, '#050510');
-    skyGrad.addColorStop(0.4, '#0a0a1a');
-    skyGrad.addColorStop(0.7, '#151525');
-    skyGrad.addColorStop(1, '#1a1020');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-    // === SKYLINE LAYER (slowest parallax) ===
-    const skyImg = imagesRef.current['/assets/skyline_layer.jpg'];
-    if (skyImg && skyImg.complete && skyImg.naturalWidth > 0) {
-      const skyW = GAME_WIDTH * 2;
-      const skyH = GAME_HEIGHT * 0.35;
-      const skyX = -(parallaxRef.current.bg % skyW);
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(skyImg, skyX, GAME_HEIGHT * 0.05, skyW, skyH);
-      ctx.drawImage(skyImg, skyX + skyW, GAME_HEIGHT * 0.05, skyW, skyH);
-      ctx.globalAlpha = 1;
-    } else {
-      // Fallback: procedural skyline
-      ctx.fillStyle = '#1a1a2a';
-      for (let i = 0; i < 15; i++) {
-        const x = ((i * 80) - (parallaxRef.current.bg % 80) + GAME_WIDTH) % (GAME_WIDTH + 80) - 40;
-        const h = 60 + Math.sin(i * 0.8) * 30;
-        ctx.fillRect(x, GAME_HEIGHT * 0.35 - h, 60, h + 20);
-      }
-    }
-
-    // === BUILDINGS LAYER (medium parallax) ===
-    const bgImg = imagesRef.current['/assets/street_bg_layer.jpg'];
-    if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
-      const bgW = GAME_WIDTH * 2;
-      const bgH = GAME_HEIGHT * 0.45;
-      const bgX = -(parallaxRef.current.mid % bgW);
-      ctx.drawImage(bgImg, bgX, GAME_HEIGHT * 0.15, bgW, bgH);
-      ctx.drawImage(bgImg, bgX + bgW, GAME_HEIGHT * 0.15, bgW, bgH);
-    } else {
-      // Fallback: procedural buildings
-      for (let i = 0; i < 12; i++) {
-        const x = ((i * 100) - (parallaxRef.current.mid % 100) + GAME_WIDTH) % (GAME_WIDTH + 100) - 50;
-        const h = 80 + Math.sin(i * 0.7) * 40;
-        
-        // Building body
-        const bGrad = ctx.createLinearGradient(x, GAME_HEIGHT * 0.35 - h, x, GAME_HEIGHT * 0.55);
-        bGrad.addColorStop(0, '#1a1a28');
-        bGrad.addColorStop(1, '#252535');
-        ctx.fillStyle = bGrad;
-        ctx.fillRect(x, GAME_HEIGHT * 0.35 - h, 80, h + GAME_HEIGHT * 0.2);
-        
-        // Windows with warm glow
-        for (let w = 0; w < 4; w++) {
-          for (let wh = 0; wh < 4; wh++) {
-            if (Math.sin(i + w + wh * 2.1) > 0.1) {
-              const windowOn = Math.sin(i * 3.7 + w * 1.3 + wh * 2.1) > 0;
-              ctx.fillStyle = windowOn 
-                ? `rgba(255, ${180 + Math.random() * 40}, ${80 + Math.random() * 40}, 0.7)` 
-                : 'rgba(20, 20, 40, 0.8)';
-              ctx.fillRect(x + 8 + w * 18, GAME_HEIGHT * 0.35 - h + 12 + wh * 22, 10, 14);
-            }
-          }
-        }
-      }
-    }
-
-    // === STREET / SIDEWALK ===
-    // Road
-    const roadGrad = ctx.createLinearGradient(0, GAME_HEIGHT * 0.55, 0, GAME_HEIGHT);
-    roadGrad.addColorStop(0, '#2a2a35');
-    roadGrad.addColorStop(0.3, '#222230');
-    roadGrad.addColorStop(1, '#1a1a25');
-    ctx.fillStyle = roadGrad;
-    ctx.fillRect(0, GAME_HEIGHT * 0.55, GAME_WIDTH, GAME_HEIGHT * 0.45);
-
-    // Sidewalk curb
-    ctx.fillStyle = '#3a3a4a';
-    ctx.fillRect(0, GAME_HEIGHT * 0.55, GAME_WIDTH, 6);
-
-    // Road markings
-    ctx.fillStyle = 'rgba(255, 255, 100, 0.15)';
-    for (let i = 0; i < 20; i++) {
-      const x = ((i * 80) - (parallaxRef.current.fg % 80) + GAME_WIDTH) % (GAME_WIDTH + 80) - 40;
-      ctx.fillRect(x, GAME_HEIGHT * 0.72, 40, 3);
-    }
-
-    // Street light pools
-    for (let i = 0; i < 5; i++) {
-      const x = ((i * 250) - (parallaxRef.current.mid % 250) + GAME_WIDTH) % (GAME_WIDTH + 250) - 125;
-      const lightGrad = ctx.createRadialGradient(x, GAME_HEIGHT * 0.5, 0, x, GAME_HEIGHT * 0.5, 120);
-      lightGrad.addColorStop(0, 'rgba(255, 180, 80, 0.08)');
-      lightGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = lightGrad;
-      ctx.fillRect(x - 120, GAME_HEIGHT * 0.38, 240, 200);
-      
-      // Light pole
-      ctx.fillStyle = '#333340';
-      ctx.fillRect(x - 2, GAME_HEIGHT * 0.3, 4, GAME_HEIGHT * 0.25);
-      ctx.fillStyle = '#ffcc66';
-      ctx.shadowColor = '#ffaa44';
-      ctx.shadowBlur = 15;
-      ctx.beginPath();
-      ctx.arc(x, GAME_HEIGHT * 0.3, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    }
-
-    // Parked cars
-    for (let i = 0; i < 8; i++) {
-      const x = ((i * 150) - (parallaxRef.current.fg % 150) + GAME_WIDTH) % (GAME_WIDTH + 150) - 75;
-      const carColors = ['#1a1a2a', '#2a1a1a', '#1a2a1a', '#2a2a1a', '#1a1a3a'];
-      ctx.fillStyle = carColors[i % carColors.length];
-      
-      // Car body
-      ctx.beginPath();
-      ctx.roundRect(x, GAME_HEIGHT * 0.58, 65, 22, 3);
-      ctx.fill();
-      // Car roof
-      ctx.fillRect(x + 12, GAME_HEIGHT * 0.55, 35, 12);
-      // Windows
-      ctx.fillStyle = 'rgba(100, 150, 200, 0.15)';
-      ctx.fillRect(x + 14, GAME_HEIGHT * 0.555, 14, 8);
-      ctx.fillRect(x + 32, GAME_HEIGHT * 0.555, 14, 8);
-      // Wheels
-      ctx.fillStyle = '#111115';
-      ctx.beginPath();
-      ctx.arc(x + 14, GAME_HEIGHT * 0.6 + 2, 5, 0, Math.PI * 2);
-      ctx.arc(x + 52, GAME_HEIGHT * 0.6 + 2, 5, 0, Math.PI * 2);
-      ctx.fill();
-      // Tail lights
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
-      ctx.fillRect(x, GAME_HEIGHT * 0.59, 3, 6);
-    }
+    // === STREET (Sprint 17) ===
+    // Address-seeded procedural street drawn from the passenger seat.
+    // No AI backdrop plate — the block the player claimed IS the scene,
+    // so it stays consistent with the top-down and street renderers.
+    streetOffsetRef.current += 0.42; // metres per frame ≈ 25 m/s at 60fps
+    drawProceduralStreet(ctx, streetSegments, {
+      offsetM: streetOffsetRef.current,
+      width: GAME_WIDTH,
+      height: GAME_HEIGHT,
+    });
 
     // === DRAW TARGETS ===
     targets.forEach(target => {
@@ -1053,6 +980,19 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     ctx.arc(crosshair.x, crosshair.y, 2, 0, Math.PI * 2);
     ctx.fill();
 
+    // === PASSENGER WINDOW GLASS (Sprint 17) ===
+    // Drawn over the scene and actors: the player is looking THROUGH
+    // the glass, so it tints and reflects everything behind it.
+    drawWindowGlass(ctx, windowRef.current.openRatio, GAME_WIDTH, GAME_HEIGHT);
+
+    // === CAR INTERIOR FRAME ===
+    // Door card, A-pillar and mirror framing the aperture. This is the
+    // only bitmap in the scene and it is UI, not generated scenery.
+    const frameImg = imagesRef.current[CAR_INTERIOR_FRAME];
+    if (frameImg && frameImg.complete && frameImg.naturalWidth > 0) {
+      ctx.drawImage(frameImg, 0, 0, GAME_WIDTH, GAME_HEIGHT);
+    }
+
     // === HUD ===
     ctx.shadowBlur = 0;
     
@@ -1123,8 +1063,25 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
       ctx.fillText(`${block.type.toUpperCase()} ZONE`, GAME_WIDTH - 18, 56);
     }
 
+    // === WINDOW STATUS (Sprint 17) ===
+    const winNow = windowRef.current;
+    ctx.save();
+    ctx.font = "700 12px 'Rajdhani', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = winNow.shattered ? '#ff5555'
+      : canShoot(winNow) ? '#8de8ff' : '#ffb02d';
+    ctx.fillText(windowHudLabel(winNow), GAME_WIDTH / 2, GAME_HEIGHT - 16);
+    // Glass integrity pips while the window is up
+    if (!winNow.shattered && winNow.openRatio < 0.6) {
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = i < winNow.glassHp ? '#8de8ff' : '#33363f';
+        ctx.fillRect(GAME_WIDTH / 2 - 18 + i * 13, GAME_HEIGHT - 34, 10, 4);
+      }
+    }
     ctx.restore();
-  }, [blocks, currentBlock, targets, bullets, crosshair, score, carHealth, ammo, heat, drawCharacter]);
+
+    ctx.restore();
+  }, [blocks, currentBlock, targets, bullets, crosshair, score, carHealth, ammo, heat, drawCharacter, streetSegments]);
 
   // ============ EVENT HANDLERS ============
   const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -1147,6 +1104,37 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     });
   }, [gameState]);
 
+  // ── Sprint 17: window travel + [2] keybind ──
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    let raf = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      setWindowState((prev) => tickWindow(prev, dt));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [gameState]);
+
+  const handleToggleWindow = useCallback(() => {
+    setWindowState((prev) => {
+      const next = toggleWindow(prev);
+      if (next !== prev) playSound('miss');
+      return next;
+    });
+  }, [playSound]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '2') { e.preventDefault(); handleToggleWindow(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleToggleWindow]);
+
   const handlePointerDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     handlePointerMove(e);
     shoot(crosshair.x, crosshair.y);
@@ -1165,6 +1153,18 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
         onTouchMove={handlePointerMove}
         onTouchStart={handlePointerDown}
       />
+
+      {/* Sprint 17: touch control for the window — [2] on desktop */}
+      {gameState === 'playing' && !windowState.shattered && (
+        <button
+          type="button"
+          onClick={handleToggleWindow}
+          style={styles.windowButton}
+          aria-label={windowHudLabel(windowState)}
+        >
+          {windowState.openRatio >= 0.98 ? 'RAISE' : 'LOWER'}
+        </button>
+      )}
 
       {/* Menu Overlay */}
       {gameState === 'menu' && (
@@ -1253,6 +1253,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflow: 'hidden',
     boxShadow: '0 0 40px rgba(0, 0, 0, 0.8)',
   },
+  windowButton: {
+    position: 'absolute',
+    right: 16,
+    bottom: 70,
+    minWidth: 74,
+    minHeight: 42,
+    borderRadius: 10,
+    border: '1px solid #4aa8c8',
+    background: 'rgba(10, 20, 28, 0.82)',
+    color: '#8de8ff',
+    fontFamily: "'Rajdhani', monospace",
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: '0.14em',
+    cursor: 'pointer',
+    zIndex: 5,
+  } as React.CSSProperties,
   canvas: {
     width: '100%',
     height: 'auto',
