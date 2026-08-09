@@ -60,6 +60,7 @@ async function main() {
   }
 
   let totalBytes = 0;
+  let orphanBytes = 0;
   let checked = 0;
 
   for (const entry of manifest.entries) {
@@ -118,6 +119,14 @@ async function main() {
   for (const p of onDisk) {
     if (!manifestPaths.has(p)) {
       warn('W_ORPHAN', `Runtime file not in manifest: ${path.relative(FRONTEND, p)}`);
+      // Orphans SHIP to the browser, so they must count against the
+      // budget. Excluding them let ~31 MB of raw PNG land on main while
+      // the gate still reported 5.35/20 MB.
+      try {
+        const oStat = await fs.stat(p);
+        totalBytes += oStat.size;
+        orphanBytes += oStat.size;
+      } catch { /* unreadable file already reported elsewhere */ }
     }
   }
 
@@ -128,7 +137,7 @@ async function main() {
     fail('E_BUDGET', `Runtime assets ${totalMB.toFixed(2)} MB exceed the ${budgetMB} MB budget.`);
   }
 
-  report({ checked, totalMB, budgetMB });
+  report({ checked, totalMB, budgetMB, orphanMB: orphanBytes / 1048576 });
 }
 
 function report(summary = {}) {
@@ -140,6 +149,9 @@ function report(summary = {}) {
     if (summary.checked !== undefined) {
       console.log(`Assets checked : ${summary.checked}`);
       console.log(`Runtime total  : ${summary.totalMB.toFixed(2)} MB / ${summary.budgetMB} MB budget`);
+      if (summary.orphanMB > 0.01) {
+        console.log(`  ...of which unregistered (orphan): ${summary.orphanMB.toFixed(2)} MB`);
+      }
     }
     console.log(`Errors         : ${errors.length}`);
     console.log(`Warnings       : ${warnings.length}`);
