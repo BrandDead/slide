@@ -3,6 +3,7 @@ DEALT/SLIDE - Geocoding Service
 Handles Mapbox API integration for address lookup and satellite imagery
 """
 
+import math
 import os
 import hashlib
 import requests
@@ -356,10 +357,8 @@ class GeocodingService:
         Returns:
             Dict with north, south, east, west bounds
         """
-        # Approximate meters to degrees conversion
-        # Longitude degrees shrink by cos(latitude), NOT by abs(latitude).
-        # The previous abs(lat) form squashed blocks ~29x east-west at
-        # South Florida latitudes (cos(26.1°)=0.898 vs abs=26.1).
+        # Approximate meters to degrees conversion. Longitude degrees shrink with latitude.
+        # Use cos(latitude), not abs(latitude), for the east-west offset.
         lat_offset = size_meters / 111320
         lng_offset = size_meters / (111320 * math.cos(math.radians(lat)))
         
@@ -393,7 +392,6 @@ class GeocodingService:
         base = CITY_BASE_TRAFFIC.get(city, 50)
         
         # Deterministic variance based on location
-        import math
         variance_raw = abs(
             math.sin(lat * 12345) * 10000 +
             math.cos(lng * 67890) * 10000
