@@ -3,6 +3,7 @@ DEALT/SLIDE - Geocoding Service
 Handles Mapbox API integration for address lookup and satellite imagery
 """
 
+import math
 import os
 import hashlib
 import requests
@@ -358,7 +359,6 @@ class GeocodingService:
         """
         # Approximate meters to degrees conversion.
         # lng degrees shrink with latitude: 1 deg lng = 111320 * cos(lat) m.
-        import math
         lat_offset = size_meters / 111320
         lng_offset = size_meters / (111320 * math.cos(math.radians(lat)) if lat != 0 else 111320)
         
