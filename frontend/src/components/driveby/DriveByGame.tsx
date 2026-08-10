@@ -73,7 +73,11 @@ const DriveByGame: React.FC = () => {
 
   return (
     <div style={{ width: '100%', height: '100%', background: '#0a0a0a' }}>
-      <DriveByEngine onExit={handleExit} onComplete={handleComplete} />
+      <DriveByEngine
+        onExit={handleExit}
+        onComplete={handleComplete}
+        targetBlockAddress={crew?.targetBlock ?? null}
+      />
     </div>
   );
 };

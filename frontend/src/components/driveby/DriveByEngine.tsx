@@ -106,9 +106,15 @@ const preloadImages = (urls: string[]): Promise<Record<string, HTMLImageElement>
 };
 
 // ============ MAIN COMPONENT ============
-const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameStats) => void }> = ({ 
+const DriveByEngine: React.FC<{
+  onExit?: () => void;
+  onComplete?: (stats: GameStats) => void;
+  /** Address string from CarCrewSelector — used to seed the procedural street */
+  targetBlockAddress?: string | null;
+}> = ({ 
   onExit, 
-  onComplete 
+  onComplete,
+  targetBlockAddress,
 }) => {
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameover' | 'victory'>('menu');
   const [score, setScore] = useState(0);
@@ -136,11 +142,17 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
   const damageFlashRef = useRef(0);
 
   // ── Sprint 17: address-seeded procedural street ──
-  // The street is generated from the SAME block the player claimed,
-  // so the drive-by runs down their own address, not a stock plate.
+  // Use the crew's target address if provided, otherwise fall back to
+  // the player's claimed block so the street always reflects a real address.
   const selectedBlockId = useBlockStore((st) => st.selectedBlockId);
   const blocksById = useBlockStore((st) => st.blocks);
   const streetSegments = useMemo<StreetSegment[]>(() => {
+    // Prefer the explicit target address passed from CarCrewSelector
+    if (targetBlockAddress) {
+      const resolved = resolveBlockDNA(26.1224, -80.1373, targetBlockAddress);
+      return generateStreetSegments({ seed: resolved.seed, zoneLayout: resolved.zoneLayout });
+    }
+    // Fallback: use the player's selected block
     const blk: any = selectedBlockId ? (blocksById as any)?.[selectedBlockId] : null;
     const lat = blk?.lat ?? blk?.centerLat ?? 26.1224;   // Fort Lauderdale default
     const lng = blk?.lng ?? blk?.centerLng ?? -80.1373;
@@ -150,7 +162,7 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
       seed: resolved.seed,
       zoneLayout: resolved.zoneLayout,
     });
-  }, [selectedBlockId, blocksById]);
+  }, [targetBlockAddress, selectedBlockId, blocksById]);
 
   // ── Sprint 17: passenger window ──
   const [windowState, setWindowState] = useState<WindowState>(() => createWindowState(true));
@@ -240,6 +252,10 @@ const DriveByEngine: React.FC<{ onExit?: () => void; onComplete?: (stats: GameSt
     muzzleFlashRef.current = 0;
     damageFlashRef.current = 0;
     setStats({ kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0 });
+    // Reset window state so retries start with a fresh intact window
+    const freshWindow = createWindowState(true);
+    setWindowState(freshWindow);
+    windowRef.current = freshWindow;
 
     const newBlocks: Block[] = [];
     const styles: Block['style'][] = ['miami', 'nyc', 'la', 'detroit'];
