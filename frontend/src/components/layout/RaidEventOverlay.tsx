@@ -8,7 +8,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
-import { usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { usePlayerStore, useGangStore, useEconomyStore } from '../../stores/gameStore';
 import {
   executeRaid,
   getRaidSeverity,
@@ -39,11 +39,10 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
   const { blocks, upsertBlock } = useBlockStore();
   const { player, updateMoney, updateHeat } = usePlayerStore();
   const { members } = useGangStore();
+  const { inventory } = useEconomyStore();
 
   const block = blocks[blockId];
   const [raidResult, setRaidResult] = useState<RaidResult | null>(null);
-  // bail visibility is tracked via phase state
-  const [_showBail] = useState(false);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
   const [phase, setPhase] = useState<'incoming' | 'result' | 'bail'>('incoming');
 
@@ -52,8 +51,13 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
 
     const heat = block.heat * 20; // 0-5 → 0-100
     const memberIds = block.placements.map(p => p.memberId);
-    const drugQty = 100; // TODO: wire to actual inventory
-    const weaponCount = memberIds.length;
+    // Count total drug units across all drug-type inventory items
+    const drugQty = inventory
+      .filter(i => i.type === 'drug' && i.quantity > 0)
+      .reduce((sum, i) => sum + i.quantity, 0);
+    const weaponCount = inventory
+      .filter(i => i.type === 'weapon' && i.quantity > 0)
+      .reduce((sum, i) => sum + i.quantity, 0);
     const cashOnHand = player?.money ?? 0;
 
     const result = executeRaid(heat, memberIds, drugQty, weaponCount, cashOnHand);

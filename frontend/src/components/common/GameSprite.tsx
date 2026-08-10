@@ -76,49 +76,48 @@ export const GENERATED_EFFECTS: Record<string, string> = {
 };
 
 // ─── UI overlays (Sprint: sfx-fps-ollama-assets) ───
+// All processed assets live under /assets/runtime/ as .webp.
 export const GENERATED_UI_OVERLAYS: Record<string, string> = {
-  fps_hud:          '/assets/generated/ui/fps_hud_elements_v001.png',
-  security_cam:     '/assets/generated/ui/security_cam_overlay_v001.png',
-  bullet_cam:       '/assets/generated/ui/bullet_cam_ui_v001.png',
-  icon_news:        '/assets/generated/ui/icons/icon_news_v001.png',
+  fps_hud:          '/assets/runtime/generated/ui/fps_hud_elements_v001.webp',
+  security_cam:     '/assets/runtime/generated/ui/security_cam_overlay_v001.webp',
+  bullet_cam:       '/assets/runtime/generated/ui/bullet_cam_ui_v001.webp',
+  icon_news:        '/assets/runtime/generated/ui/icons/icon_news_v001.webp',
 };
 
 // App icon definitions
+// All icons live at /assets/runtime/icons/*.webp (processed pipeline output).
+// The /assets/icons/*.png paths were stale references that never resolved.
+const ICONS_BASE = '/assets/runtime/icons';
 const APP_ICONS: Record<string, string> = {
-  slide:          '/assets/icons/icon_slide_new.png',
-  cook:           '/assets/icons/icon_cook_new.png',
-  map:            '/assets/icons/icon_map_new.png',
-  crew:           '/assets/icons/icon_crew_new.png',
-  dealt:          '/assets/icons/icon_dealt_new.png',
-  ops:            '/assets/icons/icon_ops_new.png',
-  // shoebox/market use the new per-app artwork (replaces old icon_*_new.png)
-  shoebox:        '/assets/icons/apps/shoebox/regular.png',
-  market:         '/assets/icons/apps/market/regular.png',
-  casino:         '/assets/icons/icon_casino_new.png',
-  settings:       '/assets/icons/icon_settings_new.png',
-  driveby:        '/assets/icons/icon_driveby_new.png',
-  graffiti:       '/assets/icons/icon_graffiti_new.png',
-  news:           '/assets/icons/apps/news/regular.png',
-  leaderboard:    '/assets/icons/apps/shot-caller/regular.png',
-  cocaine_crush:  '/assets/icons/icon_casino_new.png',
-  trap:           '/assets/icons/apps/trap/regular.png',
-  contacts:       '/assets/icons/icon_contacts_new.png',
-  bipndip:        '/assets/icons/icon_bipndip_new.png',
-  attack:         '/assets/icons/icon_attack_new.png',
-  planner:        '/assets/icons/icon_planner_new.png',
-  raid:           '/assets/icons/icon_raid_new.png',
-  messages:       '/assets/icons/apps/messages/regular.png',
-  trap_house:     '/assets/icons/apps/trap-house/regular.png',
+  slide:          `${ICONS_BASE}/icon_slide_new.webp`,
+  cook:           `${ICONS_BASE}/icon_cook_new.webp`,
+  map:            `${ICONS_BASE}/icon_map_new.webp`,
+  crew:           `${ICONS_BASE}/icon_crew_new.webp`,
+  dealt:          `${ICONS_BASE}/icon_dealt_new.webp`,
+  ops:            `${ICONS_BASE}/icon_ops_new.webp`,
+  shoebox:        `${ICONS_BASE}/icon_shoebox_new.webp`,
+  market:         `${ICONS_BASE}/icon_market_new.webp`,
+  casino:         `${ICONS_BASE}/icon_casino_new.webp`,
+  settings:       `${ICONS_BASE}/icon_settings_new.webp`,
+  driveby:        `${ICONS_BASE}/icon_driveby_new.webp`,
+  graffiti:       `${ICONS_BASE}/icon_graffiti_new.webp`,
+  news:           `${ICONS_BASE}/icon_market_new.webp`,  // no dedicated news icon yet
+  leaderboard:    `${ICONS_BASE}/icon_leaderboard_new.webp`,
+  cocaine_crush:  `${ICONS_BASE}/icon_casino_new.webp`,
+  trap:           `${ICONS_BASE}/icon_trap_new.webp`,
+  contacts:       `${ICONS_BASE}/icon_contacts_new.webp`,
+  bipndip:        `${ICONS_BASE}/icon_bipndip_new.webp`,
+  attack:         `${ICONS_BASE}/icon_attack_new.webp`,
+  planner:        `${ICONS_BASE}/icon_planner_new.webp`,
+  raid:           `${ICONS_BASE}/icon_raid_new.webp`,
+  messages:       '/assets/icons/apps/messages/regular.webp',
+  trap_house:     '/assets/icons/apps/trap-house/regular.webp',
 };
 
+// Hover states — only the per-app sets with dedicated hover frames.
 const APP_ICONS_HOVER: Record<string, string> = {
-  shoebox:     '/assets/icons/apps/shoebox/hover.png',
-  trap:        '/assets/icons/apps/trap/hover.png',
-  market:      '/assets/icons/apps/market/hover.png',
-  messages:    '/assets/icons/apps/messages/hover.png',
-  trap_house:  '/assets/icons/apps/trap-house/hover.png',
-  leaderboard: '/assets/icons/apps/shot-caller/hover.png',
-  news:        '/assets/icons/apps/news/hover.png',
+  messages:    '/assets/icons/apps/messages/hover.webp',
+  trap_house:  '/assets/icons/apps/trap-house/hover.webp',
 };
 
 // Role-to-frame mapping for gang members

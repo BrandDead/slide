@@ -25,6 +25,9 @@ const ROLE_CHARACTER_ID: Record<MemberRole, string> = {
   chemist: 'dealer_male_001',
   runner: 'driver_male_001',
   boss: 'enforcer_male_001',
+  recruit: 'dealer_male_001',
+  k9: 'enforcer_male_001',
+  police: 'shooter_male_001',
 };
 
 export function getCharacterForRole(role: string): CharacterAsset {

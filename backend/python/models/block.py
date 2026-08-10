@@ -256,9 +256,11 @@ class Block(db.Model):
         Find blocks within radius of coordinates.
         Simple box query - use PostGIS ST_DWithin for production.
         """
-        # Approximate degree offset for km
+        # Approximate degree offset for km.
+        # lng degrees shrink with latitude: 1 deg lng = 111.32 * cos(lat) km.
+        import math
         lat_offset = radius_km / 111.0
-        lng_offset = radius_km / (111.0 * abs(lat) if lat != 0 else 111.0)
+        lng_offset = radius_km / (111.32 * math.cos(math.radians(lat)) if lat != 0 else 111.32)
         
         return cls.query.filter(
             cls.lat.between(lat - lat_offset, lat + lat_offset),

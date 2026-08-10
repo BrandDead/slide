@@ -356,9 +356,11 @@ class GeocodingService:
         Returns:
             Dict with north, south, east, west bounds
         """
-        # Approximate meters to degrees conversion
+        # Approximate meters to degrees conversion.
+        # lng degrees shrink with latitude: 1 deg lng = 111320 * cos(lat) m.
+        import math
         lat_offset = size_meters / 111320
-        lng_offset = size_meters / (111320 * abs(lat) if lat != 0 else 111320)
+        lng_offset = size_meters / (111320 * math.cos(math.radians(lat)) if lat != 0 else 111320)
         
         return {
             'north': lat + lat_offset / 2,
