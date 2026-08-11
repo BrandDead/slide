@@ -67,7 +67,10 @@ describe('CarCrewSelector → street handoff (#108)', () => {
     // The structured target resolves to a coordinate-seeded street.
     const street = resolveStreetForTarget(crew.targetBlock);
     expect(street.seedMode).toBe('geocoded');
-    expect(street.seed).toContain(String(crew.targetBlock.lat.toFixed(6)));
+    // Assert against the canonical block-hash contract, not a substring.
+    expect(street.seed).toBe(
+      `block_${crew.targetBlock.lat.toFixed(6)}_${crew.targetBlock.lng.toFixed(6)}`
+    );
   });
 
   it('labels the offline text fallback and hands a text-seed target when no geocoder result is chosen', async () => {

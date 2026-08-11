@@ -20,8 +20,10 @@
 // ============================================================
 
 import { resolveBlockDNA } from './blockDNAResolver';
-import { generateStreetSegments, type StreetSegment } from '../render/proceduralStreet';
+import { generateStreetSegments, makeRng, type StreetSegment } from '../render/proceduralStreet';
+import { BLOCK_DNA_LIBRARY } from '../config/blockDNA';
 import type { ResolvedBlock } from './blockDNAResolver';
+import type { BlockZoneType } from '../types/block.types';
 
 // ─── Contract ────────────────────────────────────────────────
 
@@ -109,15 +111,49 @@ export function resolveStreetForTarget(target: DriveByTarget): ResolvedStreet {
   }
 
   // Offline fallback: deterministic non-geographic seed from the
-  // normalized address. Mix it into the coordinate seed so the scene
-  // varies per address even when the archetype is identical.
+  // normalized address. Both the street seed AND the zone layout are
+  // derived from the text seed — never from fixed coordinates — so two
+  // different typed addresses vary in layout as well as in detail.
   const textSeed = textSeedFromAddress(target.address);
-  const resolved = resolveBlockDNA(0, 0, target.address);
-  const seed = `${resolved.seed}|${textSeed}`;
+  const resolved = offlineResolvedFromTextSeed(textSeed);
   return {
     resolved,
-    segments: generateStreetSegments({ seed, zoneLayout: resolved.zoneLayout }),
-    seed,
+    segments: generateStreetSegments({ seed: textSeed, zoneLayout: resolved.zoneLayout }),
+    seed: textSeed,
     seedMode: 'text-seed',
   };
+}
+
+/**
+ * OFFLINE FALLBACK (#108): build a deterministic ResolvedBlock from a
+ * text seed alone. The archetype is picked by seeding an RNG with the
+ * normalized address and indexing into the BlockDNA library, so two
+ * different typed addresses can land on different zone layouts instead
+ * of sharing whatever archetype fixed coordinates would produce. The
+ * address keyword match is intentionally NOT consulted here — the pick
+ * is a pure function of the text seed so it stays stable and
+ * address-distinct without any geographic input.
+ */
+function offlineResolvedFromTextSeed(textSeed: string): ResolvedBlock {
+  const rng = makeRng(textSeed);
+  const dna = BLOCK_DNA_LIBRARY[Math.floor(rng() * BLOCK_DNA_LIBRARY.length) % BLOCK_DNA_LIBRARY.length];
+  return {
+    dna,
+    seed: textSeed,
+    zoneLayout: buildOfflineZoneLayout(dna),
+    incomeMultiplier: dna.incomeMultiplier,
+    startingMorale: dna.startingMorale,
+    startingHeat: dna.startingHeat,
+    maxMembers: dna.maxMembers,
+  };
+}
+
+/** Mirror of the resolver's default layout builder (kept local to avoid
+ *  exporting resolver internals). Row 0 = nearest street. */
+function buildOfflineZoneLayout(dna: (typeof BLOCK_DNA_LIBRARY)[number]): BlockZoneType[] {
+  const defaultLayout: BlockZoneType[] = [
+    'street', 'curb', 'sidewalk', 'storefront',
+    'alley', 'sidewalk', 'curb', 'rooftop',
+  ];
+  return defaultLayout.map((zone, row) => dna.zoneOverrides?.[row] ?? zone);
 }

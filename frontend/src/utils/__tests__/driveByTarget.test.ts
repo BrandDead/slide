@@ -63,9 +63,10 @@ describe('resolveStreetForTarget — geocoded', () => {
 
   it('uses the coordinate seed, never a fixed Fort Lauderdale fallback', () => {
     const a = resolveStreetForTarget(LAS_OLAS);
-    // The geocoded seed is the block hash for the target's own coords.
-    expect(a.seed).toContain('26.1224');
-    expect(a.seed).toContain('-80.1373');
+    // The geocoded seed is the canonical block hash for the target's own
+    // coordinates — assert against the same contract, not a substring.
+    expect(a.seed).toBe(`block_${LAS_OLAS.lat!.toFixed(6)}_${LAS_OLAS.lng!.toFixed(6)}`);
+    expect(a.seedMode).toBe('geocoded');
   });
 });
 
@@ -86,5 +87,16 @@ describe('resolveStreetForTarget — offline text-seed fallback', () => {
 
   it('is stable for the same typed address across retry', () => {
     expect(resolveStreetForTarget(typedA).seed).toBe(resolveStreetForTarget({ ...typedA }).seed);
+  });
+
+  it('derives the zone layout from the text seed, not fixed coordinates', () => {
+    // Sample several typed addresses: they must not all collapse onto a
+    // single archetype the way a fixed-coordinate fallback would.
+    const layouts = new Set(
+      ['63rd & king drive', 'las olas blvd', 'mlk blvd', 'nw 3rd ave', 'biscayne bay', 'flagler st']
+        .map(a => resolveStreetForTarget({ address: normalizeAddressText(a), seedMode: 'text-seed' })
+          .resolved.zoneLayout.join(','))
+    );
+    expect(layouts.size).toBeGreaterThan(1);
   });
 });

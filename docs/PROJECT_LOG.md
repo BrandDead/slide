@@ -89,7 +89,7 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
   code (`seedMode: 'text-seed'`), so two different typed addresses produce distinct streets.
   New `utils/driveByTarget.ts` owns the contract + pure `resolveStreetForTarget` (no network
   per frame). Tests: `utils/__tests__/driveByTarget.test.ts` (10) and
-  `components/driveby/__tests__/carCrewTarget.test.tsx` (1 UI handoff). Deferred: #109
+  `components/driveby/__tests__/carCrewTarget.test.tsx` (3 UI handoff). Deferred: #109
   projection repair, HUD seed-mode badge.
 
 ### 2026-08-11 — Sprint 16–18 reconciliation branch
