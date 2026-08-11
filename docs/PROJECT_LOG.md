@@ -65,6 +65,33 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-11 — K3 handoff: Milestone 0 baseline + Milestone 1 (#108)
+
+- **M0 baseline (verified on `copilot/k3-implementation-handoff`):** `npm run typecheck` clean;
+  Vitest 595/595 across 27 files; `npm run build` passed; `npm run assets:audit` passed
+  (5.73 MB / 20 MB, 0 errors, 7 known orphan warnings); backend `pytest` 42/42 in offline
+  mock mode. Known non-blocking warnings unchanged: 101 `datetime.utcnow()` deprecations,
+  Mapbox/Phaser chunk-size warnings.
+- **Actual state vs open issues:** #108 (drive-by target seeding) — fixed in this PR, see
+  below. #109 (Block DNA frontage projection) — still open: `generateStreetSegments` still
+  consumes depth rows as along-street segments; deferred to its own PR per the work order.
+  #77–#79 — partially landed via #76/#78 (assetResolver + manifest wiring are in; orphan
+  cleanup, defringe, and the camera/art bible remain). #80 — Block DNA library exists but is
+  small; #81 — ghost crews exist only as the NPC tick store, not the full rival-crew loop;
+  #45 — beta gate umbrella remains open pending 1–5.
+- **M1 — structured drive-by target selection (#108):** `CarCrew.targetBlock` is now a
+  structured `DriveByTarget { address, lat?, lng?, placeId?, seedMode }`. `CarCrewSelector`
+  reuses the existing `AddressSearchBar` autocomplete (the shared address-search contract)
+  and exposes a clearly labelled offline text fallback. `DriveByEngine` passes real
+  coordinates to `resolveBlockDNA` when geocoded — no more fixed Fort Lauderdale seed for a
+  user-selected target. When offline (no coordinates), a deterministic non-geographic FNV-1a
+  text seed derived from the normalized address is mixed into the scene seed and labelled in
+  code (`seedMode: 'text-seed'`), so two different typed addresses produce distinct streets.
+  New `utils/driveByTarget.ts` owns the contract + pure `resolveStreetForTarget` (no network
+  per frame). Tests: `utils/__tests__/driveByTarget.test.ts` (10) and
+  `components/driveby/__tests__/carCrewTarget.test.tsx` (1 UI handoff). Deferred: #109
+  projection repair, HUD seed-mode badge.
+
 ### 2026-08-11 — Sprint 16–18 reconciliation branch
 
 - Created `chore/reconcile-sprints-16-18` to safely combine the compatible work from PRs #104 and #105 without merging three divergent branches directly into the protected default branch.

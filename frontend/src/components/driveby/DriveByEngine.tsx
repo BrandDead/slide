@@ -5,6 +5,10 @@ import { soundManager } from '../../utils/SoundManager';
 import { useBlockStore } from '../../stores/blockStore';
 import { resolveBlockDNA } from '../../utils/blockDNAResolver';
 import { generateStreetSegments, type StreetSegment } from '../../render/proceduralStreet';
+import {
+  resolveStreetForTarget,
+  type DriveByTarget,
+} from '../../utils/driveByTarget';
 import { drawProceduralStreet, drawWindowGlass } from '../../render/driveByStreetRenderer';
 import {
   createWindowState, toggleWindow, tickWindow, canShoot,
@@ -109,12 +113,12 @@ const preloadImages = (urls: string[]): Promise<Record<string, HTMLImageElement>
 const DriveByEngine: React.FC<{
   onExit?: () => void;
   onComplete?: (stats: GameStats) => void;
-  /** Address string from CarCrewSelector — used to seed the procedural street */
-  targetBlockAddress?: string | null;
+  /** Structured target from CarCrewSelector — seeds the procedural street */
+  targetBlock?: DriveByTarget | null;
 }> = ({ 
   onExit, 
   onComplete,
-  targetBlockAddress,
+  targetBlock,
 }) => {
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameover' | 'victory'>('menu');
   const [score, setScore] = useState(0);
@@ -141,16 +145,17 @@ const DriveByEngine: React.FC<{
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const damageFlashRef = useRef(0);
 
-  // ── Sprint 17: address-seeded procedural street ──
-  // Use the crew's target address if provided, otherwise fall back to
-  // the player's claimed block so the street always reflects a real address.
+  // ── Address-seeded procedural street (#108) ──
+  // Prefer the structured target from CarCrewSelector — its real
+  // coordinates seed the scene when geocoded. Otherwise fall back to
+  // the player's claimed block so the street still reflects a real place.
+  // Everything here is memoised and synchronous: no network work happens
+  // in the render loop.
   const selectedBlockId = useBlockStore((st) => st.selectedBlockId);
   const blocksById = useBlockStore((st) => st.blocks);
   const streetSegments = useMemo<StreetSegment[]>(() => {
-    // Prefer the explicit target address passed from CarCrewSelector
-    if (targetBlockAddress) {
-      const resolved = resolveBlockDNA(26.1224, -80.1373, targetBlockAddress);
-      return generateStreetSegments({ seed: resolved.seed, zoneLayout: resolved.zoneLayout });
+    if (targetBlock) {
+      return resolveStreetForTarget(targetBlock).segments;
     }
     // Fallback: use the player's selected block
     const blk: any = selectedBlockId ? (blocksById as any)?.[selectedBlockId] : null;
@@ -162,7 +167,7 @@ const DriveByEngine: React.FC<{
       seed: resolved.seed,
       zoneLayout: resolved.zoneLayout,
     });
-  }, [targetBlockAddress, selectedBlockId, blocksById]);
+  }, [targetBlock, selectedBlockId, blocksById]);
 
   // ── Sprint 17: passenger window ──
   const [windowState, setWindowState] = useState<WindowState>(() => createWindowState(true));

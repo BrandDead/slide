@@ -9,6 +9,11 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGangStore } from '../../stores/gameStore';
 import { generatePlaceholderAvatar } from '../../services/ai/artPipeline';
+import AddressSearchBar, { type AddressResult } from '../map/AddressSearchBar';
+import {
+  normalizeAddressText,
+  type DriveByTarget,
+} from '../../utils/driveByTarget';
 import './CarCrewSelector.css';
 
 // ═══════════════════════════════════════════════════════════
@@ -24,7 +29,8 @@ export interface CarSeat {
 
 export interface CarCrew {
   seats: CarSeat[];
-  targetBlock: string | null;
+  /** Structured drive-by target (#108) — carries coordinates when geocoded. */
+  targetBlock: DriveByTarget | null;
 }
 
 interface CarCrewSelectorProps {
@@ -47,7 +53,8 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
   ]);
   
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
-  const [targetBlock, setTargetBlock] = useState('');
+  const [target, setTarget] = useState<DriveByTarget | null>(null);
+  const [targetText, setTargetText] = useState('');
   
   // Available members (not already assigned to a seat, not jailed/dead/hospital)
   const assignedIds = useMemo(() => new Set(seats.map(s => s.memberId).filter(Boolean)), [seats]);
@@ -184,23 +191,66 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
         )}
       </AnimatePresence>
       
-      {/* Target Block Selection */}
+      {/* Target Block Selection (#108): structured target via address search,
+          with a clearly labelled offline text-seed fallback. */}
       <div className="target-block-section">
-        <label className="target-label">Target Block Address:</label>
-        <input
-          type="text"
-          className="target-input"
-          value={targetBlock}
-          onChange={e => setTargetBlock(e.target.value)}
-          placeholder="e.g. 63rd & King Drive"
+        <label className="target-label">Target Block:</label>
+        <AddressSearchBar
+          inline
+          placeholder="Search a target address…"
+          onResult={(r: AddressResult) => {
+            setTarget({
+              address: r.address,
+              lat: r.lat,
+              lng: r.lng,
+              placeId: r.placeId,
+              seedMode: 'geocoded',
+            });
+            setTargetText('');
+          }}
         />
+        {target && (
+          <div className="target-chip">
+            <span className="target-chip-label">🎯 {target.address}</span>
+            <button
+              className="target-chip-clear"
+              onClick={() => setTarget(null)}
+              aria-label="Clear target"
+            >
+              ×
+            </button>
+          </div>
+        )}
+        {!target && (
+          <div className="target-offline">
+            <label className="target-label target-label-sub">
+              Offline fallback (no geocoder — scene seeded from text only):
+            </label>
+            <input
+              type="text"
+              className="target-input"
+              value={targetText}
+              onChange={e => setTargetText(e.target.value)}
+              placeholder="e.g. 63rd & King Drive"
+            />
+          </div>
+        )}
       </div>
-      
+
       {/* Launch Button */}
       <div className="launch-section">
         <motion.button
           className={`launch-btn ${canLaunch ? 'ready' : 'disabled'}`}
-          onClick={() => canLaunch && onConfirm({ seats, targetBlock: targetBlock || null })}
+          onClick={() => {
+            if (!canLaunch) return;
+            const typed = targetText.trim();
+            const finalTarget: DriveByTarget | null =
+              target ??
+              (typed
+                ? { address: normalizeAddressText(typed), seedMode: 'text-seed' }
+                : null);
+            onConfirm({ seats, targetBlock: finalTarget });
+          }}
           disabled={!canLaunch}
           whileTap={canLaunch ? { scale: 0.95 } : {}}
         >
