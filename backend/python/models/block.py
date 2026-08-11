@@ -3,6 +3,7 @@ DEALT/SLIDE - Block Model
 SQLAlchemy model for territory blocks with PostGIS support
 """
 
+import math
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from uuid import uuid4
@@ -256,9 +257,11 @@ class Block(db.Model):
         Find blocks within radius of coordinates.
         Simple box query - use PostGIS ST_DWithin for production.
         """
-        # Approximate degree offset for km
+        # Approximate degree offset for km. Longitude degrees shrink with latitude.
+        # Use cos(latitude), not abs(latitude), for the east-west offset.
         lat_offset = radius_km / 111.0
-        lng_offset = radius_km / (111.0 * abs(lat) if lat != 0 else 111.0)
+        # cos(latitude), not abs(latitude) — see geocoding_service.
+        lng_offset = radius_km / (111.0 * math.cos(math.radians(lat)))
         
         return cls.query.filter(
             cls.lat.between(lat - lat_offset, lat + lat_offset),

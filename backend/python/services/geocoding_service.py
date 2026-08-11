@@ -3,6 +3,7 @@ DEALT/SLIDE - Geocoding Service
 Handles Mapbox API integration for address lookup and satellite imagery
 """
 
+import math
 import os
 import hashlib
 import requests
@@ -241,10 +242,18 @@ class GeocodingService:
             formatted_address = result.formatted_address
             neighborhood = result.neighborhood
         else:
-            # Reverse geocode to get address
-            result = self.reverse_geocode(lat, lng)
-            formatted_address = result.formatted_address if result else f"{lat:.6f}, {lng:.6f}"
-            neighborhood = result.neighborhood if result else None
+            # A validated caller-supplied address is sufficient for the offline claim
+            # path. Only reverse-geocode coordinates when a Mapbox token is available.
+            if address:
+                formatted_address = address
+                neighborhood = None
+            elif self.access_token:
+                result = self.reverse_geocode(lat, lng)
+                formatted_address = result.formatted_address if result else f"{lat:.6f}, {lng:.6f}"
+                neighborhood = result.neighborhood if result else None
+            else:
+                formatted_address = f"{lat:.6f}, {lng:.6f}"
+                neighborhood = None
         
         # Check service area
         city = self._get_city_from_coordinates(lat, lng)
@@ -356,9 +365,10 @@ class GeocodingService:
         Returns:
             Dict with north, south, east, west bounds
         """
-        # Approximate meters to degrees conversion
+        # Approximate meters to degrees conversion. Longitude degrees shrink with latitude.
+        # Use cos(latitude), not abs(latitude), for the east-west offset.
         lat_offset = size_meters / 111320
-        lng_offset = size_meters / (111320 * abs(lat) if lat != 0 else 111320)
+        lng_offset = size_meters / (111320 * math.cos(math.radians(lat)))
         
         return {
             'north': lat + lat_offset / 2,
@@ -390,7 +400,6 @@ class GeocodingService:
         base = CITY_BASE_TRAFFIC.get(city, 50)
         
         # Deterministic variance based on location
-        import math
         variance_raw = abs(
             math.sin(lat * 12345) * 10000 +
             math.cos(lng * 67890) * 10000

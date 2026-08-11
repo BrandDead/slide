@@ -43,6 +43,7 @@ import Onboarding from './components/onboarding/Onboarding';
 import SettingsPage from './components/settings/SettingsPage';
 import AuthScreen from './components/auth/AuthScreen';
 import AgeGate, { hasAgeAffirmation } from './components/compliance/AgeGate';
+import SplashScreen from './components/layout/SplashScreen';
 
 // Lazy-loaded mini-games and heavy screens
 const SlideGame         = React.lazy(() => import('./components/slide/SlideGame'));
@@ -215,9 +216,9 @@ const App: React.FC = () => {
     return <AgeGate onConfirm={() => setAgeAffirmed(true)} />;
   }
 
-  // Show loading while checking auth
+  // Show loading while checking auth — cinematic splash (Sprint 16, P0)
   if (!authChecked) {
-    return <LazyFallback />;
+    return <SplashScreen label="LOADING" />;
   }
 
   // Show auth screen if not logged in (skipped in demo mode)

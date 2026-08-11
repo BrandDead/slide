@@ -84,41 +84,38 @@ export const GENERATED_UI_OVERLAYS: Record<string, string> = {
 };
 
 // App icon definitions
+const RUNTIME_ICON_PATH = '/assets/runtime/icons';
+
+// Every home-screen icon points to an asset verified in the shipped runtime bundle.
 const APP_ICONS: Record<string, string> = {
-  slide:          '/assets/icons/icon_slide_new.png',
-  cook:           '/assets/icons/icon_cook_new.png',
-  map:            '/assets/icons/icon_map_new.png',
-  crew:           '/assets/icons/icon_crew_new.png',
-  dealt:          '/assets/icons/icon_dealt_new.png',
-  ops:            '/assets/icons/icon_ops_new.png',
-  // shoebox/market use the new per-app artwork (replaces old icon_*_new.png)
-  shoebox:        '/assets/icons/apps/shoebox/regular.png',
-  market:         '/assets/icons/apps/market/regular.png',
-  casino:         '/assets/icons/icon_casino_new.png',
-  settings:       '/assets/icons/icon_settings_new.png',
-  driveby:        '/assets/icons/icon_driveby_new.png',
-  graffiti:       '/assets/icons/icon_graffiti_new.png',
-  news:           '/assets/icons/apps/news/regular.png',
-  leaderboard:    '/assets/icons/apps/shot-caller/regular.png',
-  cocaine_crush:  '/assets/icons/icon_casino_new.png',
-  trap:           '/assets/icons/apps/trap/regular.png',
-  contacts:       '/assets/icons/icon_contacts_new.png',
-  bipndip:        '/assets/icons/icon_bipndip_new.png',
-  attack:         '/assets/icons/icon_attack_new.png',
-  planner:        '/assets/icons/icon_planner_new.png',
-  raid:           '/assets/icons/icon_raid_new.png',
+  slide:          `${RUNTIME_ICON_PATH}/icon_slide_new.webp`,
+  cook:           `${RUNTIME_ICON_PATH}/icon_cook_new.webp`,
+  map:            `${RUNTIME_ICON_PATH}/icon_map_new.webp`,
+  crew:           `${RUNTIME_ICON_PATH}/icon_crew_new.webp`,
+  dealt:          `${RUNTIME_ICON_PATH}/icon_dealt_new.webp`,
+  ops:            `${RUNTIME_ICON_PATH}/icon_ops_new.webp`,
+  shoebox:        `${RUNTIME_ICON_PATH}/icon_shoebox_new.webp`,
+  market:         `${RUNTIME_ICON_PATH}/icon_market_new.webp`,
+  casino:         `${RUNTIME_ICON_PATH}/icon_casino_new.webp`,
+  settings:       `${RUNTIME_ICON_PATH}/icon_settings_new.webp`,
+  driveby:        `${RUNTIME_ICON_PATH}/icon_driveby_new.webp`,
+  graffiti:       `${RUNTIME_ICON_PATH}/icon_graffiti_new.webp`,
+  news:           GENERATED_UI_OVERLAYS.icon_news,
+  leaderboard:    `${RUNTIME_ICON_PATH}/icon_leaderboard_new.webp`,
+  cocaine_crush:  `${RUNTIME_ICON_PATH}/icon_casino_new.webp`,
+  trap:           `${RUNTIME_ICON_PATH}/icon_trap_new.webp`,
+  contacts:       `${RUNTIME_ICON_PATH}/icon_contacts_new.webp`,
+  bipndip:        `${RUNTIME_ICON_PATH}/icon_bipndip_new.webp`,
+  attack:         `${RUNTIME_ICON_PATH}/icon_attack_new.webp`,
+  planner:        `${RUNTIME_ICON_PATH}/icon_planner_new.webp`,
+  raid:           `${RUNTIME_ICON_PATH}/icon_raid_new.webp`,
   messages:       '/assets/icons/apps/messages/regular.png',
   trap_house:     '/assets/icons/apps/trap-house/regular.png',
 };
 
 const APP_ICONS_HOVER: Record<string, string> = {
-  shoebox:     '/assets/icons/apps/shoebox/hover.png',
-  trap:        '/assets/icons/apps/trap/hover.png',
-  market:      '/assets/icons/apps/market/hover.png',
-  messages:    '/assets/icons/apps/messages/hover.png',
-  trap_house:  '/assets/icons/apps/trap-house/hover.png',
-  leaderboard: '/assets/icons/apps/shot-caller/hover.png',
-  news:        '/assets/icons/apps/news/hover.png',
+  messages:   '/assets/icons/apps/messages/hover.png',
+  trap_house: '/assets/icons/apps/trap-house/hover.png',
 };
 
 // Role-to-frame mapping for gang members

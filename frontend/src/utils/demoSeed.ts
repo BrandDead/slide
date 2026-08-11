@@ -215,8 +215,9 @@ export function seedDemoState(): void {
     members: 1,
     viewMode: 'topdown' as const,
     pendingIncome: 0,
-    topdownBgUrl: '/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.png',
-    streetBackdropUrl: '/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.png',
+// Las Olas hero block replaces the strip-plaza placeholder using processed runtime assets.
+    topdownBgUrl: '/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.webp',
+    streetBackdropUrl: '/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.webp',
   };
 
   blockStore.upsertBlock(demoBlock);

@@ -19,7 +19,7 @@
   content: '';
   position: fixed;
   inset: 0;
-  background: url('/assets/bg_desktop.jpg') center/cover no-repeat;
+  background: url('/assets/runtime/generated/ui/os_shell_wallpaper_v001.png') center/cover no-repeat;
   opacity: 0.08;
   filter: brightness(0.4) hue-rotate(80deg);
   pointer-events: none;
