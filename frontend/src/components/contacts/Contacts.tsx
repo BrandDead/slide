@@ -25,6 +25,7 @@ import RoleContactCard, { getRoleCardStats } from './RoleContactCard';
 import MemberCreation, { segmentsToStat, type MemberCreationResult } from '../gang/MemberCreation';
 import { needsRecovery } from '../../utils/bailHospitalSystem';
 import { soundManager } from '../../utils/SoundManager';
+import { useBlockStore } from '../../stores/blockStore';
 import './Contacts.css';
 
 type TabType = 'active' | 'jailed' | 'recovery' | 'dead' | 'requests';
@@ -39,6 +40,7 @@ const Contacts: React.FC = () => {
   const { player, updateMoney } = usePlayerStore();
   const { inventory, transferItemToMember } = useEconomyStore();
   const { addNotification } = useNotificationStore();
+  const { setPlacementMode } = useBlockStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -52,6 +54,7 @@ const Contacts: React.FC = () => {
   // which stats the segments feed hardest.
   const handleMemberCreation = ({ name, role, attributes }: MemberCreationResult) => {
     const a = attributes;
+    const startingExperience = Math.max(0, segmentsToStat(a.potential) - 35);
     const newMember: any = {
       id: `member-${Date.now()}`,
       name,
@@ -59,10 +62,19 @@ const Contacts: React.FC = () => {
       role,
       status: 'active',
       level: 1,
-      xp: segmentsToStat(a.potential) - 35, // potential seeds a small XP head start
+      xp: startingExperience, // Legacy alias retained for current UI consumers.
+      experience: startingExperience,
       shooting: role === 'shooter' ? segmentsToStat(a.nerve) : segmentsToStat(a.nerve) - 10,
       driving: segmentsToStat(a.speed),
       dealing: role === 'dealer' ? segmentsToStat(a.potential) : segmentsToStat(a.potential) - 15,
+      stats: {
+        strength: segmentsToStat(a.nerve),
+        agility: segmentsToStat(a.speed),
+        intelligence: segmentsToStat(a.potential),
+        charisma: segmentsToStat(a.heart),
+        luck: segmentsToStat(a.speed),
+        intimidation: segmentsToStat(a.nerve),
+      },
       loyalty: segmentsToStat(a.loyalty),
       morale: segmentsToStat(a.heart),
       heatResistance: segmentsToStat(a.nerve),
@@ -334,15 +346,32 @@ const Contacts: React.FC = () => {
               name={contact.nickname || contact.name}
               role={contact.role}
               level={(member as any)?.level ?? 1}
-              avatarUrl={contact.customAvatarUrl}
+              avatarUrl={contact.customAvatarUrl ?? contact.avatar}
               stats={getRoleCardStats(member as any, contact.role)}
               statusNote={moraleInfo.warning ? `${moraleInfo.label} — ${moraleInfo.warning}` : moraleInfo.label}
               onOpen={() => setSelectedContact(contact)}
               onSendToBlock={() => {
+                const memberId = contact.memberId ?? contact.id;
+                const target = members.find((candidate) => candidate.id === memberId);
+                if (!target) {
+                  addNotification({
+                    type: 'warning',
+                    title: 'Crew Member Unavailable',
+                    message: `${contact.nickname || contact.name} could not be prepared for deployment.`,
+                    priority: 'high',
+                  });
+                  return;
+                }
+                setPlacementMode(true, {
+                  memberId,
+                  memberName: target.name,
+                  role: target.role as any,
+                  level: target.level,
+                });
                 addNotification({
                   id: `notif-${Date.now()}`,
                   type: 'info',
-                  message: `Pick a corner for ${contact.nickname || contact.name}`,
+                  message: `Pick a zone for ${contact.nickname || contact.name}`,
                   timestamp: new Date().toISOString(),
                 } as any);
                 navigateTo('map');

@@ -27,7 +27,12 @@ export interface RoleCardTheme {
 
 type StatKey =
   | 'shooting' | 'driving' | 'dealing' | 'loyalty'
-  | 'morale' | 'heatResistance' | 'stealth';
+  | 'morale' | 'heatResistance' | 'stealth'
+  | 'strength' | 'agility' | 'intelligence' | 'charisma' | 'intimidation';
+
+type MemberLike = Partial<Record<StatKey, number>> & {
+  stats?: Partial<Pick<Record<StatKey, number>, 'strength' | 'agility' | 'intelligence' | 'charisma' | 'intimidation'>>;
+};
 
 // NOTE: statKey mappings are provisional — they surface the closest
 // existing GangMember fields until role-specific stats (hustle, talk
@@ -63,6 +68,26 @@ export const ROLE_CARD_THEMES: Record<string, RoleCardTheme> = {
     primary: { label: 'LOYALTY', statKey: 'loyalty' },
     secondary: { label: 'HEART', statKey: 'morale' },
   },
+  driver: {
+    accent: '#60a5fa', glow: 'rgba(96, 165, 250, 0.45)', label: 'DRIVER',
+    primary: { label: 'DRIVING', statKey: 'driving' },
+    secondary: { label: 'REFLEXES', statKey: 'agility' },
+  },
+  chemist: {
+    accent: '#d946ef', glow: 'rgba(217, 70, 239, 0.45)', label: 'CHEMIST',
+    primary: { label: 'CHEMISTRY', statKey: 'intelligence' },
+    secondary: { label: 'DISCIPLINE', statKey: 'morale' },
+  },
+  runner: {
+    accent: '#f97316', glow: 'rgba(249, 115, 22, 0.45)', label: 'RUNNER',
+    primary: { label: 'SPEED', statKey: 'agility' },
+    secondary: { label: 'STEALTH', statKey: 'stealth' },
+  },
+  boss: {
+    accent: '#facc15', glow: 'rgba(250, 204, 21, 0.45)', label: 'BOSS',
+    primary: { label: 'LEADERSHIP', statKey: 'charisma' },
+    secondary: { label: 'RESPECT', statKey: 'intimidation' },
+  },
 };
 
 const DEFAULT_THEME: RoleCardTheme = {
@@ -77,11 +102,27 @@ export function getRoleCardTheme(role?: string): RoleCardTheme {
 
 /** Pull the two themed stat values (0–100) off a member-like record. */
 export function getRoleCardStats(
-  member: Partial<Record<StatKey, number>> | null | undefined,
+  member: MemberLike | null | undefined,
   role?: string,
 ): { label: string; value: number }[] {
   const theme = getRoleCardTheme(role);
-  const read = (k: StatKey) => Math.max(0, Math.min(100, Number(member?.[k] ?? 50)));
+  const canonical = member?.stats;
+  const canonicalFallback: Partial<Record<StatKey, number | undefined>> = {
+    shooting: canonical?.strength,
+    driving: canonical?.agility,
+    dealing: canonical?.charisma,
+    heatResistance: canonical?.intimidation,
+    stealth: canonical?.intelligence ?? canonical?.agility,
+    strength: canonical?.strength,
+    agility: canonical?.agility,
+    intelligence: canonical?.intelligence,
+    charisma: canonical?.charisma,
+    intimidation: canonical?.intimidation,
+  };
+  const read = (key: StatKey) => {
+    const value = member?.[key] ?? canonicalFallback[key] ?? 50;
+    return Math.max(0, Math.min(100, Number(value)));
+  };
   return [
     { label: theme.primary.label, value: read(theme.primary.statKey) },
     { label: theme.secondary.label, value: read(theme.secondary.statKey) },

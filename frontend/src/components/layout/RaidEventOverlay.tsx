@@ -8,7 +8,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
-import { usePlayerStore, useGangStore } from '../../stores/gameStore';
+import { usePlayerStore, useGangStore, useEconomyStore } from '../../stores/gameStore';
 import {
   executeRaid,
   getRaidSeverity,
@@ -52,8 +52,12 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
 
     const heat = block.heat * 20; // 0-5 → 0-100
     const memberIds = block.placements.map(p => p.memberId);
-    const drugQty = 100; // TODO: wire to actual inventory
-    const weaponCount = memberIds.length;
+    // Read at confirmation time so a delayed overlay cannot confiscate a stale snapshot.
+    const economy = useEconomyStore.getState();
+    const drugs = economy.inventory.filter((item) => item.type === 'drug');
+    const weapons = economy.inventory.filter((item) => item.type === 'weapon');
+    const drugQty = drugs.reduce((sum, item) => sum + item.quantity, 0);
+    const weaponCount = weapons.reduce((sum, item) => sum + item.quantity, 0);
     const cashOnHand = player?.money ?? 0;
 
     const result = executeRaid(heat, memberIds, drugQty, weaponCount, cashOnHand);
@@ -62,7 +66,23 @@ const RaidEventOverlay: React.FC<RaidEventOverlayProps> = ({ blockId, onClose })
     soundManager.play('alert_raid');
 
     // Apply consequences
-    updateMoney(-result.confiscatedMoney);
+    if (result.confiscatedMoney > 0) {
+      updateMoney(-result.confiscatedMoney);
+    }
+    const removeSeizedInventory = (
+      items: typeof economy.inventory,
+      seizedQuantity: number,
+    ) => {
+      let remaining = seizedQuantity;
+      for (const item of items) {
+        if (remaining <= 0) break;
+        const quantity = Math.min(item.quantity, remaining);
+        economy.removeInventoryItem(item.itemId, quantity);
+        remaining -= quantity;
+      }
+    };
+    removeSeizedInventory(drugs, result.confiscatedDrugs);
+    removeSeizedInventory(weapons, result.confiscatedWeapons);
     updateHeat(-result.heatReduction);
     upsertBlock({ ...block, heat: Math.max(0, block.heat - Math.round(result.heatReduction / 20)) });
 

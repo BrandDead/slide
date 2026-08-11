@@ -65,6 +65,15 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-11 — Sprint 16–18 reconciliation branch
+
+- Created `chore/reconcile-sprints-16-18` to safely combine the compatible work from PRs #104 and #105 without merging three divergent branches directly into the protected default branch.
+- Kept Sprint 17’s address-seeded procedural drive-by and window mechanic, and intentionally excluded Sprint 16’s superseded static drive-by backdrop. Integrated the Sprint 16 splash, Las Olas demo seed, OS-shell wallpaper, role contact cards, and member-creation flow.
+- Corrected the blocking geospatial import regression in `models/block.py` and `geocoding_service.py`; coordinate-based claims now preserve the offline mock-backend path without requiring Mapbox reverse geocoding.
+- Resolved review findings in the integrated code: Contacts now enters placement mode before MAP navigation, preserves legacy avatars, seeds canonical `experience` and `stats`, role cards read canonical nested stats and cover all supported roster roles, member-preview errors are source-scoped, desktop icon paths use verified processed assets, and interactive raid seizures update current inventory.
+- Validation on this branch: frontend typecheck passed; Vitest passed 595/595; production build passed; asset audit passed at 5.73 MB / 20 MB; backend pytest passed 42/42 in offline mode. Remaining warnings: 7 asset-manifest orphan warnings, 99 Python `datetime.utcnow()` deprecations, and production bundle-size warnings for Mapbox/Phaser.
+- This log entry is associated with the reconciliation branch until its pull request is merged. Do not merge the superseded PRs independently afterward.
+
 ### 2026-07-20 (later) — #78 milestone: art library wired into live renderers
 
 - New `frontend/src/services/assetResolver.ts`: the single role→art lookup layer.

@@ -78,7 +78,9 @@ export default function MemberCreation({ onCreate, onClose }: MemberCreationProp
   const [role, setRole] = useState<CreatableRole>('recruit'); // mockup default
   const [name, setName] = useState('');
   const [attrs, setAttrs] = useState<StarterAttributes>(() => rollAttributes());
-  const [spriteOk, setSpriteOk] = useState(true);
+  // Track the failed source rather than a shared boolean so a late error from a
+  // previously selected role cannot hide the current role's preview.
+  const [failedSprite, setFailedSprite] = useState<string | null>(null);
 
   const active = useMemo(() => ROLES.find((r) => r.id === role)!, [role]);
   const canCreate = name.trim().length >= 2;
@@ -128,13 +130,13 @@ export default function MemberCreation({ onCreate, onClose }: MemberCreationProp
 
         {/* Center — fullbody preview */}
         <div className="mc-preview">
-          {spriteOk ? (
+          {failedSprite !== active.sprite ? (
             <img
               key={active.sprite}
               className="mc-sprite"
               src={active.sprite}
               alt={`${active.label} preview`}
-              onError={() => setSpriteOk(false)}
+              onError={() => setFailedSprite(active.sprite)}
             />
           ) : (
             <div className="mc-sprite-fallback" aria-hidden>
@@ -153,7 +155,7 @@ export default function MemberCreation({ onCreate, onClose }: MemberCreationProp
               type="button"
               className={`mc-role${role === id ? ' mc-role-active' : ''}`}
               style={{ ['--mc-role' as any]: accent }}
-              onClick={() => { setRole(id); setSpriteOk(true); }}
+              onClick={() => setRole(id)}
               aria-pressed={role === id}
             >
               {role === id && <span className="mc-role-caret" aria-hidden>▶</span>}
