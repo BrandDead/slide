@@ -16,7 +16,7 @@
 // only bitmap and it is a UI overlay, not generated scenery.
 // ============================================================
 
-import type { StreetSegment } from './proceduralStreet';
+import type { StreetSceneProjection, StreetSegment } from './proceduralStreet';
 import { stripLengthM } from './proceduralStreet';
 
 // ─── Camera constants ────────────────────────────────────────
@@ -34,6 +34,8 @@ export interface StreetCamera {
   /** Canvas dimensions. */
   width: number;
   height: number;
+  /** Block DNA depth layers projected far → near outside the render loop. */
+  projection?: StreetSceneProjection;
 }
 
 /** Project an along-street metre position to a screen X. */
@@ -63,21 +65,24 @@ function drawSky(ctx: CanvasRenderingContext2D, w: number, h: number) {
 function drawRoad(ctx: CanvasRenderingContext2D, cam: StreetCamera) {
   const { width: w, height: h, offsetM } = cam;
   const horizon = h * HORIZON_RATIO;
+  // The road is the nearest depth layer, so it is drawn after facades and
+  // starts at the same ground line used by drawSegment().
+  const roadTop = horizon + (h - horizon) * 0.1;
 
   // Asphalt
-  const g = ctx.createLinearGradient(0, horizon, 0, h);
+  const g = ctx.createLinearGradient(0, roadTop, 0, h);
   g.addColorStop(0, '#1b1d24');
   g.addColorStop(0.35, '#15171d');
   g.addColorStop(1, '#0d0e12');
   ctx.fillStyle = g;
-  ctx.fillRect(0, horizon, w, h - horizon);
+  ctx.fillRect(0, roadTop, w, h - roadTop);
 
   // Wet-asphalt sheen streaks (rain-slick look from the concept art)
   ctx.save();
   ctx.globalAlpha = 0.16;
   for (let i = 0; i < 22; i++) {
     const t = i / 22;
-    const y = horizon + Math.pow(t, 1.7) * (h - horizon);
+    const y = roadTop + Math.pow(t, 1.7) * (h - roadTop);
     ctx.fillStyle = i % 2 ? '#3a4256' : '#232833';
     ctx.fillRect(0, y, w, Math.max(1, (1 - t) * 3));
   }
@@ -85,7 +90,7 @@ function drawRoad(ctx: CanvasRenderingContext2D, cam: StreetCamera) {
 
   // Curb line
   ctx.fillStyle = '#2c3038';
-  ctx.fillRect(0, horizon + (h - horizon) * 0.12, w, 3);
+  ctx.fillRect(0, roadTop, w, 3);
 
   // Lane dashes scrolling with travel
   ctx.fillStyle = 'rgba(240, 220, 140, 0.22)';
@@ -96,6 +101,38 @@ function drawRoad(ctx: CanvasRenderingContext2D, cam: StreetCamera) {
     const x = projectX(m, offsetM, w);
     if (x < -60 || x > w + 60) continue;
     ctx.fillRect(x, h * 0.86, 34, 4);
+  }
+}
+
+// ─── Block DNA depth backdrops ─────────────────────────────────
+
+/**
+ * Draw the far skyline and recessed-layer silhouettes from the explicit Block
+ * DNA depth contract. Facade lots remain horizontal segments; these backdrops
+ * make the retained depth rows visible without turning them into columns.
+ */
+function drawDepthBackdrops(ctx: CanvasRenderingContext2D, cam: StreetCamera) {
+  const layers = cam.projection?.depthLayers ?? [];
+  if (!layers.length) return;
+
+  const { width: w, height: h } = cam;
+  const horizon = h * HORIZON_RATIO;
+  for (const layer of layers) {
+    if (layer.pass === 'skyline') {
+      const top = horizon - h * (0.08 + layer.row * 0.008);
+      ctx.fillStyle = 'rgba(17, 19, 29, 0.92)';
+      for (let x = -24; x < w + 36; x += 56) {
+        const rise = 16 + ((x / 56 + layer.row * 3) % 4) * 13;
+        ctx.fillRect(x, top - rise, 42, rise + 2);
+      }
+    }
+
+    if (layer.pass === 'setback') {
+      const depth = Math.max(1, layer.row);
+      const top = horizon - depth * 5;
+      ctx.fillStyle = 'rgba(7, 9, 14, 0.72)';
+      ctx.fillRect(0, top, w, horizon - top + 4);
+    }
   }
 }
 
@@ -251,10 +288,10 @@ export function drawProceduralStreet(
   const { offsetM, width: w } = cam;
 
   drawSky(ctx, w, cam.height);
-  drawRoad(ctx, cam);
+  drawDepthBackdrops(ctx, cam);
 
-  // Lay the strip down twice so it wraps seamlessly. The visible
-  // window is ~w/PX_PER_M metres wide, well under one loop.
+  // Lay the separate frontage strip down after far skyline/setback passes.
+  // The visible window is ~w/PX_PER_M metres wide, well under one loop.
   const firstLoop = Math.floor((offsetM - w / PX_PER_M) / loopM) * loopM;
   for (let loop = 0; loop < 3; loop++) {
     let cursorM = firstLoop + loop * loopM;
@@ -263,6 +300,9 @@ export function drawProceduralStreet(
       cursorM += seg.widthM;
     }
   }
+
+  // Street and curb are nearest, so they overlay the bottom of the facades.
+  drawRoad(ctx, cam);
 }
 
 // ─── Passenger window glass ──────────────────────────────────

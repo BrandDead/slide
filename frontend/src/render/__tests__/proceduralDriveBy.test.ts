@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   generateStreetSegments,
+  projectStreetScene,
   stripLengthM,
   makeRng,
 } from '../proceduralStreet';
@@ -10,6 +11,7 @@ import {
   incomingDamageMultiplier, applyGlassHit,
   WINDOW_TRAVEL_SECONDS, GLASS_HIT_POINTS, GLASS_DAMAGE_REDUCTION,
 } from '../../utils/windowMechanic';
+import { BLOCK_DNA_LIBRARY } from '../../config/blockDNA';
 import type { BlockZoneType } from '../../types/block.types';
 
 const LAYOUT: BlockZoneType[] = [
@@ -30,13 +32,52 @@ describe('proceduralStreet', () => {
     expect(a).not.toEqual(b);
   });
 
-  it('maps zone types onto the matching built form', () => {
+  it('uses built-form rows as frontage sources without treating depth rows as columns', () => {
+    const scene = projectStreetScene([
+      'street', 'curb', 'sidewalk', 'storefront', 'alley', 'rooftop',
+    ] as BlockZoneType[]);
     const segs = generateStreetSegments({
-      seed: 's', zoneLayout: ['alley', 'parking', 'building'] as BlockZoneType[], count: 3,
+      seed: 'frontage-only',
+      zoneLayout: ['street', 'curb', 'sidewalk', 'storefront', 'alley', 'rooftop'] as BlockZoneType[],
+      count: 12,
     });
-    expect(segs[0].kind).toBe('alley');
-    expect(segs[1].kind).toBe('parking');
-    expect(segs[2].kind).toBe('wall');
+
+    expect(scene.frontageZones).toEqual(['storefront', 'alley']);
+    expect(segs.every((seg) => seg.kind === 'storefront' || seg.kind === 'alley')).toBe(true);
+  });
+
+  it('projects street, curb, sidewalk, facade, setback, and rooftop in far-to-near painter order', () => {
+    const scene = projectStreetScene([
+      'street', 'curb', 'sidewalk', 'storefront', 'alley', 'rooftop',
+    ] as BlockZoneType[]);
+
+    expect(scene.depthLayers.map((layer) => layer.pass)).toEqual([
+      'skyline', 'setback', 'facade', 'sidewalk', 'curb', 'road',
+    ]);
+    expect(scene.depthLayers.map((layer) => layer.row)).toEqual([5, 4, 3, 2, 1, 0]);
+    expect(scene.depthLayers.map((layer) => layer.id)).toEqual([
+      'depth-5-rooftop', 'depth-4-alley', 'depth-3-storefront',
+      'depth-2-sidewalk', 'depth-1-curb', 'depth-0-street',
+    ]);
+  });
+
+  it('keeps projection ordering and stable layer ids across three authored DNA archetypes', () => {
+    const defaultLayout: BlockZoneType[] = [
+      'street', 'curb', 'sidewalk', 'storefront',
+      'alley', 'sidewalk', 'curb', 'rooftop',
+    ];
+
+    for (const dna of BLOCK_DNA_LIBRARY.slice(0, 3)) {
+      const layout = defaultLayout.map((zone, row) => dna.zoneOverrides?.[row] ?? zone);
+      const first = projectStreetScene(layout);
+      const second = projectStreetScene(layout);
+
+      expect(first.depthLayers).toEqual(second.depthLayers);
+      expect(first.depthLayers.map((layer) => layer.row)).toEqual(
+        [...first.depthLayers.map((layer) => layer.row)].sort((a, b) => b - a),
+      );
+      expect(new Set(first.depthLayers.map((layer) => layer.id)).size).toBe(layout.length);
+    }
   });
 
   it('gives every segment positive width so the strip can loop', () => {

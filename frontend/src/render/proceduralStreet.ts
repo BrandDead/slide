@@ -12,11 +12,11 @@
 //        → generateStreetSegments()  ← this module
 //        → DriveByStreetRenderer (perspective draw)
 //
-// Zone layout drives the built form: a 'storefront' row becomes a
-// shopfront with signage, 'alley' becomes a gap with a dumpster,
-// 'parking' becomes a lot with a fence, 'building' becomes a
-// blank wall. That is the same zone data the top-down and street
-// renderers already consume, so all three views agree.
+// Zone layout describes DEPTH from the near street to the far rooftop.
+// It is first projected into ordered scene layers, then a separate,
+// deterministic frontage sequence chooses the repeated facades that slide
+// across the passenger window. Depth rows must never be consumed as columns.
+// That keeps the drive-by view consistent with the top-down and 2.5D scenes.
 // ============================================================
 
 import type { BlockZoneType } from '../types/block.types';
@@ -29,6 +29,35 @@ export type SegmentKind =
   | 'parking'
   | 'wall'
   | 'lot';
+
+/** Painter passes for the passenger-seat scene, sorted far → near. */
+export type StreetDepthPass =
+  | 'skyline'
+  | 'setback'
+  | 'facade'
+  | 'sidewalk'
+  | 'curb'
+  | 'road';
+
+/** One authoritative Block DNA row projected into the FPS scene. */
+export interface StreetDepthLayer {
+  /** Stable identity for future hit registration / environment damage. */
+  id: string;
+  /** Original 0-based Block DNA depth row; 0 is nearest to the street. */
+  row: number;
+  zone: BlockZoneType;
+  pass: StreetDepthPass;
+}
+
+/**
+ * The bridge from an authoritative 8-row Block DNA layout to the passenger
+ * view. `depthLayers` is painter ordered far → near; `frontageZones` is a
+ * distinct input for repeated horizontal lots.
+ */
+export interface StreetSceneProjection {
+  depthLayers: readonly StreetDepthLayer[];
+  frontageZones: readonly BlockZoneType[];
+}
 
 export interface StreetWindow {
   /** Normalized position within the facade. */
@@ -107,16 +136,66 @@ const AWNING_TONES: readonly string[] = [
   '#7a2233', '#1f4f45', '#2c3a63', '#6b4a18', '#4a2450',
 ];
 
-/** Zone row → what gets built there. */
+/** Zone → visual layer in the passenger-seat depth stack. */
+function passForZone(zone: BlockZoneType): StreetDepthPass {
+  switch (zone) {
+    case 'street': return 'road';
+    case 'curb': return 'curb';
+    case 'sidewalk': return 'sidewalk';
+    case 'alley':
+    case 'parking': return 'setback';
+    case 'storefront':
+    case 'building': return 'facade';
+    case 'rooftop': return 'skyline';
+  }
+}
+
+/** Only built-form rows may seed repeated horizontal frontage lots. */
+function isFrontageSource(zone: BlockZoneType): boolean {
+  return zone === 'storefront' || zone === 'building' || zone === 'alley' || zone === 'parking';
+}
+
+/** Zone source → what one horizontal frontage segment looks like. */
 function kindForZone(zone: BlockZoneType, rng: () => number): SegmentKind {
   switch (zone) {
     case 'storefront': return 'storefront';
-    case 'alley':      return 'alley';
-    case 'parking':    return 'parking';
-    case 'building':   return 'wall';
-    // Street-side rows still need a far-side built edge to look at.
-    default:           return rng() > 0.45 ? 'storefront' : 'lot';
+    case 'alley': return 'alley';
+    case 'parking': return 'parking';
+    case 'building': return 'wall';
+    // This is only reached for the safe fallback when Block DNA has no built form.
+    default: return rng() > 0.45 ? 'storefront' : 'lot';
   }
+}
+
+/**
+ * Project the depth-only Block DNA rows into a renderable FPS scene contract.
+ * The returned layers are far → near, while frontage inputs remain separate so
+ * an eight-row depth layout can never accidentally become eight side-by-side
+ * façades.
+ */
+export function projectStreetScene(zoneLayout: readonly BlockZoneType[]): StreetSceneProjection {
+  const layout = zoneLayout.length ? zoneLayout : (['street', 'curb', 'sidewalk', 'storefront', 'alley', 'rooftop'] as BlockZoneType[]);
+  const depthLayers = layout
+    .map((zone, row) => ({
+      id: `depth-${row}-${zone}`,
+      row,
+      zone,
+      pass: passForZone(zone),
+    }))
+    .sort((a, b) => b.row - a.row);
+  const frontageZones = layout.filter(isFrontageSource);
+
+  return {
+    depthLayers,
+    frontageZones: frontageZones.length ? frontageZones : ['storefront'],
+  };
+}
+
+/** Derive repeatable frontage independently from the vertical depth stack. */
+function deriveFrontageZones(seed: string, sourceZones: readonly BlockZoneType[], count: number): BlockZoneType[] {
+  const rng = makeRng(`${seed}:frontage`);
+  const start = Math.floor(rng() * sourceZones.length) % sourceZones.length;
+  return Array.from({ length: count }, (_, index) => sourceZones[(start + index + Math.floor(rng() * sourceZones.length)) % sourceZones.length]);
 }
 
 // ─── Segment builders ────────────────────────────────────────
@@ -203,21 +282,19 @@ export interface StreetGenOptions {
 }
 
 /**
- * Generate the repeating street strip for a block.
- * Deterministic: same seed + layout → identical street.
+ * Generate the repeating horizontal frontage for a block. The depth layout is
+ * first projected by `projectStreetScene`; segment generation only consumes the
+ * derived frontage sequence, never `zoneLayout` directly.
  */
 export function generateStreetSegments({
   seed,
   zoneLayout,
   count = 14,
 }: StreetGenOptions): StreetSegment[] {
-  const rng = makeRng(seed);
-  const zones = zoneLayout.length ? zoneLayout : (['storefront'] as BlockZoneType[]);
-  const segments: StreetSegment[] = [];
-  for (let i = 0; i < count; i++) {
-    segments.push(buildSegment(i, zones[i % zones.length], rng));
-  }
-  return segments;
+  const projection = projectStreetScene(zoneLayout);
+  const frontageZones = deriveFrontageZones(seed, projection.frontageZones, count);
+  const rng = makeRng(`${seed}:facade-style`);
+  return frontageZones.map((zone, index) => buildSegment(index, zone, rng));
 }
 
 /** Total looping length of the strip in metres. */

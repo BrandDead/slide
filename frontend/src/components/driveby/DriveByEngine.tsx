@@ -4,7 +4,12 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { soundManager } from '../../utils/SoundManager';
 import { useBlockStore } from '../../stores/blockStore';
 import { resolveBlockDNA } from '../../utils/blockDNAResolver';
-import { generateStreetSegments, type StreetSegment } from '../../render/proceduralStreet';
+import {
+  generateStreetSegments,
+  projectStreetScene,
+  type StreetSceneProjection,
+  type StreetSegment,
+} from '../../render/proceduralStreet';
 import {
   resolveStreetForTarget,
   type DriveByTarget,
@@ -153,9 +158,13 @@ const DriveByEngine: React.FC<{
   // in the render loop.
   const selectedBlockId = useBlockStore((st) => st.selectedBlockId);
   const blocksById = useBlockStore((st) => st.blocks);
-  const streetSegments = useMemo<StreetSegment[]>(() => {
+  const streetScene = useMemo<{ segments: StreetSegment[]; projection: StreetSceneProjection }>(() => {
     if (targetBlock) {
-      return resolveStreetForTarget(targetBlock).segments;
+      const resolvedStreet = resolveStreetForTarget(targetBlock);
+      return {
+        segments: resolvedStreet.segments,
+        projection: resolvedStreet.projection,
+      };
     }
     // Fallback: use the player's selected block
     const blk: any = selectedBlockId ? (blocksById as any)?.[selectedBlockId] : null;
@@ -163,11 +172,16 @@ const DriveByEngine: React.FC<{
     const lng = blk?.lng ?? blk?.centerLng ?? -80.1373;
     const address = blk?.address ?? blk?.name ?? 'Las Olas Blvd';
     const resolved = resolveBlockDNA(lat, lng, address);
-    return generateStreetSegments({
-      seed: resolved.seed,
-      zoneLayout: resolved.zoneLayout,
-    });
+    return {
+      segments: generateStreetSegments({
+        seed: resolved.seed,
+        zoneLayout: resolved.zoneLayout,
+      }),
+      projection: projectStreetScene(resolved.zoneLayout),
+    };
   }, [targetBlock, selectedBlockId, blocksById]);
+  const streetSegments = streetScene.segments;
+  const streetProjection = streetScene.projection;
 
   // ── Sprint 17: passenger window ──
   const [windowState, setWindowState] = useState<WindowState>(() => createWindowState(true));
@@ -792,7 +806,7 @@ const DriveByEngine: React.FC<{
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, currentBlock, blocks, heat, stats, spawnTargets, playSound, onComplete, addParticles, triggerShake, drawCharacter]);
+  }, [gameState, currentBlock, blocks, heat, stats, spawnTargets, playSound, onComplete, addParticles, triggerShake, drawCharacter, streetProjection, streetSegments]);
 
   // ============ RENDERING ============
   const render = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -814,6 +828,7 @@ const DriveByEngine: React.FC<{
       offsetM: streetOffsetRef.current,
       width: GAME_WIDTH,
       height: GAME_HEIGHT,
+      projection: streetProjection,
     });
 
     // === DRAW TARGETS ===
@@ -1102,7 +1117,7 @@ const DriveByEngine: React.FC<{
     ctx.restore();
 
     ctx.restore();
-  }, [blocks, currentBlock, targets, bullets, crosshair, score, carHealth, ammo, heat, drawCharacter, streetSegments]);
+  }, [blocks, currentBlock, targets, bullets, crosshair, score, carHealth, ammo, heat, drawCharacter, streetProjection, streetSegments]);
 
   // ============ EVENT HANDLERS ============
   const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
