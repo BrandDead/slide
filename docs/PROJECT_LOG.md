@@ -65,6 +65,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-14 — Deployment runtime compatibility remediation
+
+- Reviewed the connected platform-alert mailbox after the game milestones. Vercel issued an account-wide notice that Node.js 20 will be discontinued on 2026-10-01; the repository CI still pinned Node 20 and the deployment configuration did not declare a runtime.
+- Added a Node 24 pin in `frontend/package.json` and its lockfile metadata, added a root `.nvmrc`, and updated the frontend GitHub Actions job to run on Node 24. This keeps development, CI, and the hosted build aligned before Node 20 builds become ineligible.
+
 ### 2026-08-14 — Drive-by depth/frontage projection (issue #109)
 
 - Merged PR #111 first after frontend typecheck, 609 frontend tests, asset audit, whitespace checks, and its successful Vercel preview. It closes issue #108 by carrying a normalized structured target through the selector, game, and engine; geocoded targets now seed Block DNA with their supplied coordinates, while offline entries use a deterministic labelled text seed.
