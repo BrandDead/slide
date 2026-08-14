@@ -76,7 +76,7 @@ const DriveByGame: React.FC = () => {
       <DriveByEngine
         onExit={handleExit}
         onComplete={handleComplete}
-        targetBlockAddress={crew?.targetBlock ?? null}
+        targetBlock={crew?.targetBlock ?? null}
       />
     </div>
   );
