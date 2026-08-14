@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "DEALT/SLIDE - Urban Warfare RPG",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "dev:backend": "cd ../backend/python && python app.py",
