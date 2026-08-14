@@ -20,7 +20,13 @@
 // ============================================================
 
 import { resolveBlockDNA } from './blockDNAResolver';
-import { generateStreetSegments, makeRng, type StreetSegment } from '../render/proceduralStreet';
+import {
+  generateStreetSegments,
+  makeRng,
+  projectStreetScene,
+  type StreetSceneProjection,
+  type StreetSegment,
+} from '../render/proceduralStreet';
 import { BLOCK_DNA_LIBRARY } from '../config/blockDNA';
 import type { ResolvedBlock } from './blockDNAResolver';
 import type { BlockZoneType } from '../types/block.types';
@@ -74,6 +80,8 @@ export function textSeedFromAddress(normalizedAddress: string): string {
 export interface ResolvedStreet {
   resolved: ResolvedBlock;
   segments: StreetSegment[];
+  /** Explicit Block DNA depth → FPS scene contract, stable across retries. */
+  projection: StreetSceneProjection;
   /** The seed actually used to generate the street. */
   seed: string;
   /** Echo of the target seed mode, for HUD/debug labelling. */
@@ -105,6 +113,7 @@ export function resolveStreetForTarget(target: DriveByTarget): ResolvedStreet {
         seed: resolved.seed,
         zoneLayout: resolved.zoneLayout,
       }),
+      projection: projectStreetScene(resolved.zoneLayout),
       seed: resolved.seed,
       seedMode: 'geocoded',
     };
@@ -119,6 +128,7 @@ export function resolveStreetForTarget(target: DriveByTarget): ResolvedStreet {
   return {
     resolved,
     segments: generateStreetSegments({ seed: textSeed, zoneLayout: resolved.zoneLayout }),
+    projection: projectStreetScene(resolved.zoneLayout),
     seed: textSeed,
     seedMode: 'text-seed',
   };

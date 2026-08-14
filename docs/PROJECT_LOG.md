@@ -65,6 +65,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-14 — Drive-by depth/frontage projection (issue #109)
+
+- Merged PR #111 first after frontend typecheck, 609 frontend tests, asset audit, whitespace checks, and its successful Vercel preview. It closes issue #108 by carrying a normalized structured target through the selector, game, and engine; geocoded targets now seed Block DNA with their supplied coordinates, while offline entries use a deterministic labelled text seed.
+- Added `projectStreetScene()` as the explicit Block DNA depth-to-passenger-view bridge for #109. `zoneLayout` is now projected as stable far-to-near layers (`skyline → setback → facade → sidewalk → curb → road`) with retained row-based IDs, while repeated frontage lots are derived independently from built-form rows. Depth rows are no longer consumed as horizontal façade columns.
+- Threaded the projection through `resolveStreetForTarget` and `DriveByEngine` into the renderer. The renderer now draws skyline/setback backdrops before storefront frontage, with street/curb as the nearest layer.
+- Added acceptance tests for depth-order semantics, frontage-source separation, stable IDs, and three authored Block DNA archetypes. Frontend typecheck passed; full frontend test suite passed 611/611. Build verification remains delegated to Vercel because local production bundling was terminated by the constrained sandbox while rendering chunks; asset audit remains green at 5.73 MB / 20 MB with 7 pre-existing non-blocking orphan warnings.
+
 ### 2026-08-11 — K3 handoff: Milestone 0 baseline + Milestone 1 (#108)
 
 - **M0 baseline (verified on `copilot/k3-implementation-handoff`):** `npm run typecheck` clean;
