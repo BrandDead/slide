@@ -67,12 +67,12 @@ const TacticalHoodMap: React.FC<TacticalHoodMapProps> = ({
     if (!ctx || w < 8 || h < 8) return;
     const { lat, lng, zoom: z } = viewRef.current;
 
-    ctx.fillStyle = '#07080d';
+    ctx.fillStyle = '#10141c';
     ctx.fillRect(0, 0, w, h);
 
     const gradient = ctx.createRadialGradient(w * 0.5, h * 0.42, 20, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
-    gradient.addColorStop(0, '#12151f');
-    gradient.addColorStop(1, '#07080d');
+    gradient.addColorStop(0, '#1a2230');
+    gradient.addColorStop(1, '#0c1018');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, w, h);
 
@@ -86,8 +86,8 @@ const TacticalHoodMap: React.FC<TacticalHoodMapProps> = ({
     const maxLng = Math.max(corners[0].lng, corners[1].lng);
 
     const step = z >= 16 ? 0.0012 : z >= 14.5 ? 0.0024 : 0.0048;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = 'rgba(80, 92, 120, 0.22)';
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = 'rgba(140, 158, 190, 0.42)';
     ctx.beginPath();
     for (let la = Math.floor(minLat / step) * step; la <= maxLat; la += step) {
       const a = projectToScreen(la, minLng, lat, lng, z, w, h);
@@ -105,8 +105,8 @@ const TacticalHoodMap: React.FC<TacticalHoodMapProps> = ({
 
     const olas = projectToScreen(26.1224, minLng, lat, lng, z, w, h);
     const olas2 = projectToScreen(26.1224, maxLng, lat, lng, z, w, h);
-    ctx.strokeStyle = 'rgba(255, 214, 10, 0.35)';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 214, 10, 0.7)';
+    ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(olas.x, olas.y);
     ctx.lineTo(olas2.x, olas2.y);
