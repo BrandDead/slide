@@ -20,17 +20,12 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { usePlayerStore, useGangStore, useNotificationStore } from '../stores/gameStore';
 import { useBlockStore } from '../stores/blockStore';
 import { useShoeboxStore } from '../stores/useShoeboxStore';
-import type { BlockPayroll, PayrollLine } from '../types/economy.types';
+import type { PayrollLine } from '../types/economy.types';
 import { computeWage, calculatePerBlockPayroll } from '../config/wages';
+import { liveBlocksToPayrollInput } from '../utils/shoeboxAnalytics';
 
-/** How often the game clock ticks (income + payroll checks), ms. */
+/** How often the game clock ticks (payroll checks), ms. */
 const CLOCK_TICK_MS = 5_000;
-
-/** Income tick cadence: block.incomePerTick is treated as hourly; we pro-rate. */
-const INCOME_TICKS_PER_HOUR = 3_600_000 / CLOCK_TICK_MS;
-
-/** Legacy localStorage key kept for backward compat (no longer used for timing). */
-const LAST_SALARY_KEY = 'dealt_last_salary_paid';
 
 function formatTimeRemaining(ms: number): string {
   if (ms <= 0) return 'Due now';
@@ -61,7 +56,6 @@ export function useSalarySystem() {
   const deposit        = useShoeboxStore((s) => s.deposit);
   const setWillPay     = useShoeboxStore((s) => s.setWillPay);
   const settlePayroll  = useShoeboxStore((s) => s.settlePayroll);
-  const getBlockPayrolls = useShoeboxStore((s) => s.getBlockPayrolls);
   const tickPayrollClock = useShoeboxStore((s) => s.tickPayrollClock);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -90,31 +84,14 @@ export function useSalarySystem() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Game clock: income generation + payroll due check ────────────────────
+  // ── Game clock: payroll due check ────────────────────────────────────────
+  // Block income accrues as pendingIncome on the live block store (game loop).
+  // Collecting it is a player action — like cashing out in Cash App — so this
+  // clock no longer auto-deposits (the previous path dropped sub-$1 ticks).
   useEffect(() => {
     const tick = () => {
-      // 1. Dealers on blocks generate money → straight into the Shoebox.
-      for (const [blockId, block] of Object.entries(blocks)) {
-        if (!block || (block as any).owner !== 'player') continue;
-        const placements = (block as any).placements ?? [];
-        const hasActiveDealer = placements.some(
-          (p: any) => p.role === 'dealer' || p.type === 'dealer'
-        );
-        const incomePerTick = (block as any).incomePerTick ?? 0;
-        if (!hasActiveDealer || incomePerTick <= 0) continue;
-        const proRated = incomePerTick / INCOME_TICKS_PER_HOUR;
-        if (proRated >= 1) {
-          deposit(
-            Math.round(proRated),
-            'block_income',
-            `Block income: ${(block as any).address ?? blockId}`,
-            { blockId }
-          );
-        }
-      }
-
-      // 2. Payroll clock — opens a cycle when the week is up.
-      tickPayrollClock(members, [], updateMember, (n) =>
+      const owned = liveBlocksToPayrollInput(blocks);
+      tickPayrollClock(members, owned, updateMember, (n) =>
         addNotification({ type: n.type as any, title: n.title, message: n.message })
       );
     };

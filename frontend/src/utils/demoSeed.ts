@@ -25,6 +25,7 @@
 import { usePlayerStore, useGangStore } from '../stores/gameStore';
 import { useBlockStore } from '../stores/blockStore';
 import { useNavigationStore } from '../stores/gameStore';
+import { useShoeboxStore } from '../stores/useShoeboxStore';
 import type { GangMember } from '../types/game.types';
 
 /** True only when the build was started with VITE_DEMO_MODE=1 */
@@ -214,7 +215,7 @@ export function seedDemoState(): void {
     morale: 85,
     members: 1,
     viewMode: 'topdown' as const,
-    pendingIncome: 0,
+    pendingIncome: 840,
 // Las Olas hero block replaces the strip-plaza placeholder using processed runtime assets.
     topdownBgUrl: '/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.webp',
     streetBackdropUrl: '/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.webp',
@@ -222,6 +223,13 @@ export function seedDemoState(): void {
 
   blockStore.upsertBlock(demoBlock);
   blockStore.selectBlock(demoBlock.id);
+
+  const shoebox = useShoeboxStore.getState();
+  shoebox.reset();
+  shoebox.deposit(5000, 'block_income', 'Demo vault seed');
+  shoebox.deposit(8400, 'block_income', 'Las Olas dealers · weekly take', { blockId: demoBlock.id, memberId: DEMO_DEALER_ID });
+  shoebox.withdraw(1000, 'salary', 'Payroll: Lil Dre (dealer)', { memberId: DEMO_DEALER_ID, blockId: demoBlock.id });
+  shoebox.withdraw(840, 'salary', 'Payroll: Big Rome (shooter)', { memberId: DEMO_SHOOTER_ID, blockId: demoBlock.id });
 
   // ── 5. Navigate to MAP so the player lands on the block ───
   useNavigationStore.getState().navigateTo('map');

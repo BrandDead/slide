@@ -26,6 +26,7 @@ import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
 import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
+import { vaultDeposit } from '../../utils/moneyRouter';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -167,11 +168,12 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         updatePlayer({
           money: result.player.cash,
           heat: result.player.heat,
-          bankBalance: (player.bankBalance ?? 0) + result.collected,
         });
-        // Mirror pendingIncome locally
+        vaultDeposit(result.collected, 'block_income', `Collected $${result.collected}`, {
+          blockId: selectedBlockId,
+        });
         collectIncome(selectedBlockId);
-        showToast(`💰 Collected $${result.collected}!`);
+        showToast(`Collected $${result.collected}!`);
         soundManager.play('cash_register');
         const reward = completeStep('first_income_collected');
         if (reward.cashReward > 0) updateMoney(reward.cashReward);
@@ -179,11 +181,12 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         showToast('No income to collect yet.');
       }
     } catch {
-      // Fallback to local collect if backend offline
       const amount = collectIncome(selectedBlockId);
       if (amount > 0) {
-        updatePlayer({ bankBalance: (player.bankBalance ?? 0) + amount });
-        showToast(`💰 Collected $${amount}! (local)`);
+        vaultDeposit(amount, 'block_income', `Collected $${amount} from ${block.address}`, {
+          blockId: selectedBlockId,
+        });
+        showToast(`Collected $${amount}`);
         soundManager.play('cash_register');
       } else {
         showToast('No income to collect yet.');

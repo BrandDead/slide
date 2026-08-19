@@ -20,6 +20,8 @@ import {
   incomingDamageMultiplier, applyGlassHit, windowHudLabel,
   type WindowState,
 } from '../../utils/windowMechanic';
+import CombatTacticalHud, { type CombatFeedItem, type CombatHitMarker } from '../combat/CombatTacticalHud';
+import '../combat/CombatTacticalHud.css';
 
 // ============ TYPES ============
 type TargetType = 'gang' | 'civilian' | 'leader';
@@ -138,6 +140,8 @@ const DriveByEngine: React.FC<{
   const [stats, setStats] = useState<GameStats>({
     kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0
   });
+  const [combatFeed, setCombatFeed] = useState<CombatFeedItem[]>([]);
+  const [hitMarker, setHitMarker] = useState<CombatHitMarker | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>(0);
@@ -264,6 +268,8 @@ const DriveByEngine: React.FC<{
     setCurrentBlock(0);
     setTargets([]);
     setBullets([]);
+    setCombatFeed([]);
+    setHitMarker(null);
     blockPosRef.current = 0;
     parallaxRef.current = { bg: 0, mid: 0, fg: 0 };
     particlesRef.current = [];
@@ -709,9 +715,24 @@ const DriveByEngine: React.FC<{
                     // Blood particles
                     addParticles(bullet.targetX, bullet.targetY, 'blood', isHeadshot ? 12 : 6);
                     
+                    setHitMarker({
+                      x: bullet.targetX,
+                      y: bullet.targetY,
+                      headshot: isHeadshot,
+                      kill: newHealth <= 0,
+                    });
+                    window.setTimeout(() => setHitMarker(null), 220);
+
                     if (newHealth <= 0) {
                       playSound('death');
                       addParticles(target.x + target.width / 2, target.y + target.height / 2, 'blood', 15);
+                      const label = target.type === 'civilian'
+                        ? 'Civilian down — heat'
+                        : isHeadshot ? 'Headshot' : 'Eliminated';
+                      setCombatFeed((feed) => [
+                        ...feed.slice(-8),
+                        { id: `${Date.now()}-${target.id}`, text: label, kind: target.type === 'civilian' ? 'civ' : 'kill' },
+                      ]);
                       if (target.type === 'civilian') {
                         setHeat(h => Math.min(100, h + CIVILIAN_HEAT_PENALTY));
                         setStats(s => ({ ...s, civilianHits: s.civilianHits + 1 }));
@@ -1029,75 +1050,7 @@ const DriveByEngine: React.FC<{
       ctx.drawImage(frameImg, 0, 0, GAME_WIDTH, GAME_HEIGHT);
     }
 
-    // === HUD ===
-    ctx.shadowBlur = 0;
-    
-    // HUD background strip
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(10, 10, 200, 110);
-    ctx.strokeStyle = 'rgba(255, 50, 50, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(10, 10, 200, 110);
-
-    ctx.font = 'bold 16px Rajdhani, Orbitron, sans-serif';
-    ctx.textAlign = 'left';
-    
-    // Score
-    ctx.fillStyle = '#00ff88';
-    ctx.fillText(`$ ${score.toLocaleString()}`, 20, 34);
-    
-    // Car health
-    ctx.fillStyle = carHealth > 50 ? '#ffffff' : carHealth > 25 ? '#ffaa00' : '#ff3333';
-    ctx.fillText(`CAR  ${carHealth}%`, 20, 56);
-    // Car health bar
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(100, 46, 100, 6);
-    ctx.fillStyle = carHealth > 50 ? '#00ff88' : carHealth > 25 ? '#ffaa00' : '#ff3333';
-    ctx.fillRect(100, 46, carHealth, 6);
-    
-    // Ammo
-    ctx.fillStyle = ammo > 10 ? '#ffffff' : ammo > 5 ? '#ffaa00' : '#ff3333';
-    ctx.fillText(`AMMO  ${ammo}/${MAX_AMMO}`, 20, 78);
-    
-    // Block
-    ctx.fillStyle = '#aaaaaa';
-    ctx.font = 'bold 13px Rajdhani, sans-serif';
-    ctx.fillText(`BLOCK ${currentBlock + 1}/${blocks.length}`, 20, 98);
-    
-    // Block progress bar
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(100, 88, 100, 4);
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(100, 88, (blockPosRef.current / BLOCK_LENGTH) * 100, 4);
-
-    // Heat meter (top right)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(GAME_WIDTH - 220, 10, 210, 55);
-    ctx.strokeStyle = 'rgba(255, 50, 50, 0.2)';
-    ctx.strokeRect(GAME_WIDTH - 220, 10, 210, 55);
-    
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(GAME_WIDTH - 210, 22, 190, 14);
-    const heatColor = heat > 80 ? '#ff0000' : heat > 50 ? '#ff6600' : heat > 25 ? '#ffaa00' : '#00ff88';
-    ctx.fillStyle = heatColor;
-    ctx.fillRect(GAME_WIDTH - 210, 22, (heat / 100) * 190, 14);
-    
-    if (heat > 80) {
-      ctx.shadowColor = '#ff0000';
-      ctx.shadowBlur = 10;
-    }
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 14px Rajdhani, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`HEAT ${heat}%`, GAME_WIDTH - 18, 34);
-    ctx.shadowBlur = 0;
-
-    // Zone type
-    if (block) {
-      ctx.fillStyle = block.type === 'hot' ? '#ff3333' : block.type === 'normal' ? '#ffaa00' : '#00ff88';
-      ctx.font = 'bold 13px Oswald, sans-serif';
-      ctx.fillText(`${block.type.toUpperCase()} ZONE`, GAME_WIDTH - 18, 56);
-    }
+    // === HUD (React overlay owns ammo / heat / destruction) ===
 
     // === WINDOW STATUS (Sprint 17) ===
     const winNow = windowRef.current;
@@ -1189,6 +1142,23 @@ const DriveByEngine: React.FC<{
         onTouchMove={handlePointerMove}
         onTouchStart={handlePointerDown}
       />
+
+      {gameState === 'playing' && (
+        <CombatTacticalHud
+          ammo={ammo}
+          maxAmmo={MAX_AMMO}
+          carHealth={carHealth}
+          heat={heat}
+          score={score}
+          kills={stats.kills}
+          accuracy={stats.shotsFired > 0 ? Math.round((stats.shotsHit / stats.shotsFired) * 100) : 0}
+          blockIndex={currentBlock + 1}
+          blockCount={Math.max(1, blocks.length)}
+          destruction={Math.min(100, stats.kills * 14 + (3 - (windowState.glassHp ?? 0)) * 12)}
+          feed={combatFeed}
+          hitMarker={hitMarker}
+        />
+      )}
 
       {/* Sprint 17: touch control for the window — [2] on desktop */}
       {gameState === 'playing' && !windowState.shattered && (
