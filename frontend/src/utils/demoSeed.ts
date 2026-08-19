@@ -41,8 +41,7 @@ const DEMO_LOOKOUT_ID = 'demo-lookout-1';
 const DEALER_INCOME_PER_TICK = 67;
 
 /** Seed all stores for the birthday demo path and navigate to MAP. */
-export function seedDemoState(): void {
-  if (!IS_DEMO_MODE) return;
+export function applyDemoSeed(): void {
 
   const now = new Date().toISOString();
 
@@ -211,7 +210,7 @@ export function seedDemoState(): void {
       },
     ],
     incomePerTick: DEALER_INCOME_PER_TICK,
-    heat: 5,
+    heat: 1,
     morale: 85,
     members: 1,
     viewMode: 'topdown' as const,
@@ -233,4 +232,9 @@ export function seedDemoState(): void {
 
   // ── 5. Navigate to MAP so the player lands on the block ───
   useNavigationStore.getState().navigateTo('map');
+}
+
+export function seedDemoState(): void {
+  if (!IS_DEMO_MODE) return;
+  applyDemoSeed();
 }

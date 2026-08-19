@@ -366,7 +366,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             className="stat-value heat"
             style={{ color: getHeatColor(player.heat) }}
           >
-            {player.heat}%
+            {Math.round(player.heat)}%
           </div>
           <div className="stat-label">Heat</div>
           <div className={`heat-bar ${getHeatBarClass(player.heat)}`}>

@@ -103,9 +103,8 @@ export default defineConfig({
       'zustand',
       'framer-motion',
       'mapbox-gl',
-    ],
-    exclude: [
       'phaser',
     ],
   },
 });
+

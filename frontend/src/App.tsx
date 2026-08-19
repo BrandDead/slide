@@ -20,12 +20,14 @@ import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import { useNPCTick } from './stores/npcStore';
-import { useTerritoryStore } from './stores/gameStore';
+import { useTerritoryStore, useGangStore } from './stores/gameStore';
 import { supabase } from './services/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { GangProfile } from './types/game.types';
 import { isAccountSwitch, toPlayerIdentity } from './utils/authPlayer';
 import { IS_DEMO_MODE, seedDemoState } from './utils/demoSeed';
+import { useBlockStore } from './stores/blockStore';
+import { useShoeboxStore } from './stores/useShoeboxStore';
 
 // Layout
 import OSShell from './components/layout/OSShell';
@@ -136,7 +138,20 @@ const App: React.FC = () => {
       seedDemoState();
       setAuthChecked(true);
       setShowOnboarding(false);
-      return;
+      // Persist rehydration can overwrite the seed with a stale local snapshot.
+      const persistStores = [useBlockStore, useShoeboxStore, useGangStore] as Array<{
+        persist?: {
+          hasHydrated?: () => boolean;
+          onFinishHydration?: (cb: () => void) => () => void;
+        };
+      }>;
+      const unsubs: Array<() => void> = [];
+      for (const store of persistStores) {
+        const api = store.persist;
+        if (!api?.onFinishHydration) continue;
+        unsubs.push(api.onFinishHydration(() => seedDemoState()));
+      }
+      return () => unsubs.forEach((u) => u());
     }
     // Check Supabase auth session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
