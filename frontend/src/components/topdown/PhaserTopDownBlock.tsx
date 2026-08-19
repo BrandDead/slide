@@ -78,15 +78,15 @@ export const PhaserTopDownBlock: React.FC<PhaserTopDownBlockProps> = ({
         audio: { noAudio: true },
       };
 
-      const game = new Phaser.Game(config);
-      gameRef.current = game;
-
-      scene.events.once('ready', () => {
+      scene.whenReady(() => {
         setIsReady(true);
         scene.events.on('cellClick', handleCellClick);
         scene.events.on('memberClick', handleMemberClick);
         scene.events.on('firstPersonToggle', handleFirstPersonToggle);
       });
+
+      const game = new Phaser.Game(config);
+      gameRef.current = game;
     } catch (err) {
       setError(String(err));
     }

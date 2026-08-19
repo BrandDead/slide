@@ -36,6 +36,7 @@ const DEMO_BLOCK_ID = 'demo-block-las-olas';
 const DEMO_DEALER_ID = 'demo-dealer-1';
 const DEMO_SHOOTER_ID = 'demo-shooter-1';
 const DEMO_LOOKOUT_ID = 'demo-lookout-1';
+const DEMO_ENFORCER_ID = 'demo-enforcer-1';
 
 // sidewalk (incomeModifier=60) × level-2 bonus (1.12) = round(67.2) = 67
 const DEALER_INCOME_PER_TICK = 67;
@@ -55,7 +56,7 @@ export function applyDemoSeed(): void {
 
   // The demo block is always overwritten by upsertBlock below.
   // Remove stale demo members and re-upsert them
-  const DEMO_IDS = new Set([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID]);
+  const DEMO_IDS = new Set([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
 
   // ── 2. Player ─────────────────────────────────────────────
   playerStore.updatePlayer({
@@ -168,6 +169,34 @@ export function applyDemoSeed(): void {
       health: 100,
       maxHealth: 100,
     },
+    {
+      id: DEMO_ENFORCER_ID,
+      gangId: 'demo-gang',
+      name: 'Kilo',
+      nickname: 'Kilo',
+      avatarUrl: '',
+      backstory: 'Collects the tax and keeps the corner quiet.',
+      age: 28,
+      region: 'miami',
+      stats: { strength: 80, agility: 50, intelligence: 50, charisma: 45, luck: 40, intimidation: 85 },
+      level: 3,
+      experience: 240,
+      skillPoints: 0,
+      skills: [],
+      loyalty: 88,
+      morale: 82,
+      respect: 75,
+      kills: 2,
+      arrests: 1,
+      dealsCompleted: 0,
+      moneyEarned: 4100,
+      status: 'active',
+      currentAssignment: null,
+      joinedAt: now,
+      role: 'enforcer',
+      health: 100,
+      maxHealth: 100,
+    },
   ];
 
   // Rebuild the roster: remove any stale demo members then add fresh ones.
@@ -183,8 +212,9 @@ export function applyDemoSeed(): void {
   // ── 4. Pre-claimed block ──────────────────────────────────
   const grid = blockStore.generateDefaultGrid();
 
-  // Pre-place the dealer at sidewalk position (col 2, row 2)
+  // Pre-place the dealer and enforcer on sidewalk (row 2)
   grid[2][2].occupantId = DEMO_DEALER_ID;
+  grid[2][4].occupantId = DEMO_ENFORCER_ID;
 
   const demoBlock = {
     id: DEMO_BLOCK_ID,
@@ -202,17 +232,28 @@ export function applyDemoSeed(): void {
         x: 2,
         y: 2,
         zoneType: 'sidewalk' as const,
-        // round(60 × (1 + (2-1) × 0.12)) = round(60 × 1.12) = round(67.2) = 67
         incomePerTick: DEALER_INCOME_PER_TICK,
         exposureRisk: 50,
         level: 2,
+        health: 100,
+      },
+      {
+        memberId: DEMO_ENFORCER_ID,
+        memberName: 'Kilo',
+        role: 'enforcer' as const,
+        x: 4,
+        y: 2,
+        zoneType: 'sidewalk' as const,
+        incomePerTick: 0,
+        exposureRisk: 40,
+        level: 3,
         health: 100,
       },
     ],
     incomePerTick: DEALER_INCOME_PER_TICK,
     heat: 1,
     morale: 85,
-    members: 1,
+    members: 2,
     viewMode: 'topdown' as const,
     pendingIncome: 840,
 // Las Olas hero block replaces the strip-plaza placeholder using processed runtime assets.
@@ -229,6 +270,7 @@ export function applyDemoSeed(): void {
   shoebox.deposit(8400, 'block_income', 'Las Olas dealers · weekly take', { blockId: demoBlock.id, memberId: DEMO_DEALER_ID });
   shoebox.withdraw(1000, 'salary', 'Payroll: Lil Dre (dealer)', { memberId: DEMO_DEALER_ID, blockId: demoBlock.id });
   shoebox.withdraw(840, 'salary', 'Payroll: Big Rome (shooter)', { memberId: DEMO_SHOOTER_ID, blockId: demoBlock.id });
+  shoebox.withdraw(630, 'salary', 'Payroll: Kilo (enforcer)', { memberId: DEMO_ENFORCER_ID, blockId: demoBlock.id });
 
   // ── 5. Navigate to MAP so the player lands on the block ───
   useNavigationStore.getState().navigateTo('map');

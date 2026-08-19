@@ -87,6 +87,17 @@
 .cth-feed .civ { color: #64d2ff; }
 .cth-feed .hit { color: #ffd60a; }
 
+.cth-streak {
+  position: absolute;
+  top: 68px;
+  left: 12px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #ffd60a;
+  text-shadow: 0 0 12px rgba(255, 214, 10, 0.6);
+}
+
 .cth-bottom {
   position: absolute;
   left: 12px;

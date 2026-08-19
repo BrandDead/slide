@@ -27,6 +27,8 @@ interface CombatTacticalHudProps {
   destruction: number;
   feed: CombatFeedItem[];
   hitMarker: CombatHitMarker | null;
+  targetName?: string;
+  streak?: number;
 }
 
 const CombatTacticalHud: React.FC<CombatTacticalHudProps> = ({
@@ -42,6 +44,8 @@ const CombatTacticalHud: React.FC<CombatTacticalHudProps> = ({
   destruction,
   feed,
   hitMarker,
+  targetName,
+  streak = 0,
 }) => {
   return (
     <div className="cth" data-testid="combat-tactical-hud">
@@ -60,7 +64,7 @@ const CombatTacticalHud: React.FC<CombatTacticalHudProps> = ({
           <strong>${score.toLocaleString()}</strong>
         </div>
         <div className="cth-card">
-          <span>STRIP {blockIndex}/{blockCount}</span>
+          <span>{targetName ? targetName.toUpperCase().slice(0, 22) : `STRIP ${blockIndex}/${blockCount}`}</span>
           <div className="cth-bar"><i style={{ width: `${(blockIndex / Math.max(1, blockCount)) * 100}%` }} /></div>
         </div>
         <div className="cth-card heat">
@@ -68,6 +72,10 @@ const CombatTacticalHud: React.FC<CombatTacticalHudProps> = ({
           <div className="cth-bar"><i style={{ width: `${heat}%` }} /></div>
         </div>
       </div>
+
+      {streak >= 2 && (
+        <div className="cth-streak">{streak}x STREAK</div>
+      )}
 
       <ul className="cth-feed">
         {feed.slice(-5).reverse().map((item) => (

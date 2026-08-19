@@ -20,7 +20,6 @@ import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
-import { PhaserTopDownBlock } from '../topdown/PhaserTopDownBlock';
 import StreetBlock from './StreetBlock';
 import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
@@ -333,18 +332,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         ) : viewMode === 'drugs' ? (
           <DrugAssignmentPanel block={block} />
         ) : viewMode === 'topdown' ? (
-          // Use the Phaser scene when a real satellite URL is available;
-          // fall back to the CSS grid for dev/no-token environments
-          block.topdownBgUrl && (block.topdownBgUrl.startsWith('http') || block.topdownBgUrl.startsWith('/assets/')) ? (
-            <PhaserTopDownBlock
-              blockId={block.id}
-              onCellClick={(_col, _row) => {}}
-              onMemberClick={(_memberId, _col, _row) => {}}
-              onFirstPersonToggle={(_memberId, _col, _row) => {}}
-            />
-          ) : (
-            <TopDownBlock block={block} />
-          )
+          <TopDownBlock block={block} />
         ) : (
           <StreetBlock
             block={block}

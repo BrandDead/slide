@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   attackableNearby,
   buildNearbyRecon,
+  recommendHit,
+  rankThreats,
   searchRecon,
   seedReconRing,
 } from '../nearbyBlocks';
@@ -41,5 +43,15 @@ describe('nearbyBlocks', () => {
     const hits = searchRecon(recon, 'eastside');
     expect(hits.length).toBeGreaterThan(0);
     expect(hits.every((h) => /eastside|sistrunk/i.test(`${h.address} ${h.gangName}`))).toBe(true);
+  });
+
+  it('recommends the richest cool rival as the war-room hit', () => {
+    const recon = seedReconRing(origin);
+    const rec = recommendHit(recon);
+    expect(rec?.owner).toBe('npc');
+    expect(rec?.income).toBeGreaterThan(0);
+    const threats = rankThreats(recon, 3);
+    expect(threats.length).toBeGreaterThan(0);
+    expect(threats[0].income).toBeGreaterThanOrEqual(threats[threats.length - 1].income);
   });
 });

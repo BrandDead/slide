@@ -17,17 +17,22 @@ import MapsSearchField from './MapsSearchField';
 import NearbyReconSheet from './NearbyReconSheet';
 import MemberDropSheet from './MemberDropSheet';
 import EmpireCommandBar from './EmpireCommandBar';
+import TacticalHoodMap from './TacticalHoodMap';
+import WarBriefingCard from './WarBriefingCard';
 import { resolveBlockDNA } from '../../utils/blockDNAResolver';
 import { buildStaticImageUrl } from '../../config/mapbox.config';
 import { CLAIM_BLOCK_COST } from '../../config/gameEconomy';
-import { LAS_OLAS_CENTER } from '../../config/mapboxToken';
-import { attackableNearby, buildNearbyRecon, type ReconBlock } from '../../utils/nearbyBlocks';
+import { isUsableMapboxToken, LAS_OLAS_CENTER } from '../../config/mapboxToken';
+import { attackableNearby, buildNearbyRecon, rankThreats, recommendHit, type ReconBlock } from '../../utils/nearbyBlocks';
 import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
+import { useCombatIntentStore } from '../../stores/combatIntentStore';
 import type { BlockData, BlockZoneType, MemberRole } from '../../types/block.types';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
 import './MapsChrome.css';
+import './TacticalHoodMap.css';
+import './WarBriefingCard.css';
 
 type MapView = 'block' | 'hood' | 'roster';
 
@@ -93,6 +98,7 @@ const TerritoryMap: React.FC = () => {
   const [showBlockSearch, setShowBlockSearch] = useState(false);
   const [showRecon, setShowRecon] = useState(false);
   const [showDrop, setShowDrop] = useState(false);
+  const liveMapbox = isUsableMapboxToken();
 
   const liveList = useMemo(() => Object.values(blocks), [blocks]);
   const origin = useMemo(() => {
@@ -119,6 +125,8 @@ const TerritoryMap: React.FC = () => {
 
   const overlayBlocks = useMemo(() => recon.map(toOverlay), [recon]);
   const attackable = useMemo(() => attackableNearby(recon), [recon]);
+  const recommended = useMemo(() => recommendHit(recon), [recon]);
+  const threats = useMemo(() => rankThreats(recon, 3), [recon]);
   const pnl = useMemo(
     () =>
       computeEmpirePnl({
@@ -236,6 +244,13 @@ const TerritoryMap: React.FC = () => {
     selectBlock(block.id);
     setSelectedMapBlock(null);
     setShowRecon(false);
+    useCombatIntentStore.getState().setPendingTarget({
+      address: block.address,
+      lat: block.lat,
+      lng: block.lng,
+      placeId: block.id,
+      seedMode: 'geocoded',
+    });
     navigateTo('driveby');
     notify(`Sliding on ${block.address}`);
   }, [navigateTo, selectBlock, notify]);
@@ -323,6 +338,16 @@ const TerritoryMap: React.FC = () => {
         }}
       />
 
+      {view === 'hood' && (
+        <WarBriefingCard
+          pnl={pnl}
+          recommended={recommended}
+          threats={threats}
+          onHit={handleAttack}
+          onScout={() => setShowRecon(true)}
+        />
+      )}
+
       <div className="block-stats">
         <div className="stat-item">
           <span className="stat-value income">${headerIncome}</span>
@@ -403,17 +428,30 @@ const TerritoryMap: React.FC = () => {
       {view === 'hood' && (
         <div className="hood-view maps-chrome">
           <div className="hood-map-container maps-stage">
-            <MapboxMap
-              onMapLoad={handleMapLoad}
-              center={[origin.lng, origin.lat]}
-              zoom={15}
-            />
+            {liveMapbox ? (
+              <MapboxMap
+                onMapLoad={handleMapLoad}
+                center={[origin.lng, origin.lat]}
+                zoom={15}
+              />
+            ) : (
+              <TacticalHoodMap
+                center={[origin.lng, origin.lat]}
+                zoom={15}
+                blocks={recon}
+                selectedId={selectedMapBlock?.id}
+                onMapLoad={handleMapLoad}
+                onBlockClick={(block) => setSelectedMapBlock(toOverlay(block))}
+              />
+            )}
             <MapsSearchField onFocus={() => setShowRecon(true)} />
-            <BlockOverlay
-              map={mapInstance}
-              blocks={overlayBlocks}
-              onBlockClick={(blockData) => setSelectedMapBlock(blockData)}
-            />
+            {liveMapbox && (
+              <BlockOverlay
+                map={mapInstance}
+                blocks={overlayBlocks}
+                onBlockClick={(blockData) => setSelectedMapBlock(blockData)}
+              />
+            )}
             {!showRecon && !showDrop && (
               <BlockDetailPanel
                 block={selectedMapBlock}

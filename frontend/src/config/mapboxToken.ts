@@ -13,6 +13,23 @@ export function getMapboxToken(): string {
   );
 }
 
+/** True only for a real Mapbox public/secret token — dummy env values black the GL canvas. */
+export function isUsableMapboxToken(token: string = getMapboxToken()): boolean {
+  const t = token.trim();
+  if (t.length < 24) return false;
+  const lower = t.toLowerCase();
+  if (
+    lower.includes('dummy') ||
+    lower.includes('placeholder') ||
+    lower.includes('your_') ||
+    lower.includes('xxx') ||
+    lower === 'pk.ey'
+  ) {
+    return false;
+  }
+  return lower.startsWith('pk.') || lower.startsWith('sk.');
+}
+
 export const LAS_OLAS_CENTER: [number, number] = [-80.1373, 26.1224];
 export const LAS_OLAS_LAT = 26.1224;
 export const LAS_OLAS_LNG = -80.1373;

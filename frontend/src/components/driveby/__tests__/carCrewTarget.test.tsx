@@ -32,10 +32,12 @@ vi.mock('../../../services/ai/artPipeline', () => ({
 
 import CarCrewSelector from '../CarCrewSelector';
 import { resolveStreetForTarget } from '../../../utils/driveByTarget';
+import { useCombatIntentStore } from '../../../stores/combatIntentStore';
 
 describe('CarCrewSelector → street handoff (#108)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useCombatIntentStore.getState().reset();
   });
 
   it('hands a geocoded AddressResult through CarCrew and into a coordinate-seeded scene', async () => {
@@ -71,6 +73,29 @@ describe('CarCrewSelector → street handoff (#108)', () => {
     expect(street.seed).toBe(
       `block_${crew.targetBlock.lat.toFixed(6)}_${crew.targetBlock.lng.toFixed(6)}`
     );
+  });
+
+  it('pre-fills a target locked from the Maps recon pin', async () => {
+    useCombatIntentStore.getState().setPendingTarget({
+      address: 'Sistrunk Blvd & NW 7th Ave',
+      lat: 26.13,
+      lng: -80.14,
+      seedMode: 'geocoded',
+    });
+    const onConfirm = vi.fn();
+    render(<CarCrewSelector onConfirm={onConfirm} onCancel={() => {}} />);
+    expect(screen.getByText(/target locked from maps/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sistrunk Blvd/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Driver', { selector: '.seat-label' }).closest('.car-seat')!);
+    fireEvent.click(screen.getByText('Wheel Man'));
+    fireEvent.click(screen.getByText('Passenger (Shooter)', { selector: '.seat-label' }).closest('.car-seat')!);
+    fireEvent.click(screen.getByText('Trigger'));
+    fireEvent.click(screen.getByText(/slide on they block/i));
+
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(1));
+    expect(onConfirm.mock.calls[0][0].targetBlock.address).toBe('Sistrunk Blvd & NW 7th Ave');
+    expect(useCombatIntentStore.getState().pendingTarget).toBeNull();
   });
 
   it('labels the offline text fallback and hands a text-seed target when no geocoder result is chosen', async () => {

@@ -145,3 +145,22 @@ export function describeRecon(block: ReconBlock): string {
   if (block.owner === 'player') return `${dist} · yours`;
   return `${dist} · open strip`;
 }
+
+/**
+ * Grand-strategy pick: richest nearby rival that is not already on fire.
+ * Falls back to the highest-income rival if every strip is hot.
+ */
+export function recommendHit(blocks: ReconBlock[]): ReconBlock | null {
+  const rivals = attackableNearby(blocks);
+  if (rivals.length === 0) return null;
+  const cool = rivals.filter((b) => b.heat < 60);
+  const pool = cool.length > 0 ? cool : rivals;
+  return [...pool].sort((a, b) => b.income - a.income || a.distanceMeters - b.distanceMeters)[0] ?? null;
+}
+
+/** Rank rival strips by weekly-ish take for the war briefing. */
+export function rankThreats(blocks: ReconBlock[], limit = 3): ReconBlock[] {
+  return [...attackableNearby(blocks)]
+    .sort((a, b) => b.income - a.income || a.heat - b.heat)
+    .slice(0, limit);
+}

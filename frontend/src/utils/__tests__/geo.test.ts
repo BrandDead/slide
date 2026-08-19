@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { formatDistance, haversineMeters, offsetLatLng } from '../geo';
+import {
+  formatDistance,
+  haversineMeters,
+  offsetLatLng,
+  lngToTileX,
+  latToTileY,
+  tileXToLng,
+  tileYToLat,
+  projectToScreen,
+} from '../geo';
 
 describe('geo', () => {
   it('returns ~0 for the same point', () => {
@@ -21,5 +30,16 @@ describe('geo', () => {
     const moved = offsetLatLng(26.1224, -80.1373, 100, 0);
     expect(moved.lat).toBeGreaterThan(26.1224);
     expect(moved.lng).toBeCloseTo(-80.1373, 5);
+  });
+
+  it('round-trips mercator tile math around Las Olas', () => {
+    const z = 15;
+    const lng = -80.1373;
+    const lat = 26.1224;
+    expect(tileXToLng(lngToTileX(lng, z), z)).toBeCloseTo(lng, 5);
+    expect(tileYToLat(latToTileY(lat, z), z)).toBeCloseTo(lat, 5);
+    const p = projectToScreen(lat, lng, lat, lng, z, 400, 300);
+    expect(p.x).toBeCloseTo(200, 0);
+    expect(p.y).toBeCloseTo(150, 0);
   });
 });

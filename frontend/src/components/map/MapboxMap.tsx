@@ -6,7 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from '../../utils/mapboxClient';
-import { getMapboxToken, LAS_OLAS_CENTER } from '../../config/mapboxToken';
+import { getMapboxToken, isUsableMapboxToken, LAS_OLAS_CENTER } from '../../config/mapboxToken';
 
 interface MapboxMapProps {
   onMapLoad?: (map: mapboxgl.Map) => void;
@@ -27,7 +27,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    if (!MAPBOX_TOKEN) {
+    if (!isUsableMapboxToken(MAPBOX_TOKEN)) {
       containerRef.current.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#111;color:#888;font-family:sans-serif;padding:24px;text-align:center;">
           <div style="font-size:14px;font-weight:700;color:#f5f5f7;margin-bottom:8px;">Maps unavailable</div>

@@ -15,6 +15,7 @@ describe('applyDemoSeed empire books', () => {
   it('places a dealer so the Las Olas strip has a weekly cost and take', () => {
     const block = Object.values(useBlockStore.getState().blocks)[0];
     expect(block?.placements.some((p) => p.role === 'dealer')).toBe(true);
+    expect(block?.placements.some((p) => p.role === 'enforcer')).toBe(true);
     const pnl = computeEmpirePnl({
       streetCash: 12000,
       vault: useShoeboxStore.getState().bankBalance,
@@ -24,6 +25,7 @@ describe('applyDemoSeed empire books', () => {
     });
     expect(pnl.blocks[0].weeklyCost).toBeGreaterThan(0);
     expect(pnl.dealerWeekly).toBeGreaterThan(0);
+    expect(pnl.enforcerWeekly).toBeGreaterThan(0);
     expect(pnl.pendingCollect).toBeGreaterThan(0);
     expect(pnl.vault).toBeGreaterThan(5000);
   });

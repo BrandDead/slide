@@ -142,6 +142,7 @@ const DriveByEngine: React.FC<{
   });
   const [combatFeed, setCombatFeed] = useState<CombatFeedItem[]>([]);
   const [hitMarker, setHitMarker] = useState<CombatHitMarker | null>(null);
+  const [killStreak, setKillStreak] = useState(0);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>(0);
@@ -153,6 +154,7 @@ const DriveByEngine: React.FC<{
   const muzzleFlashRef = useRef(0);
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const damageFlashRef = useRef(0);
+  const hitstopRef = useRef(0);
 
   // ── Address-seeded procedural street (#108) ──
   // Prefer the structured target from CarCrewSelector — its real
@@ -270,12 +272,14 @@ const DriveByEngine: React.FC<{
     setBullets([]);
     setCombatFeed([]);
     setHitMarker(null);
+    setKillStreak(0);
     blockPosRef.current = 0;
     parallaxRef.current = { bg: 0, mid: 0, fg: 0 };
     particlesRef.current = [];
     shakeRef.current = { x: 0, y: 0, intensity: 0 };
     muzzleFlashRef.current = 0;
     damageFlashRef.current = 0;
+    hitstopRef.current = 0;
     setStats({ kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0 });
     // Reset window state so retries start with a fresh intact window
     const freshWindow = createWindowState(true);
@@ -602,9 +606,14 @@ const DriveByEngine: React.FC<{
     let lastTime = 0;
 
     const gameLoop = (timestamp: number) => {
-      // deltaTime available for future frame-rate-independent animations
       const _dt = timestamp - lastTime; void _dt;
       lastTime = timestamp;
+
+      if (hitstopRef.current > 0) {
+        hitstopRef.current -= 1;
+        gameLoopRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
 
       // Update parallax
       parallaxRef.current.bg += CAR_SPEED * 0.3;
@@ -726,6 +735,9 @@ const DriveByEngine: React.FC<{
                     if (newHealth <= 0) {
                       playSound('death');
                       addParticles(target.x + target.width / 2, target.y + target.height / 2, 'blood', 15);
+                      addParticles(target.x + target.width / 2, target.y + target.height / 2, 'smoke', 8);
+                      hitstopRef.current = isHeadshot ? 8 : 5;
+                      triggerShake(isHeadshot ? 14 : 9);
                       const label = target.type === 'civilian'
                         ? 'Civilian down — heat'
                         : isHeadshot ? 'Headshot' : 'Eliminated';
@@ -736,7 +748,9 @@ const DriveByEngine: React.FC<{
                       if (target.type === 'civilian') {
                         setHeat(h => Math.min(100, h + CIVILIAN_HEAT_PENALTY));
                         setStats(s => ({ ...s, civilianHits: s.civilianHits + 1 }));
+                        setKillStreak(0);
                       } else {
+                        setKillStreak((n) => n + 1);
                         setScore(s => s + target.bounty);
                         setStats(s => ({ 
                           ...s, 
@@ -1157,6 +1171,8 @@ const DriveByEngine: React.FC<{
           destruction={Math.min(100, stats.kills * 14 + (3 - (windowState.glassHp ?? 0)) * 12)}
           feed={combatFeed}
           hitMarker={hitMarker}
+          targetName={targetBlock?.address ?? 'Hostile strip'}
+          streak={killStreak}
         />
       )}
 
@@ -1178,14 +1194,16 @@ const DriveByEngine: React.FC<{
           <div style={styles.menuBg} />
           <div style={styles.menuContent}>
             <h1 style={styles.title}>DRIVE-BY</h1>
-            <p style={styles.subtitle}>STREET WARFARE</p>
+            <p style={styles.subtitle}>
+              {targetBlock?.address ? targetBlock.address.toUpperCase() : 'STREET WARFARE'}
+            </p>
             <div style={styles.divider} />
             <div style={styles.instructions}>
-              <p style={styles.instructionItem}><span style={styles.instructionIcon}>+</span> Move cursor to aim</p>
-              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ff3333'}}>!</span> Click/tap to shoot</p>
-              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ff3333'}}>X</span> Red dots = Gang (SHOOT)</p>
-              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#00aaff'}}>-</span> No dots = Civilians (AVOID)</p>
-              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ffaa00'}}>~</span> Too much heat = RAID</p>
+              <p style={styles.instructionItem}><span style={styles.instructionIcon}>+</span> Move cursor to aim · tap to fire</p>
+              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ff3333'}}>X</span> Red = rival shooters — drop them</p>
+              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#00aaff'}}>-</span> Blue = civilians — heat if you hit them</p>
+              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ffaa00'}}>~</span> Heat 100 = raid. Keep the car alive.</p>
+              <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#8de8ff'}}>2</span> Lower the glass or you cannot shoot</p>
             </div>
             <button style={styles.startButton} onClick={initGame}>
               START MISSION

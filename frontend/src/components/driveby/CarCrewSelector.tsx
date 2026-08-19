@@ -5,9 +5,10 @@
 // Shows top-down car view with clickable seats
 // ============================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGangStore } from '../../stores/gameStore';
+import { useCombatIntentStore } from '../../stores/combatIntentStore';
 import { generatePlaceholderAvatar } from '../../services/ai/artPipeline';
 import AddressSearchBar, { type AddressResult } from '../map/AddressSearchBar';
 import {
@@ -44,6 +45,7 @@ interface CarCrewSelectorProps {
 
 const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }) => {
   const { members } = useGangStore();
+  const pendingTarget = useCombatIntentStore((s) => s.pendingTarget);
   
   const [seats, setSeats] = useState<CarSeat[]>([
     { position: 'driver', label: 'Driver', allowedRoles: ['dealer', 'enforcer', 'lookout'], memberId: null },
@@ -53,8 +55,12 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
   ]);
   
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
-  const [target, setTarget] = useState<DriveByTarget | null>(null);
+  const [target, setTarget] = useState<DriveByTarget | null>(pendingTarget);
   const [targetText, setTargetText] = useState('');
+
+  useEffect(() => {
+    if (pendingTarget) setTarget(pendingTarget);
+  }, [pendingTarget]);
   
   // Available members (not already assigned to a seat, not jailed/dead/hospital)
   const assignedIds = useMemo(() => new Set(seats.map(s => s.memberId).filter(Boolean)), [seats]);
@@ -194,7 +200,9 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
       {/* Target Block Selection (#108): structured target via address search,
           with a clearly labelled offline text-seed fallback. */}
       <div className="target-block-section">
-        <label className="target-label">Target Block:</label>
+        <label className="target-label">
+          {pendingTarget ? 'Target locked from Maps' : 'Target Block:'}
+        </label>
         <AddressSearchBar
           inline
           placeholder="Search a target address…"
@@ -250,6 +258,7 @@ const CarCrewSelector: React.FC<CarCrewSelectorProps> = ({ onConfirm, onCancel }
                 ? { address: normalizeAddressText(typed), seedMode: 'text-seed' }
                 : null);
             onConfirm({ seats, targetBlock: finalTarget });
+            useCombatIntentStore.getState().reset();
           }}
           disabled={!canLaunch}
           whileTap={canLaunch ? { scale: 0.95 } : {}}

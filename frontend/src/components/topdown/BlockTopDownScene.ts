@@ -45,6 +45,7 @@ import {
   pixelToCell,
 } from './blockTopDownCoords';
 import { getWorldActor } from '../../render/worldActorResolver';
+import { PhaserReadyGate } from '../../utils/phaserSceneReady';
 
 // ─── Internal types ──────────────────────────────────────────
 interface MemberSprite {
@@ -98,9 +99,14 @@ export class BlockTopDownScene extends Phaser.Scene {
   // Double-tap detection
   private lastTapTime = 0;
   private lastTapMemberId: string | null = null;
+  readonly readyGate = new PhaserReadyGate();
 
   constructor() {
     super({ key: 'BlockTopDownScene' });
+  }
+
+  whenReady(cb: () => void): void {
+    this.readyGate.whenReady(cb);
   }
 
   // ─── Public API (called by React wrapper) ─────────────────
@@ -201,6 +207,7 @@ export class BlockTopDownScene extends Phaser.Scene {
       .setVisible(false);
     this.uiLayer.add(this.selectionRect);
 
+    this.readyGate.markReady();
     this.events.emit('ready');
   }
 
