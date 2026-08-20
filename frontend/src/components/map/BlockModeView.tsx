@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode, MemberRole } from '../../types/block.types';
+import type { CombatResult } from '../../game/combat/types';
 import {
   getDefaultTopdownBgUrl,
   getDefaultStreetBackdropUrl,
@@ -26,6 +27,7 @@ import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
 import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
+import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import './BlockModeView.css';
 
 // ─── Seed helper ─────────────────────────────────────────────
@@ -119,12 +121,14 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     upsertBlock,
     setBlockViewMode,
     collectIncome,
+    applyEncounterResult,
     setPlacementMode,
   } = useBlockStore();
   const { updateMoney, updatePlayer, player } = usePlayerStore();
 
   const [showDeployPanel, setShowDeployPanel] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
+  const [showEncounter, setShowEncounter] = useState(false);
   const [showRaid, setShowRaid] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
@@ -222,6 +226,28 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     [selectedBlockId, setPlacementMode, showToast, checkMoraleOnDeploy, completeStep]
   );
 
+  const handleEncounterResolved = useCallback((result: CombatResult) => {
+    if (!selectedBlockId) return;
+    const activeBlock = blocks[selectedBlockId];
+    applyEncounterResult(selectedBlockId, result);
+    updatePlayer({ heat: Math.max(0, Math.min(5, (player.heat ?? 0) + result.heatDelta)) });
+    setShowEncounter(false);
+    if (activeBlock && result.crewDown.length > 0) {
+      setBailIncidents(result.crewDown.map((memberId, index) => {
+        const placement = activeBlock.placements.find((item) => item.memberId === memberId);
+        return {
+          memberId,
+          memberName: placement?.memberName ?? 'Crew member',
+          incidentType: 'injured' as const,
+          cost: 2200 + index * 800,
+          blockId: activeBlock.id,
+        };
+      }));
+      setShowBailModal(true);
+    }
+    showToast(result.summary, 3500);
+  }, [applyEncounterResult, blocks, player.heat, selectedBlockId, showToast, updatePlayer]);
+
   const handleDriveByResolved = useCallback(
     (outcome: 'repelled' | 'successful' | 'fled' | undefined, casualties: string[]) => {
       setShowDriveBy(false);
@@ -289,14 +315,14 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           🏙️ Street
         </button>
         <button
-          className={`bmv-tab ${showDriveBy ? 'active danger' : ''}`}
-          onClick={() => setShowDriveBy((v) => !v)}
+          className={`bmv-tab ${showEncounter ? 'active danger' : ''}`}
+          onClick={() => { setShowDriveBy(false); setShowRaid(false); setShowEncounter((v) => !v); }}
         >
-          🚗 Drive-By
+          🎯 Encounter
         </button>
         <button
           className={`bmv-tab ${showRaid ? 'active danger' : ''} ${isMaxHeat ? 'pulse-danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowRaid((v) => !v); }}
+          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid((v) => !v); }}
         >
           🚔 Raid{isMaxHeat ? ' !' : ''}
         </button>
@@ -310,7 +336,13 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
       {/* Main view */}
       <div className="bmv-content">
-        {showRaid ? (
+        {showEncounter ? (
+          <UnifiedEncounter
+            block={block}
+            onResolved={handleEncounterResolved}
+            onClose={() => setShowEncounter(false)}
+          />
+        ) : showRaid ? (
           <PoliceRaidGame
             blockId={block.id}
             onResolved={(caught, cashSeized) => {
@@ -369,10 +401,10 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         </motion.button>
         <motion.button
           className="bmv-btn slide"
-          onClick={() => setShowDriveBy(true)}
+          onClick={() => { setShowDriveBy(false); setShowRaid(false); setShowEncounter(true); }}
           whileTap={{ scale: 0.95 }}
         >
-          🚗 Slide
+          🎯 Encounter
         </motion.button>
       </div>
 

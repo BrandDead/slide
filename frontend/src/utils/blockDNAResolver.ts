@@ -119,6 +119,25 @@ function findDNAByTag(tag: BlockTag, seed: string): BlockDNA | null {
 }
 
 /**
+ * Preserve the authored personality of a curated location when the claimed
+ * coordinate is genuinely nearby. This prevents generic road words such as
+ * "Avenue" from overriding a more meaningful local archetype.
+ */
+function findNearbyCuratedDNA(lat: number, lng: number): BlockDNA | null {
+  const maxDistanceSquared = 0.000025; // roughly a few city blocks
+  let closest: BlockDNA | null = null;
+  let closestDistance = Infinity;
+  for (const candidate of BLOCK_DNA_LIBRARY) {
+    const distance = (candidate.lat - lat) ** 2 + (candidate.lng - lng) ** 2;
+    if (distance <= maxDistanceSquared && distance < closestDistance) {
+      closest = candidate;
+      closestDistance = distance;
+    }
+  }
+  return closest;
+}
+
+/**
  * Convert a hash string to a stable integer for indexing.
  */
 function seedToNumber(seed: string): number {
@@ -167,20 +186,21 @@ export function resolveBlockDNA(
 ): ResolvedBlock {
   const seed = generateBlockHash(lat, lng);
 
-  // 1. Try keyword match from address string
-  const detectedTag = detectTagFromAddress(address);
-  let dna: BlockDNA | null = null;
+  // 1. Preserve the authored visual identity for a nearby curated place.
+  let dna: BlockDNA | null = findNearbyCuratedDNA(lat, lng);
 
-  if (detectedTag) {
+  // 2. Use broad address cues when the player is not near a curated record.
+  const detectedTag = detectTagFromAddress(address);
+  if (!dna && detectedTag) {
     dna = findDNAByTag(detectedTag, seed);
   }
 
-  // 2. Fall back to nearest DNA by geographic distance
+  // 3. Fall back to nearest DNA by geographic distance.
   if (!dna) {
     dna = getNearestDNA(lat, lng);
   }
 
-  // 3. Final fallback: seed-based pick from full library
+  // 4. Final fallback: seed-based pick from full library
   if (!dna) {
     const idx = seedToNumber(seed) % BLOCK_DNA_LIBRARY.length;
     dna = BLOCK_DNA_LIBRARY[idx];

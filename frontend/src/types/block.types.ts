@@ -3,6 +3,8 @@
 // Sprint: block-mode-combat-assets
 // ============================================================
 
+import type { CombatResult } from '../game/combat/types';
+
 // ─── Zone / Tile ────────────────────────────────────────────
 
 export type BlockZoneType =
@@ -105,6 +107,8 @@ export interface BlockData {
   lastCollectedAt?: string;
   /** Pending income not yet collected */
   pendingIncome: number;
+  /** Idempotency keys for unified encounter outcomes already applied to this block */
+  appliedEncounterResultKeys?: string[];
   /**
    * Gang name of whoever last landed a successful tag here. Set by the
    * graffiti mission so the territory layer can show a block as contested
@@ -195,6 +199,8 @@ export interface BlockStoreActions {
   recordShot: (blockId: string, shot: DriveByShot, isDefender: boolean) => void;
   /** Resolve a drive-by */
   resolveDriveBy: (blockId: string, outcome: DriveByEvent['outcome']) => void;
+  /** Apply a unified encounter result once to local territory projections */
+  applyEncounterResult: (blockId: string, result: CombatResult) => void;
   /** Collect pending income from a block */
   collectIncome: (blockId: string) => number;
   /** Tick income for all blocks (call from game loop) */
