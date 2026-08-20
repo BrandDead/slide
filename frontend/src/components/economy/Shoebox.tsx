@@ -271,6 +271,37 @@ const Shoebox: React.FC = () => {
         </div>
       </section>
 
+      <section className="sb-card sb-member-economics">
+        <div className="sb-card-head">
+          <h2>Crew cashflow</h2>
+          <span>{pnl.memberRows.length} total</span>
+        </div>
+        {pnl.memberRows.length === 0 ? (
+          <p className="sb-empty">Your crew’s weekly earnings and costs will show here.</p>
+        ) : (
+          <ul className="sb-member-list" aria-label="Crew weekly earnings and costs">
+            {pnl.memberRows.map((member) => (
+              <li key={member.memberId} className="sb-member-row" data-testid={`member-pnl-${member.memberId}`}>
+                <div className="sb-member-main">
+                  <div className="sb-member-name">{member.name}</div>
+                  <div className="sb-member-meta">
+                    {member.role} · Lv{member.level} · {member.status}
+                    {member.blockAddress ? ` · ${member.blockAddress}` : ' · off strip'}
+                  </div>
+                </div>
+                <div className="sb-member-books">
+                  <span>Earn {formatCash(member.weeklyIncome)}</span>
+                  <span>Cost {formatCash(member.weeklyWage)}</span>
+                </div>
+                <div className={`sb-member-net ${member.weeklyNet >= 0 ? 'up' : 'down'}`}>
+                  {formatSignedCash(member.weeklyNet)}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <section className="sb-card">
         <div className="sb-card-head">
           <h2>Weekly block cost</h2>

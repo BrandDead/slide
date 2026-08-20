@@ -4,6 +4,7 @@ import type { GangMember } from '../../types/game.types';
 import {
   computeBlockWeeklyCosts,
   computeEmpirePnl,
+  computeMemberPnl,
   computeRolePnl,
   formatCash,
   liveBlocksToPayrollInput,
@@ -109,6 +110,29 @@ describe('shoeboxAnalytics', () => {
     expect(costs[0].weeklyIncome).toBeGreaterThan(costs[0].weeklyCost);
   });
 
+  it('reports every crew member with attributable earnings, payroll, and deployment', () => {
+    const rows = computeMemberPnl(crew, [block()]);
+    const dealer = rows.find((row) => row.memberId === 'd1');
+    const enforcer = rows.find((row) => row.memberId === 'e1');
+    const shooter = rows.find((row) => row.memberId === 's1');
+
+    expect(rows).toHaveLength(3);
+    expect(dealer).toMatchObject({ deployed: true, blockId: 'b1', weeklyIncome: 11256 });
+    expect(dealer!.weeklyWage).toBeGreaterThan(0);
+    expect(enforcer!.weeklyIncome).toBeGreaterThan(0);
+    expect(shooter).toMatchObject({ deployed: false, blockId: null, weeklyIncome: 0, weeklyWage: 800 });
+  });
+
+  it('shows unavailable crew while excluding them from the live payroll', () => {
+    const rows = computeMemberPnl([
+      ...crew,
+      member({ id: 'j1', role: 'dealer', name: 'Locked Up', status: 'jailed' }),
+    ], [block()]);
+    const jailed = rows.find((row) => row.memberId === 'j1');
+
+    expect(jailed).toMatchObject({ status: 'jailed', deployed: false, weeklyIncome: 0, weeklyWage: 0 });
+  });
+
   it('adapts live BlockData into payroll input with placements as units', () => {
     const input = liveBlocksToPayrollInput({ b1: block() });
     expect(input[0].units.map((u) => u.gangMemberId)).toEqual(['d1', 'e1']);
@@ -129,6 +153,7 @@ describe('shoeboxAnalytics', () => {
     expect(pnl.pendingCollect).toBe(200);
     expect(pnl.spending[0].key).toBe('salary');
     expect(pnl.roleCards.some((r) => r.role === 'dealer')).toBe(true);
+    expect(pnl.memberRows.map((row) => row.memberId)).toContain('d1');
     expect(formatCash(1150)).toBe('$1,150');
   });
 });

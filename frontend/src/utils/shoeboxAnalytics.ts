@@ -33,6 +33,21 @@ export interface BlockWeeklyCost {
   lines: Array<{ memberId: string; name: string; role: string; wage: number; income: number }>;
 }
 
+/** A single crew member's explainable weekly contribution to the empire. */
+export interface MemberPnl {
+  memberId: string;
+  name: string;
+  role: string;
+  level: number;
+  status: string;
+  weeklyIncome: number;
+  weeklyWage: number;
+  weeklyNet: number;
+  deployed: boolean;
+  blockId: string | null;
+  blockAddress: string | null;
+}
+
 export interface SpendCategory {
   key: string;
   label: string;
@@ -50,6 +65,7 @@ export interface EmpirePnl {
   enforcerWeekly: number;
   shooterWeeklyWage: number;
   roleCards: RolePnl[];
+  memberRows: MemberPnl[];
   blocks: BlockWeeklyCost[];
   spending: SpendCategory[];
   nextPayrollLabel: string | null;
@@ -144,6 +160,49 @@ export function computeBlockWeeklyCosts(
     .sort((a, b) => a.netWeekly - b.netWeekly);
 }
 
+export function computeMemberPnl(
+  members: GangMember[],
+  blocks: BlockData[],
+): MemberPnl[] {
+  const deployed = new Map<string, { placement: BlockPlacement; block: BlockData }>();
+  for (const block of blocks) {
+    if (block.owner !== 'player') continue;
+    for (const placement of block.placements) {
+      deployed.set(placement.memberId, { placement, block });
+    }
+  }
+
+  return members
+    .map((member) => {
+      const deployment = deployed.get(member.id);
+      const role = (deployment?.placement.role || member.role || 'enforcer').toLowerCase();
+      const payrollEligible = member.status === 'active' || member.status === 'injured';
+      const weeklyIncome = deployment && payrollEligible
+        ? placementIncomeWeekly(deployment.placement)
+        : 0;
+      const weeklyWage = payrollEligible ? computeWage(role, member.level ?? 1) : 0;
+
+      return {
+        memberId: member.id,
+        name: member.nickname || member.name || 'Unnamed member',
+        role,
+        level: member.level ?? 1,
+        status: member.status,
+        weeklyIncome,
+        weeklyWage,
+        weeklyNet: weeklyIncome - weeklyWage,
+        deployed: Boolean(deployment),
+        blockId: deployment?.block.id ?? null,
+        blockAddress: deployment?.block.address ?? null,
+      };
+    })
+    .sort((a, b) => {
+      if (a.deployed !== b.deployed) return a.deployed ? -1 : 1;
+      if (a.weeklyNet !== b.weeklyNet) return b.weeklyNet - a.weeklyNet;
+      return a.name.localeCompare(b.name);
+    });
+}
+
 export function computeRolePnl(
   members: GangMember[],
   blocks: BlockData[],
@@ -231,6 +290,7 @@ export function computeEmpirePnl(args: {
   const playerBlocks = args.blocks.filter((b) => b.owner === 'player');
   const blockCards = computeBlockWeeklyCosts(args.members, playerBlocks);
   const roleCards = computeRolePnl(args.members, playerBlocks);
+  const memberRows = computeMemberPnl(args.members, playerBlocks);
   const weeklyIncome = blockCards.reduce((s, b) => s + b.weeklyIncome, 0);
   const weeklyWages = args.members
     .filter((m) => m.status === 'active' || m.status === 'injured')
@@ -250,6 +310,7 @@ export function computeEmpirePnl(args: {
     enforcerWeekly,
     shooterWeeklyWage,
     roleCards,
+    memberRows,
     blocks: blockCards,
     spending: computeSpending(args.ledger),
     nextPayrollLabel: args.nextPayrollDueAt ?? null,

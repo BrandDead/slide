@@ -87,9 +87,25 @@ const pageVariants = {
   exit:    { opacity: 0, x: -20 },
 };
 
+/**
+ * Development-only deep links keep each phone app independently testable
+ * without making normal production navigation depend on URL routing.
+ */
+const DEMO_APP_IDS = new Set([
+  'home', 'map', 'dealt', 'dealt_v2', 'contacts', 'settings', 'slide',
+  'driveby', 'topdown', 'bipndip', 'raid', 'gang_hq', 'alchemy', 'shoebox',
+  'market', 'missions', 'planner', 'casino', 'graffiti', 'cocaine_crush',
+  'leaderboard', 'news', 'phone', 'trap', 'most_wanted',
+]);
+
+function demoAppFromLocation(): string | null {
+  const candidate = new URLSearchParams(window.location.search).get('app');
+  return candidate && DEMO_APP_IDS.has(candidate) ? candidate : null;
+}
+
 // ─── App ──────────────────────────────────────────────────────
 const App: React.FC = () => {
-  const { currentApp } = useNavigationStore();
+  const { currentApp, navigateTo } = useNavigationStore();
   const { player, updatePlayer, logout } = usePlayerStore();
   const [showOnboarding, setShowOnboarding] = useState(!player?.gangProfile);
   const [authUser, setAuthUser] = useState<User | null>(null);
@@ -136,6 +152,8 @@ const App: React.FC = () => {
   useEffect(() => {
     if (IS_DEMO_MODE) {
       seedDemoState();
+      const requestedApp = demoAppFromLocation();
+      if (requestedApp) navigateTo(requestedApp);
       setAuthChecked(true);
       setShowOnboarding(false);
       // Persist rehydration can overwrite the seed with a stale local snapshot.
@@ -162,7 +180,7 @@ const App: React.FC = () => {
       hydrateAuthenticatedPlayer(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
-  }, [hydrateAuthenticatedPlayer]);
+  }, [hydrateAuthenticatedPlayer, navigateTo]);
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({
