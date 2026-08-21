@@ -218,7 +218,7 @@ export const CITY_CONFIGS: Record<SupportedCity, CityConfig> = {
       east: -80.0500,
       west: -80.3500,
     },
-    centerCoords: { lat: 26.1224, lng: -80.1373 },
+    centerCoords: { lat: 26.1186239, lng: -80.1574818 },
     timezone: 'America/New_York',
     gangStyle: {
       primaryColor: '#0a0a1a',

@@ -34,8 +34,8 @@ interface AddressSearchBarProps {
 const MOCK_RESULTS: AddressResult[] = [
   {
     address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312',
-    lat: 26.1224,
-    lng: -80.1373,
+    lat: 26.1186239,
+    lng: -80.1574818,
     placeId: 'mock-las-olas-1208',
     city: 'Fort Lauderdale',
     state: 'FL',

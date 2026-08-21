@@ -218,9 +218,9 @@ export function applyDemoSeed(): void {
 
   const demoBlock = {
     id: DEMO_BLOCK_ID,
-    address: '1208 W Las Olas Blvd, Fort Lauderdale, FL',
-    lat: 26.1224,
-    lng: -80.1373,
+    address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312',
+    lat: 26.1186239,
+    lng: -80.1574818,
     owner: 'player' as const,
     ownerGangName: 'The Demo Crew',
     grid,

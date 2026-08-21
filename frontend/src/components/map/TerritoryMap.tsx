@@ -8,8 +8,10 @@ import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/g
 import { useBlockStore } from '../../stores/blockStore';
 import { useShoeboxStore } from '../../stores/useShoeboxStore';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
-import MapboxMap from './MapboxMap';
+import PlayableMap from './PlayableMap';
 import BlockOverlay, { type BlockData as MapBlockData } from './BlockOverlay';
+import TacticalPlacementOverlay from './TacticalPlacementOverlay';
+import type { Map as MapLibreMap } from 'maplibre-gl';
 import BlockDetailPanel from './BlockDetailPanel';
 import BlockModeView from './BlockModeView';
 import AddressSearchBar, { type AddressResult } from './AddressSearchBar';
@@ -17,21 +19,19 @@ import MapsSearchField from './MapsSearchField';
 import NearbyReconSheet from './NearbyReconSheet';
 import MemberDropSheet from './MemberDropSheet';
 import EmpireCommandBar from './EmpireCommandBar';
-import TacticalHoodMap from './TacticalHoodMap';
 import WarBriefingCard from './WarBriefingCard';
 import { resolveBlockDNA } from '../../utils/blockDNAResolver';
 import { buildStaticImageUrl } from '../../config/mapbox.config';
 import { CLAIM_BLOCK_COST } from '../../config/gameEconomy';
-import { isUsableMapboxToken, LAS_OLAS_CENTER } from '../../config/mapboxToken';
+import { LAS_OLAS_CENTER } from '../../config/mapboxToken';
 import { attackableNearby, buildNearbyRecon, rankThreats, recommendHit, type ReconBlock } from '../../utils/nearbyBlocks';
 import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { useCombatIntentStore } from '../../stores/combatIntentStore';
-import type { BlockData, BlockZoneType, MemberRole } from '../../types/block.types';
+import type { BlockData, BlockZone, MemberRole } from '../../types/block.types';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
 import './MapsChrome.css';
-import './TacticalHoodMap.css';
 import './WarBriefingCard.css';
 
 type MapView = 'block' | 'hood' | 'roster';
@@ -46,18 +46,6 @@ const ROLE_COLORS: Record<string, string> = {
   runner: '#fb7185',
   boss: '#fbbf24',
 };
-
-function firstOpenTile(block: BlockData): { x: number; y: number; zoneType: BlockZoneType } {
-  for (let y = 0; y < block.grid.length; y++) {
-    for (let x = 0; x < (block.grid[y]?.length ?? 0); x++) {
-      const zone = block.grid[y][x];
-      if (zone.passable && !zone.occupantId) {
-        return { x, y, zoneType: zone.zoneType };
-      }
-    }
-  }
-  return { x: 2, y: 2, zoneType: 'sidewalk' };
-}
 
 function toOverlay(block: {
   id: string;
@@ -92,19 +80,25 @@ const TerritoryMap: React.FC = () => {
   const [view, setView] = useState<MapView>('hood');
   const { completeStep: completeTutorialStep } = useTutorialProgressStore();
   const [notification, setNotification] = useState<string | null>(null);
-  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
   const [selectedMapBlock, setSelectedMapBlock] = useState<MapBlockData | null>(null);
   const [searchPins, setSearchPins] = useState<ReconBlock[]>([]);
   const [showBlockSearch, setShowBlockSearch] = useState(false);
   const [showRecon, setShowRecon] = useState(false);
   const [showDrop, setShowDrop] = useState(false);
-  const liveMapbox = isUsableMapboxToken();
+  const [placementDraft, setPlacementDraft] = useState<{
+    memberId: string;
+    memberName: string;
+    role: MemberRole;
+    level: number;
+  } | null>(null);
 
   const liveList = useMemo(() => Object.values(blocks), [blocks]);
   const origin = useMemo(() => {
-    const home = liveList.find((b) => b.owner === 'player');
+    const selected = selectedBlockId ? blocks[selectedBlockId] : null;
+    const home = selected?.owner === 'player' ? selected : liveList.find((block) => block.owner === 'player');
     return home ? { lat: home.lat, lng: home.lng } : { lat: LAS_OLAS_CENTER[1], lng: LAS_OLAS_CENTER[0] };
-  }, [liveList]);
+  }, [blocks, liveList, selectedBlockId]);
 
   const recon = useMemo(() => {
     const livePins: ReconBlock[] = liveList.map((b) => ({
@@ -209,7 +203,7 @@ const TerritoryMap: React.FC = () => {
     }
   }, [player, vault, updatePlayer, upsertBlock, selectBlock, notify, completeTutorialStep]);
 
-  const handleMapLoad = useCallback((map: any) => setMapInstance(map), []);
+  const handleMapLoad = useCallback((map: MapLibreMap) => setMapInstance(map), []);
 
   const handleHoodSearchResult = useCallback((result: AddressResult) => {
     flyTo(result.lat, result.lng);
@@ -272,30 +266,55 @@ const TerritoryMap: React.FC = () => {
         setView('block');
         return;
       }
-      const tile = firstOpenTile(block);
-      placeMember(block.id, {
+      selectBlock(block.id);
+      setPlacementDraft({
         memberId,
         memberName,
         role: (role as MemberRole) || 'dealer',
-        x: tile.x,
-        y: tile.y,
-        zoneType: tile.zoneType,
-        incomePerTick: 0,
-        exposureRisk: 40,
         level,
-        health: 100,
       });
-      selectBlock(block.id);
+      setSelectedMapBlock(toOverlay(block));
       setShowDrop(false);
-      setView('block');
-      notify(`${memberName} dropped on ${block.address}`);
+      setView('hood');
+      flyTo(block.lat, block.lng, 19);
+      notify(`Tap a highlighted sidewalk, storefront, or cover cell for ${memberName}.`, 3500);
     },
-    [selectedBlockId, liveList, blocks, placeMember, selectBlock, notify],
+    [selectedBlockId, liveList, blocks, selectBlock, flyTo, notify],
   );
+
+  const completeMapPlacement = useCallback((zone: BlockZone) => {
+    if (!placementDraft) return;
+    const targetId = selectedBlockId ?? liveList.find((block) => block.owner === 'player')?.id;
+    const block = targetId ? blocks[targetId] : null;
+    if (!block || !zone.passable || zone.occupantId) {
+      notify('That position is blocked. Choose another highlighted cell.');
+      return;
+    }
+
+    placeMember(block.id, {
+      memberId: placementDraft.memberId,
+      memberName: placementDraft.memberName,
+      role: placementDraft.role,
+      x: zone.x,
+      y: zone.y,
+      zoneType: zone.zoneType,
+      incomePerTick: 0,
+      exposureRisk: zone.exposureRisk,
+      level: placementDraft.level,
+      health: 100,
+    });
+    setPlacementDraft(null);
+    notify(`${placementDraft.memberName} placed on ${zone.zoneType} · ${zone.exposureRisk}% exposure.`, 3500);
+  }, [blocks, liveList, notify, placeMember, placementDraft, selectedBlockId]);
 
   const activeBlockId = selectedBlockId ?? liveList.find((b) => b.owner === 'player')?.id ?? 'home';
   const activeBlock = blocks[activeBlockId];
   const activeBlockAddress = activeBlock?.address ?? 'Your Home Block';
+  const mapCenter = useMemo<[number, number]>(() => {
+    if (placementDraft && activeBlock) return [activeBlock.lng, activeBlock.lat];
+    if (selectedMapBlock) return [selectedMapBlock.lng, selectedMapBlock.lat];
+    return [origin.lng, origin.lat];
+  }, [activeBlock, origin.lat, origin.lng, placementDraft, selectedMapBlock]);
   const headerIncome = activeBlock?.pendingIncome ?? 0;
   const headerHeat = activeBlock?.heat ?? player?.heat ?? 0;
   const headerMorale = activeBlock?.morale ?? 80;
@@ -428,31 +447,59 @@ const TerritoryMap: React.FC = () => {
       {view === 'hood' && (
         <div className="hood-view maps-chrome">
           <div className="hood-map-container maps-stage">
-            {liveMapbox ? (
-              <MapboxMap
-                onMapLoad={handleMapLoad}
-                center={[origin.lng, origin.lat]}
-                zoom={15}
-              />
-            ) : (
-              <TacticalHoodMap
-                center={[origin.lng, origin.lat]}
-                zoom={15}
-                blocks={recon}
-                selectedId={selectedMapBlock?.id}
-                onMapLoad={handleMapLoad}
-                onBlockClick={(block) => setSelectedMapBlock(toOverlay(block))}
-              />
-            )}
+            <PlayableMap
+              onMapLoad={handleMapLoad}
+              center={mapCenter}
+              zoom={placementDraft ? 19 : undefined}
+              mode={placementDraft ? 'placement' : selectedMapBlock ? 'inspect' : 'territory'}
+              selectedAddress={placementDraft ? activeBlockAddress : selectedMapBlock?.address ?? activeBlockAddress}
+            />
             <MapsSearchField onFocus={() => setShowRecon(true)} />
-            {liveMapbox && (
-              <BlockOverlay
-                map={mapInstance}
-                blocks={overlayBlocks}
-                onBlockClick={(blockData) => setSelectedMapBlock(blockData)}
-              />
-            )}
-            {!showRecon && !showDrop && (
+            <BlockOverlay
+              map={mapInstance}
+              blocks={overlayBlocks}
+              selectedId={placementDraft ? activeBlockId : selectedMapBlock?.id ?? activeBlockId}
+              onBlockClick={(blockData) => {
+                setSelectedMapBlock(blockData);
+                flyTo(blockData.lat, blockData.lng, 17.25);
+                if (blockData.owner === 'player') selectBlock(blockData.id);
+              }}
+            />
+            <TacticalPlacementOverlay
+              map={mapInstance}
+              block={placementDraft ? activeBlock : null}
+              active={Boolean(placementDraft)}
+              onChooseCell={completeMapPlacement}
+            />
+            <div className="map-camera-actions" aria-label="Map camera actions">
+              <button
+                type="button"
+                onClick={() => {
+                  const home = liveList.find((block) => block.owner === 'player' && block.lat === origin.lat && block.lng === origin.lng);
+                  if (home) {
+                    selectBlock(home.id);
+                    setSelectedMapBlock(toOverlay(home));
+                  }
+                  flyTo(origin.lat, origin.lng, placementDraft ? 19 : 15);
+                }}
+              >
+                <span aria-hidden="true">◎</span> Home block
+              </button>
+              {placementDraft && (
+                <button
+                  type="button"
+                  className="map-camera-actions__cancel"
+                  onClick={() => {
+                    setPlacementDraft(null);
+                    setSelectedMapBlock(null);
+                    flyTo(origin.lat, origin.lng, 15);
+                  }}
+                >
+                  Cancel placement
+                </button>
+              )}
+            </div>
+            {selectedMapBlock && !placementDraft && (
               <BlockDetailPanel
                 block={selectedMapBlock}
                 onClose={() => setSelectedMapBlock(null)}

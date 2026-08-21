@@ -30,6 +30,6 @@ export function isUsableMapboxToken(token: string = getMapboxToken()): boolean {
   return lower.startsWith('pk.') || lower.startsWith('sk.');
 }
 
-export const LAS_OLAS_CENTER: [number, number] = [-80.1373, 26.1224];
-export const LAS_OLAS_LAT = 26.1224;
-export const LAS_OLAS_LNG = -80.1373;
+export const LAS_OLAS_CENTER: [number, number] = [-80.1574818, 26.1186239];
+export const LAS_OLAS_LAT = 26.1186239;
+export const LAS_OLAS_LNG = -80.1574818;
