@@ -84,14 +84,14 @@ export const BLOCK_DNA_LIBRARY: BlockDNA[] = [
   {
     id: 'las-olas-1208',
     name: '1208 Las Olas',
-    address: '1208 E Las Olas Blvd',
+    address: '1208 W Las Olas Blvd',
     city: 'Fort Lauderdale',
     state: 'FL',
-    lat: 26.1201,
-    lng: -80.1348,
+    lat: 26.1186239,
+    lng: -80.1574818,
     tier: 'mid',
     tags: ['corner-store', 'open-air'],
-    flavour: 'Tourist strip with deep pockets. High visibility, high risk.',
+    flavour: 'Sailboat Bend corridor near the river. Low-rise frontage, palms, water-adjacent escape routes, and neighborhood traffic.',
     zoneOverrides: {
       0: 'street',
       1: 'curb',

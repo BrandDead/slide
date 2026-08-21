@@ -1,0 +1,181 @@
+.playable-map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #d7d9d5;
+  color: #111318;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+}
+
+.playable-map__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.playable-map .maplibregl-map {
+  font: inherit;
+}
+
+.playable-map .maplibregl-canvas {
+  outline: none;
+}
+
+.playable-map .maplibregl-ctrl-top-right {
+  top: 64px;
+  right: 8px;
+}
+
+.playable-map .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(16px) saturate(1.25);
+}
+
+.playable-map .maplibregl-ctrl-group button {
+  width: 38px;
+  height: 38px;
+}
+
+.playable-map .maplibregl-ctrl-scale {
+  margin: 0 0 40px 10px;
+  border-color: rgba(15, 23, 42, 0.55);
+  background: rgba(255, 255, 255, 0.78);
+  color: #111827;
+  font-weight: 700;
+}
+
+.playable-map .maplibregl-ctrl-attrib {
+  border-radius: 8px 0 0;
+  background: rgba(255, 255, 255, 0.82);
+  color: #334155;
+}
+
+.playable-map__status {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: linear-gradient(145deg, #e8e8e4, #cfd5d2);
+  color: #364152;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.playable-map__status--error {
+  flex-direction: column;
+}
+
+.playable-map__status--error strong {
+  color: #991b1b;
+  font-size: 15px;
+}
+
+.playable-map__status--error span {
+  max-width: 280px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.playable-map__pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #0a84ff;
+  box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.42);
+  animation: playable-map-pulse 1.4s ease-out infinite;
+}
+
+.playable-map__location {
+  position: absolute;
+  z-index: 7;
+  top: 60px;
+  left: 10px;
+  display: flex;
+  max-width: min(72%, 310px);
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 14px;
+  background: rgba(250, 250, 250, 0.9);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px) saturate(1.3);
+  pointer-events: none;
+}
+
+.playable-map__location-dot {
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #0a84ff;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.28);
+}
+
+.playable-map__location span:last-child {
+  min-width: 0;
+}
+
+.playable-map__location strong,
+.playable-map__location small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playable-map__location strong {
+  color: #111827;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+.playable-map__location small {
+  margin-top: 2px;
+  color: #475569;
+  font-size: 10px;
+}
+
+.playable-map__notice {
+  position: absolute;
+  z-index: 6;
+  right: 8px;
+  bottom: 28px;
+  max-width: 210px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.76);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 8px;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+.playable-map--placement .playable-map__location {
+  border-color: rgba(34, 197, 94, 0.44);
+}
+
+.playable-map--placement .playable-map__location-dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.24);
+}
+
+@keyframes playable-map-pulse {
+  70% { box-shadow: 0 0 0 10px rgba(10, 132, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playable-map__pulse {
+    animation: none;
+  }
+}

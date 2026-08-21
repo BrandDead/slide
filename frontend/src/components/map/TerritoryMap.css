@@ -368,8 +368,48 @@
 
 .hood-map-container.maps-stage {
   height: min(68vh, 640px);
+  min-height: 430px;
   border-radius: 18px;
   border: none;
+  background: #d7d9d5;
+}
+
+.map-camera-actions {
+  position: absolute;
+  z-index: 22;
+  top: 116px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.map-camera-actions button {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+  font: 700 11px/1.1 -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  backdrop-filter: blur(16px) saturate(1.2);
+  cursor: pointer;
+}
+
+.map-camera-actions button:focus-visible {
+  outline: 3px solid rgba(10, 132, 255, 0.42);
+  outline-offset: 2px;
+}
+
+.map-camera-actions .map-camera-actions__cancel {
+  border-color: rgba(220, 38, 38, 0.2);
+  color: #b91c1c;
 }
 
 .block-claim-btn {

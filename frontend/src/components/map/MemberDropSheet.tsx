@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
 import type { MemberRole } from '../../types/block.types';
@@ -19,7 +20,7 @@ const MemberDropSheet: React.FC<MemberDropSheetProps> = ({ open, onClose, onDrop
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="drop-sheet" data-testid="member-drop-sheet">
       <div className="drop-handle" />
       <div className="drop-head">
@@ -50,7 +51,8 @@ const MemberDropSheet: React.FC<MemberDropSheetProps> = ({ open, onClose, onDrop
           <li className="drop-empty">Everyone’s already on this strip. Recruit from CREW.</li>
         )}
       </ul>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
