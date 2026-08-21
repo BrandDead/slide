@@ -276,6 +276,31 @@ export const useBlockStore = create<BlockStore>()(
             };
           }),
 
+        applyEncounterResult: (blockId, result) =>
+          set((state) => {
+            const block = state.blocks[blockId];
+            if (!block) return state;
+            const applied = block.appliedEncounterResultKeys ?? [];
+            if (applied.includes(result.idempotencyKey)) return state;
+            const downed = new Set(result.crewDown);
+            const placements = block.placements.map((placement) =>
+              downed.has(placement.memberId) ? { ...placement, health: 0 } : placement
+            );
+            return {
+              blocks: {
+                ...state.blocks,
+                [blockId]: {
+                  ...block,
+                  placements,
+                  heat: Math.max(0, Math.min(5, block.heat + result.heatDelta)),
+                  morale: Math.max(0, Math.min(100, block.morale + result.moraleDelta)),
+                  pendingIncome: Math.max(0, block.pendingIncome + result.pendingIncomeDelta),
+                  appliedEncounterResultKeys: [...applied, result.idempotencyKey].slice(-24),
+                },
+              },
+            };
+          }),
+
         collectIncome: (blockId) => {
           const block = get().blocks[blockId];
           if (!block || block.pendingIncome <= 0) return 0;
