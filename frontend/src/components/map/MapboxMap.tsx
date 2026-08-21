@@ -1,11 +1,12 @@
 // ============================================================
 // MapboxMap - Full-screen Mapbox GL JS integration
-// Renders the city map with dark theme for the Hood view
+// iOS Maps-style dark 3D hood for Fort Lauderdale / player origin
 // ============================================================
 
-import React, { useEffect, useRef, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
+import React, { useEffect, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import mapboxgl from '../../utils/mapboxClient';
+import { getMapboxToken, isUsableMapboxToken, LAS_OLAS_CENTER } from '../../config/mapboxToken';
 
 interface MapboxMapProps {
   onMapLoad?: (map: mapboxgl.Map) => void;
@@ -13,12 +14,12 @@ interface MapboxMapProps {
   zoom?: number;
 }
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = getMapboxToken();
 
 const MapboxMap: React.FC<MapboxMapProps> = ({
   onMapLoad,
-  center = [-118.2437, 34.0522], // Default: Los Angeles
-  zoom = 14,
+  center = LAS_OLAS_CENTER,
+  zoom = 15,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -26,13 +27,11 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    if (!MAPBOX_TOKEN) {
-      // Render a placeholder if no token
+    if (!isUsableMapboxToken(MAPBOX_TOKEN)) {
       containerRef.current.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#1a1a2e;color:#888;font-family:monospace;">
-          <div style="font-size:48px;margin-bottom:16px;">🗺️</div>
-          <div style="font-size:14px;">Mapbox token not configured</div>
-          <div style="font-size:12px;margin-top:8px;color:#555;">Set VITE_MAPBOX_TOKEN in .env</div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#111;color:#888;font-family:sans-serif;padding:24px;text-align:center;">
+          <div style="font-size:14px;font-weight:700;color:#f5f5f7;margin-bottom:8px;">Maps unavailable</div>
+          <div style="font-size:12px;line-height:1.5;">Set VITE_MAPBOX_ACCESS_TOKEN (or VITE_MAPBOX_TOKEN). Nearby recon still works offline.</div>
         </div>
       `;
       return;
@@ -45,46 +44,47 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
       style: 'mapbox://styles/mapbox/dark-v11',
       center,
       zoom,
-      pitch: 45,
-      bearing: -17.6,
+      pitch: 52,
+      bearing: -18,
       antialias: true,
     });
 
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
     map.addControl(
       new mapboxgl.GeolocateControl({
         positionOptions: { enableHighAccuracy: true },
         trackUserLocation: true,
         showUserHeading: true,
       }),
-      'top-left'
+      'bottom-right',
     );
 
     map.on('load', () => {
       mapRef.current = map;
-      // Add 3D buildings layer for immersion
       const layers = map.getStyle().layers;
       const labelLayerId = layers?.find(
-        (layer) => layer.type === 'symbol' && (layer.layout as any)?.['text-field']
+        (layer) => layer.type === 'symbol' && (layer.layout as any)?.['text-field'],
       )?.id;
 
-      map.addLayer(
-        {
-          id: '3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 12,
-          paint: {
-            'fill-extrusion-color': '#1a1a2e',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.6,
+      if (!map.getLayer('3d-buildings')) {
+        map.addLayer(
+          {
+            id: '3d-buildings',
+            source: 'composite',
+            'source-layer': 'building',
+            filter: ['==', 'extrude', 'true'],
+            type: 'fill-extrusion',
+            minzoom: 12,
+            paint: {
+              'fill-extrusion-color': '#1c1c28',
+              'fill-extrusion-height': ['get', 'height'],
+              'fill-extrusion-base': ['get', 'min_height'],
+              'fill-extrusion-opacity': 0.72,
+            },
           },
-        },
-        labelLayerId
-      );
+          labelLayerId,
+        );
+      }
 
       onMapLoad?.(map);
     });
@@ -98,7 +98,7 @@ const MapboxMap: React.FC<MapboxMapProps> = ({
   return (
     <div
       ref={containerRef}
-      style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' }}
+      style={{ width: '100%', height: '100%', overflow: 'hidden' }}
     />
   );
 };

@@ -9,8 +9,9 @@
 // ============================================================
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { buildGeocodeUrl } from '../../config/mapbox.config';
+import { getMapboxToken } from '../../config/mapboxToken';
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = getMapboxToken();
 
 // ─── Types ───────────────────────────────────────────────────
 export interface AddressResult {

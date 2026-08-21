@@ -48,6 +48,7 @@ import {
   ROLE_LABELS,
   rowTint,
 } from './slidePhaser3Coords';
+import { PhaserReadyGate } from '../../utils/phaserSceneReady';
 
 // ─── Scene ──────────────────────────────────────────────────
 
@@ -66,9 +67,14 @@ export class SlidePhaser3Scene extends Phaser.Scene {
   private carSprite?: Phaser.GameObjects.Container;
   private lastStateHash = '';
   private currentState: SlideGameState | null = null;
+  readonly readyGate = new PhaserReadyGate();
 
   constructor() {
     super({ key: 'SlidePhaser3Scene' });
+  }
+
+  whenReady(cb: () => void): void {
+    this.readyGate.whenReady(cb);
   }
 
   create(): void {
@@ -83,6 +89,7 @@ export class SlidePhaser3Scene extends Phaser.Scene {
     this.drawGrid();
     this.setupInput();
 
+    this.readyGate.markReady();
     this.events.emit('ready');
   }
 

@@ -360,6 +360,30 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.hood-view.maps-chrome {
+  padding: 0 12px 12px;
+  min-height: 0;
+  flex: 1;
+}
+
+.hood-map-container.maps-stage {
+  height: min(68vh, 640px);
+  border-radius: 18px;
+  border: none;
+}
+
+.block-claim-btn {
+  padding: 8px 16px;
+  background: rgba(10, 132, 255, 0.12);
+  border: 1px dashed #0a84ff;
+  border-radius: 8px;
+  color: #64d2ff;
+  font-size: 13px;
+  cursor: pointer;
+  margin: 0 12px 8px;
+  width: calc(100% - 24px);
+}
+
 .hood-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

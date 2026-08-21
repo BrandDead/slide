@@ -10,8 +10,13 @@ import { Database } from '../types/database.types'; // Generated types
 // CONFIGURATION
 // ============================================================
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const IS_DEMO_MODE = import.meta.env.VITE_DEMO_MODE === '1';
+const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ||
+  (IS_DEMO_MODE ? 'https://demo.supabase.invalid' : undefined);
+const SUPABASE_ANON_KEY =
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  (IS_DEMO_MODE ? 'demo-anon-key' : undefined);
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase environment variables. Check your .env file.');

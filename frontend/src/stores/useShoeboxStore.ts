@@ -30,8 +30,9 @@ import type {
   PayrollResult,
   MoraleFallout,
   BlockPayroll,
+  PayrollBlockInput,
 } from '../types/economy.types';
-import type { TransactionType, GangMember, Block } from '../types/game.types';
+import type { TransactionType, GangMember } from '../types/game.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -79,9 +80,9 @@ interface ShoeboxStoreState {
 
   // ── Payroll ───────────────────────────────────────────────────────────────
   /** Build this week's sheet from live gang state. */
-  openPayrollCycle: (members: GangMember[], ownedBlocks: Block[]) => PayrollCycle;
+  openPayrollCycle: (members: GangMember[], ownedBlocks: PayrollBlockInput[]) => PayrollCycle;
   /** Per-block cost rollups for the UI ("this block runs you $2,400/wk"). */
-  getBlockPayrolls: (members: GangMember[], ownedBlocks: Block[]) => BlockPayroll[];
+  getBlockPayrolls: (members: GangMember[], ownedBlocks: PayrollBlockInput[]) => BlockPayroll[];
   /** Toggle a member's willPay flag during selective payment. */
   setWillPay: (memberId: string, willPay: boolean) => void;
   /**
@@ -96,7 +97,7 @@ interface ShoeboxStoreState {
   /** Called by the game clock. Opens a cycle when one is due. */
   tickPayrollClock: (
     members: GangMember[],
-    ownedBlocks: Block[],
+    ownedBlocks: PayrollBlockInput[],
     updateMember: (id: string, updates: Partial<GangMember>) => void,
     addNotification: (n: { type: string; title: string; message: string }) => void
   ) => void;
@@ -113,11 +114,11 @@ const uid = () =>
 
 function buildLines(
   members: GangMember[],
-  ownedBlocks: Block[],
+  ownedBlocks: PayrollBlockInput[],
   unpaidStreaks: Record<string, number>
 ): PayrollLine[] {
   // Map memberId → block via deployed units
-  const memberBlock = new Map<string, Block>();
+  const memberBlock = new Map<string, PayrollBlockInput>();
   for (const block of ownedBlocks) {
     for (const unit of block.units) {
       memberBlock.set(unit.gangMemberId, block);
@@ -139,7 +140,7 @@ function buildLines(
         level: m.level,
         wage: computeWage(role, m.level),
         blockId: block?.id ?? null,
-        blockAddress: block?.geoBlock?.address ?? null,
+        blockAddress: block?.address ?? null,
         morale: m.morale,
         loyalty: m.loyalty,
         consecutiveUnpaidWeeks: unpaidStreaks[m.id] ?? 0,
@@ -273,7 +274,7 @@ export const useShoeboxStore = create<ShoeboxStoreState>()(
             const weeklyIncome = Math.round(block.incomePerTick * 24 * 7);
             return {
               blockId: block.id,
-              blockAddress: block.geoBlock?.address ?? block.id,
+              blockAddress: block.address,
               memberCount: blockLines.length,
               weeklyCost,
               weeklyIncome,

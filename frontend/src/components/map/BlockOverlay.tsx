@@ -4,7 +4,7 @@
 // ============================================================
 
 import { useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl from '../../utils/mapboxClient';
 
 interface BlockData {
   id: string;

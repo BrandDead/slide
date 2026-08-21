@@ -20,12 +20,14 @@ import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import { useNPCTick } from './stores/npcStore';
-import { useTerritoryStore } from './stores/gameStore';
+import { useTerritoryStore, useGangStore } from './stores/gameStore';
 import { supabase } from './services/supabase';
 import type { User } from '@supabase/supabase-js';
 import type { GangProfile } from './types/game.types';
 import { isAccountSwitch, toPlayerIdentity } from './utils/authPlayer';
 import { IS_DEMO_MODE, seedDemoState } from './utils/demoSeed';
+import { useBlockStore } from './stores/blockStore';
+import { useShoeboxStore } from './stores/useShoeboxStore';
 
 // Layout
 import OSShell from './components/layout/OSShell';
@@ -85,9 +87,25 @@ const pageVariants = {
   exit:    { opacity: 0, x: -20 },
 };
 
+/**
+ * Development-only deep links keep each phone app independently testable
+ * without making normal production navigation depend on URL routing.
+ */
+const DEMO_APP_IDS = new Set([
+  'home', 'map', 'dealt', 'dealt_v2', 'contacts', 'settings', 'slide',
+  'driveby', 'topdown', 'bipndip', 'raid', 'gang_hq', 'alchemy', 'shoebox',
+  'market', 'missions', 'planner', 'casino', 'graffiti', 'cocaine_crush',
+  'leaderboard', 'news', 'phone', 'trap', 'most_wanted',
+]);
+
+function demoAppFromLocation(): string | null {
+  const candidate = new URLSearchParams(window.location.search).get('app');
+  return candidate && DEMO_APP_IDS.has(candidate) ? candidate : null;
+}
+
 // ─── App ──────────────────────────────────────────────────────
 const App: React.FC = () => {
-  const { currentApp } = useNavigationStore();
+  const { currentApp, navigateTo } = useNavigationStore();
   const { player, updatePlayer, logout } = usePlayerStore();
   const [showOnboarding, setShowOnboarding] = useState(!player?.gangProfile);
   const [authUser, setAuthUser] = useState<User | null>(null);
@@ -134,9 +152,24 @@ const App: React.FC = () => {
   useEffect(() => {
     if (IS_DEMO_MODE) {
       seedDemoState();
+      const requestedApp = demoAppFromLocation();
+      if (requestedApp) navigateTo(requestedApp);
       setAuthChecked(true);
       setShowOnboarding(false);
-      return;
+      // Persist rehydration can overwrite the seed with a stale local snapshot.
+      const persistStores = [useBlockStore, useShoeboxStore, useGangStore] as Array<{
+        persist?: {
+          hasHydrated?: () => boolean;
+          onFinishHydration?: (cb: () => void) => () => void;
+        };
+      }>;
+      const unsubs: Array<() => void> = [];
+      for (const store of persistStores) {
+        const api = store.persist;
+        if (!api?.onFinishHydration) continue;
+        unsubs.push(api.onFinishHydration(() => seedDemoState()));
+      }
+      return () => unsubs.forEach((u) => u());
     }
     // Check Supabase auth session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -147,7 +180,7 @@ const App: React.FC = () => {
       hydrateAuthenticatedPlayer(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
-  }, [hydrateAuthenticatedPlayer]);
+  }, [hydrateAuthenticatedPlayer, navigateTo]);
 
   const handleOnboardingComplete = (profile: GangProfile) => {
     updatePlayer({

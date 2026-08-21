@@ -71,23 +71,26 @@ export const PhaserSlideGame: React.FC<PhaserSlideGameProps> = ({
         banner: false,
       };
 
-      const game = new Phaser.Game(config);
-      gameRef.current = game;
-
-      scene.events.once('ready', () => {
+      scene.whenReady(() => {
         setIsReady(true);
         stateRef.current = initialState;
         scene.updateState(initialState);
+        scene.events.on('cell_click', handleCellClick);
       });
 
-      scene.events.on('cell_click', handleCellClick);
+      const game = new Phaser.Game(config);
+      gameRef.current = game;
     } catch (err) {
       console.error('[PhaserSlideGame] failed to init Phaser', err);
       setError(err instanceof Error ? err.message : 'Unknown Phaser error');
     }
 
     return () => {
-      sceneRef.current?.events.off('cell_click', handleCellClick);
+      try {
+        sceneRef.current?.events?.off('cell_click', handleCellClick);
+      } catch {
+        /* scene may never have booted */
+      }
       gameRef.current?.destroy(true);
       gameRef.current = null;
       sceneRef.current = null;

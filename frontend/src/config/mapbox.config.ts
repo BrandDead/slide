@@ -4,6 +4,7 @@
  */
 
 import type { CityConfig, SupportedCity, MapboxStaticImageParams } from '../types/location.types';
+import { getMapboxToken } from './mapboxToken';
 
 // ============================================================================
 // MAPBOX API CONFIG
@@ -17,7 +18,7 @@ export const MAPBOX_CONFIG = {
   
   // Get from environment
   get accessToken(): string {
-    const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+    const token = getMapboxToken();
     if (!token) {
       console.error('MAPBOX_ACCESS_TOKEN not configured');
       return '';

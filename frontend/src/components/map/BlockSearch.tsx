@@ -4,6 +4,7 @@
 // ============================================================
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { getMapboxToken } from '../../config/mapboxToken';
 import './BlockSearch.css';
 
 interface SearchResult {
@@ -20,7 +21,7 @@ interface BlockSearchProps {
   onResultSelect: (result: SearchResult) => void;
 }
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
+const MAPBOX_TOKEN = getMapboxToken();
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const BlockSearch: React.FC<BlockSearchProps> = ({ onResultSelect }) => {
