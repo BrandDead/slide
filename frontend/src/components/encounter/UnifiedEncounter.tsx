@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Phaser from 'phaser';
 import type { BlockData } from '../../types/block.types';
 import { createCombatSession, getCombatSnapshot } from '../../game/combat/combatSession';
@@ -33,40 +34,53 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({ block, onRes
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<UnifiedEncounterScene | null>(null);
   const resolvedRef = useRef(false);
-  const preparation = useMemo(() => prepareEncounter(block), [block]);
+  const [preparation] = useState(() => prepareEncounter(block));
   const reducedMotion = useReducedMotion();
   const [snapshot, setSnapshot] = useState<CombatSnapshot>(() => getCombatSnapshot(createCombatSession(preparation)));
   const [result, setResult] = useState<CombatResult | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
+    let cancelled = false;
     resolvedRef.current = false;
-    const scene = new UnifiedEncounterScene();
-    scene.configure(preparation, reducedMotion);
-    sceneRef.current = scene;
-    scene.events.on('ready', () => setIsReady(true));
-    scene.events.on('snapshot', (next: CombatSnapshot) => setSnapshot(next));
-    scene.events.on('combatResult', (next: CombatResult | null) => {
-      if (next) setResult(next);
-    });
+    setError(null);
 
-    const game = new Phaser.Game({
-      type: Phaser.AUTO,
-      width: 960,
-      height: 600,
-      parent: containerRef.current,
-      backgroundColor: '#07111d',
-      scene,
-      banner: false,
-      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-      render: { antialias: true, pixelArt: false, roundPixels: true },
-      audio: { noAudio: true },
-    });
-    gameRef.current = game;
+    try {
+      const scene = new UnifiedEncounterScene();
+      scene.configure(preparation, reducedMotion);
+      sceneRef.current = scene;
+
+      scene.whenReady(() => {
+        if (cancelled) return;
+        scene.events.on('snapshot', (next: CombatSnapshot) => setSnapshot(next));
+        scene.events.on('combatResult', (next: CombatResult | null) => {
+          if (next) setResult(next);
+        });
+        setIsReady(true);
+      });
+
+      const game = new Phaser.Game({
+        type: Phaser.AUTO,
+        width: 960,
+        height: 600,
+        parent: containerRef.current,
+        backgroundColor: '#07111d',
+        scene,
+        banner: false,
+        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+        render: { antialias: true, pixelArt: false, roundPixels: true },
+        audio: { noAudio: true },
+      });
+      gameRef.current = game;
+    } catch (encounterError) {
+      setError(encounterError instanceof Error ? encounterError.message : String(encounterError));
+    }
 
     return () => {
-      game.destroy(true);
+      cancelled = true;
+      gameRef.current?.destroy(true);
       gameRef.current = null;
       sceneRef.current = null;
       setIsReady(false);
@@ -82,7 +96,7 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({ block, onRes
   const activeCrew = snapshot.combatants.filter((actor) => actor.team === 'crew' && !actor.isDown).length;
   const opposition = snapshot.combatants.filter((actor) => actor.team === 'opposition' && !actor.isDown).length;
 
-  return (
+  return createPortal(
     <section className="unified-encounter" aria-label="Tactical encounter">
       <header className="ue-briefing">
         <div>
@@ -98,7 +112,14 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({ block, onRes
       </div>
 
       <div className="ue-stage-shell">
-        {!isReady && <div className="ue-loading" role="status">Building your tactical scene…</div>}
+        {!isReady && !error && <div className="ue-loading" role="status">Building your tactical scene…</div>}
+        {error && (
+          <div className="ue-loading ue-loading--error" role="alert">
+            <strong>Encounter failed to load.</strong>
+            <span>{error}</span>
+            <button type="button" onClick={onClose}>Return to planning</button>
+          </div>
+        )}
         <div ref={containerRef} className={`ue-stage ${isReady ? 'ue-stage--ready' : ''}`} />
       </div>
 
@@ -129,7 +150,8 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({ block, onRes
           <button type="button" onClick={commitResult}>Apply result and return</button>
         </div>
       )}
-    </section>
+    </section>,
+    document.body,
   );
 };
 

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { advanceCombat, createCombatSession, dispatchCombatCommand, getCombatSnapshot } from '../../game/combat/combatSession';
+import { PhaserReadyGate } from '../../utils/phaserSceneReady';
 import type { CombatCommand, CombatSnapshot, Combatant, EncounterPreparation, GridPoint } from '../../game/combat/types';
 import { getWorldActor } from '../../render/worldActorResolver';
 
@@ -51,9 +52,14 @@ export class UnifiedEncounterScene extends Phaser.Scene {
   private actorLayer!: Phaser.GameObjects.Container;
   private uiLayer!: Phaser.GameObjects.Container;
   private backgroundKey = 'encounter-background';
+  private readonly readyGate = new PhaserReadyGate();
 
   constructor() {
     super({ key: 'UnifiedEncounterScene' });
+  }
+
+  whenReady(callback: () => void): void {
+    this.readyGate.whenReady(callback);
   }
 
   configure(preparation: EncounterPreparation, reducedMotion: boolean): void {
@@ -77,15 +83,15 @@ export class UnifiedEncounterScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.drawBackground();
     this.terrainLayer = this.add.container(0, 0);
     this.actorLayer = this.add.container(0, 0);
     this.uiLayer = this.add.container(0, 0);
-    this.drawBackground();
     this.drawTerrain();
     this.createHud();
     this.syncViews();
     this.bindInput();
-    this.events.emit('ready');
+    this.readyGate.markReady();
     this.emitSnapshot();
   }
 
