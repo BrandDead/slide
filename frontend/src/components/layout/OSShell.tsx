@@ -13,6 +13,8 @@ import {
   useNotificationStore,
 } from '../../stores/gameStore';
 import { useMostWantedStore } from '../../stores/mostWantedStore';
+import { useShoeboxStore } from '../../stores/useShoeboxStore';
+import { formatCash } from '../../utils/shoeboxAnalytics';
 import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
 import { GameSprite } from '../common/GameSprite';
@@ -44,6 +46,7 @@ const formatMoney = (amount: number): string => {
 const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 }) => {
   const { navigateTo } = useNavigationStore();
   const { player } = usePlayerStore();
+  const vault = useShoeboxStore((s) => s.bankBalance);
   const { members } = useGangStore();
   const { getUnreadCount, notifications, markAllAsRead } = useNotificationStore();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -349,11 +352,9 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       <div className="stats-dashboard">
         {/* Cash + Income */}
         <div className="stat-card stat-cash">
-          <div className="stat-value money">{formatMoney(player.money)}</div>
-          <div className="stat-label">Cash</div>
-          {incomePerMinute > 0 && (
-            <div className="income-ticker">+${incomePerMinute}/min</div>
-          )}
+          <div className="stat-value money">{formatMoney(vault || player.bankBalance || player.money)}</div>
+          <div className="stat-label">Vault</div>
+          <div className="income-ticker">Street {formatCash(player.money)}</div>
         </div>
 
         {/* Heat Meter */}
@@ -365,7 +366,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             className="stat-value heat"
             style={{ color: getHeatColor(player.heat) }}
           >
-            {player.heat}%
+            {Math.round(player.heat)}%
           </div>
           <div className="stat-label">Heat</div>
           <div className={`heat-bar ${getHeatBarClass(player.heat)}`}>

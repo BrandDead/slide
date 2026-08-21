@@ -15,6 +15,7 @@ interface BlockDetailPanelProps {
   onDeployMember: (block: BlockData) => void;
   onStartSlide: (block: BlockData) => void;
   onClaimBlock?: (block: BlockData) => void;
+  claimCost?: number;
 }
 
 const BlockDetailPanel: React.FC<BlockDetailPanelProps> = ({
@@ -24,6 +25,7 @@ const BlockDetailPanel: React.FC<BlockDetailPanelProps> = ({
   onDeployMember,
   onStartSlide,
   onClaimBlock,
+  claimCost = 5000,
 }) => {
   if (!block) return null;
 
@@ -50,7 +52,7 @@ const BlockDetailPanel: React.FC<BlockDetailPanelProps> = ({
           {/* Block info */}
           <div className="panel-block-info">
             <span className={`owner-badge ${block.owner}`}>
-              {isPlayer ? '🏠 YOUR BLOCK' : isNpc ? '⚔️ OPP BLOCK' : '🏘️ UNCLAIMED'}
+              {isPlayer ? 'YOUR BLOCK' : isNpc ? 'RIVAL BLOCK' : 'UNCLAIMED'}
             </span>
             <h3 className="panel-address">{block.address}</h3>
           </div>
@@ -58,29 +60,30 @@ const BlockDetailPanel: React.FC<BlockDetailPanelProps> = ({
           {/* Stats grid */}
           <div className="panel-stats">
             <div className="panel-stat">
-              <span className="stat-icon">💰</span>
+              <span className="stat-icon">$</span>
               <span className="stat-val">${block.income || 0}</span>
               <span className="stat-lbl">Income/hr</span>
             </div>
             <div className="panel-stat">
-              <span className="stat-icon">🔥</span>
+              <span className="stat-icon">H</span>
               <span className="stat-val">{block.heat || 0}</span>
               <span className="stat-lbl">Heat</span>
             </div>
             <div className="panel-stat">
-              <span className="stat-icon">👥</span>
+              <span className="stat-icon">C</span>
               <span className="stat-val">{block.members || 0}</span>
               <span className="stat-lbl">Members</span>
             </div>
           </div>
 
           {/* Mini grid preview (8x8 thumbnail) */}
-          <div className="panel-grid-preview">
+          <div className="panel-grid-preview" aria-hidden="true">
             {Array.from({ length: 8 }, (_, y) => (
               <div key={y} className="grid-preview-row">
                 {Array.from({ length: 8 }, (_, x) => {
                   const isStreet = y === 0 || y === 7;
-                  const hasMember = isPlayer && Math.random() < (block.members || 0) / 64;
+                  const seeded = ((block.members || 0) * 17 + x * 3 + y * 11) % 64;
+                  const hasMember = isPlayer && seeded < (block.members || 0);
                   return (
                     <div
                       key={x}
@@ -97,21 +100,21 @@ const BlockDetailPanel: React.FC<BlockDetailPanelProps> = ({
             {isPlayer && (
               <>
                 <button className="panel-btn collect" onClick={() => onCollectIncome(block)}>
-                  💰 Collect Income
+                  Collect
                 </button>
                 <button className="panel-btn deploy" onClick={() => onDeployMember(block)}>
-                  👥 Deploy Member
+                  Drop crew
                 </button>
               </>
             )}
             {isNpc && (
               <button className="panel-btn slide" onClick={() => onStartSlide(block)}>
-                🚗 Slide On Them
+                Slide on them
               </button>
             )}
             {isUnclaimed && onClaimBlock && (
               <button className="panel-btn claim" onClick={() => onClaimBlock(block)}>
-                🏴 Claim Block ($2,000)
+                Claim block (${claimCost.toLocaleString()})
               </button>
             )}
           </div>

@@ -6,6 +6,14 @@
 
 import type { UnitType, TransactionType } from './game.types';
 
+/** Slim block shape the payroll engine needs — works with live BlockData. */
+export interface PayrollBlockInput {
+  id: string;
+  address: string;
+  incomePerTick: number;
+  units: Array<{ gangMemberId: string; type: string }>;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SHOEBOX LEDGER
 // ─────────────────────────────────────────────────────────────────────────────

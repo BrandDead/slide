@@ -1,0 +1,58 @@
+.drop-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 58%;
+  background: rgba(22, 22, 24, 0.97);
+  border-radius: 18px 18px 0 0;
+  z-index: 41;
+  padding: 8px 14px 16px;
+}
+
+.drop-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 99px;
+  background: #3a3a3c;
+  margin: 4px auto 10px;
+}
+
+.drop-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.drop-head h2 { margin: 0; font-size: 20px; }
+.drop-head p { margin: 2px 0 0; color: #8e8e93; font-size: 12px; }
+.drop-head button {
+  border: none;
+  background: #2c2c2e;
+  color: #64d2ff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drop-list { list-style: none; margin: 12px 0 0; padding: 0; overflow-y: auto; max-height: 40vh; }
+.drop-list button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 4px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #2c2c2e;
+  color: #f5f5f7;
+  cursor: pointer;
+  text-align: left;
+}
+
+.drop-role { font-size: 11px; font-weight: 800; color: #00d64f; letter-spacing: 0.06em; }
+.drop-name { font-weight: 700; }
+.drop-lvl { color: #8e8e93; font-size: 12px; }
+.drop-empty { color: #8e8e93; padding: 20px 4px; }

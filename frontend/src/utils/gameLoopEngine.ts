@@ -315,13 +315,12 @@ export function useGameLoop(): GameLoopState {
 
     const incomeResult = calculateTotalIncome(blockDealers);
 
-    // Also tick the block store so BlockModeView pendingIncome stays in sync
+    // Live BlockData pendingIncome is the player-facing "sitting on the block"
+    // cash. Collecting it stashes into the Shoebox — do not auto-bank here or
+    // the vault sync will fight the collect action.
     useBlockStore.getState().tickIncome();
 
     if (incomeResult.totalIncome > 0) {
-      // Route ALL passive income to the Shoebox (bankBalance)
-      const currentBank = usePlayerStore.getState().player.bankBalance ?? 0;
-      stores.player.updatePlayer({ bankBalance: currentBank + incomeResult.totalIncome });
       stores.economy.addTransaction({
         id: Date.now().toString(),
         type: 'income',

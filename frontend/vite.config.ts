@@ -102,10 +102,9 @@ export default defineConfig({
       'react-dom',
       'zustand',
       'framer-motion',
-    ],
-    exclude: [
-      'mapbox-gl',   // too large to pre-bundle
+      'mapbox-gl',
       'phaser',
     ],
   },
 });
+

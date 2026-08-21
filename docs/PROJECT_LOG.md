@@ -6,9 +6,12 @@ entries at the top of the log section; never rewrite history entries.
 
 ---
 
-## Current state (as of 2026-07-20)
+## Current state (as of 2026-08-19)
 
-- **Default branch:** `main-tL2525` (protected). Head includes PR #76 (squash commit `d4ea90f`).
+- **Default branch:** `main-tL2525` (protected).
+- **Player-facing loop:** Cash App-style Shoebox vault, iPhone Maps-style hood recon with
+  nearby attackable strips (tactical canvas fallback when Mapbox is missing), a war-room
+  recommended hit, and a drive-by tactical HUD. See log entry 2026-08-19.
 - **Graphics engine on main:** Las Olas V3 renderer (`CanvasStreetRendererV3.tsx`) with
   material destruction, vehicle damage regions, 14-joint Verlet ragdolls, and the
   grid-vs-pixel coordinate repair. Compatibility entrypoint preserved at
@@ -64,6 +67,32 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 ---
 
 ## Log
+
+### 2026-08-19 — Game experience audit + Cash App vault / Maps hood / combat HUD
+
+Audited the player-facing loop (empire → shoebox → map → combat) and closed the biggest
+disconnects that made the game feel unfinished:
+
+- **Shoebox** was a deposit/withdraw screen on `player.money`, while payroll lived in
+  a separate `useShoeboxStore`. It now is a Cash App-style vault: huge balance, stash/pull
+  /collect, dealer vs enforcer vs shooter P&L, weekly block cost, spend categories, and
+  the live ledger.
+- **Maps** mixed dummy Miami pins, a $2,000 claim label vs $5,000 cost, `VITE_MAPBOX_TOKEN`
+  vs `VITE_MAPBOX_ACCESS_TOKEN`, and a 400px map. Hood view is now iPhone Maps-like: origin
+  on the player strip, search sheet, nearby attackable/claimable recon ring, and drop-crew
+  onto a block from the map. Without a real Mapbox token the hood uses a **tactical canvas
+  map** (pan/zoom/pins) instead of a black GL canvas. A **war room** card recommends the
+  richest nearby rival and one-taps into drive-by with the pin locked as the target.
+- **Strip tab** uses the working TopDownBlock placement grid (Phaser no longer mounts on
+  the default path; Phaser wrappers wait on a ready gate so `scene.events` is never read
+  before boot).
+- **Income** no longer auto-banks then gets overwritten by vault sync. Pending cash sits
+  on the block; Collect stashes it. Payroll uses live `BlockData` placements instead of
+  an empty array. Demo seeds a dealer **and** an enforcer so both P&L columns are live.
+- **Drive-by** has a modern tactical HUD (ammo, destruction, kill feed, hit markers,
+  streaks) plus kill hit-stop, and mission take deposits to the vault.
+- **mapbox-gl** is in `optimizeDeps.include` with a UMD default-export shim so `npm run
+  dev` no longer blanks the app on the map import.
 
 ### 2026-08-14 — Deployment runtime compatibility remediation
 
