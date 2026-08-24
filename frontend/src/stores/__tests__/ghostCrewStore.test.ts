@@ -58,9 +58,10 @@ describe('ghostCrewStore', () => {
 
   it('crewForBlock resolves the owner of a claimed block', () => {
     useGhostStore.getState().seedCrews();
-    // Force a claim by running ticks until at least one crew owns a block.
-    for (let i = 0; i < 12 && useBlockStore.getState().blocks.length === undefined; i++) {
+    // Run ticks until at least one crew owns a block (bounded).
+    for (let i = 0; i < 12; i++) {
       useGhostStore.getState().runTick();
+      if (Object.keys(useBlockStore.getState().blocks).length > 0) break;
     }
     const npcBlock = Object.values(useBlockStore.getState().blocks).find((b) => b.owner === 'npc');
     if (npcBlock) {

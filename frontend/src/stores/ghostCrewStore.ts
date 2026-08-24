@@ -15,7 +15,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import {
   DEFAULT_GHOST_CREWS,
   decideGhostAction,
@@ -89,34 +89,34 @@ export const useGhostStore = create<GhostStore>()(
         },
 
         recordPlayerAttack(crewId, blockId) {
+          // Read + derive first, then set, then notify — keep the Zustand
+          // updater pure (no side effects inside set()).
+          const crew = get().crews[crewId];
+          if (!crew) return;
+          const updated = addGrudge(crew, blockId, 25);
+          const feedEvent: GhostFeedEvent = {
+            id: `grudge-${Date.now()}`,
+            crewId,
+            crewName: crew.name,
+            action: 'attack',
+            description: `${crew.name} will remember what you did on their block.`,
+            targetBlockId: blockId,
+            timestamp: Date.now(),
+          };
           set(
-            (state) => {
-              const crew = state.crews[crewId];
-              if (!crew) return state;
-              const updated = addGrudge(crew, blockId, 25);
-              const feed: GhostFeedEvent = {
-                id: `grudge-${Date.now()}`,
-                crewId,
-                crewName: crew.name,
-                action: 'attack',
-                description: `${crew.name} will remember what you did on their block.`,
-                targetBlockId: blockId,
-                timestamp: Date.now(),
-              };
-              useNotificationStore.getState().addNotification({
-                type: 'warning',
-                title: `${crew.name} holds a grudge`,
-                message: `Your hit on their turf raised their grudge to ${updated.grudge.score}. Expect payback.`,
-                priority: 'high',
-              });
-              return {
-                crews: { ...state.crews, [crewId]: updated },
-                feed: [feed, ...state.feed].slice(0, FEED_LIMIT),
-              };
-            },
+            (state) => ({
+              crews: { ...state.crews, [crewId]: updated },
+              feed: [feedEvent, ...state.feed].slice(0, FEED_LIMIT),
+            }),
             false,
             'ghost/recordPlayerAttack',
           );
+          useNotificationStore.getState().addNotification({
+            type: 'warning',
+            title: `${crew.name} holds a grudge`,
+            message: `Your hit on their turf raised their grudge to ${updated.grudge.score}. Expect payback.`,
+            priority: 'high',
+          });
         },
 
         runTick() {
@@ -229,13 +229,6 @@ export function useGhostTick(): void {
       setTickActive(false);
     };
   }, [tick, setTickActive]);
-
-  // Keep a live ref so other systems can read the latest crews without
-  // subscribing.
-  const crewsRef = useRef(crews);
-  useEffect(() => {
-    crewsRef.current = crews;
-  }, [crews]);
 }
 
 // ─── Selectors ───────────────────────────────────────────────
