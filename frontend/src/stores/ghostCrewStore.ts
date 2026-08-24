@@ -210,7 +210,7 @@ const GHOST_TICK_MS = 30_000; // 30 s real time = one world tick
  * sessions.
  */
 export function useGhostTick(): void {
-  const { crews, seedCrews, runTick, setTickActive } = useGhostStore();
+  const { crews, seedCrews, setTickActive } = useGhostStore();
 
   // Seed once on first mount.
   useEffect(() => {

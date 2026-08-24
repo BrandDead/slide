@@ -1,6 +1,6 @@
 // Tests for blockDNAResolver — address-to-block-archetype pipeline
 import { describe, it, expect } from 'vitest';
-import { resolveBlockDNA, type ResolvedBlock } from '../blockDNAResolver';
+import { resolveBlockDNA } from '../blockDNAResolver';
 
 // ─── Las Olas Blvd, Fort Lauderdale ──────────────────────────────────────────
 const LAS_OLAS = { lat: 26.1195, lng: -80.1368, address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312' };

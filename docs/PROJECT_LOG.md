@@ -68,6 +68,47 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-24 — Visual foundation + Block DNA growth + ghost crews (#78/#79/#80/#81)
+
+Landed the four-phase dev plan against the open roadmap issues.
+
+- **#79 asset cleanup & CI gate.** Registered the 7 hand-added runtime assets
+  (Las Olas street/topdown plates + 5 UI plates) into `runtimeManifest.json` —
+  the audit now reports 0 errors / 0 warnings at 5.73 MB / 20 MB. Added
+  `npm run assets:audit` as a CI step so orphan/oversize/no-alpha regressions
+  fail the build. Fixed 8 stale `.png` references to files that only ship as
+  `.webp`.
+- **#78 manifest wiring.** `assetResolver.getStreetSpriteUrl` now delegates to
+  the manifest-driven `worldActorResolver`, so every role with shipped street
+  art (dealer, shooter, enforcer, lookout, driver, recruit, k9) resolves a real
+  sprite instead of the old 3-role `STREET_STATES` table. Fixed 10 stale
+  `assetManifest.ts` paths (png→webp, topdown `_idle` suffixes, dealer street,
+  product icons, UI icons) — all 55 manifest paths now verify on disk. Audited
+  renderers: none bypass the resolver except `GameSprite`, which is icon-only.
+- **#80 Block DNA growth.** Library grew 8 → 17 cards across starter/mid/high/
+  elite tiers (urban decay, suburban, gated estates). Claiming a block now
+  stamps `dnaId` / `incomeMultiplier` / `heatDecayMultiplier` / `maxMembers`
+  onto `BlockData`, and `blockStore` scales placement income by the DNA
+  multiplier. Acceptance tests prove a starter and an elite block resolve to
+  different stats and layouts with no Mapbox call.
+- **#81 NPC rival crew v1.** New `ghostCrewEngine.ts` + `ghostCrewStore.ts`:
+  persistent named crews (territory-hungry / revenge-driven / money-crew /
+  chaotic personalities) claim DNA blocks, reinforce, attack, or lay low on a
+  30 s world tick, playing by the same economy rules as the player. Ghost turf
+  is written into `blockStore` as `owner:'npc'` so the map, recon ring, and
+  encounter pipeline all see it. Player kills on ghost turf raise a persistent
+  grudge (wired through `combatIntentStore.targetCrewId` → `recordPlayerAttack`)
+  that biases the crew toward revenge. Moves surface through a new
+  `GhostThreatBanner` and the City Feed. 19 engine + 4 store integration tests;
+  the store test proves a passive player loses ground over 12 ticks.
+- **#45 beta gate scaffolding.** Added `src/__tests__/betaGate.smoke.test.ts`
+  (7 shallow assertions, one per pillar: territory, economy, combat, npc,
+  assets) and `docs/RELEASE_CHECKLIST.md` with the full gate + explicit
+  deferral list.
+
+Validation: `npm run typecheck` clean; Vitest 674/674 across 41 files;
+`npm run assets:audit` 0 errors / 0 warnings.
+
 ### 2026-08-19 — Game experience audit + Cash App vault / Maps hood / combat HUD
 
 Audited the player-facing loop (empire → shoebox → map → combat) and closed the biggest
