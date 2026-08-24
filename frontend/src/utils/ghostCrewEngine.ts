@@ -24,7 +24,6 @@
 // ============================================================
 
 import { BLOCK_DNA_LIBRARY, type BlockDNA } from '../config/blockDNA';
-import { generateBlockHash } from '../config/mapbox.config';
 import type { BlockData } from '../types/block.types';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -262,7 +261,6 @@ export function pickClaimTarget(
 /** Build the BlockData a ghost crew owns after claiming a DNA card. */
 export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
   const id = `ghost-${dna.id}`;
-  const seed = generateBlockHash(dna.lat, dna.lng);
   const grid = Array.from({ length: 8 }, (_, y) =>
     Array.from({ length: 8 }, (_, x) => {
       const zoneType = (dna.zoneOverrides?.[y] ?? 'sidewalk') as BlockData['grid'][0][0]['zoneType'];
@@ -293,10 +291,6 @@ export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
     incomeMultiplier: dna.incomeMultiplier,
     heatDecayMultiplier: dna.heatDecayMultiplier,
     maxMembers: dna.maxMembers,
-    // Stable identity so the encounter pipeline resolves the same scene.
-    taggedBy: undefined,
-    taggedAt: undefined,
-    ...(seed ? {} : {}),
   };
 }
 
