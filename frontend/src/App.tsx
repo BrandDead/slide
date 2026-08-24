@@ -20,6 +20,7 @@ import PayrollModal from './components/economy/PayrollModal';
 import { useNPCRetaliation } from './utils/npcRetaliationEngine';
 import { useTutorialProgressStore } from './stores/tutorialProgressStore';
 import { useNPCTick } from './stores/npcStore';
+import { useGhostTick } from './stores/ghostCrewStore';
 import { useTerritoryStore, useGangStore } from './stores/gameStore';
 import { supabase } from './services/supabase';
 import type { User } from '@supabase/supabase-js';
@@ -36,6 +37,7 @@ import RaidEventOverlay from './components/layout/RaidEventOverlay';
 import GetBackClock from './components/common/GetBackClock';
 import TutorialOverlay from './components/tutorial/TutorialOverlay';
 import NPCThreatBanner from './components/map/NPCThreatBanner';
+import GhostThreatBanner from './components/map/GhostThreatBanner';
 
 // Always-loaded core screens
 import DealtMode from './components/dealt/DealtMode';
@@ -143,6 +145,8 @@ const App: React.FC = () => {
   // NPC AI Tick — drives rival gang behavior every 30s
   const playerBlockIds = useTerritoryStore((s) => s.blocks.map((b) => b.id));
   useNPCTick(playerBlockIds);
+  // Ghost Crew world tick — persistent rivals that claim/attack turf (#81)
+  useGhostTick();
 
   const { completeStep } = useTutorialProgressStore();
 
@@ -268,6 +272,8 @@ const App: React.FC = () => {
     <div className="app-container">
       {/* NPC threat banner — fixed top bar, shows on any screen */}
       <NPCThreatBanner />
+      {/* Ghost crew activity banner — surfaces rival claims/attacks (#81) */}
+      <GhostThreatBanner />
       <TutorialOverlay />
 
       {/* Get Back shot clock — global HUD. Hides itself when no debt is open. */}
