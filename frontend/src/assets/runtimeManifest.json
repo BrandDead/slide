@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-08-06T02:36:25.102Z",
   "budgetMB": 20,
-  "totalBytes": 5605208,
+  "totalBytes": 6007902,
   "qualityPass": "standard",
   "entries": [
     {
@@ -905,6 +905,24 @@
       "alphaRepaired": true
     },
     {
+      "id": "generated.environments.street.block_lasolas_driveby_street_v001",
+      "runtimePath": "/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.webp",
+      "sourcePath": "art-src/runtime/generated/environments/street/block_lasolas_driveby_street_v001.webp",
+      "class": "env-street",
+      "role": null,
+      "state": null,
+      "width": 1920,
+      "height": 1080,
+      "bytes": 93644,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
       "id": "generated.environments.street.block_stripplaza_day_street_v001",
       "runtimePath": "/assets/runtime/generated/environments/street/block_stripplaza_day_street_v001.webp",
       "sourcePath": "art-src/generated/environments/street/block_stripplaza_day_street_v001.png",
@@ -937,6 +955,24 @@
       "pivot": {
         "x": 0.5,
         "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.topdown.block_lasolas_topdown_v001",
+      "runtimePath": "/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.webp",
+      "sourcePath": "art-src/runtime/generated/environments/topdown/block_lasolas_topdown_v001.webp",
+      "class": "env-topdown",
+      "role": null,
+      "state": null,
+      "width": 1536,
+      "height": 864,
+      "bytes": 146248,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
       },
       "alphaRepaired": false
     },
@@ -1013,6 +1049,24 @@
       "alphaRepaired": true
     },
     {
+      "id": "generated.ui.contact_card_shooter_v001",
+      "runtimePath": "/assets/runtime/generated/ui/contact_card_shooter_v001.webp",
+      "sourcePath": "art-src/runtime/generated/ui/contact_card_shooter_v001.webp",
+      "class": "ui-overlay",
+      "role": "shooter",
+      "state": null,
+      "width": 576,
+      "height": 1024,
+      "bytes": 29810,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
       "id": "generated.ui.fps_hud_elements_v001",
       "runtimePath": "/assets/runtime/generated/ui/fps_hud_elements_v001.webp",
       "sourcePath": "art-src/generated/ui/fps_hud_elements_v001.png",
@@ -1029,6 +1083,24 @@
         "y": 0.5
       },
       "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.hud_overlay_v001",
+      "runtimePath": "/assets/runtime/generated/ui/hud_overlay_v001.webp",
+      "sourcePath": "art-src/runtime/generated/ui/hud_overlay_v001.webp",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 576,
+      "height": 1024,
+      "bytes": 34100,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
     },
     {
       "id": "generated.ui.icons.app_icon_set_v001",
@@ -1065,6 +1137,60 @@
         "y": 0.5
       },
       "alphaRepaired": true
+    },
+    {
+      "id": "generated.ui.loading_screen_v001",
+      "runtimePath": "/assets/runtime/generated/ui/loading_screen_v001.webp",
+      "sourcePath": "art-src/runtime/generated/ui/loading_screen_v001.webp",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 1024,
+      "height": 576,
+      "bytes": 31078,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.ui.member_creation_screen_v001",
+      "runtimePath": "/assets/runtime/generated/ui/member_creation_screen_v001.webp",
+      "sourcePath": "art-src/runtime/generated/ui/member_creation_screen_v001.webp",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 576,
+      "height": 1024,
+      "bytes": 39036,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.ui.os_shell_wallpaper_v001",
+      "runtimePath": "/assets/runtime/generated/ui/os_shell_wallpaper_v001.webp",
+      "sourcePath": "art-src/runtime/generated/ui/os_shell_wallpaper_v001.webp",
+      "class": "ui-overlay",
+      "role": null,
+      "state": null,
+      "width": 576,
+      "height": 1024,
+      "bytes": 28778,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "alphaRepaired": false
     },
     {
       "id": "generated.ui.security_cam_overlay_v001",
