@@ -65,14 +65,14 @@ function generateDefaultGrid(): BlockZone[][] {
 /** Roles that generate income when placed on a block */
 const INCOME_ROLES = new Set<string>(['dealer', 'chemist', 'runner']);
 
-function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][]): number {
+function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][], incomeMultiplier = 1): number {
   const zone = grid[placement.y]?.[placement.x];
   if (!zone || !INCOME_ROLES.has(placement.role)) return 0;
   const base = zone.incomeModifier;
   const levelBonus = 1 + (placement.level - 1) * 0.12; // +12% per level
   // chemist and runner earn at 70% of dealer rate (indirect income)
   const roleMult = placement.role === 'dealer' ? 1.0 : 0.7;
-  return Math.round(base * levelBonus * roleMult);
+  return Math.round(base * levelBonus * roleMult * incomeMultiplier);
 }
 
 // ─── Store ───────────────────────────────────────────────────
@@ -126,8 +126,9 @@ export const useBlockStore = create<BlockStore>()(
               })
             );
 
-            // Recalculate income for this placement
-            const income = calcPlacementIncome(placement, newGrid);
+            // Recalculate income for this placement, scaled by the block's
+            // DNA income multiplier (#80).
+            const income = calcPlacementIncome(placement, newGrid, block.incomeMultiplier ?? 1);
             const finalPlacement = { ...placement, incomePerTick: income };
 
             const newPlacements = [...filtered, finalPlacement];
