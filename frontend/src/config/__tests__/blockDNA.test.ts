@@ -13,8 +13,14 @@ import {
 import { DEFAULT_PROFILE } from '../../render/projection';
 
 describe('BLOCK_DNA_LIBRARY', () => {
-  it('has exactly 8 premade blocks', () => {
-    expect(BLOCK_DNA_LIBRARY).toHaveLength(8);
+  it('has at least 15 premade blocks across all tiers', () => {
+    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThanOrEqual(15);
+  });
+
+  it('every tier has at least 2 cards', () => {
+    for (const tier of ['starter', 'mid', 'high', 'elite'] as const) {
+      expect(getDNAByTier(tier).length).toBeGreaterThanOrEqual(2);
+    }
   });
 
   it('every block has a unique id', () => {

@@ -187,6 +187,12 @@ const TerritoryMap: React.FC = () => {
         heat: live.heat || resolved.startingHeat,
         morale: resolved.startingMorale,
         topdownBgUrl: satelliteUrl,
+        // Stamp the resolved Block DNA so the block keeps its archetype
+        // identity, income multiplier, and deployment cap after claim (#80).
+        dnaId: resolved.dna.id,
+        incomeMultiplier: resolved.incomeMultiplier,
+        heatDecayMultiplier: resolved.dna.heatDecayMultiplier,
+        maxMembers: resolved.maxMembers,
       });
       selectBlock(live.id);
       setSelectedMapBlock(null);
