@@ -6,7 +6,7 @@
 
 import React from 'react';
 
-export const LOADING_SCREEN_URL = '/assets/runtime/generated/ui/loading_screen_v001.png';
+export const LOADING_SCREEN_URL = '/assets/runtime/generated/ui/loading_screen_v001.webp';
 
 interface SplashScreenProps {
   /** Small status line under the wordmark. */

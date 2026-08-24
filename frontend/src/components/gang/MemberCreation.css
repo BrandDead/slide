@@ -15,7 +15,7 @@
   font-family: 'Rajdhani', 'SF Pro Display', -apple-system, sans-serif;
   background:
     linear-gradient(rgba(4, 5, 10, 0.62), rgba(4, 5, 10, 0.88)),
-    url('/assets/runtime/generated/ui/loading_screen_v001.png') center/cover no-repeat,
+    url('/assets/runtime/generated/ui/loading_screen_v001.webp') center/cover no-repeat,
     #06070c;
   overflow-y: auto;
 }
