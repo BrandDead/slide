@@ -21,6 +21,14 @@ import {
   type WindowState,
 } from '../../utils/windowMechanic';
 import CombatTacticalHud, { type CombatFeedItem, type CombatHitMarker } from '../combat/CombatTacticalHud';
+import BulletCamReplay from '../slide/BulletCamReplay';
+import type { DriveByShot as BulletCamShot } from '../../utils/BulletCamEngine';
+import {
+  BULLET_CAM_COOLDOWN_MS,
+  bulletCamPresetFor,
+  createBulletCamFxSeed,
+  shouldTriggerBulletCam,
+} from '../../utils/bulletCamTrigger';
 import '../combat/CombatTacticalHud.css';
 
 // ============ TYPES ============
@@ -47,6 +55,8 @@ interface Target {
 
 interface Bullet {
   id: number;
+  startX: number;
+  startY: number;
   x: number;
   y: number;
   targetX: number;
@@ -143,6 +153,7 @@ const DriveByEngine: React.FC<{
   const [combatFeed, setCombatFeed] = useState<CombatFeedItem[]>([]);
   const [hitMarker, setHitMarker] = useState<CombatHitMarker | null>(null);
   const [killStreak, setKillStreak] = useState(0);
+  const [bulletCamShot, setBulletCamShot] = useState<BulletCamShot | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>(0);
@@ -155,6 +166,8 @@ const DriveByEngine: React.FC<{
   const imagesRef = useRef<Record<string, HTMLImageElement>>({});
   const damageFlashRef = useRef(0);
   const hitstopRef = useRef(0);
+  const bulletCamActiveRef = useRef(false);
+  const lastBulletCamAtRef = useRef(0);
 
   // ── Address-seeded procedural street (#108) ──
   // Prefer the structured target from CarCrewSelector — its real
@@ -280,6 +293,9 @@ const DriveByEngine: React.FC<{
     muzzleFlashRef.current = 0;
     damageFlashRef.current = 0;
     hitstopRef.current = 0;
+    bulletCamActiveRef.current = false;
+    lastBulletCamAtRef.current = 0;
+    setBulletCamShot(null);
     setStats({ kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0 });
     // Reset window state so retries start with a fresh intact window
     const freshWindow = createWindowState(true);
@@ -368,7 +384,7 @@ const DriveByEngine: React.FC<{
 
   // ============ SHOOTING ============
   const shoot = useCallback((x: number, y: number) => {
-    if (gameState !== 'playing' || ammo <= 0) return;
+    if (gameState !== 'playing' || ammo <= 0 || bulletCamActiveRef.current) return;
     // Sprint 17: cannot fire through raised/moving glass.
     if (!canShoot(windowRef.current)) {
       playSound('miss');
@@ -394,6 +410,8 @@ const DriveByEngine: React.FC<{
 
     setBullets(prev => [...prev, {
       id: now,
+      startX: GAME_WIDTH * 0.7,
+      startY: GAME_HEIGHT * 0.75,
       x: GAME_WIDTH * 0.7,
       y: GAME_HEIGHT * 0.75,
       targetX: x,
@@ -594,6 +612,51 @@ const DriveByEngine: React.FC<{
     ctx.restore();
   }, []);
 
+  const startBulletCamForHit = useCallback((
+    bullet: Bullet,
+    target: Target,
+    damage: number,
+    critical: boolean,
+  ): boolean => {
+    if (bulletCamActiveRef.current) return false;
+
+    const now = Date.now();
+    if (!shouldTriggerBulletCam({
+      targetType: target.type,
+      lethal: true,
+      critical,
+      now,
+      lastTriggeredAt: lastBulletCamAtRef.current,
+      cooldownMs: BULLET_CAM_COOLDOWN_MS,
+    })) {
+      return false;
+    }
+
+    bulletCamActiveRef.current = true;
+    lastBulletCamAtRef.current = now;
+    setBulletCamShot({
+      shotId: `${bullet.id}:${target.id}`,
+      shooterId: 'driveby-player',
+      startX: bullet.startX,
+      startY: bullet.startY,
+      targetX: bullet.targetX,
+      targetY: bullet.targetY,
+      hit: true,
+      damage,
+      timestamp: bullet.id,
+      isLethal: true,
+      isCritical: critical,
+      fxSeed: createBulletCamFxSeed(bullet.id, target.id),
+      preset: bulletCamPresetFor(target.type, critical),
+    });
+    return true;
+  }, []);
+
+  const handleBulletCamComplete = useCallback(() => {
+    bulletCamActiveRef.current = false;
+    setBulletCamShot(null);
+  }, []);
+
   // ============ GAME LOOP ============
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -608,6 +671,13 @@ const DriveByEngine: React.FC<{
     const gameLoop = (timestamp: number) => {
       const _dt = timestamp - lastTime; void _dt;
       lastTime = timestamp;
+
+      // The hit has already resolved. Freeze only this local presentation loop
+      // while the wall-clock replay runs; no global time scale is changed.
+      if (bulletCamActiveRef.current) {
+        gameLoopRef.current = requestAnimationFrame(gameLoop);
+        return;
+      }
 
       if (hitstopRef.current > 0) {
         hitstopRef.current -= 1;
@@ -684,6 +754,8 @@ const DriveByEngine: React.FC<{
             
             setBullets(prev => [...prev, {
               id: now + target.id,
+              startX: target.x + target.width / 2,
+              startY: target.y + target.height / 2,
               x: target.x + target.width / 2,
               y: target.y + target.height / 2,
               targetX: GAME_WIDTH * 0.5 + (Math.random() - 0.5) * 200,
@@ -733,10 +805,16 @@ const DriveByEngine: React.FC<{
                     window.setTimeout(() => setHitMarker(null), 220);
 
                     if (newHealth <= 0) {
+                      const replayStarted = startBulletCamForHit(
+                        bullet,
+                        target,
+                        damage,
+                        isHeadshot,
+                      );
                       playSound('death');
                       addParticles(target.x + target.width / 2, target.y + target.height / 2, 'blood', 15);
                       addParticles(target.x + target.width / 2, target.y + target.height / 2, 'smoke', 8);
-                      hitstopRef.current = isHeadshot ? 8 : 5;
+                      hitstopRef.current = replayStarted ? 0 : (isHeadshot ? 8 : 5);
                       triggerShake(isHeadshot ? 14 : 9);
                       const label = target.type === 'civilian'
                         ? 'Civilian down — heat'
@@ -841,7 +919,7 @@ const DriveByEngine: React.FC<{
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, currentBlock, blocks, heat, stats, spawnTargets, playSound, onComplete, addParticles, triggerShake, drawCharacter, streetProjection, streetSegments]);
+  }, [gameState, currentBlock, blocks, heat, stats, spawnTargets, playSound, onComplete, addParticles, triggerShake, drawCharacter, streetProjection, streetSegments, startBulletCamForHit]);
 
   // ============ RENDERING ============
   const render = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -1113,6 +1191,11 @@ const DriveByEngine: React.FC<{
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
+      if (bulletCamActiveRef.current) {
+        last = now;
+        raf = requestAnimationFrame(tick);
+        return;
+      }
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       setWindowState((prev) => tickWindow(prev, dt));
@@ -1123,6 +1206,7 @@ const DriveByEngine: React.FC<{
   }, [gameState]);
 
   const handleToggleWindow = useCallback(() => {
+    if (bulletCamActiveRef.current) return;
     setWindowState((prev) => {
       const next = toggleWindow(prev);
       if (next !== prev) playSound('miss');
@@ -1156,6 +1240,15 @@ const DriveByEngine: React.FC<{
         onTouchMove={handlePointerMove}
         onTouchStart={handlePointerDown}
       />
+
+      {bulletCamShot && (
+        <BulletCamReplay
+          key={bulletCamShot.shotId ?? bulletCamShot.timestamp}
+          shot={bulletCamShot}
+          mode="bulletcam"
+          onComplete={handleBulletCamComplete}
+        />
+      )}
 
       {gameState === 'playing' && (
         <CombatTacticalHud

@@ -68,6 +68,22 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-24 — Drive-by bullet camera completed and wired into live combat
+
+- Connected the existing `BulletCamEngine` / `BulletCamReplay` pair to the playable
+  React-canvas `DriveByEngine`; the previous implementation had no runtime caller.
+- Gameplay damage resolves first, then selected lethal hostile shots freeze only the
+  local presentation loop for a deterministic proxy replay. Lethal headshots and leader
+  takedowns qualify, an eight-second cooldown prevents interruption spam, and civilian
+  hits never trigger a celebratory camera.
+- Reworked replay travel into curved, seeded launch → chase → terminal stages driven by
+  projectile path percentage, followed by impact and x-ray. Added brief/cinematic timing
+  profiles, per-instance scratch buffers, an independently rendered target proxy, and a
+  skip control (button or Escape). The replay never changes global or authoritative time.
+- Validation on the feature branch: TypeScript clean; Vitest 652/652; ESLint 0 errors
+  (197 existing warnings); production build passed with existing chunk/asset warnings;
+  asset audit passed at 5.73 MB / 20 MB with seven existing orphan warnings.
+
 ### 2026-08-19 — Game experience audit + Cash App vault / Maps hood / combat HUD
 
 Audited the player-facing loop (empire → shoebox → map → combat) and closed the biggest
