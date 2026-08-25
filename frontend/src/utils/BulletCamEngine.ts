@@ -1,27 +1,34 @@
 /**
- * BulletCamEngine.ts
- * ---------------------------------------------------------------------------
- * Pure math/physics engine for the cinematic "bullet-cam" slow-motion replay.
- * No rendering — this module only computes frame states. The React component
- * (BulletCamReplay.tsx) consumes these states and draws to <canvas>.
+ * Deterministic presentation engine for SLIDE's drive-by bullet camera.
  *
- * Design goals:
- *   - Zero per-frame allocations (object pooling, flat arrays).
- *   - Deterministic timeline: idle → travel → impact → xray → resolved.
- *   - Easing-driven time dilation and camera zoom.
- * ---------------------------------------------------------------------------
+ * Combat is resolved before this engine starts. It never changes gameplay time,
+ * health, damage, or projectile state; it only creates replay frames for the
+ * canvas renderer in BulletCamReplay.tsx.
  */
 
-// ── Types ───────────────────────────────────────────────────────────────────
+export type BulletCamPhase = 'idle' | 'travel' | 'impact' | 'xray' | 'resolved';
 
-export type BulletCamPhase =
+/** RSB-style camera stages. Travel stages advance by projectile path percent. */
+export type BulletCamStage =
   | 'idle'
-  | 'travel'
+  | 'launch'
+  | 'chase'
+  | 'terminal'
   | 'impact'
   | 'xray'
   | 'resolved';
 
+export type BulletCamPreset = 'brief' | 'cinematic';
+
+export interface BulletCamDurations {
+  travel: number;
+  impact: number;
+  xray: number;
+}
+
 export interface DriveByShot {
+  /** Stable replay/debug identifier supplied by the authoritative shot owner. */
+  shotId?: string;
   shooterId: string;
   startX: number;
   startY: number;
@@ -29,81 +36,82 @@ export interface DriveByShot {
   targetY: number;
   hit: boolean;
   damage: number;
+  /** Wall-clock timestamp used only by the optional CCTV treatment. */
   timestamp: number;
   isLethal?: boolean;
+  isCritical?: boolean;
+  /** Canonical visual seed. Falls back to a stable hash of the shot fields. */
+  fxSeed?: number;
+  /** Optional authored quadratic Bezier control point. */
+  controlX?: number;
+  controlY?: number;
+  preset?: BulletCamPreset;
 }
 
-/** A single immutable-ish snapshot consumed by the renderer each frame. */
+/** A frame is mutable scratch state. Consumers must read it synchronously. */
 export interface BulletCamFrameState {
   phase: BulletCamPhase;
-  /** Elapsed time since the replay started (ms). */
+  stage: BulletCamStage;
   elapsed: number;
-  /** Total expected duration of the replay (ms). */
   totalDuration: number;
-  /** 0–1 progress through the *entire* timeline. */
   progress: number;
-  /** 0–1 progress through the current phase. */
   phaseProgress: number;
+  /** 0-1 projectile progress along the replay trajectory. */
+  pathProgress: number;
 
-  // Bullet
   bulletX: number;
   bulletY: number;
-  /** Angle of travel in radians. */
   bulletAngle: number;
   bulletVisible: boolean;
 
-  // Camera
   cameraX: number;
   cameraY: number;
   zoom: number;
-  /** Rotation in radians (slight Dutch tilt for cinematic feel). */
   cameraRotation: number;
-
-  // Time
-  /** 1.0 = real time. 0.1 = 10× slow motion. */
+  /** Presentation metadata only. The gameplay simulation is never time-scaled. */
   timeDilation: number;
 
-  // Effects
-  /** 0–1 strength of radial blur / speed lines. */
   speedLineIntensity: number;
-  /** 0–1 white flash intensity on impact. */
   flashIntensity: number;
-  /** 0–1 shockwave ring radius (0 = not active). */
   shockwaveRadius: number;
-  /** 0–1 x-ray overlay opacity. */
   xrayOpacity: number;
 
-  // Damage
   damage: number;
   isLethal: boolean;
+  isCritical: boolean;
 
-  // Trail (pre-allocated ring buffer — see BulletCamEngine)
+  /** x, y, age-in-frames, intensity per point. */
   trail: Float32Array;
   trailCount: number;
-
-  // Fracture lines (pre-allocated — x-ray phase)
+  /** x1, y1, x2, y2 per fracture. */
   fractures: Float32Array;
   fractureCount: number;
 }
 
-// ── Tunable Constants ──────────────────────────────────────────────────────
+export const BULLET_CAM_PRESETS: Record<BulletCamPreset, BulletCamDurations> = {
+  brief: { travel: 760, impact: 130, xray: 460 },
+  cinematic: { travel: 1_300, impact: 180, xray: 1_100 },
+};
 
-/** Duration of each phase in milliseconds (real wall-clock, not dilated). */
-export const PHASE_DURATIONS = {
-  travel: 1_600,
-  impact: 250,
-  xray: 2_200,
-} as const;
-
+/** Backwards-compatible exports use the default cinematic profile. */
+export const PHASE_DURATIONS = BULLET_CAM_PRESETS.cinematic;
 export const TOTAL_DURATION =
   PHASE_DURATIONS.travel + PHASE_DURATIONS.impact + PHASE_DURATIONS.xray;
 
-const TRAIL_MAX = 64;        // max trail segments stored
-const TRAIL_FLOATS = 4;      // x, y, age, intensity per segment
-const FRACTURE_MAX = 12;     // max fracture lines
-const FRACTURE_FLOATS = 4;   // x1, y1, x2, y2 per fracture
+const TRAIL_MAX = 64;
+const TRAIL_FLOATS = 4;
+const FRACTURE_MAX = 12;
+const FRACTURE_FLOATS = 4;
+const LAUNCH_END = 0.10;
+const TERMINAL_START = 0.90;
 
-// ── Easing Functions (pure, no allocations) ────────────────────────────────
+function clamp01(value: number): number {
+  return value < 0 ? 0 : value > 1 ? 1 : value;
+}
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
 
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -117,108 +125,145 @@ function easeInQuad(t: number): number {
   return t * t;
 }
 
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
+function stageProgress(value: number, start: number, end: number): number {
+  return clamp01((value - start) / Math.max(0.0001, end - start));
 }
 
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
+function quadraticBezier(a: number, control: number, b: number, t: number): number {
+  const inverse = 1 - t;
+  return inverse * inverse * a + 2 * inverse * t * control + t * t * b;
 }
 
-// ── Seeded RNG (deterministic fracture patterns per shot) ─────────────────
+function quadraticBezierDerivative(a: number, control: number, b: number, t: number): number {
+  return 2 * (1 - t) * (control - a) + 2 * t * (b - control);
+}
 
 function mulberry32(seed: number): () => number {
-  let s = seed | 0;
+  let state = seed | 0;
   return () => {
-    s = (s + 0x6D2B79F5) | 0;
-    let t = Math.imul(s ^ (s >>> 15), 1 | s);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    state = (state + 0x6D2B79F5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
   };
 }
 
-// ── Pre-allocated scratch objects ──────────────────────────────────────────
+function hashString(value: string, seed = 2166136261): number {
+  let hash = seed >>> 0;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
 
-const TRAIL_BUFFER = new Float32Array(TRAIL_MAX * TRAIL_FLOATS);
-const FRACTURE_BUFFER = new Float32Array(FRACTURE_MAX * FRACTURE_FLOATS);
+function fallbackFxSeed(shot: DriveByShot): number {
+  const identity = [
+    shot.shotId ?? '',
+    shot.shooterId,
+    shot.startX.toFixed(3),
+    shot.startY.toFixed(3),
+    shot.targetX.toFixed(3),
+    shot.targetY.toFixed(3),
+    String(shot.damage),
+    String(shot.timestamp),
+  ].join('|');
+  return hashString(identity) || 1;
+}
 
-// Reusable frame state — the engine returns the *same* object every call,
-// so the renderer must read it synchronously (no storing references across frames).
-const SCRATCH_FRAME: BulletCamFrameState = {
-  phase: 'idle',
-  elapsed: 0,
-  totalDuration: TOTAL_DURATION,
-  progress: 0,
-  phaseProgress: 0,
-  bulletX: 0,
-  bulletY: 0,
-  bulletAngle: 0,
-  bulletVisible: false,
-  cameraX: 0,
-  cameraY: 0,
-  zoom: 1,
-  cameraRotation: 0,
-  timeDilation: 1,
-  speedLineIntensity: 0,
-  flashIntensity: 0,
-  shockwaveRadius: 0,
-  xrayOpacity: 0,
-  damage: 0,
-  isLethal: false,
-  trail: TRAIL_BUFFER,
-  trailCount: 0,
-  fractures: FRACTURE_BUFFER,
-  fractureCount: 0,
-};
-
-// ── Engine ─────────────────────────────────────────────────────────────────
+function currentTime(): number {
+  return typeof performance === 'undefined' ? Date.now() : performance.now();
+}
 
 export class BulletCamEngine {
   private shot: DriveByShot | null = null;
-  private startTime: number = 0;
-  private active: boolean = false;
+  private startTime = 0;
+  private active = false;
+  private durations: BulletCamDurations = PHASE_DURATIONS;
+  private totalDuration = TOTAL_DURATION;
 
-  // Trail ring buffer head index
-  private trailHead: number = 0;
-  private trailFilled: number = 0;
+  private trailHead = 0;
+  private trailFilled = 0;
+  private readonly trailBuffer = new Float32Array(TRAIL_MAX * TRAIL_FLOATS);
+  private readonly fractureBuffer = new Float32Array(FRACTURE_MAX * FRACTURE_FLOATS);
 
-  // Pre-computed trajectory values
-  private dx: number = 0;
-  private dy: number = 0;
-  private distance: number = 0;
-  private angle: number = 0;
+  private dx = 0;
+  private dy = 0;
+  private distance = 1;
+  private controlX = 0;
+  private controlY = 0;
+  private directionSign = 1;
 
-  // Pre-generated fractures (seeded from shot data)
-  private fractureSeed: number = 0;
-  private fracturesGenerated: boolean = false;
+  private fractureSeed = 1;
+  private fracturesGenerated = false;
 
-  // ── Lifecycle ───────────────────────────────────────────────────────────
+  private readonly frame: BulletCamFrameState;
 
-  /** Begin a new replay. Call once when a critical/lethal shot is detected. */
-  start(shot: DriveByShot): void {
+  constructor() {
+    this.frame = {
+      phase: 'idle',
+      stage: 'idle',
+      elapsed: 0,
+      totalDuration: TOTAL_DURATION,
+      progress: 0,
+      phaseProgress: 0,
+      pathProgress: 0,
+      bulletX: 0,
+      bulletY: 0,
+      bulletAngle: 0,
+      bulletVisible: false,
+      cameraX: 0,
+      cameraY: 0,
+      zoom: 1,
+      cameraRotation: 0,
+      timeDilation: 1,
+      speedLineIntensity: 0,
+      flashIntensity: 0,
+      shockwaveRadius: 0,
+      xrayOpacity: 0,
+      damage: 0,
+      isLethal: false,
+      isCritical: false,
+      trail: this.trailBuffer,
+      trailCount: 0,
+      fractures: this.fractureBuffer,
+      fractureCount: 0,
+    };
+  }
+
+  /** Begin a replay after the gameplay owner has already resolved the hit. */
+  start(shot: DriveByShot, now = currentTime()): void {
     this.shot = shot;
-    this.startTime = performance.now();
+    this.startTime = now;
     this.active = true;
     this.trailHead = 0;
     this.trailFilled = 0;
 
+    this.durations = BULLET_CAM_PRESETS[shot.preset ?? 'cinematic'];
+    this.totalDuration =
+      this.durations.travel + this.durations.impact + this.durations.xray;
+
     this.dx = shot.targetX - shot.startX;
     this.dy = shot.targetY - shot.startY;
     this.distance = Math.hypot(this.dx, this.dy) || 1;
-    this.angle = Math.atan2(this.dy, this.dx);
 
-    // Deterministic seed from shot data
-    this.fractureSeed =
-      (Math.abs(shot.shooterId.charCodeAt(0) || 1) * 2654435761) ^
-      ((shot.timestamp * 40503) >>> 0);
+    this.fractureSeed = (shot.fxSeed ?? fallbackFxSeed(shot)) >>> 0 || 1;
+    this.directionSign = (this.fractureSeed & 1) === 0 ? -1 : 1;
+
+    const midpointX = (shot.startX + shot.targetX) * 0.5;
+    const midpointY = (shot.startY + shot.targetY) * 0.5;
+    const curveAmount = Math.min(48, Math.max(14, this.distance * 0.07));
+    const normalX = -this.dy / this.distance;
+    const normalY = this.dx / this.distance;
+    this.controlX = shot.controlX ?? midpointX + normalX * curveAmount * this.directionSign;
+    this.controlY = shot.controlY ?? midpointY + normalY * curveAmount * this.directionSign;
+
     this.fracturesGenerated = false;
-
-    // Clear buffers
-    TRAIL_BUFFER.fill(0);
-    FRACTURE_BUFFER.fill(0);
+    this.trailBuffer.fill(0);
+    this.fractureBuffer.fill(0);
+    this.resetFrame();
   }
 
-  /** Stop the replay immediately. */
   stop(): void {
     this.active = false;
     this.shot = null;
@@ -232,99 +277,135 @@ export class BulletCamEngine {
     return this.shot;
   }
 
-  // ── Trail management ─────────────────────────────────────────────────────
+  getTotalDuration(): number {
+    return this.totalDuration;
+  }
+
+  private resetFrame(): void {
+    const shot = this.shot;
+    const frame = this.frame;
+    frame.phase = 'idle';
+    frame.stage = 'idle';
+    frame.elapsed = 0;
+    frame.totalDuration = this.totalDuration;
+    frame.progress = 0;
+    frame.phaseProgress = 0;
+    frame.pathProgress = 0;
+    frame.bulletX = shot?.startX ?? 0;
+    frame.bulletY = shot?.startY ?? 0;
+    frame.bulletAngle = Math.atan2(this.dy, this.dx);
+    frame.bulletVisible = false;
+    frame.cameraX = shot?.startX ?? 0;
+    frame.cameraY = shot?.startY ?? 0;
+    frame.zoom = 1;
+    frame.cameraRotation = 0;
+    frame.timeDilation = 1;
+    frame.speedLineIntensity = 0;
+    frame.flashIntensity = 0;
+    frame.shockwaveRadius = 0;
+    frame.xrayOpacity = 0;
+    frame.damage = shot?.damage ?? 0;
+    frame.isLethal = shot?.isLethal ?? false;
+    frame.isCritical = shot?.isCritical ?? false;
+    frame.trailCount = 0;
+    frame.fractureCount = 0;
+  }
+
+  private sampleX(t: number): number {
+    if (!this.shot) return 0;
+    return quadraticBezier(this.shot.startX, this.controlX, this.shot.targetX, t);
+  }
+
+  private sampleY(t: number): number {
+    if (!this.shot) return 0;
+    return quadraticBezier(this.shot.startY, this.controlY, this.shot.targetY, t);
+  }
+
+  private sampleAngle(t: number): number {
+    if (!this.shot) return 0;
+    const tangentX = quadraticBezierDerivative(
+      this.shot.startX,
+      this.controlX,
+      this.shot.targetX,
+      t,
+    );
+    const tangentY = quadraticBezierDerivative(
+      this.shot.startY,
+      this.controlY,
+      this.shot.targetY,
+      t,
+    );
+    return Math.atan2(tangentY, tangentX);
+  }
 
   private pushTrail(x: number, y: number, intensity: number): void {
-    const idx = this.trailHead * TRAIL_FLOATS;
-    TRAIL_BUFFER[idx] = x;
-    TRAIL_BUFFER[idx + 1] = y;
-    TRAIL_BUFFER[idx + 2] = 0; // age, incremented each frame
-    TRAIL_BUFFER[idx + 3] = intensity;
-
+    const index = this.trailHead * TRAIL_FLOATS;
+    this.trailBuffer[index] = x;
+    this.trailBuffer[index + 1] = y;
+    this.trailBuffer[index + 2] = 0;
+    this.trailBuffer[index + 3] = intensity;
     this.trailHead = (this.trailHead + 1) % TRAIL_MAX;
     if (this.trailFilled < TRAIL_MAX) this.trailFilled++;
   }
 
   private updateTrailAges(): void {
     for (let i = 0; i < this.trailFilled; i++) {
-      const idx = i * TRAIL_FLOATS;
-      TRAIL_BUFFER[idx + 2] += 1; // age++
+      this.trailBuffer[i * TRAIL_FLOATS + 2] += 1;
     }
   }
-
-  // ── Fracture generation (deterministic, once per shot) ───────────────────
 
   private generateFractures(): void {
     if (this.fracturesGenerated || !this.shot) return;
-
-    const rng = mulberry32(this.fractureSeed);
-    const tx = this.shot.targetX;
-    const ty = this.shot.targetY;
+    const random = mulberry32(this.fractureSeed);
     const count = this.shot.isLethal ? FRACTURE_MAX : Math.max(4, FRACTURE_MAX >> 1);
 
     for (let i = 0; i < count; i++) {
-      const idx = i * FRACTURE_FLOATS;
-      // Radial fracture lines emanating from impact point
-      const a = rng() * Math.PI * 2;
-      const len = 8 + rng() * 28; // px in "xray space"
-
-      // Start slightly offset from center, end further out
-      const startOffset = rng() * 4;
-      const endOffset = startOffset + len;
-
-      FRACTURE_BUFFER[idx]     = tx + Math.cos(a) * startOffset;
-      FRACTURE_BUFFER[idx + 1] = ty + Math.sin(a) * startOffset;
-      FRACTURE_BUFFER[idx + 2] = tx + Math.cos(a) * endOffset;
-      FRACTURE_BUFFER[idx + 3] = ty + Math.sin(a) * endOffset;
+      const index = i * FRACTURE_FLOATS;
+      const angle = random() * Math.PI * 2;
+      const startOffset = random() * 4;
+      const endOffset = startOffset + 8 + random() * 28;
+      this.fractureBuffer[index] = this.shot.targetX + Math.cos(angle) * startOffset;
+      this.fractureBuffer[index + 1] = this.shot.targetY + Math.sin(angle) * startOffset;
+      this.fractureBuffer[index + 2] = this.shot.targetX + Math.cos(angle) * endOffset;
+      this.fractureBuffer[index + 3] = this.shot.targetY + Math.sin(angle) * endOffset;
     }
-
     this.fracturesGenerated = true;
   }
 
-  // ── Core update ──────────────────────────────────────────────────────────
-
-  /**
-   * Compute the current frame state. Returns a reference to an internal
-   * scratch object — do NOT store it. Read values synchronously.
-   *
-   * @param now Current high-resolution timestamp (performance.now()).
-   * @returns BulletCamFrameState or null if replay is inactive.
-   */
   update(now: number): BulletCamFrameState | null {
     if (!this.active || !this.shot) return null;
 
     const shot = this.shot;
-    const elapsed = now - this.startTime;
+    const elapsed = Math.max(0, now - this.startTime);
+    const impactStart = this.durations.travel;
+    const xrayStart = impactStart + this.durations.impact;
 
-    // Determine phase
     let phase: BulletCamPhase;
     let phaseStart: number;
-    let phaseDur: number;
-
-    if (elapsed < PHASE_DURATIONS.travel) {
+    let phaseDuration: number;
+    if (elapsed < impactStart) {
       phase = 'travel';
       phaseStart = 0;
-      phaseDur = PHASE_DURATIONS.travel;
-    } else if (elapsed < PHASE_DURATIONS.travel + PHASE_DURATIONS.impact) {
+      phaseDuration = this.durations.travel;
+    } else if (elapsed < xrayStart) {
       phase = 'impact';
-      phaseStart = PHASE_DURATIONS.travel;
-      phaseDur = PHASE_DURATIONS.impact;
-    } else if (elapsed < TOTAL_DURATION) {
+      phaseStart = impactStart;
+      phaseDuration = this.durations.impact;
+    } else if (elapsed < this.totalDuration) {
       phase = 'xray';
-      phaseStart = PHASE_DURATIONS.travel + PHASE_DURATIONS.impact;
-      phaseDur = PHASE_DURATIONS.xray;
+      phaseStart = xrayStart;
+      phaseDuration = this.durations.xray;
     } else {
       phase = 'resolved';
-      phaseStart = TOTAL_DURATION;
-      phaseDur = 1; // avoid div-by-zero
+      phaseStart = this.totalDuration;
+      phaseDuration = 1;
     }
 
-    const phaseElapsed = elapsed - phaseStart;
-    const phaseProgress = clamp01(phaseElapsed / phaseDur);
-    const totalProgress = clamp01(elapsed / TOTAL_DURATION);
+    const phaseProgress = clamp01((elapsed - phaseStart) / phaseDuration);
+    const pathProgress = phase === 'travel' ? easeInOutCubic(phaseProgress) : 1;
+    const frame = this.frame;
 
-    // ── Per-phase computation ──────────────────────────────────────────────
-
+    let stage: BulletCamStage = 'idle';
     let bulletX = shot.targetX;
     let bulletY = shot.targetY;
     let bulletVisible = false;
@@ -338,136 +419,100 @@ export class BulletCamEngine {
     let shockwaveRadius = 0;
     let xrayOpacity = 0;
 
-    switch (phase) {
-      case 'travel': {
-        // Bullet travels from shooter → target with easeInOutCubic
-        const t = easeInOutCubic(phaseProgress);
-        bulletX = lerp(shot.startX, shot.targetX, t);
-        bulletY = lerp(shot.startY, shot.targetY, t);
-        bulletVisible = true;
+    if (phase === 'travel') {
+      bulletX = this.sampleX(pathProgress);
+      bulletY = this.sampleY(pathProgress);
+      bulletVisible = true;
 
-        // Camera trails slightly behind the bullet
-        const camLag = 0.18;
-        cameraX = lerp(shot.startX, shot.targetX, Math.max(0, t - camLag));
-        cameraY = lerp(shot.startY, shot.targetY, Math.max(0, t - camLag));
-
-        // Zoom ramps from 1.0 → 2.2 as bullet nears target
-        zoom = lerp(1.0, 2.2, easeInQuad(phaseProgress));
-
-        // Slight Dutch tilt increasing as we approach impact
-        cameraRotation = lerp(0, 0.04, phaseProgress) * (this.dx < 0 ? -1 : 1);
-
-        // Time dilation: start very slow, slightly accelerate
-        timeDilation = lerp(0.12, 0.22, phaseProgress);
-
-        // Speed lines intensify as bullet moves faster (mid-flight peak)
-        speedLineIntensity = Math.sin(phaseProgress * Math.PI) * 0.85;
-
-        // Push trail
-        this.pushTrail(bulletX, bulletY, speedLineIntensity);
-        this.updateTrailAges();
-        break;
+      let cameraPathProgress: number;
+      if (pathProgress < LAUNCH_END) {
+        stage = 'launch';
+        const local = stageProgress(pathProgress, 0, LAUNCH_END);
+        cameraPathProgress = Math.max(0, pathProgress - 0.025);
+        zoom = lerp(1.05, 1.4, easeOutExpo(local));
+        cameraRotation = this.directionSign * lerp(0.008, 0.022, local);
+        timeDilation = 0.07;
+        speedLineIntensity = lerp(0.15, 0.55, local);
+      } else if (pathProgress < TERMINAL_START) {
+        stage = 'chase';
+        const local = stageProgress(pathProgress, LAUNCH_END, TERMINAL_START);
+        cameraPathProgress = Math.max(0, pathProgress - 0.12);
+        zoom = lerp(1.4, 2.2, easeInQuad(local));
+        cameraRotation = this.directionSign * lerp(0.022, 0.04, local);
+        timeDilation = lerp(0.18, 0.24, local);
+        speedLineIntensity = Math.sin(local * Math.PI) * 0.85 + 0.1;
+      } else {
+        stage = 'terminal';
+        const local = stageProgress(pathProgress, TERMINAL_START, 1);
+        const trailingProgress = Math.max(0, pathProgress - 0.07);
+        cameraPathProgress = lerp(trailingProgress, 1, easeInQuad(local) * 0.82);
+        zoom = lerp(2.2, 3.05, easeOutExpo(local));
+        cameraRotation = this.directionSign * lerp(0.04, 0.012, local);
+        timeDilation = 0.045;
+        speedLineIntensity = lerp(0.75, 0.2, local);
       }
 
-      case 'impact': {
-        // Bullet is at target; camera snaps to impact point
-        bulletX = shot.targetX;
-        bulletY = shot.targetY;
-        bulletVisible = false; // bullet "enters" the body
-        cameraX = shot.targetX;
-        cameraY = shot.targetY;
-
-        // Zoom punch: quick zoom-in then settle
-        zoom = lerp(2.2, 3.5, easeOutExpo(phaseProgress));
-
-        cameraRotation = 0.04 * (this.dx < 0 ? -1 : 1);
-
-        // Freeze time almost completely
-        timeDilation = 0.05;
-
-        // White flash — strongest at start, fades fast
-        flashIntensity = (1 - easeOutExpo(phaseProgress)) * 0.9;
-
-        // Shockwave ring expands
-        shockwaveRadius = easeOutExpo(phaseProgress) * 0.6;
-
-        // Keep updating trail ages (trail fades)
-        this.updateTrailAges();
-        break;
+      cameraX = this.sampleX(cameraPathProgress);
+      cameraY = this.sampleY(cameraPathProgress);
+      this.pushTrail(bulletX, bulletY, speedLineIntensity);
+      this.updateTrailAges();
+    } else if (phase === 'impact') {
+      stage = 'impact';
+      zoom = lerp(3.05, 3.5, easeOutExpo(phaseProgress));
+      cameraRotation = this.directionSign * 0.012;
+      timeDilation = 0.02;
+      flashIntensity = (1 - easeOutExpo(phaseProgress)) * 0.9;
+      shockwaveRadius = easeOutExpo(phaseProgress) * 0.6;
+      this.updateTrailAges();
+    } else if (phase === 'xray') {
+      stage = 'xray';
+      zoom = lerp(3.5, 3, easeOutExpo(phaseProgress));
+      timeDilation = 0.3;
+      if (phaseProgress < 0.15) {
+        xrayOpacity = easeOutExpo(phaseProgress / 0.15);
+      } else if (phaseProgress > 0.8) {
+        xrayOpacity = 1 - easeInOutCubic((phaseProgress - 0.8) / 0.2);
+      } else {
+        xrayOpacity = 1;
       }
-
-      case 'xray': {
-        // Camera locked on impact, slight zoom settle
-        bulletX = shot.targetX;
-        bulletY = shot.targetY;
-        bulletVisible = false;
-        cameraX = shot.targetX;
-        cameraY = shot.targetY;
-        zoom = lerp(3.5, 3.0, easeOutExpo(phaseProgress));
-        cameraRotation = 0;
-        timeDilation = 0.3;
-
-        // X-ray fades in during first 15% of phase, stays, fades out last 20%
-        if (phaseProgress < 0.15) {
-          xrayOpacity = easeOutExpo(phaseProgress / 0.15);
-        } else if (phaseProgress > 0.8) {
-          xrayOpacity = 1 - easeInOutCubic((phaseProgress - 0.8) / 0.2);
-        } else {
-          xrayOpacity = 1;
-        }
-
-        // Linger flash in early xray
-        flashIntensity = Math.max(0, 0.3 - phaseProgress * 0.3);
-
-        // Generate fractures once
-        this.generateFractures();
-
-        // Update trail (it should be fully faded by now)
-        this.updateTrailAges();
-        break;
-      }
-
-      case 'resolved': {
-        this.active = false;
-        // Fall through with final values
-        break;
-      }
+      flashIntensity = Math.max(0, 0.3 - phaseProgress * 0.3);
+      this.generateFractures();
+      this.updateTrailAges();
+    } else {
+      stage = 'resolved';
+      zoom = 3;
+      this.active = false;
     }
 
-    // ── Populate scratch frame ────────────────────────────────────────────
-
-    const f = SCRATCH_FRAME;
-    f.phase = phase;
-    f.elapsed = elapsed;
-    f.totalDuration = TOTAL_DURATION;
-    f.progress = totalProgress;
-    f.phaseProgress = phaseProgress;
-    f.bulletX = bulletX;
-    f.bulletY = bulletY;
-    f.bulletAngle = this.angle;
-    f.bulletVisible = bulletVisible;
-    f.cameraX = cameraX;
-    f.cameraY = cameraY;
-    f.zoom = zoom;
-    f.cameraRotation = cameraRotation;
-    f.timeDilation = timeDilation;
-    f.speedLineIntensity = speedLineIntensity;
-    f.flashIntensity = flashIntensity;
-    f.shockwaveRadius = shockwaveRadius;
-    f.xrayOpacity = xrayOpacity;
-    f.damage = shot.damage;
-    f.isLethal = shot.isLethal ?? false;
-    f.trail = TRAIL_BUFFER;
-    f.trailCount = this.trailFilled;
-    f.fractures = FRACTURE_BUFFER;
-    f.fractureCount = this.fracturesGenerated
+    frame.phase = phase;
+    frame.stage = stage;
+    frame.elapsed = elapsed;
+    frame.totalDuration = this.totalDuration;
+    frame.progress = clamp01(elapsed / this.totalDuration);
+    frame.phaseProgress = phaseProgress;
+    frame.pathProgress = pathProgress;
+    frame.bulletX = bulletX;
+    frame.bulletY = bulletY;
+    frame.bulletAngle = this.sampleAngle(pathProgress);
+    frame.bulletVisible = bulletVisible;
+    frame.cameraX = cameraX;
+    frame.cameraY = cameraY;
+    frame.zoom = zoom;
+    frame.cameraRotation = cameraRotation;
+    frame.timeDilation = timeDilation;
+    frame.speedLineIntensity = speedLineIntensity;
+    frame.flashIntensity = flashIntensity;
+    frame.shockwaveRadius = shockwaveRadius;
+    frame.xrayOpacity = xrayOpacity;
+    frame.damage = shot.damage;
+    frame.isLethal = shot.isLethal ?? false;
+    frame.isCritical = shot.isCritical ?? false;
+    frame.trailCount = this.trailFilled;
+    frame.fractureCount = this.fracturesGenerated
       ? (shot.isLethal ? FRACTURE_MAX : Math.max(4, FRACTURE_MAX >> 1))
       : 0;
-
-    return f;
+    return frame;
   }
 }
-
-// ── Singleton convenience (optional — you can also instantiate per-replay) ─
 
 export const bulletCamEngine = new BulletCamEngine();

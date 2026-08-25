@@ -20,13 +20,13 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
 } from 'react';
 import {
   BulletCamEngine,
   type BulletCamFrameState,
   type BulletCamPhase,
   type DriveByShot,
-  TOTAL_DURATION,
 } from '../../utils/BulletCamEngine';
 
 // ── Component props ────────────────────────────────────────────────────────
@@ -42,6 +42,8 @@ export interface BulletCamReplayProps {
   onPhaseChange?: (phase: BulletCamPhase) => void;
   /** Optional CSS class for the wrapper div. */
   className?: string;
+  /** Show the Escape/tap skip control. Defaults to true. */
+  showSkip?: boolean;
 }
 
 // ── Internal constants ────────────────────────────────────────────────────
@@ -63,17 +65,19 @@ const SPEED_LINES = new Float32Array(SPEED_LINE_COUNT * 3);
 
 // Pre-allocated particle scratch (x, y, vx, vy, life)
 const PARTICLES = new Float32Array(PARTICLE_COUNT * 5);
-{
-  const rng = mulberry32Lite(99);
+resetImpactParticles(0, 0, 99);
+
+function resetImpactParticles(x: number, y: number, seed: number): void {
+  const rng = mulberry32Lite(seed ^ 0x51ED270B);
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     const idx = i * 5;
     const a = rng() * Math.PI * 2;
     const speed = 30 + rng() * 120;
-    PARTICLES[idx] = 0;      // x (set at impact)
-    PARTICLES[idx + 1] = 0;  // y
+    PARTICLES[idx] = x;
+    PARTICLES[idx + 1] = y;
     PARTICLES[idx + 2] = Math.cos(a) * speed;
     PARTICLES[idx + 3] = Math.sin(a) * speed;
-    PARTICLES[idx + 4] = 1;  // life 1→0
+    PARTICLES[idx + 4] = 1;
   }
 }
 
@@ -107,14 +111,24 @@ export default function BulletCamReplay({
   onComplete,
   onPhaseChange,
   className,
+  showSkip = true,
 }: BulletCamReplayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<BulletCamEngine>(new BulletCamEngine());
   const rafRef = useRef<number>(0);
   const phaseRef = useRef<BulletCamPhase>('idle');
   const cctvStartRef = useRef<number>(0);
+  const completedRef = useRef(false);
 
   const [visible, setVisible] = useState(true);
+
+  const finishReplay = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    engineRef.current.stop();
+    setVisible(false);
+    onComplete?.();
+  }, [onComplete]);
 
   // ── Main animation loop ─────────────────────────────────────────────────
 
@@ -140,18 +154,11 @@ export default function BulletCamReplay({
       onPhaseChange?.(frame.phase);
 
       if (frame.phase === 'impact') {
-        // Initialize particles at impact point
-        for (let i = 0; i < PARTICLE_COUNT; i++) {
-          const idx = i * 5;
-          PARTICLES[idx] = shot.targetX;
-          PARTICLES[idx + 1] = shot.targetY;
-          PARTICLES[idx + 4] = 1; // reset life
-        }
+        resetImpactParticles(shot.targetX, shot.targetY, shot.fxSeed ?? 99);
       }
 
       if (frame.phase === 'resolved') {
-        setVisible(false);
-        onComplete?.();
+        finishReplay();
         return; // stop loop
       }
     }
@@ -177,7 +184,7 @@ export default function BulletCamReplay({
     ctx.restore();
 
     rafRef.current = requestAnimationFrame(renderLoop);
-  }, [mode, onPhaseChange, onComplete, shot]);
+  }, [mode, onPhaseChange, shot, finishReplay]);
 
   // ── Setup & teardown ─────────────────────────────────────────────────────
 
@@ -198,20 +205,17 @@ export default function BulletCamReplay({
     // Start the engine
     const engine = engineRef.current;
     engine.start(shot);
+    completedRef.current = false;
     phaseRef.current = 'idle';
     cctvStartRef.current = shot.timestamp;
     setVisible(true);
 
     rafRef.current = requestAnimationFrame(renderLoop);
 
-    // Safety timeout: force-complete after total duration + 500ms grace
+    // Safety timeout: force-complete after the selected preset + 500ms grace.
     const safetyTimer = window.setTimeout(() => {
-      if (engine.isActive()) {
-        engine.stop();
-        setVisible(false);
-        onComplete?.();
-      }
-    }, TOTAL_DURATION + 500);
+      if (!completedRef.current) finishReplay();
+    }, engine.getTotalDuration() + 500);
 
     return () => {
       window.removeEventListener('resize', resize);
@@ -219,19 +223,61 @@ export default function BulletCamReplay({
       window.clearTimeout(safetyTimer);
       engine.stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shot]);
+  }, [shot, renderLoop, finishReplay]);
+
+  useEffect(() => {
+    if (!showSkip) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        finishReplay();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [finishReplay, showSkip]);
 
   if (!visible) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] pointer-events-none ${className ?? ''}`}
+      className={`fixed inset-0 z-[9999] ${className ?? ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Bullet camera replay"
+      onPointerDown={(event) => event.stopPropagation()}
     >
-      <canvas ref={canvasRef} className="block w-full h-full" />
+      <canvas ref={canvasRef} className="block w-full h-full pointer-events-none" />
+      {showSkip && (
+        <button
+          type="button"
+          onClick={finishReplay}
+          aria-label="Skip bullet camera replay"
+          style={skipButtonStyle}
+        >
+          SKIP <span aria-hidden="true">ESC</span>
+        </button>
+      )}
     </div>
   );
 }
+
+const skipButtonStyle: CSSProperties = {
+  position: 'absolute',
+  right: 18,
+  top: 18,
+  zIndex: 1,
+  minWidth: 92,
+  minHeight: 40,
+  padding: '8px 12px',
+  border: '1px solid rgba(255, 255, 255, 0.35)',
+  borderRadius: 6,
+  background: 'rgba(0, 0, 0, 0.68)',
+  color: '#fff',
+  font: "700 12px 'Rajdhani', monospace",
+  letterSpacing: '0.12em',
+  cursor: 'pointer',
+};
 
 // ════════════════════════════════════════════════════════════════════════════
 // RENDERER: Bullet-Cam Mode
@@ -292,6 +338,10 @@ function renderBulletCam(
     Math.abs(shot.targetY - shot.startY) * dpr + envPad * 2,
   );
 
+  // Proxy target keeps the replay readable without depending on the live actor,
+  // which has already taken damage (and may already be removed from gameplay).
+  drawReplayTarget(ctx, shot, f, dpr);
+
   // ── Trail ────────────────────────────────────────────────────────────────
 
   if (f.trailCount > 0 && f.phase !== 'resolved') {
@@ -322,7 +372,6 @@ function renderBulletCam(
   // ── Shockwave ring ───────────────────────────────────────────────────────
 
   if (f.shockwaveRadius > 0.01) {
-    const impactScreenX = camOffsetX + f.cameraX * dpr * f.zoom;
     // After restore we need to recompute. Simpler: use cx/cy as impact is centered.
     const ringR = f.shockwaveRadius * Math.max(w, h) * 0.5;
     ctx.strokeStyle = `rgba(255, 80, 80, ${1 - f.shockwaveRadius})`;
@@ -363,11 +412,55 @@ function renderBulletCam(
     ctx.font = `${12 * dpr}px monospace`;
     ctx.textAlign = 'left';
     ctx.fillText(
-      `×${f.timeDilation.toFixed(2)} SPEED`,
+      `${f.stage.toUpperCase()}  ×${f.timeDilation.toFixed(2)} SPEED`,
       20 * dpr,
       h - barH - 12 * dpr,
     );
   }
+}
+
+function drawReplayTarget(
+  ctx: CanvasRenderingContext2D,
+  shot: DriveByShot,
+  frame: BulletCamFrameState,
+  dpr: number,
+): void {
+  if (frame.phase === 'xray' || frame.phase === 'resolved') return;
+
+  const opacity = frame.stage === 'terminal' || frame.phase === 'impact' ? 0.95 : 0.48;
+  ctx.save();
+  ctx.translate(shot.targetX * dpr, shot.targetY * dpr);
+
+  ctx.fillStyle = `rgba(12, 12, 16, ${opacity})`;
+  ctx.strokeStyle = `rgba(255, 72, 72, ${opacity * 0.9})`;
+  ctx.lineWidth = 1.2 * dpr;
+
+  // A critical/head shot puts the proxy skull on the resolved impact point;
+  // a body shot keeps the impact centered on the torso.
+  const headY = (shot.isCritical ? 0 : -20) * dpr;
+  const shouldersY = headY + 10 * dpr;
+  const hipsY = headY + 44 * dpr;
+
+  ctx.beginPath();
+  ctx.arc(0, headY, 8 * dpr, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-13 * dpr, shouldersY);
+  ctx.quadraticCurveTo(0, shouldersY - 6 * dpr, 13 * dpr, shouldersY);
+  ctx.lineTo(10 * dpr, hipsY);
+  ctx.lineTo(-10 * dpr, hipsY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  const reticleRadius = (frame.stage === 'terminal' ? 14 : 20) * dpr;
+  ctx.strokeStyle = `rgba(255, 210, 120, ${opacity * 0.7})`;
+  ctx.beginPath();
+  ctx.arc(0, 0, reticleRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -748,6 +841,10 @@ function drawXrayLayer(
   // ── Body silhouette (simplified humanoid blob around impact) ─────────────
 
   const bodyRadius = 60 * dpr;
+  ctx.save();
+  // Keep the resolved impact at canvas origin. For critical hits, move the
+  // anatomy down so the skull (rather than the torso) sits on that origin.
+  ctx.translate(0, f.isCritical ? bodyRadius * 0.9 : 0);
 
   // Outer body glow (soft tissue)
   const tissueGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, bodyRadius * 1.2);
@@ -789,6 +886,7 @@ function drawXrayLayer(
   ctx.beginPath();
   ctx.arc(0, -bodyRadius * 0.9, bodyRadius * 0.25, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.restore();
 
   // ── Bullet wound / fracture lines ─────────────────────────────────────────
 
@@ -880,6 +978,7 @@ function drawXrayLayer(
   const lines = [
     '◆ X-RAY IMPACT ANALYSIS',
     `  DAMAGE: ${f.damage}`,
+    `  IMPACT: ${f.isCritical ? 'CRITICAL' : 'BODY'}`,
     `  LETHAL: ${f.isLethal ? 'YES' : 'NO'}`,
     `  FRACTURES DETECTED: ${f.fractureCount}`,
   ];
