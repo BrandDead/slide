@@ -37,3 +37,9 @@ Sandbox Chromium/CDP launched the mode through MAP → Strip → OPS 3D with Web
 The deterministic demo reached a secured outcome and applied it through the existing block boundary. Pending income changed $840→$982, heat 1→2, morale 85%→89%, the Modern Ops portal unmounted, and the $2,200 injury/hospital follow-up opened for Lil Dre. No separate economy, crew, or territory copy was introduced.
 
 Evidence is saved under `.audit/`: `ops-third-person.png`, `ops-first-person.png`, `ops-tactical-active.png`, `ops-return-strategy.png`, `browser-findings.md`, and CDP state/event JSON files.
+
+## 2026-08-26 — Final Quality Gauntlet
+
+The completed branch passes TypeScript, all 45 frontend test files / 693 tests, the runtime asset audit (110 assets, 5.81 MB of the 20 MB budget), and all 42 offline backend tests. ESLint reports zero errors and 196 pre-existing warnings.
+
+The production build initially terminated during chunk rendering, reproducing the baseline sandbox failure. Vite’s application-level manual chunks also emitted circular chunk warnings. Removing those forced component chunks, keeping only dependency-oriented chunks (including a dedicated lazy Babylon vendor chunk), and changing the minifier from Terser to esbuild eliminated the circular graph. After closing the completed browser-verification process, the production build succeeded in 21.15 seconds with 2,875 modules transformed. Modern Ops remains a separate lazy chunk (`ModernOpsEncounter` about 24.4 kB plus its Babylon vendor chunk), so the 3D runtime is not loaded until the player launches OPS 3D.
