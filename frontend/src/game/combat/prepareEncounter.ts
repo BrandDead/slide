@@ -84,6 +84,19 @@ function findSafePoint(terrain: CombatTerrainCell[][]): CombatTerrainCell {
     };
 }
 
+function findExtractionPoint(terrain: CombatTerrainCell[][], origin: GridPoint): CombatTerrainCell {
+  return terrain
+    .flat()
+    .filter((cell) => cell.passable && (cell.x !== origin.x || cell.y !== origin.y))
+    .sort((left, right) => {
+      const leftDistance = Math.abs(left.x - origin.x) + Math.abs(left.y - origin.y);
+      const rightDistance = Math.abs(right.x - origin.x) + Math.abs(right.y - origin.y);
+      const leftScore = leftDistance * 10 + (7 - left.y) * 5 + left.cover * 3 - left.exposure;
+      const rightScore = rightDistance * 10 + (7 - right.y) * 5 + right.cover * 3 - right.exposure;
+      return rightScore - leftScore;
+    })[0] ?? findSafePoint(terrain);
+}
+
 function findOppositionStart(terrain: CombatTerrainCell[][], seed: number, index: number): GridPoint {
   const cells = terrain
     .flat()
@@ -132,7 +145,7 @@ export function prepareEncounter(block: BlockData): EncounterPreparation {
     lastSequence: -1,
     isDown: false,
   }));
-  const extraction = findSafePoint(terrain);
+  const extraction = findExtractionPoint(terrain, fallbackCrew[0].position);
   const coverPercent = Math.round(extraction.cover * 100);
   const exposurePercent = Math.round(extraction.exposure * 100);
 
