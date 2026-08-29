@@ -9,6 +9,30 @@ export interface GridPoint {
   y: number;
 }
 
+export interface EncounterVector3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export type CombatHitZone = 'head' | 'torso' | 'arm' | 'leg';
+export type CombatImpactKind = 'actor' | 'cover' | 'vehicle' | 'environment' | 'miss';
+
+export interface CombatAimRay {
+  origin: EncounterVector3;
+  direction: EncounterVector3;
+  maxDistance: number;
+  clientTick: number;
+}
+
+export interface CombatImpactCandidate {
+  kind: CombatImpactKind;
+  entityId?: string;
+  hitZone?: CombatHitZone;
+  point: EncounterVector3;
+  distance: number;
+}
+
 export interface CombatTerrainCell extends GridPoint {
   zoneType: BlockZoneType;
   passable: boolean;
@@ -46,6 +70,7 @@ export interface CombatObjective {
 export type CombatCommand =
   | { type: 'move'; actorId: string; destination: GridPoint; sequence: number }
   | { type: 'aim-fire'; actorId: string; targetId: string; sequence: number }
+  | { type: 'aim-fire-ray'; actorId: string; ray: CombatAimRay; candidate: CombatImpactCandidate; sequence: number }
   | { type: 'reload'; actorId: string; sequence: number }
   | { type: 'interact'; actorId: string; sequence: number }
   | { type: 'retreat'; actorId: string; sequence: number };
@@ -56,6 +81,9 @@ export type CombatEventType =
   | 'weapon-fired'
   | 'impact-cover'
   | 'impact-actor'
+  | 'impact-vehicle'
+  | 'impact-environment'
+  | 'impact-miss'
   | 'actor-downed'
   | 'reload-start'
   | 'reload-complete'
@@ -71,6 +99,8 @@ export interface CombatEvent {
   actorId?: string;
   targetId?: string;
   amount?: number;
+  impact?: CombatImpactCandidate;
+  hitZone?: CombatHitZone;
   message: string;
 }
 

@@ -5,7 +5,9 @@ import {
   getCombatSnapshot,
 } from './combatSession';
 import type {
+  CombatAimRay,
   CombatCommand,
+  CombatImpactCandidate,
   CombatSession,
   CombatSnapshot,
   Combatant,
@@ -175,6 +177,12 @@ export class CombatSessionController {
     const actor = this.getSelectedCrew();
     if (!actor) return this.getSnapshot();
     return this.dispatch({ type: 'aim-fire', actorId: actor.id, targetId });
+  }
+
+  fireRay(ray: CombatAimRay, candidate: CombatImpactCandidate): CombatSnapshot {
+    const actor = this.getSelectedCrew();
+    if (!actor) return this.getSnapshot();
+    return this.dispatch({ type: 'aim-fire-ray', actorId: actor.id, ray, candidate });
   }
 
   fireNearest(): CombatSnapshot {
