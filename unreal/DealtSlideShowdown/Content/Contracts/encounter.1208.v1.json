@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "encounterId": "encounter-1208-las-olas-001",
+  "blockId": "1208-las-olas",
+  "sceneLabel": "1208 Las Olas — Night Strip",
+  "locationReference": "Fictionalized South Florida commercial strip",
+  "seed": 1208,
+  "terrain": [
+    [
+      { "x": 0, "y": 0, "zoneType": "storefront", "passable": true, "cover": 0.35, "exposure": 0.25 },
+      { "x": 1, "y": 0, "zoneType": "sidewalk", "passable": true, "cover": 0.65, "exposure": 0.35 },
+      { "x": 2, "y": 0, "zoneType": "sidewalk", "passable": true, "cover": 0.2, "exposure": 0.55 }
+    ],
+    [
+      { "x": 0, "y": 1, "zoneType": "parking", "passable": true, "cover": 0.7, "exposure": 0.5 },
+      { "x": 1, "y": 1, "zoneType": "street", "passable": true, "cover": 0.1, "exposure": 0.95 },
+      { "x": 2, "y": 1, "zoneType": "parking", "passable": true, "cover": 0.7, "exposure": 0.5 }
+    ],
+    [
+      { "x": 0, "y": 2, "zoneType": "curb", "passable": true, "cover": 0.15, "exposure": 0.8 },
+      { "x": 1, "y": 2, "zoneType": "street", "passable": true, "cover": 0.05, "exposure": 1 },
+      { "x": 2, "y": 2, "zoneType": "curb", "passable": true, "cover": 0.15, "exposure": 0.8 }
+    ]
+  ],
+  "crew": [
+    {
+      "id": "crew-lil-dre",
+      "name": "Lil Dre",
+      "team": "crew",
+      "role": "shooter",
+      "position": { "x": 0, "y": 1 },
+      "health": 100,
+      "maxHealth": 100,
+      "armor": 1,
+      "ammo": 8,
+      "maxAmmo": 8,
+      "reloadUntilTick": null,
+      "nextFireTick": 0,
+      "level": 4,
+      "lastSequence": 0,
+      "isDown": false
+    },
+    {
+      "id": "crew-stacks",
+      "name": "Stacks",
+      "team": "crew",
+      "role": "enforcer",
+      "position": { "x": 0, "y": 2 },
+      "health": 120,
+      "maxHealth": 120,
+      "armor": 2,
+      "ammo": 8,
+      "maxAmmo": 8,
+      "reloadUntilTick": null,
+      "nextFireTick": 0,
+      "level": 3,
+      "lastSequence": 0,
+      "isDown": false
+    }
+  ],
+  "opposition": [
+    {
+      "id": "rival-vice-runner",
+      "name": "Vice Runner",
+      "team": "opposition",
+      "role": "opposition",
+      "position": { "x": 2, "y": 0 },
+      "health": 80,
+      "maxHealth": 80,
+      "armor": 1,
+      "ammo": 8,
+      "maxAmmo": 8,
+      "reloadUntilTick": null,
+      "nextFireTick": 0,
+      "level": 3,
+      "lastSequence": 0,
+      "isDown": false
+    }
+  ],
+  "loadout": [
+    { "actorId": "crew-lil-dre", "weaponId": "weapon.compact-rifle.v1", "ammoAtStart": 8 },
+    { "actorId": "crew-stacks", "weaponId": "weapon.service-pistol.v1", "ammoAtStart": 8 },
+    { "actorId": "rival-vice-runner", "weaponId": "weapon.service-pistol.v1", "ammoAtStart": 8 }
+  ],
+  "objective": {
+    "kind": "extract",
+    "label": "Secure the exit",
+    "extraction": { "x": 2, "y": 2 },
+    "requiredCrew": 1,
+    "progress": 0,
+    "target": 1
+  },
+  "extraction": { "x": 2, "y": 2 },
+  "heatAtStart": 2,
+  "moraleAtStart": 85
+}

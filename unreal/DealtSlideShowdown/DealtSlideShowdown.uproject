@@ -1,0 +1,24 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.4",
+  "Category": "Games",
+  "Description": "Private 1208 Las Olas visual-showdown client using shared DEALT encounter and result contracts.",
+  "Modules": [
+    {
+      "Name": "DealtSlideShowdown",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "EnhancedInput",
+      "Enabled": true
+    },
+    {
+      "Name": "ModelingToolsEditorMode",
+      "Enabled": true,
+      "TargetAllowList": ["Editor"]
+    }
+  ]
+}
