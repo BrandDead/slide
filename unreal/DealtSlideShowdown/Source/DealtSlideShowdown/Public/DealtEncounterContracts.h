@@ -345,3 +345,21 @@ struct FDealtImpactCandidate
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     double Distance = 0.0;
 };
+
+USTRUCT(BlueprintType)
+struct FDealtAimedFireCommand
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FString ActorId;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    int32 Sequence = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FDealtAimRay Ray;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FDealtImpactCandidate Candidate;
+};

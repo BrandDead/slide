@@ -38,4 +38,34 @@ const codecHeader = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideSho
   assert.ok(codecHeader.includes(token), `Missing Unreal codec function ${token}`);
 });
 
-console.log('Unreal boundary validation passed: 2 canonical fixtures, 6 DTO groups, 3 codec operations.');
+const requiredSourceFiles = [
+  'Source/DealtSlideShowdown/Public/DealtEncounterSubsystem.h',
+  'Source/DealtSlideShowdown/Private/DealtEncounterSubsystem.cpp',
+  'Source/DealtSlideShowdown/Public/DealtMemberPawn.h',
+  'Source/DealtSlideShowdown/Private/DealtMemberPawn.cpp',
+  'Source/DealtSlideShowdown/Public/DealtCommanderPawn.h',
+  'Source/DealtSlideShowdown/Private/DealtCommanderPawn.cpp',
+  'Source/DealtSlideShowdown/Public/DealtActionPlayerController.h',
+  'Source/DealtSlideShowdown/Private/DealtActionPlayerController.cpp',
+  'Source/DealtSlideShowdown/Public/DealtSquadDirector.h',
+  'Source/DealtSlideShowdown/Private/DealtSquadDirector.cpp',
+  'Source/DealtSlideShowdown/Public/DealtActionGameMode.h',
+  'Source/DealtSlideShowdown/Private/DealtActionGameMode.cpp',
+  'Source/DealtSlideShowdown/Private/Tests/DealtContractCodecTests.cpp',
+];
+requiredSourceFiles.forEach((relativePath) => {
+  assert.ok(fs.existsSync(path.join(projectRoot, relativePath)), `Missing Unreal gameplay seam ${relativePath}`);
+});
+
+const subsystemSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Private/DealtEncounterSubsystem.cpp'), 'utf8');
+['SubmitNativeHit', 'CycleSelectedMember', 'AcceptResultJson', 'ConsumePendingResultJson'].forEach((token) => {
+  assert.ok(subsystemSource.includes(token), `Missing encounter seam ${token}`);
+});
+const playerSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Private/DealtActionPlayerController.cpp'), 'utf8');
+['CycleCameraMode', 'NextMember', 'PreviousMember', 'ApplyCurrentPossession'].forEach((token) => {
+  assert.ok(playerSource.includes(token), `Missing player-control seam ${token}`);
+});
+const gameConfig = fs.readFileSync(path.join(projectRoot, 'Config/DefaultGame.ini'), 'utf8');
+assert.ok(gameConfig.includes('GlobalDefaultGameMode=/Script/DealtSlideShowdown.DealtActionGameMode'));
+
+console.log('Unreal boundary validation passed: 2 canonical fixtures, 7 DTO groups, 3 codec operations, 13 gameplay seam files.');
