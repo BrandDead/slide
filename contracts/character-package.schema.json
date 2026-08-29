@@ -75,8 +75,24 @@
     },
     "animations": {
       "type": "object",
-      "additionalProperties": { "type": "string", "minLength": 1 },
-      "required": ["idle", "walk", "sprint", "strafe", "aim", "aimWalk", "fire", "reload", "crouch", "hit", "downed", "coverEnter", "coverIdle", "coverExit"]
+      "additionalProperties": false,
+      "required": ["idle", "walk", "sprint", "strafe", "aim", "aimWalk", "fire", "reload", "crouch", "hit", "downed", "coverEnter", "coverIdle", "coverExit"],
+      "properties": {
+        "idle": { "type": "string", "minLength": 1 },
+        "walk": { "type": "string", "minLength": 1 },
+        "sprint": { "type": "string", "minLength": 1 },
+        "strafe": { "type": "string", "minLength": 1 },
+        "aim": { "type": "string", "minLength": 1 },
+        "aimWalk": { "type": "string", "minLength": 1 },
+        "fire": { "type": "string", "minLength": 1 },
+        "reload": { "type": "string", "minLength": 1 },
+        "crouch": { "type": "string", "minLength": 1 },
+        "hit": { "type": "string", "minLength": 1 },
+        "downed": { "type": "string", "minLength": 1 },
+        "coverEnter": { "type": "string", "minLength": 1 },
+        "coverIdle": { "type": "string", "minLength": 1 },
+        "coverExit": { "type": "string", "minLength": 1 }
+      }
     },
     "weaponSockets": {
       "type": "object",

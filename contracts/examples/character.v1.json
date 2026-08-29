@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "packageId": "character.lil-dre.v1",
+  "memberId": "crew-lil-dre",
+  "displayName": "Lil Dre",
+  "role": "shooter",
+  "wardrobeIds": ["wardrobe.leather-jacket.dark", "wardrobe.denim.black", "wardrobe.sneaker.lowtop"],
+  "materialVariantIds": ["skin.deep-03", "jacket.teal-black"],
+  "portraitAssetId": "character.shooter.portrait.v1",
+  "source": {
+    "editableFiles": ["art-source/characters/lil-dre/lil-dre.blend"],
+    "exportFbx": "art-source/characters/lil-dre/exports/lil-dre.fbx"
+  },
+  "runtime": {
+    "babylonGlb": "/assets/packages/characters/lil-dre/lil-dre.v1.glb",
+    "firstPersonArmsGlb": "/assets/packages/characters/lil-dre/lil-dre-arms.v1.glb",
+    "unrealSkeletalMesh": "/Game/Dealt/Characters/LilDre/SK_LilDre"
+  },
+  "skeleton": {
+    "profileId": "dealt.humanoid.v1",
+    "rootBone": "root",
+    "forwardAxis": "+Z",
+    "upAxis": "+Y",
+    "metersPerUnit": 1
+  },
+  "hitZones": {
+    "head": "hit_head",
+    "torso": "hit_torso",
+    "leftArm": "hit_arm_l",
+    "rightArm": "hit_arm_r",
+    "leftLeg": "hit_leg_l",
+    "rightLeg": "hit_leg_r"
+  },
+  "animations": {
+    "idle": "idle_rifle",
+    "walk": "walk_rifle",
+    "sprint": "sprint_rifle",
+    "strafe": "strafe_rifle",
+    "aim": "aim_rifle",
+    "aimWalk": "aim_walk_rifle",
+    "fire": "fire_rifle",
+    "reload": "reload_rifle",
+    "crouch": "crouch_rifle",
+    "hit": "hit_front",
+    "downed": "downed_back",
+    "coverEnter": "cover_enter",
+    "coverIdle": "cover_idle",
+    "coverExit": "cover_exit"
+  },
+  "weaponSockets": {
+    "rightHand": "weapon_r",
+    "leftHandIk": "weapon_l_ik",
+    "holster": "weapon_holster"
+  },
+  "lods": [
+    { "level": 0, "maxTriangles": 65000, "maxBones": 120, "screenCoverage": 0.35 },
+    { "level": 1, "maxTriangles": 30000, "maxBones": 90, "screenCoverage": 0.16 },
+    { "level": 2, "maxTriangles": 12000, "maxBones": 65, "screenCoverage": 0.05 }
+  ],
+  "provenance": {
+    "creator": "DEALT / SLIDE production team",
+    "sourceUrl": "internal://art-source/characters/lil-dre",
+    "licenseId": "project-owned-v1",
+    "commercialUse": true,
+    "engineRestrictions": [],
+    "aiInvolvement": "concept-only",
+    "modificationNotes": "Example production package. Final source model must be delivered with cross-engine rights and the shared DEALT humanoid rig."
+  }
+}
