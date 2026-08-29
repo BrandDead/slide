@@ -1,4 +1,4 @@
-export type OpsAction = 'fire' | 'reload' | 'interact' | 'retreat' | 'camera' | 'pause';
+export type OpsAction = 'fire' | 'reload' | 'interact' | 'retreat' | 'camera' | 'next-member' | 'previous-member' | 'pause';
 
 export interface OpsMovementInput {
   forward: number;
@@ -119,6 +119,8 @@ export class OpsInput {
     if (code === 'KeyE') return 'interact';
     if (code === 'KeyQ') return 'retreat';
     if (code === 'KeyV') return 'camera';
+    if (code === 'BracketRight') return 'next-member';
+    if (code === 'BracketLeft') return 'previous-member';
     if (code === 'Escape') return 'pause';
     return null;
   }

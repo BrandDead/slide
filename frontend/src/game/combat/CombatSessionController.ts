@@ -17,6 +17,11 @@ import type {
 
 export type ActionCameraMode = 'tactical' | 'first-person' | 'third-person';
 
+export type ControlAuthority =
+  | { kind: 'player'; playerId: string }
+  | { kind: 'squad-ai'; orderId?: string }
+  | { kind: 'inactive'; reason: 'downed' | 'arrested' | 'unavailable' };
+
 export type CombatCommandWithoutSequence<T extends CombatCommand = CombatCommand> =
   T extends CombatCommand ? Omit<T, 'sequence'> : never;
 
@@ -25,6 +30,8 @@ export interface CombatHudState {
   paused: boolean;
   tick: number;
   selectedId: string | null;
+  controlledActorId: string | null;
+  controlMode: 'commander' | 'possessed';
   selectedName: string;
   health: number;
   maxHealth: number;
@@ -98,6 +105,20 @@ export class CombatSessionController {
     return this.cameraMode;
   }
 
+  getControlledCrewId(): string | null {
+    if (this.cameraMode === 'tactical') return null;
+    return this.getSelectedCrew()?.id ?? null;
+  }
+
+  getControlAuthority(actorId: string): ControlAuthority {
+    const actor = this.session.combatants.find((candidate) => candidate.id === actorId);
+    if (!actor || actor.isDown) return { kind: 'inactive', reason: actor?.isDown ? 'downed' : 'unavailable' };
+    if (actor.team !== 'crew') return { kind: 'squad-ai' };
+    return this.getControlledCrewId() === actor.id
+      ? { kind: 'player', playerId: 'local-player' }
+      : { kind: 'squad-ai' };
+  }
+
   setCameraMode(mode: ActionCameraMode): void {
     if (mode === this.cameraMode) return;
     this.cameraMode = mode;
@@ -132,6 +153,23 @@ export class CombatSessionController {
     return true;
   }
 
+  cycleSelectedCrew(direction = 1): Combatant | undefined {
+    const livingCrew = this.session.combatants.filter((actor) => actor.team === 'crew' && !actor.isDown);
+    if (livingCrew.length === 0) {
+      this.selectedCrewId = null;
+      this.emit();
+      return undefined;
+    }
+    const currentIndex = livingCrew.findIndex((actor) => actor.id === this.selectedCrewId);
+    const step = direction < 0 ? -1 : 1;
+    const nextIndex = currentIndex < 0
+      ? 0
+      : (currentIndex + step + livingCrew.length) % livingCrew.length;
+    this.selectedCrewId = livingCrew[nextIndex].id;
+    this.emit();
+    return livingCrew[nextIndex];
+  }
+
   getSelectedCrew(): Combatant | undefined {
     const selected = this.session.combatants.find(
       (actor) => actor.id === this.selectedCrewId && actor.team === 'crew' && !actor.isDown,
@@ -145,7 +183,10 @@ export class CombatSessionController {
 
   advance(steps = 1): CombatSnapshot {
     if (this.paused || this.session.phase !== 'active' || steps <= 0) return this.getSnapshot();
-    this.session = advanceCombat(this.session, steps);
+    for (let index = 0; index < steps && this.session.phase === 'active'; index += 1) {
+      this.session = advanceCombat(this.session, 1);
+      if (this.session.tick % 20 === 0) this.runSquadAiTurn();
+    }
     this.ensureSelectedCrew();
     this.emit();
     return this.getSnapshot();
@@ -221,6 +262,8 @@ export class CombatSessionController {
       paused: this.paused,
       tick: this.session.tick,
       selectedId: selected?.id ?? null,
+      controlledActorId: this.cameraMode === 'tactical' ? null : selected?.id ?? null,
+      controlMode: this.cameraMode === 'tactical' ? 'commander' : 'possessed',
       selectedName: selected?.name ?? 'No active crew',
       health: selected?.health ?? 0,
       maxHealth: selected?.maxHealth ?? 0,
@@ -232,6 +275,34 @@ export class CombatSessionController {
       objectiveTarget: this.session.objective.target,
       latestMessage: this.session.events.at(-1)?.message ?? 'Move through cover and secure the exit.',
     };
+  }
+
+  private runSquadAiTurn(): void {
+    const controlledId = this.getControlledCrewId();
+    const activeOpposition = this.session.combatants.filter(
+      (actor) => actor.team === 'opposition' && !actor.isDown,
+    );
+    if (activeOpposition.length === 0) return;
+
+    const aiCrewIds = this.session.combatants
+      .filter((actor) => actor.team === 'crew' && !actor.isDown && actor.id !== controlledId)
+      .map((actor) => actor.id);
+
+    aiCrewIds.forEach((actorId) => {
+      const actor = this.session.combatants.find((candidate) => candidate.id === actorId);
+      if (!actor || actor.ammo <= 0 || actor.reloadUntilTick !== null || actor.nextFireTick > this.session.tick) return;
+      const target = this.session.combatants
+        .filter((candidate) => candidate.team === 'opposition' && !candidate.isDown)
+        .sort((left, right) => manhattan(actor.position, left.position) - manhattan(actor.position, right.position))[0];
+      if (!target) return;
+      this.sequence += 1;
+      this.session = dispatchCombatCommand(this.session, {
+        type: 'aim-fire',
+        actorId,
+        targetId: target.id,
+        sequence: this.sequence,
+      });
+    });
   }
 
   private ensureSelectedCrew(): void {

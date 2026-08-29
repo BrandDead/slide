@@ -103,7 +103,12 @@ export function ModernOpsEncounter({ block, onResolved, onClose }: ModernOpsEnco
         {state.hud.cameraMode !== 'tactical' && <div className="ops-crosshair" aria-hidden="true"><i /><b /></div>}
 
         <div className="ops-vitals">
-          <span>{state.hud.selectedName}</span>
+          <span>{state.hud.controlMode === 'commander' ? 'COMMANDING' : 'POSSESSED'} · {state.hud.selectedName}</span>
+          <div className="ops-member-switch" aria-label="Selected crew member">
+            <button type="button" onClick={() => controller.cycleSelectedCrew(-1)} aria-label="Previous living crew member">‹</button>
+            <strong>{state.hud.selectedName}</strong>
+            <button type="button" onClick={() => controller.cycleSelectedCrew(1)} aria-label="Next living crew member">›</button>
+          </div>
           <div className="ops-meter"><i style={{ width: `${Math.max(0, healthRatio * 100)}%` }} /></div>
           <small>{state.hud.health}/{state.hud.maxHealth} HEALTH · {state.hud.activeCrew} CREW ACTIVE</small>
         </div>
@@ -128,7 +133,7 @@ export function ModernOpsEncounter({ block, onResolved, onClose }: ModernOpsEnco
           <small>{cameraLabel}</small>
         </div>
 
-        <div className="ops-controls">WASD MOVE · CLICK/SPACE FIRE · R RELOAD · V CAMERA · E EXTRACT · Q RETREAT</div>
+        <div className="ops-controls">WASD MOVE · CLICK/SPACE FIRE · R RELOAD · V CAMERA · [ / ] MEMBER · E EXTRACT · Q RETREAT</div>
 
         {state.hud.paused && !result && (
           <div className="ops-paused" role="dialog" aria-modal="true">

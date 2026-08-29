@@ -4,7 +4,7 @@ import type { Camera } from '@babylonjs/core/Cameras/camera';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
@@ -14,7 +14,15 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { Scene } from '@babylonjs/core/scene';
-import type { CombatEvent, CombatSnapshot, Combatant, EncounterPreparation } from '../combat/types';
+import type {
+  CombatEvent,
+  CombatHitZone,
+  CombatImpactCandidate,
+  CombatImpactKind,
+  CombatSnapshot,
+  Combatant,
+  EncounterPreparation,
+} from '../combat/types';
 import type { ActionCameraMode, CombatControllerState } from '../combat/CombatSessionController';
 import { CombatSessionController } from '../combat/CombatSessionController';
 import { OpsInput } from './OpsInput';
@@ -23,6 +31,7 @@ import { gridToWorld, movementToGridStep, OPS_CELL_SIZE } from './opsCoordinates
 const FACADE_URL = '/assets/runtime/generated/environments/street/block_modern_ops_storefront_v001.webp';
 const MOVE_INTERVAL_MS = 155;
 const SIM_TICK_MS = 100;
+const OPS_FIRE_RANGE = 40;
 
 interface ActorVisual {
   root: TransformNode;
@@ -35,6 +44,12 @@ interface ActorVisual {
 interface TimedEffect {
   mesh: AbstractMesh;
   remaining: number;
+}
+
+interface OpsImpactMetadata {
+  impactKind: Exclude<CombatImpactKind, 'miss'>;
+  entityId: string;
+  hitZone?: CombatHitZone;
 }
 
 export interface OpsWorldOptions {
@@ -159,6 +174,10 @@ export class OpsWorld {
       cellMesh.position.set(point.x, cell.zoneType === 'building' ? 0.75 : -0.08, point.z);
       cellMesh.material = palette[cell.zoneType] ?? palette.sidewalk;
       cellMesh.receiveShadows = true;
+      cellMesh.metadata = {
+        impactKind: cell.zoneType === 'parking' ? 'vehicle' : 'environment',
+        entityId: `terrain-${cell.x}-${cell.y}`,
+      } satisfies OpsImpactMetadata;
 
       if (cell.cover >= 0.45 && cell.passable) {
         const cover = MeshBuilder.CreateBox(`ops-cover-${cell.x}-${cell.y}`, {
@@ -168,6 +187,10 @@ export class OpsWorld {
         }, this.scene);
         cover.position.set(point.x, 0.45, point.z);
         cover.material = palette.cover;
+        cover.metadata = {
+          impactKind: 'cover',
+          entityId: `cover-${cell.x}-${cell.y}`,
+        } satisfies OpsImpactMetadata;
       }
     });
 
@@ -197,20 +220,24 @@ export class OpsWorld {
     facade.rotation.y = Math.PI;
     facade.scaling.y = 0.49;
     facade.material = facadeMaterial;
+    facade.metadata = { impactKind: 'environment', entityId: 'facade-north' } satisfies OpsImpactMetadata;
 
     const oppositeFacade = MeshBuilder.CreatePlane('ops-storefront-facade-south', { width: 30, height: 16.875 }, this.scene);
     oppositeFacade.position.set(0, 4.1, 15.7);
     oppositeFacade.scaling.y = 0.49;
     oppositeFacade.material = facadeMaterial;
+    oppositeFacade.metadata = { impactKind: 'environment', entityId: 'facade-south' } satisfies OpsImpactMetadata;
 
     const roofMaterial = material(this.scene, 'ops-roof-material', new Color3(0.045, 0.045, 0.055));
     this.materials.push(roofMaterial);
     const northRoof = MeshBuilder.CreateBox('ops-storefront-roof-north', { width: 31, height: 0.5, depth: 3 }, this.scene);
     northRoof.position.set(0, 7.95, -16.55);
     northRoof.material = roofMaterial;
+    northRoof.metadata = { impactKind: 'environment', entityId: 'roof-north' } satisfies OpsImpactMetadata;
     const southRoof = MeshBuilder.CreateBox('ops-storefront-roof-south', { width: 31, height: 0.5, depth: 3 }, this.scene);
     southRoof.position.set(0, 7.95, 16.55);
     southRoof.material = roofMaterial;
+    southRoof.metadata = { impactKind: 'environment', entityId: 'roof-south' } satisfies OpsImpactMetadata;
   }
 
   private createStreetLights(): void {
@@ -227,9 +254,11 @@ export class OpsWorld {
       const pole = MeshBuilder.CreateCylinder(`ops-light-pole-${index}`, { height: 6.5, diameter: 0.16 }, this.scene);
       pole.position.set(x, 3.25, z);
       pole.material = poleMaterial;
+      pole.metadata = { impactKind: 'environment', entityId: `light-pole-${index}` } satisfies OpsImpactMetadata;
       const lamp = MeshBuilder.CreateSphere(`ops-light-lamp-${index}`, { diameter: 0.48, segments: 12 }, this.scene);
       lamp.position.set(x, 6.35, z);
       lamp.material = lampMaterial;
+      lamp.metadata = { impactKind: 'environment', entityId: `light-lamp-${index}` } satisfies OpsImpactMetadata;
       const light = new PointLight(`ops-light-${index}`, lamp.position.clone(), this.scene);
       light.diffuse = index % 2 === 0 ? new Color3(0.2, 0.65, 0.95) : new Color3(1, 0.4, 0.22);
       light.intensity = 3.6;
@@ -326,11 +355,21 @@ export class OpsWorld {
     body.parent = root;
     body.position.y = 0.6;
     body.material = bodyMaterial;
+    body.metadata = {
+      impactKind: 'actor',
+      entityId: actor.id,
+      hitZone: 'torso',
+    } satisfies OpsImpactMetadata;
 
     const head = MeshBuilder.CreateSphere(`ops-head-${actor.id}`, { diameter: 0.48, segments: 10 }, this.scene);
     head.parent = root;
     head.position.y = 1.48;
     head.material = bodyMaterial;
+    head.metadata = {
+      impactKind: 'actor',
+      entityId: actor.id,
+      hitZone: 'head',
+    } satisfies OpsImpactMetadata;
 
     const markerMaterial = material(
       this.scene,
@@ -345,6 +384,7 @@ export class OpsWorld {
     marker.rotation.x = Math.PI / 2;
     marker.position.y = -0.78;
     marker.material = markerMaterial;
+    marker.isPickable = false;
 
     return { root, body, head, marker, target: root.position.clone() };
   }
@@ -359,12 +399,16 @@ export class OpsWorld {
   }
 
   private renderEvent(event: CombatEvent): void {
-    if (event.type === 'weapon-fired' && event.actorId && event.targetId) {
+    if (event.type === 'weapon-fired' && event.actorId) {
       const source = this.actorVisuals.get(event.actorId)?.root.position;
-      const target = this.actorVisuals.get(event.targetId)?.root.position;
-      if (source && target) {
+      const impactPoint = event.impact
+        ? new Vector3(event.impact.point.x, event.impact.point.y, event.impact.point.z)
+        : event.targetId
+          ? this.actorVisuals.get(event.targetId)?.root.position.add(new Vector3(0, 1.15, 0))
+          : undefined;
+      if (source && impactPoint) {
         const tracer = MeshBuilder.CreateLines(`ops-tracer-${event.id}`, {
-          points: [source.add(new Vector3(0, 1.2, 0)), target.add(new Vector3(0, 1.15, 0))],
+          points: [source.add(new Vector3(0, 1.2, 0)), impactPoint],
           updatable: false,
         }, this.scene) as LinesMesh;
         tracer.color = new Color3(1, 0.72, 0.16);
@@ -373,23 +417,44 @@ export class OpsWorld {
       }
     }
 
-    if ((event.type === 'impact-actor' || event.type === 'actor-downed') && event.targetId) {
-      const position = this.actorVisuals.get(event.targetId)?.root.position;
-      if (position) {
-        const flashMaterial = material(
-          this.scene,
-          `ops-impact-material-${event.id}`,
-          new Color3(1, 0.2, 0.05),
-          Color3.Black(),
-          new Color3(1, 0.1, 0.02),
-        );
-        this.materials.push(flashMaterial);
-        const flash = MeshBuilder.CreateSphere(`ops-impact-${event.id}`, { diameter: event.type === 'actor-downed' ? 0.9 : 0.55, segments: 8 }, this.scene);
-        flash.position.copyFrom(position.add(new Vector3(0, 1, 0)));
-        flash.material = flashMaterial;
-        this.effects.push({ mesh: flash, remaining: 0.18 });
-      }
-    }
+    const visibleImpactTypes = new Set<CombatEvent['type']>([
+      'impact-actor',
+      'impact-cover',
+      'impact-vehicle',
+      'impact-environment',
+      'actor-downed',
+    ]);
+    if (!visibleImpactTypes.has(event.type)) return;
+
+    const impactPoint = event.impact
+      ? new Vector3(event.impact.point.x, event.impact.point.y, event.impact.point.z)
+      : event.targetId
+        ? this.actorVisuals.get(event.targetId)?.root.position.add(new Vector3(0, 1, 0))
+        : undefined;
+    if (!impactPoint) return;
+
+    const actorImpact = event.type === 'impact-actor' || event.type === 'actor-downed';
+    const vehicleImpact = event.type === 'impact-vehicle';
+    const flashColor = actorImpact
+      ? new Color3(1, 0.16, 0.03)
+      : vehicleImpact
+        ? new Color3(1, 0.54, 0.08)
+        : new Color3(0.65, 0.78, 0.9);
+    const flashMaterial = material(
+      this.scene,
+      `ops-impact-material-${event.id}`,
+      flashColor,
+      Color3.Black(),
+      flashColor.scale(0.9),
+    );
+    this.materials.push(flashMaterial);
+    const flash = MeshBuilder.CreateSphere(`ops-impact-${event.id}`, {
+      diameter: event.type === 'actor-downed' ? 0.9 : actorImpact ? 0.55 : 0.38,
+      segments: 8,
+    }, this.scene);
+    flash.position.copyFrom(impactPoint);
+    flash.material = flashMaterial;
+    this.effects.push({ mesh: flash, remaining: actorImpact ? 0.18 : 0.1 });
   }
 
   private applyCameraMode(mode: ActionCameraMode): void {
@@ -413,7 +478,9 @@ export class OpsWorld {
 
     if (this.input.consume('pause')) this.controller.setPaused(!this.controller.isPaused());
     if (this.input.consume('camera')) this.controller.cycleCameraMode();
-    if (this.input.consume('fire')) this.controller.fireNearest();
+    if (this.input.consume('next-member')) this.controller.cycleSelectedCrew(1);
+    if (this.input.consume('previous-member')) this.controller.cycleSelectedCrew(-1);
+    if (this.input.consume('fire')) this.fireSelectedWeapon();
     if (this.input.consume('reload')) this.controller.reloadSelected();
     if (this.input.consume('interact')) this.controller.interactSelected();
     if (this.input.consume('retreat')) this.controller.retreatSelected();
@@ -435,6 +502,60 @@ export class OpsWorld {
     this.updateEffects(boundedDelta);
     const pulse = 1 + Math.sin(this.elapsed * 4.5) * 0.12;
     this.extractionMesh.scaling.set(pulse, 1, pulse);
+  }
+
+  private fireSelectedWeapon(): void {
+    if (this.controller.getCameraMode() === 'tactical') {
+      this.controller.fireNearest();
+      return;
+    }
+
+    const camera = this.scene.activeCamera;
+    const engine = this.scene.getEngine();
+    const selectedId = this.controller.getControlledCrewId();
+    if (!camera || !selectedId) return;
+
+    const ray = this.scene.createPickingRay(
+      engine.getRenderWidth() / 2,
+      engine.getRenderHeight() / 2,
+      Matrix.Identity(),
+      camera,
+      false,
+    );
+    ray.length = OPS_FIRE_RANGE;
+    const pick = this.scene.pickWithRay(ray, (mesh) => {
+      if (!mesh.isEnabled() || !mesh.isVisible || !mesh.isPickable) return false;
+      const metadata = mesh.metadata as OpsImpactMetadata | undefined;
+      if (!metadata) return false;
+      return metadata.impactKind !== 'actor' || metadata.entityId !== selectedId;
+    }, false);
+
+    const point = pick?.hit && pick.pickedPoint
+      ? pick.pickedPoint
+      : ray.origin.add(ray.direction.scale(OPS_FIRE_RANGE));
+    const metadata = pick?.hit && pick.pickedMesh
+      ? pick.pickedMesh.metadata as OpsImpactMetadata | undefined
+      : undefined;
+    const candidate: CombatImpactCandidate = metadata
+      ? {
+          kind: metadata.impactKind,
+          entityId: metadata.entityId,
+          hitZone: metadata.hitZone,
+          point: { x: point.x, y: point.y, z: point.z },
+          distance: Vector3.Distance(ray.origin, point),
+        }
+      : {
+          kind: 'miss',
+          point: { x: point.x, y: point.y, z: point.z },
+          distance: OPS_FIRE_RANGE,
+        };
+
+    this.controller.fireRay({
+      origin: { x: ray.origin.x, y: ray.origin.y, z: ray.origin.z },
+      direction: { x: ray.direction.x, y: ray.direction.y, z: ray.direction.z },
+      maxDistance: OPS_FIRE_RANGE,
+      clientTick: this.snapshot.tick,
+    }, candidate);
   }
 
   private updateMovement(): void {
