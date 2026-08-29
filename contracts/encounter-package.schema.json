@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dealt-slide.invalid/contracts/encounter-package.schema.json",
+  "title": "DEALT / SLIDE Encounter Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "encounterId",
+    "blockId",
+    "sceneLabel",
+    "locationReference",
+    "seed",
+    "terrain",
+    "crew",
+    "opposition",
+    "loadout",
+    "objective",
+    "extraction",
+    "heatAtStart",
+    "moraleAtStart"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "encounterId": { "type": "string", "minLength": 1 },
+    "blockId": { "type": "string", "minLength": 1 },
+    "sceneLabel": { "type": "string", "minLength": 1 },
+    "locationReference": { "type": "string", "minLength": 1 },
+    "seed": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+    "terrain": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "$ref": "#/$defs/terrainCell" }
+      }
+    },
+    "crew": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/combatant" }
+    },
+    "opposition": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/combatant" }
+    },
+    "loadout": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/loadoutEntry" }
+    },
+    "objective": { "$ref": "#/$defs/objective" },
+    "extraction": { "$ref": "#/$defs/gridPoint" },
+    "heatAtStart": { "type": "number", "minimum": 0 },
+    "moraleAtStart": { "type": "number", "minimum": 0, "maximum": 100 }
+  },
+  "$defs": {
+    "gridPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "terrainCell": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "zoneType", "passable", "cover", "exposure"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "zoneType": {
+          "enum": ["street", "curb", "sidewalk", "storefront", "alley", "parking", "rooftop", "building"]
+        },
+        "passable": { "type": "boolean" },
+        "cover": { "type": "number", "minimum": 0, "maximum": 1 },
+        "exposure": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "combatant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "team",
+        "role",
+        "position",
+        "health",
+        "maxHealth",
+        "armor",
+        "ammo",
+        "maxAmmo",
+        "reloadUntilTick",
+        "nextFireTick",
+        "level",
+        "lastSequence",
+        "isDown"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "team": { "enum": ["crew", "opposition"] },
+        "role": {
+          "enum": ["dealer", "shooter", "enforcer", "lookout", "driver", "chemist", "runner", "boss", "recruit", "k9", "police", "opposition"]
+        },
+        "position": { "$ref": "#/$defs/gridPoint" },
+        "health": { "type": "number", "minimum": 0 },
+        "maxHealth": { "type": "number", "exclusiveMinimum": 0 },
+        "armor": { "type": "number", "minimum": 0 },
+        "ammo": { "type": "integer", "minimum": 0 },
+        "maxAmmo": { "type": "integer", "minimum": 0 },
+        "reloadUntilTick": { "type": ["integer", "null"], "minimum": 0 },
+        "nextFireTick": { "type": "integer", "minimum": 0 },
+        "level": { "type": "number", "minimum": 0 },
+        "lastSequence": { "type": "integer", "minimum": 0 },
+        "isDown": { "type": "boolean" }
+      }
+    },
+    "loadoutEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actorId", "weaponId", "ammoAtStart"],
+      "properties": {
+        "actorId": { "type": "string", "minLength": 1 },
+        "weaponId": { "type": "string", "minLength": 1 },
+        "ammoAtStart": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "label", "extraction", "requiredCrew", "progress", "target"],
+      "properties": {
+        "kind": { "const": "extract" },
+        "label": { "type": "string", "minLength": 1 },
+        "extraction": { "$ref": "#/$defs/gridPoint" },
+        "requiredCrew": { "type": "integer", "minimum": 1 },
+        "progress": { "type": "integer", "minimum": 0 },
+        "target": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

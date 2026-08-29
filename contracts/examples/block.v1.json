@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "packageId": "block.1208-las-olas.v1",
+  "blockId": "1208-las-olas",
+  "dnaId": "las-olas-night-strip",
+  "version": 1,
+  "locationLabel": "1208 Las Olas — Fictionalized Night Strip",
+  "source": {
+    "editableFiles": ["art-source/blocks/1208-las-olas/1208-las-olas.blend"],
+    "exportFbx": "art-source/blocks/1208-las-olas/exports/1208-las-olas.fbx"
+  },
+  "runtime": {
+    "babylonGlb": "/assets/packages/blocks/1208-las-olas/1208-las-olas.v1.glb",
+    "unrealMap": "/Game/Dealt/Blocks/LasOlas/L_1208_LasOlas",
+    "textureRoot": "/assets/packages/blocks/1208-las-olas/textures/"
+  },
+  "gridProjection": {
+    "width": 8,
+    "height": 8,
+    "cellSizeMeters": 3.2,
+    "origin": { "x": -11.2, "y": 0, "z": -11.2 },
+    "xAxis": "+X",
+    "yAxis": "+Z"
+  },
+  "anchors": [
+    {
+      "id": "spawn-crew-west",
+      "kind": "crew-spawn",
+      "position": { "x": -9.6, "y": 0, "z": 1.6 },
+      "rotationDegrees": { "x": 0, "y": 90, "z": 0 },
+      "gridPoint": { "x": 0, "y": 4 },
+      "tags": ["zone:parking", "team:crew"]
+    },
+    {
+      "id": "spawn-rival-east",
+      "kind": "opposition-spawn",
+      "position": { "x": 9.6, "y": 0, "z": -4.8 },
+      "rotationDegrees": { "x": 0, "y": -90, "z": 0 },
+      "gridPoint": { "x": 7, "y": 2 },
+      "tags": ["zone:sidewalk", "team:opposition"]
+    },
+    {
+      "id": "cover-planter-center",
+      "kind": "cover",
+      "position": { "x": 1.6, "y": 0, "z": 1.6 },
+      "rotationDegrees": { "x": 0, "y": 0, "z": 0 },
+      "gridPoint": { "x": 4, "y": 4 },
+      "entityId": "cover-planter-center",
+      "tags": ["zone:parking", "cover:high"]
+    },
+    {
+      "id": "vehicle-sedan-west",
+      "kind": "vehicle",
+      "position": { "x": -4.8, "y": 0, "z": 4.8 },
+      "rotationDegrees": { "x": 0, "y": 90, "z": 0 },
+      "gridPoint": { "x": 2, "y": 5 },
+      "entityId": "vehicle-sedan-west",
+      "tags": ["zone:parking", "cover:vehicle"]
+    },
+    {
+      "id": "objective-extraction-east",
+      "kind": "extraction",
+      "position": { "x": 9.6, "y": 0, "z": 8 },
+      "rotationDegrees": { "x": 0, "y": 0, "z": 0 },
+      "gridPoint": { "x": 7, "y": 6 },
+      "entityId": "extract-east",
+      "tags": ["zone:curb", "objective:secure-exit"]
+    }
+  ],
+  "lighting": {
+    "profileId": "las-olas.wet-neon-night.v1",
+    "timeOfDay": "night",
+    "weather": "rain",
+    "wetness": 0.88,
+    "reflectionProbeIds": ["probe-storefront-north", "probe-road-center"]
+  },
+  "performanceBudget": {
+    "maxDownloadBytes": 25000000,
+    "maxTriangles": 500000,
+    "maxMaterials": 32,
+    "maxDrawCalls": 180,
+    "maxTextureBytes": 16000000
+  },
+  "provenance": [
+    {
+      "assetId": "block-shell",
+      "creator": "DEALT / SLIDE production team",
+      "sourceUrl": "internal://art-source/blocks/1208-las-olas",
+      "licenseId": "project-owned-v1",
+      "commercialUse": true,
+      "engineRestrictions": [],
+      "aiInvolvement": "concept-only",
+      "modificationNotes": "Fictionalized commercial strip based on the project-owned visual direction; no real branding."
+    }
+  ]
+}

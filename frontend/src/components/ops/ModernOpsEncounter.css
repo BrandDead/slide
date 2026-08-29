@@ -219,6 +219,32 @@
   background: linear-gradient(90deg, rgba(2, 12, 20, 0.88), rgba(2, 12, 20, 0.12));
 }
 
+.ops-member-switch {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+  pointer-events: auto;
+}
+
+.ops-member-switch button {
+  min-height: 28px;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ops-member-switch strong {
+  overflow: hidden;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ops-meter {
   height: 8px;
   margin: 7px 0;
@@ -355,7 +381,10 @@
   .ops-objective-card { top: 10px; left: 10px; min-width: 190px; padding: 10px 12px; }
   .ops-objective-card strong { font-size: 13px; }
   .ops-rival-bar { top: 12px; right: 10px; left: auto; width: 128px; transform: none; text-align: right; }
-  .ops-vitals { left: 10px; bottom: 14px; width: 44vw; padding: 9px; }
+  .ops-vitals { left: 10px; bottom: 14px; width: 48vw; padding: 9px; }
+  .ops-member-switch { grid-template-columns: 26px minmax(0, 1fr) 26px; gap: 4px; }
+  .ops-member-switch button { min-height: 25px; }
+  .ops-member-switch strong { font-size: 10px; }
   .ops-status { bottom: 56px; max-width: 84vw; font-size: 9px; }
   .ops-controls { display: none; }
   .ops-camera-switcher { right: 10px; bottom: 72px; }

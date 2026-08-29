@@ -32,3 +32,24 @@ The runtime texture is registered as `generated.environments.street.block_modern
 ## Runtime Rules
 
 All runtime images must be registered in `runtimeManifest.json`, pass `npm run assets:audit`, and stay within the 20 MB budget. Babylon receives the storefront through its registered public path. The visual-target PNG remains outside the runtime tree and should be attached with review evidence rather than loaded by the game.
+
+## 2026-08-28 — Production-Intent 1208 Las Olas Pass
+
+The Babylon comparison path now has a formal package pipeline rather than scene-specific asset assumptions. Versioned character and block schemas live under `contracts/`, canonical examples define the expected cross-engine exports, runtime guards live in `frontend/src/game/assets/assetPackages.ts`, and `npm run assets:packages` validates examples plus any runtime package manifests. Babylon's official glTF loader is installed, and `OpsPackagedAssetLoader.ts` imports schema-valid character or block GLBs without moving gameplay authority into those assets.
+
+| Asset or system | Current source | Runtime role | Replacement path |
+|---|---|---|---|
+| Articulated actor fallback | Original procedural mesh assembly in `OpsCharacterFactory.ts` | Human-proportioned crew/rival silhouette, separate clothing materials, visible weapon, head/torso/arm/leg hit zones | Replace package-by-package with licensed rigged GLB using the same `OpsActorVisual` contract |
+| Parked sedans | Original procedural assembly in `OpsEnvironmentFactory.ts` | Vehicle cover, physical ray target, night-street density | Replace with optimized vehicle GLBs carrying stable vehicle anchor IDs |
+| Concrete planters and foliage | Original procedural assembly in `OpsEnvironmentFactory.ts` | Physical cover and Las Olas streetscape dressing | Replace or refine inside the block GLB without changing grid/anchor semantics |
+| Palm trees and puddles | Original procedural assembly in `OpsEnvironmentFactory.ts` | South Florida identity and wet-neon reflection cues | Replace with instanced production meshes/textures after the hero-block package exists |
+| Storefront depth and background massing | Original procedural geometry plus existing generated facade WebP | Awnings, columns, sills, roof depth, and skyline enclosure around the existing facade | Consolidate into `block.1208-las-olas.v1` source scene and GLB |
+| FPS weapon presentation | Original procedural assembly in `OpsWorld.ts` | Visible first-person weapon and local recoil only | Replace with the possessed member package's `firstPersonArmsGlb` and weapon socket contract |
+
+The Quaternius Universal Base Characters pack was evaluated as a permissive cross-engine reference and its primary page/license were checked, but no archive was committed or used in the runtime. The official free-download endpoint rate-limited automated access, and the pack's visual style is not the final benchmark. No marketplace or third-party model is represented as project-owned content.
+
+All procedural fallbacks are code, not claimed production art. They exist to remove player-facing capsules/spheres, exercise semantic hit zones, and let the gameplay and package pipeline be verified before licensed source models arrive.
+
+### Evaluated External Character Reference
+
+Quaternius's **Universal Base Characters** page describes six game-ready base characters, 20 hairstyles, an average 13,000-triangle model, humanoid retargeting, FBX/glTF exports, and compatibility claims for Unreal, Unity, and Godot: https://quaternius.com/packs/universalbasecharacters.html. The current Quaternius Asset License permits use and modification in commercial products without attribution but prohibits redistributing the assets themselves as an asset pack: https://quaternius.com/license.html. These links document evaluation only; the files are not part of this repository.

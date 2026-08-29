@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "encounterId": "encounter-1208-las-olas-001",
+  "idempotencyKey": "encounter-1208-las-olas-001:secured",
+  "outcome": "secured",
+  "crewDown": [],
+  "oppositionDown": ["rival-vice-runner"],
+  "injuries": [],
+  "ammoConsumed": {
+    "crew-lil-dre": 3,
+    "crew-stacks": 2,
+    "rival-vice-runner": 4
+  },
+  "inventoryChanges": [
+    { "itemId": "ammo.compact-rifle", "quantityDelta": -3, "reason": "consumed" },
+    { "itemId": "ammo.service-pistol", "quantityDelta": -2, "reason": "consumed" }
+  ],
+  "heatDelta": 1,
+  "moraleDelta": 4,
+  "pendingIncomeDelta": 75,
+  "capturedBlock": false,
+  "replayHash": "1208a5ce",
+  "summary": "Secure exit reached. The crew held together under pressure."
+}

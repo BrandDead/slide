@@ -1,24 +1,48 @@
 import type {
+  CombatAimRay,
   CombatCommand,
   CombatEvent,
+  CombatHitZone,
+  CombatImpactCandidate,
   CombatResult,
   CombatSession,
   CombatSnapshot,
   Combatant,
   EncounterPreparation,
+  EncounterVector3,
   GridPoint,
 } from './types';
 
 const RELOAD_TICKS = 20;
 const FIRE_INTERVAL_TICKS = 5;
 const MAX_EVENT_LOG = 30;
+const MAX_RAY_DISTANCE = 40;
+const MAX_CLIENT_TICK_DRIFT = 40;
+const RAY_DIRECTION_TOLERANCE = 0.05;
+const RAY_POINT_TOLERANCE_METERS = 1.5;
+
+const HIT_ZONE_MULTIPLIER: Record<CombatHitZone, number> = {
+  head: 1.55,
+  torso: 1,
+  arm: 0.78,
+  leg: 0.72,
+};
 
 function nextRandom(session: CombatSession): [CombatSession, number] {
   const nextState = (Math.imul(session.rngState, 1664525) + 1013904223) >>> 0;
   return [{ ...session, rngState: nextState }, nextState / 0x1_0000_0000];
 }
 
-function event(session: CombatSession, type: CombatEvent['type'], message: string, actorId?: string, targetId?: string, amount?: number): CombatEvent {
+function event(
+  session: CombatSession,
+  type: CombatEvent['type'],
+  message: string,
+  actorId?: string,
+  targetId?: string,
+  amount?: number,
+  impact?: CombatImpactCandidate,
+  hitZone?: CombatHitZone,
+): CombatEvent {
   return {
     id: `${session.id}:${session.tick}:${session.events.length}:${type}`,
     tick: session.tick,
@@ -26,6 +50,8 @@ function event(session: CombatSession, type: CombatEvent['type'], message: strin
     actorId,
     targetId,
     amount,
+    impact,
+    hitZone,
     message,
   };
 }
@@ -40,6 +66,22 @@ function cellAt(session: CombatSession, point: GridPoint) {
 
 function distance(a: GridPoint, b: GridPoint): number {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+function vectorLength(vector: EncounterVector3): number {
+  return Math.hypot(vector.x, vector.y, vector.z);
+}
+
+function subtractVector(left: EncounterVector3, right: EncounterVector3): EncounterVector3 {
+  return { x: left.x - right.x, y: left.y - right.y, z: left.z - right.z };
+}
+
+function dotVector(left: EncounterVector3, right: EncounterVector3): number {
+  return left.x * right.x + left.y * right.y + left.z * right.z;
+}
+
+function isFiniteVector(vector: EncounterVector3): boolean {
+  return Number.isFinite(vector.x) && Number.isFinite(vector.y) && Number.isFinite(vector.z);
 }
 
 function isOccupied(session: CombatSession, point: GridPoint, ignoredId?: string): boolean {
@@ -112,11 +154,169 @@ function applyDamage(session: CombatSession, source: Combatant, target: Combatan
   return updated;
 }
 
+function rayGeometryIsValid(ray: CombatAimRay, candidate: CombatImpactCandidate): boolean {
+  if (!isFiniteVector(ray.origin) || !isFiniteVector(ray.direction) || !isFiniteVector(candidate.point)) return false;
+  if (!Number.isFinite(ray.maxDistance) || ray.maxDistance <= 0 || ray.maxDistance > MAX_RAY_DISTANCE) return false;
+  if (!Number.isFinite(candidate.distance) || candidate.distance < 0 || candidate.distance > ray.maxDistance) return false;
+
+  const directionLength = vectorLength(ray.direction);
+  if (Math.abs(directionLength - 1) > RAY_DIRECTION_TOLERANCE) return false;
+
+  const originToPoint = subtractVector(candidate.point, ray.origin);
+  const measuredDistance = vectorLength(originToPoint);
+  if (Math.abs(measuredDistance - candidate.distance) > RAY_POINT_TOLERANCE_METERS) return false;
+
+  const forwardDistance = dotVector(originToPoint, ray.direction);
+  if (forwardDistance < -RAY_POINT_TOLERANCE_METERS || forwardDistance > ray.maxDistance + RAY_POINT_TOLERANCE_METERS) return false;
+
+  const lateralSquared = Math.max(0, measuredDistance * measuredDistance - forwardDistance * forwardDistance);
+  return Math.sqrt(lateralSquared) <= RAY_POINT_TOLERANCE_METERS;
+}
+
+function validateAimFireRay(
+  session: CombatSession,
+  source: Combatant,
+  ray: CombatAimRay,
+  candidate: CombatImpactCandidate,
+): { valid: true; target?: Combatant } | { valid: false; message: string } {
+  if (!Number.isInteger(ray.clientTick) || Math.abs(session.tick - ray.clientTick) > MAX_CLIENT_TICK_DRIFT) {
+    return { valid: false, message: 'Shot timing was not accepted.' };
+  }
+  if (!rayGeometryIsValid(ray, candidate)) {
+    return { valid: false, message: 'Shot trajectory was not accepted.' };
+  }
+  if (candidate.kind !== 'actor') return { valid: true };
+  if (!candidate.entityId || !candidate.hitZone) {
+    return { valid: false, message: 'Actor impact is missing target metadata.' };
+  }
+  const target = getActor(session, candidate.entityId);
+  if (!target || target.isDown || target.team !== 'opposition') {
+    return { valid: false, message: 'Shot target was not accepted.' };
+  }
+  if (distance(source.position, target.position) > 6 || !lineOfSight(session, source.position, target.position)) {
+    return { valid: false, message: 'No clean line of sight. Reposition or reload.' };
+  }
+  return { valid: true, target };
+}
+
+function applyConfirmedActorImpact(
+  session: CombatSession,
+  source: Combatant,
+  target: Combatant,
+  candidate: CombatImpactCandidate,
+  random: number,
+): CombatSession {
+  const hitZone = candidate.hitZone ?? 'torso';
+  const variance = 0.92 + random * 0.16;
+  const unarmoredDamage = (18 + source.level * 2) * HIT_ZONE_MULTIPLIER[hitZone] * variance;
+  const armorReduction = target.armor * (hitZone === 'head' ? 1.5 : 3);
+  const damage = Math.max(5, Math.round(unarmoredDamage - armorReduction));
+  const updatedTarget = { ...target, health: Math.max(0, target.health - damage) };
+  let updated = updateCombatant(session, updatedTarget);
+  updated = appendEvents(updated, [event(
+    updated,
+    'impact-actor',
+    `${target.name} takes ${damage} ${hitZone} damage.`,
+    source.id,
+    target.id,
+    damage,
+    candidate,
+    hitZone,
+  )]);
+  if (updatedTarget.health <= 0) {
+    updated = updateCombatant(updated, { ...updatedTarget, isDown: true });
+    updated = appendEvents(updated, [event(
+      updated,
+      'actor-downed',
+      `${target.name} is down.`,
+      source.id,
+      target.id,
+      undefined,
+      candidate,
+      hitZone,
+    )]);
+  }
+  return updated;
+}
+
+function applyNonActorImpact(
+  session: CombatSession,
+  source: Combatant,
+  candidate: CombatImpactCandidate,
+): CombatSession {
+  let impact: { type: CombatEvent['type']; message: string };
+  switch (candidate.kind) {
+    case 'cover':
+      impact = { type: 'impact-cover', message: 'Shot strikes physical cover.' };
+      break;
+    case 'vehicle':
+      impact = { type: 'impact-vehicle', message: 'Shot strikes a vehicle.' };
+      break;
+    case 'environment':
+      impact = { type: 'impact-environment', message: 'Shot strikes the environment.' };
+      break;
+    case 'miss':
+      impact = { type: 'impact-miss', message: 'Shot misses.' };
+      break;
+    case 'actor':
+      return session;
+  }
+  return appendEvents(session, [event(
+    session,
+    impact.type,
+    impact.message,
+    source.id,
+    candidate.entityId,
+    undefined,
+    candidate,
+  )]);
+}
+
+function resolveAimFireRay(
+  session: CombatSession,
+  source: Combatant,
+  ray: CombatAimRay,
+  candidate: CombatImpactCandidate,
+): CombatSession {
+  const validation = validateAimFireRay(session, source, ray, candidate);
+  if (!validation.valid) {
+    return appendEvents(session, [event(session, 'blocked', validation.message, source.id, candidate.entityId)]);
+  }
+
+  let next = appendEvents(session, [event(
+    session,
+    'weapon-fired',
+    `${source.name} fires.`,
+    source.id,
+    validation.target?.id ?? candidate.entityId,
+    undefined,
+    candidate,
+    candidate.hitZone,
+  )]);
+
+  if (validation.target) {
+    const [randomized, random] = nextRandom(next);
+    next = applyConfirmedActorImpact(randomized, source, validation.target, candidate, random);
+  } else {
+    next = applyNonActorImpact(next, source, candidate);
+  }
+
+  const current = getActor(next, source.id);
+  if (current) {
+    next = updateCombatant(next, {
+      ...current,
+      ammo: current.ammo - 1,
+      nextFireTick: next.tick + FIRE_INTERVAL_TICKS,
+    });
+  }
+  return next;
+}
+
 function takeStepToward(session: CombatSession, actor: Combatant, target: Combatant): CombatSession {
   const choices: GridPoint[] = [
     { x: actor.position.x + Math.sign(target.position.x - actor.position.x), y: actor.position.y },
     { x: actor.position.x, y: actor.position.y + Math.sign(target.position.y - actor.position.y) },
-  ].filter((point, index, array) => point.x !== actor.position.x || point.y !== actor.position.y)
+  ].filter((point) => point.x !== actor.position.x || point.y !== actor.position.y)
     .filter((point, index, array) => array.findIndex((candidate) => candidate.x === point.x && candidate.y === point.y) === index);
   const candidate = choices.find((point) => cellAt(session, point)?.passable && !isOccupied(session, point, actor.id));
   if (!candidate) return session;
@@ -126,9 +326,9 @@ function takeStepToward(session: CombatSession, actor: Combatant, target: Combat
 
 function runOppositionTurn(session: CombatSession): CombatSession {
   let next = session;
-  const crew = next.combatants.filter((actor) => actor.team === 'crew' && !actor.isDown);
   for (const oppositionId of next.combatants.filter((actor) => actor.team === 'opposition' && !actor.isDown).map((actor) => actor.id)) {
     const actor = getActor(next, oppositionId);
+    const crew = next.combatants.filter((candidate) => candidate.team === 'crew' && !candidate.isDown);
     if (!actor || crew.length === 0) continue;
     const target = [...crew].sort((a, b) => distance(actor.position, a.position) - distance(actor.position, b.position))[0];
     if (!target) continue;
@@ -211,10 +411,16 @@ export function dispatchCombatCommand(session: CombatSession, command: CombatCom
     next = updateCombatant(next, { ...current, reloadUntilTick: next.tick + RELOAD_TICKS });
     return appendEvents(next, [event(next, 'reload-start', `${actor.name} starts reloading.`, actor.id)]);
   }
-  if (command.type === 'aim-fire') {
+  if (command.type === 'aim-fire' || command.type === 'aim-fire-ray') {
     const source = getActor(next, actor.id)!;
+    if (source.ammo <= 0 || source.reloadUntilTick !== null || source.nextFireTick > next.tick) {
+      return appendEvents(next, [event(next, 'blocked', 'Weapon is not ready. Reposition or reload.', actor.id)]);
+    }
+    if (command.type === 'aim-fire-ray') {
+      return resolveAimFireRay(next, source, command.ray, command.candidate);
+    }
     const target = getActor(next, command.targetId);
-    if (!target || target.isDown || target.team !== 'opposition' || source.ammo <= 0 || source.reloadUntilTick !== null || source.nextFireTick > next.tick || distance(source.position, target.position) > 6 || !lineOfSight(next, source.position, target.position)) {
+    if (!target || target.isDown || target.team !== 'opposition' || distance(source.position, target.position) > 6 || !lineOfSight(next, source.position, target.position)) {
       return appendEvents(next, [event(next, 'blocked', 'No clean line of sight. Reposition or reload.', actor.id)]);
     }
     const [randomized, random] = nextRandom(next);

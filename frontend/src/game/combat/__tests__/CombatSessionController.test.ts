@@ -118,6 +118,65 @@ describe('CombatSessionController', () => {
     expect(listener).toHaveBeenCalledTimes(3);
   });
 
+  it('separates commander selection from direct possession without mutating combat state', () => {
+    const controller = new CombatSessionController({
+      ...preparation(),
+      crew: [
+        actor({}),
+        actor({ id: 'crew-2', name: 'Stacks', position: { x: 1, y: 1 } }),
+      ],
+    });
+    const before = controller.getSnapshot();
+
+    expect(controller.getHudState().controlMode).toBe('commander');
+    expect(controller.getControlledCrewId()).toBeNull();
+    expect(controller.getControlAuthority('crew-1')).toEqual({ kind: 'squad-ai' });
+
+    controller.setCameraMode('third-person');
+    expect(controller.getControlledCrewId()).toBe('crew-1');
+    expect(controller.getControlAuthority('crew-1')).toEqual({ kind: 'player', playerId: 'local-player' });
+    expect(controller.getControlAuthority('crew-2')).toEqual({ kind: 'squad-ai' });
+
+    controller.cycleSelectedCrew();
+    expect(controller.getControlledCrewId()).toBe('crew-2');
+    expect(controller.getControlAuthority('crew-1')).toEqual({ kind: 'squad-ai' });
+    expect(controller.getControlAuthority('crew-2')).toEqual({ kind: 'player', playerId: 'local-player' });
+    expect(controller.getSnapshot()).toEqual(before);
+  });
+
+  it('keeps unpossessed crew active under squad AI while reserving the possessed member', () => {
+    const controller = new CombatSessionController({
+      ...preparation(),
+      crew: [
+        actor({}),
+        actor({ id: 'crew-2', name: 'Stacks', position: { x: 1, y: 1 } }),
+      ],
+    }, 'third-person');
+
+    const advanced = controller.advance(20);
+    const possessed = advanced.combatants.find((candidate) => candidate.id === 'crew-1');
+    const squadAi = advanced.combatants.find((candidate) => candidate.id === 'crew-2');
+
+    expect(controller.getControlAuthority('crew-1')).toEqual({ kind: 'player', playerId: 'local-player' });
+    expect(controller.getControlAuthority('crew-2')).toEqual({ kind: 'squad-ai' });
+    expect(possessed?.ammo).toBe(8);
+    expect(squadAi?.ammo).toBe(7);
+  });
+
+  it('cycles only through living crew and marks unavailable actors inactive', () => {
+    const controller = new CombatSessionController({
+      ...preparation(),
+      crew: [
+        actor({ isDown: true, health: 0 }),
+        actor({ id: 'crew-2', name: 'Stacks', position: { x: 1, y: 1 } }),
+      ],
+    }, 'first-person');
+
+    expect(controller.getSelectedCrew()?.id).toBe('crew-2');
+    expect(controller.cycleSelectedCrew()?.id).toBe('crew-2');
+    expect(controller.getControlAuthority('crew-1')).toEqual({ kind: 'inactive', reason: 'downed' });
+  });
+
   it('produces identical snapshots for identical controller inputs', () => {
     const first = new CombatSessionController(preparation());
     const second = new CombatSessionController(preparation());

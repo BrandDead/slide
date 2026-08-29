@@ -19,10 +19,12 @@
     "test": "vitest run",
     "assets:process": "node scripts/assets/process.mjs",
     "assets:audit": "node scripts/assets/audit.mjs",
-    "validate": "npm run lint && npm run typecheck && npm test && npm run assets:audit"
+    "assets:packages": "node scripts/assets/validate-packages.mjs",
+    "validate": "npm run lint && npm run typecheck && npm test && npm run assets:audit && npm run assets:packages"
   },
   "dependencies": {
     "@babylonjs/core": "^8.56.2",
+    "@babylonjs/loaders": "^8.56.2",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.13.5",
@@ -49,6 +51,7 @@
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "ajv": "^8.20.0",
     "autoprefixer": "^10.4.16",
     "concurrently": "^8.2.2",
     "dotenv": "^16.3.1",
