@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dealt-slide.invalid/contracts/block-package.schema.json",
+  "title": "DEALT / SLIDE Block Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "blockId",
+    "dnaId",
+    "version",
+    "locationLabel",
+    "source",
+    "runtime",
+    "gridProjection",
+    "anchors",
+    "lighting",
+    "performanceBudget",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "packageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+    "blockId": { "type": "string", "minLength": 1 },
+    "dnaId": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer", "minimum": 1 },
+    "locationLabel": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["editableFiles"],
+      "properties": {
+        "editableFiles": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "exportFbx": { "type": "string", "minLength": 1 }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["babylonGlb"],
+      "properties": {
+        "babylonGlb": { "type": "string", "minLength": 1 },
+        "unrealMap": { "type": "string", "minLength": 1 },
+        "textureRoot": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gridProjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "cellSizeMeters", "origin", "xAxis", "yAxis"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "cellSizeMeters": { "type": "number", "exclusiveMinimum": 0 },
+        "origin": { "$ref": "#/$defs/vector3" },
+        "xAxis": { "enum": ["+X", "-X", "+Z", "-Z"] },
+        "yAxis": { "enum": ["+X", "-X", "+Z", "-Z"] }
+      }
+    },
+    "anchors": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/anchor" }
+    },
+    "lighting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "timeOfDay", "weather", "wetness"],
+      "properties": {
+        "profileId": { "type": "string", "minLength": 1 },
+        "timeOfDay": { "enum": ["day", "dusk", "night", "dawn"] },
+        "weather": { "enum": ["clear", "overcast", "rain", "storm"] },
+        "wetness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reflectionProbeIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "performanceBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxDownloadBytes", "maxTriangles", "maxMaterials", "maxDrawCalls", "maxTextureBytes"],
+      "properties": {
+        "maxDownloadBytes": { "type": "integer", "minimum": 1 },
+        "maxTriangles": { "type": "integer", "minimum": 1 },
+        "maxMaterials": { "type": "integer", "minimum": 1 },
+        "maxDrawCalls": { "type": "integer", "minimum": 1 },
+        "maxTextureBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId", "creator", "sourceUrl", "licenseId", "commercialUse", "aiInvolvement"],
+        "properties": {
+          "assetId": { "type": "string", "minLength": 1 },
+          "creator": { "type": "string", "minLength": 1 },
+          "sourceUrl": { "type": "string", "minLength": 1 },
+          "licenseId": { "type": "string", "minLength": 1 },
+          "commercialUse": { "type": "boolean" },
+          "engineRestrictions": { "type": "array", "items": { "type": "string" } },
+          "aiInvolvement": { "enum": ["none", "concept-only", "generated-base", "generated-final", "unknown"] },
+          "modificationNotes": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "vector3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    },
+    "gridPoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "position", "gridPoint"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["crew-spawn", "opposition-spawn", "cover", "objective", "extraction", "vehicle", "interaction", "navigation", "occlusion"] },
+        "position": { "$ref": "#/$defs/vector3" },
+        "rotationDegrees": { "$ref": "#/$defs/vector3" },
+        "gridPoint": { "$ref": "#/$defs/gridPoint" },
+        "entityId": { "type": "string", "minLength": 1 },
+        "tags": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}

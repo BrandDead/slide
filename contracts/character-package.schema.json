@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dealt-slide.invalid/contracts/character-package.schema.json",
+  "title": "DEALT / SLIDE Character Package",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packageId",
+    "memberId",
+    "displayName",
+    "role",
+    "source",
+    "runtime",
+    "skeleton",
+    "hitZones",
+    "animations",
+    "lods",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "packageId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+    "memberId": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string", "minLength": 1 },
+    "role": {
+      "enum": ["dealer", "shooter", "enforcer", "lookout", "driver", "chemist", "runner", "boss", "recruit", "k9", "police", "opposition"]
+    },
+    "wardrobeIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "materialVariantIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "portraitAssetId": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["editableFiles"],
+      "properties": {
+        "editableFiles": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "exportFbx": { "type": "string", "minLength": 1 }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["babylonGlb"],
+      "properties": {
+        "babylonGlb": { "type": "string", "minLength": 1 },
+        "firstPersonArmsGlb": { "type": "string", "minLength": 1 },
+        "unrealSkeletalMesh": { "type": "string", "minLength": 1 }
+      }
+    },
+    "skeleton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "rootBone", "forwardAxis", "upAxis", "metersPerUnit"],
+      "properties": {
+        "profileId": { "type": "string", "minLength": 1 },
+        "rootBone": { "type": "string", "minLength": 1 },
+        "forwardAxis": { "enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"] },
+        "upAxis": { "enum": ["+X", "-X", "+Y", "-Y", "+Z", "-Z"] },
+        "metersPerUnit": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "hitZones": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["head", "torso", "leftArm", "rightArm", "leftLeg", "rightLeg"],
+      "properties": {
+        "head": { "type": "string", "minLength": 1 },
+        "torso": { "type": "string", "minLength": 1 },
+        "leftArm": { "type": "string", "minLength": 1 },
+        "rightArm": { "type": "string", "minLength": 1 },
+        "leftLeg": { "type": "string", "minLength": 1 },
+        "rightLeg": { "type": "string", "minLength": 1 }
+      }
+    },
+    "animations": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "required": ["idle", "walk", "sprint", "strafe", "aim", "aimWalk", "fire", "reload", "crouch", "hit", "downed", "coverEnter", "coverIdle", "coverExit"]
+    },
+    "weaponSockets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rightHand": { "type": "string", "minLength": 1 },
+        "leftHandIk": { "type": "string", "minLength": 1 },
+        "holster": { "type": "string", "minLength": 1 }
+      }
+    },
+    "lods": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["level", "maxTriangles", "maxBones", "screenCoverage"],
+        "properties": {
+          "level": { "type": "integer", "minimum": 0 },
+          "maxTriangles": { "type": "integer", "minimum": 1 },
+          "maxBones": { "type": "integer", "minimum": 1 },
+          "screenCoverage": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["creator", "sourceUrl", "licenseId", "commercialUse", "aiInvolvement"],
+      "properties": {
+        "creator": { "type": "string", "minLength": 1 },
+        "sourceUrl": { "type": "string", "minLength": 1 },
+        "licenseId": { "type": "string", "minLength": 1 },
+        "commercialUse": { "type": "boolean" },
+        "engineRestrictions": { "type": "array", "items": { "type": "string" } },
+        "aiInvolvement": { "enum": ["none", "concept-only", "generated-base", "generated-final", "unknown"] },
+        "modificationNotes": { "type": "string" }
+      }
+    }
+  }
+}

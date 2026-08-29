@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dealt-slide.invalid/contracts/encounter-result.schema.json",
+  "title": "DEALT / SLIDE Encounter Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "encounterId",
+    "idempotencyKey",
+    "outcome",
+    "crewDown",
+    "oppositionDown",
+    "injuries",
+    "ammoConsumed",
+    "inventoryChanges",
+    "heatDelta",
+    "moraleDelta",
+    "pendingIncomeDelta",
+    "capturedBlock",
+    "replayHash",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "encounterId": { "type": "string", "minLength": 1 },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "outcome": { "enum": ["secured", "retreated", "overrun"] },
+    "crewDown": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "oppositionDown": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "injuries": { "type": "array", "items": { "$ref": "#/$defs/injury" } },
+    "ammoConsumed": {
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "inventoryChanges": { "type": "array", "items": { "$ref": "#/$defs/inventoryDelta" } },
+    "heatDelta": { "type": "number" },
+    "moraleDelta": { "type": "number" },
+    "pendingIncomeDelta": { "type": "number" },
+    "capturedBlock": { "type": "boolean" },
+    "replayHash": { "type": "string", "pattern": "^[a-f0-9]{8,128}$" },
+    "summary": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "injury": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memberId", "severity", "treatmentRequired"],
+      "properties": {
+        "memberId": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["minor", "serious", "critical"] },
+        "treatmentRequired": { "type": "boolean" }
+      }
+    },
+    "inventoryDelta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["itemId", "quantityDelta", "reason"],
+      "properties": {
+        "itemId": { "type": "string", "minLength": 1 },
+        "quantityDelta": { "type": "integer" },
+        "reason": { "enum": ["consumed", "lost", "recovered", "rewarded", "seized"] }
+      }
+    }
+  }
+}
