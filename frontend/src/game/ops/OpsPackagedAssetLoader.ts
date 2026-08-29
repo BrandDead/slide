@@ -233,6 +233,7 @@ export async function loadPackagedCharacterTemplate(
         nextGroup.start(loop);
         if (transient) {
           nextGroup.onAnimationGroupEndObservable.addOnce(() => {
+            if (activeGroup !== nextGroup) return;
             transient = false;
             activeState = undefined;
             playAnimation('idle');

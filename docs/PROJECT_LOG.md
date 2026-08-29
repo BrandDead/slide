@@ -94,6 +94,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
   TPS review; the free superhero model proves the pipeline but is not final art.
   Final character procurement must now satisfy the package specification in
   `docs/PRODUCTION_ART_PACKAGE_V1.md` rather than being selected from screenshots.
+- PR #121 review found and resolved two lifecycle defects before merge: interrupted
+  transient clips can no longer restart idle over a newer animation, and downed or
+  first-person-hidden member hit proxies now become non-pickable with their rendered
+  meshes. TypeScript, 708 tests, both asset gates, the production build, and the full
+  WebGL2 gauntlet passed again after the fixes.
 
 ### 2026-08-29 — 1208 Las Olas visual showdown foundation and multiview verification
 

@@ -525,6 +525,9 @@ export class OpsWorld {
         mesh.visibility = actor.isDown ? 0.42 : 1;
         mesh.isPickable = !actor.isDown;
       });
+      visual.hitMeshes?.forEach((mesh) => {
+        mesh.isPickable = !actor.isDown;
+      });
     });
   }
 
@@ -780,6 +783,9 @@ export class OpsWorld {
         mesh.visibility = selected.isDown ? 0.42 : 1;
         mesh.isPickable = !selected.isDown;
       });
+      actor.hitMeshes?.forEach((mesh) => {
+        mesh.isPickable = !selected.isDown;
+      });
       return;
     }
 
@@ -788,6 +794,9 @@ export class OpsWorld {
       this.firstPersonCamera.rotation.set(this.pitch, this.yaw, 0);
       actor.meshes.forEach((mesh) => {
         mesh.visibility = 0;
+        mesh.isPickable = false;
+      });
+      actor.hitMeshes?.forEach((mesh) => {
         mesh.isPickable = false;
       });
       return;
@@ -801,6 +810,9 @@ export class OpsWorld {
     this.thirdPersonCamera.setTarget(position.add(new Vector3(0, 1.12 + this.pitch * 1.35, 0)).add(forward.scale(7.5)));
     actor.meshes.forEach((mesh) => {
       mesh.visibility = selected.isDown ? 0.42 : 1;
+      mesh.isPickable = !selected.isDown;
+    });
+    actor.hitMeshes?.forEach((mesh) => {
       mesh.isPickable = !selected.isDown;
     });
   }
