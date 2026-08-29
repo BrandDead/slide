@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^8.56.2",
+    "@babylonjs/loaders": "^8.56.2",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.13.5",

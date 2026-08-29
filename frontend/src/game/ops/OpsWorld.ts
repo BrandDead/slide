@@ -1,8 +1,10 @@
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
 import type { Camera } from '@babylonjs/core/Cameras/camera';
+import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight';
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
+import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
@@ -16,15 +18,24 @@ import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { Scene } from '@babylonjs/core/scene';
 import type {
   CombatEvent,
-  CombatHitZone,
   CombatImpactCandidate,
-  CombatImpactKind,
   CombatSnapshot,
   Combatant,
   EncounterPreparation,
 } from '../combat/types';
 import type { ActionCameraMode, CombatControllerState } from '../combat/CombatSessionController';
 import { CombatSessionController } from '../combat/CombatSessionController';
+import {
+  createArticulatedActorFallback,
+  type OpsActorVisual,
+  type OpsImpactMetadata,
+} from './OpsCharacterFactory';
+import {
+  createConcretePlanter,
+  createDetailedSedan,
+  createPalmTree,
+  createWetPuddle,
+} from './OpsEnvironmentFactory';
 import { OpsInput } from './OpsInput';
 import { gridToWorld, movementToGridStep, OPS_CELL_SIZE } from './opsCoordinates';
 
@@ -33,23 +44,9 @@ const MOVE_INTERVAL_MS = 155;
 const SIM_TICK_MS = 100;
 const OPS_FIRE_RANGE = 40;
 
-interface ActorVisual {
-  root: TransformNode;
-  body: Mesh;
-  head: Mesh;
-  marker: Mesh;
-  target: Vector3;
-}
-
 interface TimedEffect {
   mesh: AbstractMesh;
   remaining: number;
-}
-
-interface OpsImpactMetadata {
-  impactKind: Exclude<CombatImpactKind, 'miss'>;
-  entityId: string;
-  hitZone?: CombatHitZone;
 }
 
 export interface OpsWorldOptions {
@@ -71,19 +68,21 @@ function material(
 }
 
 function actorPosition(actor: Combatant): Vector3 {
-  const world = gridToWorld(actor.position, actor.isDown ? 0.22 : 0.9);
+  const world = gridToWorld(actor.position, 0.68);
   return new Vector3(world.x, world.y, world.z);
 }
 
 export class OpsWorld {
   private readonly input: OpsInput;
-  private readonly actorVisuals = new Map<string, ActorVisual>();
+  private readonly actorVisuals = new Map<string, OpsActorVisual>();
   private readonly effects: TimedEffect[] = [];
   private readonly materials: StandardMaterial[] = [];
   private readonly observers: Observer<Scene>[] = [];
+  private readonly shadowGenerator: ShadowGenerator;
   private readonly tacticalCamera: ArcRotateCamera;
   private readonly firstPersonCamera: UniversalCamera;
   private readonly thirdPersonCamera: UniversalCamera;
+  private readonly firstPersonWeapon: TransformNode;
   private readonly extractionMesh: Mesh;
   private readonly unsubscribeController: () => void;
   private snapshot: CombatSnapshot;
@@ -95,6 +94,7 @@ export class OpsWorld {
   private elapsed = 0;
   private demoAccumulator = 0;
   private demoStep = 0;
+  private weaponKick = 0;
   private disposed = false;
 
   constructor(
@@ -113,14 +113,17 @@ export class OpsWorld {
     }
     this.input = new OpsInput(canvas);
 
+    this.shadowGenerator = this.createLighting();
     this.createEnvironment();
     this.createFacade();
     this.createStreetLights();
+    this.createSetDressing();
     this.extractionMesh = this.createExtraction();
 
     this.tacticalCamera = this.createTacticalCamera();
     this.firstPersonCamera = this.createUniversalCamera('ops-first-person', 0.94);
     this.thirdPersonCamera = this.createUniversalCamera('ops-third-person', 0.82);
+    this.firstPersonWeapon = this.createFirstPersonWeapon();
 
     this.syncSnapshot(this.snapshot);
     this.applyCameraMode(controller.getCameraMode());
@@ -142,14 +145,28 @@ export class OpsWorld {
     if (document.pointerLockElement) void document.exitPointerLock?.();
   }
 
+  private createLighting(): ShadowGenerator {
+    const sky = new HemisphericLight('ops-sky-light', new Vector3(0.2, 1, 0.1), this.scene);
+    sky.intensity = 0.72;
+    sky.diffuse = new Color3(0.3, 0.44, 0.62);
+    sky.groundColor = new Color3(0.09, 0.055, 0.13);
+
+    const moon = new DirectionalLight('ops-moon-key', new Vector3(0.28, -1, 0.34), this.scene);
+    moon.position.set(-16, 24, -12);
+    moon.diffuse = new Color3(0.36, 0.48, 0.72);
+    moon.specular = new Color3(0.52, 0.63, 0.82);
+    moon.intensity = 1.12;
+
+    const shadows = new ShadowGenerator(1024, moon);
+    shadows.useBlurExponentialShadowMap = true;
+    shadows.blurKernel = 16;
+    shadows.bias = 0.0008;
+    return shadows;
+  }
+
   private createEnvironment(): void {
     this.scene.clearColor.set(0.012, 0.025, 0.045, 1);
     this.scene.ambientColor = new Color3(0.08, 0.11, 0.16);
-
-    const sky = new HemisphericLight('ops-sky-light', new Vector3(0.2, 1, 0.1), this.scene);
-    sky.intensity = 0.82;
-    sky.diffuse = new Color3(0.34, 0.5, 0.68);
-    sky.groundColor = new Color3(0.11, 0.08, 0.16);
 
     const palette = {
       street: material(this.scene, 'ops-road', new Color3(0.035, 0.055, 0.075), new Color3(0.95, 0.95, 1)),
@@ -160,18 +177,17 @@ export class OpsWorld {
       parking: material(this.scene, 'ops-parking', new Color3(0.095, 0.09, 0.085), new Color3(0.38, 0.35, 0.34)),
       rooftop: material(this.scene, 'ops-rooftop', new Color3(0.105, 0.08, 0.13)),
       building: material(this.scene, 'ops-building', new Color3(0.055, 0.045, 0.075)),
-      cover: material(this.scene, 'ops-cover', new Color3(0.22, 0.24, 0.26), new Color3(0.35, 0.35, 0.38)),
     };
     this.materials.push(...Object.values(palette));
 
     this.preparation.terrain.flat().forEach((cell) => {
       const point = gridToWorld(cell, 0);
       const cellMesh = MeshBuilder.CreateBox(`ops-cell-${cell.x}-${cell.y}`, {
-        width: OPS_CELL_SIZE - 0.08,
-        depth: OPS_CELL_SIZE - 0.08,
-        height: cell.zoneType === 'building' ? 1.6 : 0.12,
+        width: OPS_CELL_SIZE + 0.04,
+        depth: OPS_CELL_SIZE + 0.04,
+        height: cell.zoneType === 'building' ? 0.38 : 0.12,
       }, this.scene);
-      cellMesh.position.set(point.x, cell.zoneType === 'building' ? 0.75 : -0.08, point.z);
+      cellMesh.position.set(point.x, cell.zoneType === 'building' ? 0.12 : -0.08, point.z);
       cellMesh.material = palette[cell.zoneType] ?? palette.sidewalk;
       cellMesh.receiveShadows = true;
       cellMesh.metadata = {
@@ -179,18 +195,15 @@ export class OpsWorld {
         entityId: `terrain-${cell.x}-${cell.y}`,
       } satisfies OpsImpactMetadata;
 
-      if (cell.cover >= 0.45 && cell.passable) {
-        const cover = MeshBuilder.CreateBox(`ops-cover-${cell.x}-${cell.y}`, {
-          width: OPS_CELL_SIZE * 0.62,
-          depth: OPS_CELL_SIZE * 0.34,
-          height: 0.9,
-        }, this.scene);
-        cover.position.set(point.x, 0.45, point.z);
-        cover.material = palette.cover;
-        cover.metadata = {
-          impactKind: 'cover',
-          entityId: `cover-${cell.x}-${cell.y}`,
-        } satisfies OpsImpactMetadata;
+      if (cell.cover >= 0.45 && cell.passable && (cell.x + cell.y) % 2 === 0) {
+        const planter = createConcretePlanter(
+          this.scene,
+          `cover-${cell.x}-${cell.y}`,
+          new Vector3(point.x, 0, point.z),
+          (propMaterial) => this.materials.push(propMaterial),
+          cell.x % 2 === 0 ? 0 : Math.PI / 2,
+        );
+        planter.getChildMeshes().forEach((mesh) => this.shadowGenerator.addShadowCaster(mesh));
       }
     });
 
@@ -238,6 +251,56 @@ export class OpsWorld {
     southRoof.position.set(0, 7.95, 16.55);
     southRoof.material = roofMaterial;
     southRoof.metadata = { impactKind: 'environment', entityId: 'roof-south' } satisfies OpsImpactMetadata;
+
+    const awningMaterials = [
+      material(this.scene, 'ops-awning-cyan', new Color3(0.02, 0.16, 0.19), new Color3(0.28, 0.4, 0.44), new Color3(0.01, 0.12, 0.14)),
+      material(this.scene, 'ops-awning-magenta', new Color3(0.18, 0.025, 0.14), new Color3(0.4, 0.24, 0.38), new Color3(0.13, 0.008, 0.1)),
+      material(this.scene, 'ops-awning-amber', new Color3(0.19, 0.11, 0.018), new Color3(0.4, 0.34, 0.18), new Color3(0.14, 0.07, 0.004)),
+      material(this.scene, 'ops-awning-green', new Color3(0.018, 0.17, 0.09), new Color3(0.23, 0.42, 0.3), new Color3(0.004, 0.13, 0.055)),
+    ];
+    const columnMaterial = material(this.scene, 'ops-storefront-columns', new Color3(0.11, 0.1, 0.12), new Color3(0.32, 0.3, 0.34));
+    this.materials.push(...awningMaterials, columnMaterial);
+
+    [-11.25, -3.75, 3.75, 11.25].forEach((x, bay) => {
+      [-1, 1].forEach((side) => {
+        const z = side < 0 ? -14.5 : 14.5;
+        const awning = MeshBuilder.CreateBox(`ops-awning-${side}-${bay}`, { width: 6.7, height: 0.18, depth: 1.25 }, this.scene);
+        awning.position.set(x, 4.72, z);
+        awning.material = awningMaterials[bay];
+        awning.metadata = { impactKind: 'environment', entityId: `awning-${side}-${bay}` } satisfies OpsImpactMetadata;
+        this.shadowGenerator.addShadowCaster(awning);
+
+        const sill = MeshBuilder.CreateBox(`ops-sill-${side}-${bay}`, { width: 6.35, height: 0.32, depth: 0.42 }, this.scene);
+        sill.position.set(x, 0.35, side < 0 ? -15.05 : 15.05);
+        sill.material = columnMaterial;
+        sill.metadata = { impactKind: 'cover', entityId: `sill-${side}-${bay}` } satisfies OpsImpactMetadata;
+        this.shadowGenerator.addShadowCaster(sill);
+      });
+    });
+
+    [-15, -7.5, 0, 7.5, 15].forEach((x, column) => {
+      [-1, 1].forEach((side) => {
+        const post = MeshBuilder.CreateBox(`ops-storefront-post-${side}-${column}`, { width: 0.28, height: 5.2, depth: 0.42 }, this.scene);
+        post.position.set(x, 2.6, side < 0 ? -15.1 : 15.1);
+        post.material = columnMaterial;
+        post.metadata = { impactKind: 'environment', entityId: `storefront-post-${side}-${column}` } satisfies OpsImpactMetadata;
+        this.shadowGenerator.addShadowCaster(post);
+      });
+    });
+
+    [-18, -9, 1, 11, 20].forEach((x, index) => {
+      [-1, 1].forEach((side) => {
+        const background = MeshBuilder.CreateBox(`ops-background-building-${side}-${index}`, {
+          width: 7 + (index % 2) * 2.5,
+          height: 8 + (index % 3) * 2.4,
+          depth: 5,
+        }, this.scene);
+        background.position.set(x, 4 + (index % 3) * 1.2, side * 21.5);
+        background.material = roofMaterial;
+        background.metadata = { impactKind: 'environment', entityId: `background-building-${side}-${index}` } satisfies OpsImpactMetadata;
+        this.shadowGenerator.addShadowCaster(background);
+      });
+    });
   }
 
   private createStreetLights(): void {
@@ -264,6 +327,56 @@ export class OpsWorld {
       light.intensity = 3.6;
       light.range = 18;
     });
+  }
+
+  private createSetDressing(): void {
+    const registerMaterial = (propMaterial: StandardMaterial) => this.materials.push(propMaterial);
+    const westSedan = createDetailedSedan(
+      this.scene,
+      'sedan-west',
+      new Vector3(-8.8, 0, 5.5),
+      Math.PI / 2,
+      registerMaterial,
+      new Color3(0.018, 0.026, 0.045),
+    );
+    const eastSedan = createDetailedSedan(
+      this.scene,
+      'sedan-east',
+      new Vector3(8.4, 0, -5.2),
+      -Math.PI / 2,
+      registerMaterial,
+      new Color3(0.28, 0.29, 0.31),
+    );
+    [...westSedan.getChildMeshes(), ...eastSedan.getChildMeshes()]
+      .forEach((mesh) => this.shadowGenerator.addShadowCaster(mesh));
+
+    [
+      { id: 'north-west', x: -13.4, z: -13.6, scale: 1.12 },
+      { id: 'north-east', x: 12.8, z: -13.2, scale: 0.96 },
+      { id: 'south-west', x: -13, z: 12.6, scale: 1.02 },
+      { id: 'south-east', x: 13.5, z: 11.8, scale: 1.08 },
+    ].forEach((palm) => {
+      const tree = createPalmTree(
+        this.scene,
+        `palm-${palm.id}`,
+        new Vector3(palm.x, 0, palm.z),
+        registerMaterial,
+        palm.scale,
+      );
+      tree.getChildMeshes().forEach((mesh) => this.shadowGenerator.addShadowCaster(mesh));
+    });
+
+    [
+      { id: 'puddle-neon-west', x: -5.4, z: -1.7, sx: 2.6, sz: 0.85 },
+      { id: 'puddle-neon-east', x: 4.9, z: 2.1, sx: 2.1, sz: 0.68 },
+      { id: 'puddle-curb', x: 0.4, z: -8.9, sx: 3.2, sz: 0.48 },
+    ].forEach((puddle) => createWetPuddle(
+      this.scene,
+      puddle.id,
+      new Vector3(puddle.x, 0.035, puddle.z),
+      registerMaterial,
+      new Vector3(puddle.sx, puddle.sz, 1),
+    ));
   }
 
   private createExtraction(): Mesh {
@@ -306,6 +419,38 @@ export class OpsWorld {
     return camera;
   }
 
+  private createFirstPersonWeapon(): TransformNode {
+    const root = new TransformNode('ops-first-person-weapon', this.scene);
+    root.parent = this.firstPersonCamera;
+    root.position.set(0.34, -0.28, 0.78);
+    root.rotation.set(-0.08, 0.02, -0.015);
+
+    const metal = material(this.scene, 'ops-fps-weapon-metal', new Color3(0.045, 0.05, 0.055), new Color3(0.72, 0.75, 0.78));
+    const grip = material(this.scene, 'ops-fps-weapon-grip', new Color3(0.035, 0.022, 0.018), new Color3(0.22, 0.18, 0.16));
+    const sight = material(this.scene, 'ops-fps-weapon-sight', new Color3(0.05, 0.38, 0.39), Color3.Black(), new Color3(0.02, 0.55, 0.56));
+    this.materials.push(metal, grip, sight);
+
+    const receiver = MeshBuilder.CreateBox('ops-fps-receiver', { width: 0.16, height: 0.17, depth: 0.78 }, this.scene);
+    receiver.parent = root;
+    receiver.material = metal;
+    const barrel = MeshBuilder.CreateBox('ops-fps-barrel', { width: 0.055, height: 0.055, depth: 0.72 }, this.scene);
+    barrel.parent = root;
+    barrel.position.set(0, 0.035, 0.7);
+    barrel.material = metal;
+    const magazine = MeshBuilder.CreateBox('ops-fps-magazine', { width: 0.12, height: 0.34, depth: 0.19 }, this.scene);
+    magazine.parent = root;
+    magazine.position.set(0, -0.23, -0.05);
+    magazine.rotation.x = -0.2;
+    magazine.material = grip;
+    const optic = MeshBuilder.CreateBox('ops-fps-optic', { width: 0.1, height: 0.11, depth: 0.22 }, this.scene);
+    optic.parent = root;
+    optic.position.set(0, 0.13, 0.05);
+    optic.material = sight;
+    [receiver, barrel, magazine, optic].forEach((mesh) => { mesh.isPickable = false; });
+    root.setEnabled(false);
+    return root;
+  }
+
   private onControllerState(state: CombatControllerState): void {
     const previousMode = this.scene.activeCamera?.name;
     this.snapshot = state.snapshot;
@@ -333,60 +478,22 @@ export class OpsWorld {
       const selected = actor.id === this.controller.getHudState().selectedId;
       visual.marker.setEnabled(selected && !actor.isDown);
       visual.root.rotation.z = actor.isDown ? Math.PI / 2 : 0;
-      visual.body.visibility = actor.isDown ? 0.42 : 1;
-      visual.head.visibility = actor.isDown ? 0.42 : 1;
+      visual.meshes.forEach((mesh) => {
+        mesh.visibility = actor.isDown ? 0.42 : 1;
+        mesh.isPickable = !actor.isDown;
+      });
     });
   }
 
-  private createActorVisual(actor: Combatant): ActorVisual {
-    const root = new TransformNode(`ops-actor-${actor.id}`, this.scene);
-    root.position.copyFrom(actorPosition(actor));
-
-    const bodyMaterial = material(
+  private createActorVisual(actor: Combatant): OpsActorVisual {
+    const visual = createArticulatedActorFallback(
       this.scene,
-      `ops-actor-material-${actor.id}`,
-      actor.team === 'crew' ? new Color3(0.025, 0.19, 0.23) : new Color3(0.26, 0.035, 0.075),
-      new Color3(0.2, 0.2, 0.22),
-      actor.team === 'crew' ? new Color3(0.005, 0.035, 0.045) : new Color3(0.045, 0.003, 0.008),
+      actor,
+      actorPosition(actor),
+      (actorMaterial) => this.materials.push(actorMaterial),
     );
-    this.materials.push(bodyMaterial);
-
-    const body = MeshBuilder.CreateCapsule(`ops-body-${actor.id}`, { height: 1.45, radius: 0.34, tessellation: 10 }, this.scene);
-    body.parent = root;
-    body.position.y = 0.6;
-    body.material = bodyMaterial;
-    body.metadata = {
-      impactKind: 'actor',
-      entityId: actor.id,
-      hitZone: 'torso',
-    } satisfies OpsImpactMetadata;
-
-    const head = MeshBuilder.CreateSphere(`ops-head-${actor.id}`, { diameter: 0.48, segments: 10 }, this.scene);
-    head.parent = root;
-    head.position.y = 1.48;
-    head.material = bodyMaterial;
-    head.metadata = {
-      impactKind: 'actor',
-      entityId: actor.id,
-      hitZone: 'head',
-    } satisfies OpsImpactMetadata;
-
-    const markerMaterial = material(
-      this.scene,
-      `ops-marker-material-${actor.id}`,
-      Color3.Black(),
-      Color3.Black(),
-      new Color3(0.05, 0.85, 0.8),
-    );
-    this.materials.push(markerMaterial);
-    const marker = MeshBuilder.CreateTorus(`ops-marker-${actor.id}`, { diameter: 1.35, thickness: 0.06, tessellation: 24 }, this.scene);
-    marker.parent = root;
-    marker.rotation.x = Math.PI / 2;
-    marker.position.y = -0.78;
-    marker.material = markerMaterial;
-    marker.isPickable = false;
-
-    return { root, body, head, marker, target: root.position.clone() };
+    visual.meshes.forEach((mesh) => this.shadowGenerator.addShadowCaster(mesh));
+    return visual;
   }
 
   private handleEvents(events: CombatEvent[]): void {
@@ -400,6 +507,7 @@ export class OpsWorld {
 
   private renderEvent(event: CombatEvent): void {
     if (event.type === 'weapon-fired' && event.actorId) {
+      if (event.actorId === this.controller.getControlledCrewId()) this.weaponKick = 0.13;
       const source = this.actorVisuals.get(event.actorId)?.root.position;
       const impactPoint = event.impact
         ? new Vector3(event.impact.point.x, event.impact.point.y, event.impact.point.z)
@@ -464,6 +572,7 @@ export class OpsWorld {
         ? this.firstPersonCamera
         : this.thirdPersonCamera;
     if (this.scene.activeCamera !== camera) this.scene.activeCamera = camera;
+    this.firstPersonWeapon?.setEnabled(mode === 'first-person');
   }
 
   private update(delta: number): void {
@@ -471,6 +580,8 @@ export class OpsWorld {
     const boundedDelta = Math.min(delta, 0.1);
     this.elapsed += boundedDelta;
     this.movementCooldown = Math.max(0, this.movementCooldown - boundedDelta * 1000);
+    this.weaponKick = Math.max(0, this.weaponKick - boundedDelta * 1.6);
+    if (this.firstPersonWeapon) this.firstPersonWeapon.rotation.x = -0.08 + this.weaponKick;
 
     const look = this.input.consumeLookDelta();
     this.yaw -= look.x * 0.0022;
@@ -495,7 +606,12 @@ export class OpsWorld {
       if (this.options.demo) this.updateDemo(boundedDelta);
     }
 
-    this.actorVisuals.forEach((visual) => {
+    this.actorVisuals.forEach((visual, actorId) => {
+      const movement = visual.target.subtract(visual.root.position);
+      const actor = this.snapshot.combatants.find((candidate) => candidate.id === actorId);
+      if (!actor?.isDown && movement.lengthSquared() > 0.0025) {
+        visual.root.rotation.y = Math.atan2(movement.x, movement.z);
+      }
       visual.root.position.copyFrom(Vector3.Lerp(visual.root.position, visual.target, Math.min(1, boundedDelta * 11)));
     });
     this.updateCamera();
@@ -536,11 +652,15 @@ export class OpsWorld {
     const metadata = pick?.hit && pick.pickedMesh
       ? pick.pickedMesh.metadata as OpsImpactMetadata | undefined
       : undefined;
+    const hitActor = metadata?.impactKind === 'actor'
+      ? this.snapshot.combatants.find((combatant) => combatant.id === metadata.entityId)
+      : undefined;
+    const allyBlocksShot = hitActor?.team === 'crew';
     const candidate: CombatImpactCandidate = metadata
       ? {
-          kind: metadata.impactKind,
+          kind: allyBlocksShot ? 'cover' : metadata.impactKind,
           entityId: metadata.entityId,
-          hitZone: metadata.hitZone,
+          hitZone: allyBlocksShot ? undefined : metadata.hitZone,
           point: { x: point.x, y: point.y, z: point.z },
           distance: Vector3.Distance(ray.origin, point),
         }
@@ -605,27 +725,33 @@ export class OpsWorld {
     if (this.controller.getCameraMode() === 'tactical') {
       this.tacticalCamera.target.copyFrom(position.add(new Vector3(0, 0.6, 0)));
       this.tacticalCamera.alpha = this.yaw - Math.PI / 2;
-      actor.body.visibility = selected.isDown ? 0.42 : 1;
-      actor.head.visibility = selected.isDown ? 0.42 : 1;
+      actor.meshes.forEach((mesh) => {
+        mesh.visibility = selected.isDown ? 0.42 : 1;
+        mesh.isPickable = !selected.isDown;
+      });
       return;
     }
 
     if (this.controller.getCameraMode() === 'first-person') {
       this.firstPersonCamera.position.copyFrom(position.add(new Vector3(0, 1.55, 0)));
       this.firstPersonCamera.rotation.set(this.pitch, this.yaw, 0);
-      actor.body.visibility = 0;
-      actor.head.visibility = 0;
+      actor.meshes.forEach((mesh) => {
+        mesh.visibility = 0;
+        mesh.isPickable = false;
+      });
       return;
     }
 
     const shoulder = position
-      .subtract(forward.scale(9.4))
-      .add(right.scale(2.35))
-      .add(new Vector3(0, 2.35, 0));
+      .subtract(forward.scale(5.8))
+      .add(right.scale(1.25))
+      .add(new Vector3(0, 2.05, 0));
     this.thirdPersonCamera.position.copyFrom(shoulder);
-    this.thirdPersonCamera.setTarget(position.add(new Vector3(0, 1 + this.pitch * 1.5, 0)).add(forward.scale(6.2)));
-    actor.body.visibility = selected.isDown ? 0.42 : 1;
-    actor.head.visibility = selected.isDown ? 0.42 : 1;
+    this.thirdPersonCamera.setTarget(position.add(new Vector3(0, 1.12 + this.pitch * 1.35, 0)).add(forward.scale(7.5)));
+    actor.meshes.forEach((mesh) => {
+      mesh.visibility = selected.isDown ? 0.42 : 1;
+      mesh.isPickable = !selected.isDown;
+    });
   }
 
   private updateEffects(delta: number): void {
