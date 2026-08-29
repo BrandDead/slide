@@ -2,18 +2,15 @@
 // vite.config.ts — Sprint 7D: Performance optimizations
 //   - Manual chunk splitting for mini-games and heavy deps
 //   - Asset inlining threshold
-//   - Terser minification
+//   - Memory-bounded esbuild minification
 //   - CSS code splitting
 // ============================================================
 
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    splitVendorChunkPlugin(),
-  ],
+  plugins: [react()],
 
   server: {
     port: 3000,
@@ -42,6 +39,10 @@ export default defineConfig({
           if (id.includes('phaser')) {
             return 'vendor-phaser';
           }
+          // Babylon — lazy-loaded only by Modern Ops
+          if (id.includes('@babylonjs/core')) {
+            return 'vendor-babylon';
+          }
           // Framer Motion
           if (id.includes('framer-motion')) {
             return 'vendor-framer';
@@ -54,45 +55,13 @@ export default defineConfig({
           if (id.includes('socket.io')) {
             return 'vendor-socket';
           }
-          // Mini-game components — lazy-loaded
-          if (
-            id.includes('/components/slide/') ||
-            id.includes('/components/driveby/') ||
-            id.includes('/components/alchemy/')
-          ) {
-            return 'chunk-minigames';
-          }
-          // Economy / market screens
-          if (
-            id.includes('/components/economy/') ||
-            id.includes('/components/casino/')
-          ) {
-            return 'chunk-economy';
-          }
-          // Gang / contacts screens
-          if (
-            id.includes('/components/gang/') ||
-            id.includes('/components/contacts/')
-          ) {
-            return 'chunk-crew';
-          }
-          // Map components
-          if (id.includes('/components/map/')) {
-            return 'chunk-map';
-          }
+
         },
       },
     },
 
-    // Terser minification options
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,    // remove console.log in prod
-        drop_debugger: true,
-        pure_funcs: ['console.warn', 'console.info'],
-      },
-    },
+    // esbuild keeps production bundling fast and memory-bounded in CI.
+    minify: 'esbuild',
   },
 
   // Optimize dependency pre-bundling

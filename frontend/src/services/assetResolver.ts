@@ -11,6 +11,7 @@ import {
   environmentAssets,
   type CharacterAsset,
 } from '../assets/assetManifest';
+import { getWorldActor } from '../render/worldActorResolver';
 import type { MemberRole } from '../types/block.types';
 
 // ─── Role → character kit ────────────────────────────────────
@@ -40,38 +41,10 @@ export function getPortraitUrl(role: string): string {
 }
 
 // ─── Street-state sprites ────────────────────────────────────
-// Only states whose files exist on disk WITH a real alpha channel
-// are listed; manifest entries for not-yet-generated art (e.g. most
-// streetIdle files) are deliberately absent. The shooter's standing
-// pose borrows its fullbody cutout — the only fullbody with alpha.
+// Resolution is delegated to worldActorResolver (runtimeManifest-driven),
+// which cannot drift from disk — the audit gate fails the build if it does.
 
 export type StreetSpriteState = 'idle' | 'aim' | 'fire' | 'hit' | 'downed';
-
-const STREET_STATES: Record<string, Partial<Record<StreetSpriteState, string>>> = {
-  dealer_male_001: {
-    aim: characterAssets.dealer_male_001.streetAim,
-    hit: characterAssets.dealer_male_001.streetHit,
-    downed: characterAssets.dealer_male_001.streetDowned,
-  },
-  enforcer_male_001: {
-    idle: characterAssets.enforcer_male_001.streetIdle,
-  },
-  shooter_male_001: {
-    idle: characterAssets.shooter_male_001.fullbody,
-    hit: characterAssets.shooter_male_001.streetHit,
-    downed: characterAssets.shooter_male_001.streetDowned,
-  },
-  lookout_female_001: {},
-  driver_male_001: {},
-};
-
-const STATE_FALLBACKS: Record<StreetSpriteState, StreetSpriteState[]> = {
-  idle: ['idle', 'aim'],
-  aim: ['aim', 'idle'],
-  fire: ['aim', 'idle'],
-  hit: ['hit', 'downed', 'aim', 'idle'],
-  downed: ['downed', 'hit'],
-};
 
 /**
  * Best available street-view sprite for a role in a given state,
@@ -79,13 +52,7 @@ const STATE_FALLBACKS: Record<StreetSpriteState, StreetSpriteState[]> = {
  * to portrait chips / legacy rendering at the call site).
  */
 export function getStreetSpriteUrl(role: string, state: StreetSpriteState): string | null {
-  const character = getCharacterForRole(role);
-  const available = STREET_STATES[character.id] ?? {};
-  for (const candidate of STATE_FALLBACKS[state]) {
-    const url = available[candidate];
-    if (url) return url;
-  }
-  return null;
+  return getWorldActor(role, state, 'street')?.url ?? null;
 }
 
 // ─── Environments ────────────────────────────────────────────
@@ -113,8 +80,12 @@ export function preloadBlockAssets(): void {
   for (const id of Object.values(ROLE_CHARACTER_ID)) {
     urls.add(characterAssets[id].portrait);
   }
-  for (const states of Object.values(STREET_STATES)) {
-    for (const url of Object.values(states)) {
+  // Warm the street sprites via the manifest-driven resolver so every role
+  // that ships street art is preloaded, not just a hardcoded subset.
+  const streetRoles: MemberRole[] = ['dealer', 'shooter', 'enforcer', 'lookout', 'driver'];
+  for (const role of streetRoles) {
+    for (const state of ['idle', 'aim', 'hit', 'downed'] as StreetSpriteState[]) {
+      const url = getStreetSpriteUrl(role, state);
       if (url) urls.add(url);
     }
   }

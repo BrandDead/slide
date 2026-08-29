@@ -99,7 +99,9 @@ function applyDamage(session: CombatSession, source: Combatant, target: Combatan
   if (random > hitChance) {
     return appendEvents(fired, [event(fired, 'impact-cover', 'Shot strikes cover.', source.id, target.id)]);
   }
-  const damage = Math.max(6, 18 + source.level * 2 - target.armor * 3);
+  const damage = source.team === 'opposition'
+    ? Math.max(4, 6 + source.level - target.armor * 2)
+    : Math.max(6, 18 + source.level * 2 - target.armor * 3);
   const updatedTarget = { ...target, health: Math.max(0, target.health - damage) };
   let updated = updateCombatant(fired, updatedTarget);
   updated = appendEvents(updated, [event(updated, 'impact-actor', `${target.name} takes ${damage} damage.`, source.id, target.id, damage)]);
@@ -181,7 +183,7 @@ export function advanceCombat(session: CombatSession, steps = 1): CombatSession 
     if (completedReloads.length > 0) {
       next = appendEvents(next, completedReloads.map((actor) => event(next, 'reload-complete', `${actor.name} is ready.`, actor.id)));
     }
-    if (next.tick % 6 === 0) next = runOppositionTurn(next);
+    if (next.tick % 20 === 0) next = runOppositionTurn(next);
     const livingCrew = next.combatants.filter((actor) => actor.team === 'crew' && !actor.isDown);
     if (livingCrew.length === 0) next = resolveResult(next, 'overrun');
   }

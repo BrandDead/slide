@@ -78,7 +78,9 @@ export interface EnvironmentAsset {
 }
 
 // ─── Base paths ──────────────────────────────────────────────
-const BASE = '/assets/generated';
+// Processed runtime derivatives (WebP) — the only paths that exist on disk.
+// Masters live in art-src/ and are never shipped.
+const BASE = '/assets/runtime/generated';
 const CHARS = `${BASE}/characters`;
 const VEHS  = `${BASE}/vehicles`;
 const WEAPS = `${BASE}/weapons`;
@@ -92,13 +94,13 @@ export const characterAssets: Record<string, CharacterAsset> = {
     id: 'dealer_male_001',
     displayName: 'Street Dealer',
     role: 'dealer',
-    portrait:    `${CHARS}/portraits/character_dealer_male_blacktee_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_dealer_male_blacktee_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_dealer_male_blacktee_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_dealer_male_blacktee_street_idle_v001.png`,
-    streetAim:   `${CHARS}/street/character_dealer_male_street_aim_v001.png`,
-    streetHit:   `${CHARS}/street/character_dealer_male_street_hit_v001.png`,
-    streetDowned: `${CHARS}/street/character_dealer_male_street_downed_v001.png`,
+    portrait:    `${CHARS}/portraits/character_dealer_male_blacktee_portrait_v001.webp`,
+    fullbody:    `${CHARS}/fullbody/character_dealer_male_blacktee_fullbody_front_v001.webp`,
+    topdown:     `${CHARS}/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp`,
+    streetIdle:  `${CHARS}/street/character_dealer_male_street_idle_v001.webp`,
+    streetAim:   `${CHARS}/street/character_dealer_male_street_aim_v001.webp`,
+    streetHit:   `${CHARS}/street/character_dealer_male_street_hit_v001.webp`,
+    streetDowned: `${CHARS}/street/character_dealer_male_street_downed_v001.webp`,
     rarity: 'common',
     tags: ['masked', 'cash', 'streetwear'],
     scale: 1,
@@ -109,10 +111,10 @@ export const characterAssets: Record<string, CharacterAsset> = {
     id: 'lookout_female_001',
     displayName: 'Lookout',
     role: 'lookout',
-    portrait:    `${CHARS}/portraits/character_lookout_female_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_lookout_female_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_lookout_female_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_lookout_female_street_idle_v001.png`,
+    portrait:    `${CHARS}/portraits/character_lookout_female_portrait_v001.webp`,
+    fullbody:    `${CHARS}/fullbody/character_lookout_female_fullbody_front_v001.webp`,
+    topdown:     `${CHARS}/topdown/character_lookout_female_topdown_idle_v001.webp`,
+    streetIdle:  `${CHARS}/street/character_lookout_female_street_idle_v001.webp`,
     rarity: 'common',
     tags: ['masked', 'radio', 'streetwear'],
     scale: 1,
@@ -123,10 +125,10 @@ export const characterAssets: Record<string, CharacterAsset> = {
     id: 'driver_male_001',
     displayName: 'Driver',
     role: 'driver',
-    portrait:    `${CHARS}/portraits/character_driver_male_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_driver_male_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_driver_male_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_driver_male_street_idle_v001.png`,
+    portrait:    `${CHARS}/portraits/character_driver_male_portrait_v001.webp`,
+    fullbody:    `${CHARS}/fullbody/character_driver_male_fullbody_front_v001.webp`,
+    topdown:     `${CHARS}/topdown/character_driver_male_topdown_idle_v001.webp`,
+    streetIdle:  `${CHARS}/street/character_driver_male_street_idle_v001.webp`,
     rarity: 'uncommon',
     tags: ['cap', 'racing_jacket', 'keys'],
     scale: 1,
@@ -137,10 +139,10 @@ export const characterAssets: Record<string, CharacterAsset> = {
     id: 'enforcer_male_001',
     displayName: 'Enforcer',
     role: 'enforcer',
-    portrait:    `${CHARS}/portraits/character_enforcer_male_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_enforcer_male_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_enforcer_male_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_enforcer_male_street_idle_v001.png`,
+    portrait:    `${CHARS}/portraits/character_enforcer_male_portrait_v001.webp`,
+    fullbody:    `${CHARS}/fullbody/character_enforcer_male_fullbody_front_v001.webp`,
+    topdown:     `${CHARS}/topdown/character_enforcer_male_topdown_idle_v001.webp`,
+    streetIdle:  `${CHARS}/street/character_enforcer_male_street_idle_v001.webp`,
     rarity: 'uncommon',
     tags: ['tactical', 'vest', 'bat'],
     scale: 1.1,
@@ -151,12 +153,12 @@ export const characterAssets: Record<string, CharacterAsset> = {
     id: 'shooter_male_001',
     displayName: 'Shooter',
     role: 'shooter',
-    portrait:    `${CHARS}/portraits/character_shooter_male_portrait_v001.png`,
-    fullbody:    `${CHARS}/fullbody/character_shooter_male_fullbody_front_v001.png`,
-    topdown:     `${CHARS}/topdown/character_shooter_male_topdown_v001.png`,
-    streetIdle:  `${CHARS}/street/character_shooter_male_street_idle_v001.png`,
-    streetHit:   `${CHARS}/street/character_shooter_male_street_hit_v001.png`,
-    streetDowned: `${CHARS}/street/character_shooter_male_street_downed_v001.png`,
+    portrait:    `${CHARS}/portraits/character_shooter_male_portrait_v001.webp`,
+    fullbody:    `${CHARS}/fullbody/character_shooter_male_fullbody_front_v001.webp`,
+    topdown:     `${CHARS}/topdown/character_shooter_male_topdown_idle_v001.webp`,
+    streetIdle:  `${CHARS}/street/character_shooter_male_street_idle_v001.webp`,
+    streetHit:   `${CHARS}/street/character_shooter_male_street_hit_v001.webp`,
+    streetDowned: `${CHARS}/street/character_shooter_male_street_downed_v001.webp`,
     rarity: 'uncommon',
     tags: ['masked', 'streetwear', 'weapon'],
     scale: 1,
@@ -172,10 +174,10 @@ export const vehicleAssets: Record<string, VehicleAsset> = {
     id: 'luxury_sedan_black_001',
     displayName: 'Black Luxury Sedan',
     vehicleClass: 'luxury_sedan',
-    topdown:         `${VEHS}/topdown/vehicle_luxury_sedan_black_topdown_v001.png`,
-    streetSide:      `${VEHS}/street/vehicle_luxury_sedan_black_street_side_v001.png`,
-    occupiedPassenger: `${VEHS}/overlays/vehicle_luxury_sedan_passenger_overlay_v001.png`,
-    damageLight:     `${VEHS}/damage/vehicle_luxury_sedan_black_damage_light_v001.png`,
+    topdown:         `${VEHS}/topdown/vehicle_luxury_sedan_black_topdown_v001.webp`,
+    streetSide:      `${VEHS}/street/vehicle_luxury_sedan_black_street_side_v001.webp`,
+    occupiedPassenger: `${VEHS}/overlays/vehicle_luxury_sedan_passenger_overlay_v001.webp`,
+    damageLight:     `${VEHS}/damage/vehicle_luxury_sedan_black_damage_light_v001.webp`,
   },
 };
 
@@ -186,20 +188,20 @@ export const weaponAssets: Record<string, WeaponAsset> = {
     id: 'compact_prop_black_001',
     displayName: 'Compact Prop',
     category: 'compact',
-    icon: `${WEAPS}/weapon_compact_prop_black_icon_v001.png`,
+    icon: `${WEAPS}/weapon_compact_prop_black_icon_v001.webp`,
   },
   long_prop_black_001: {
     id: 'long_prop_black_001',
     displayName: 'Long Prop',
     category: 'long',
-    icon: `${WEAPS}/weapon_long_prop_black_icon_v001.png`,
+    icon: `${WEAPS}/weapon_long_prop_black_icon_v001.webp`,
   },
   // Batch 4 — drum-magazine long prop
   long_prop_drum_001: {
     id: 'long_prop_drum_001',
     displayName: 'Drum Prop',
     category: 'long',
-    icon: `${WEAPS}/weapon_long_prop_black_icon_v001.png`,
+    icon: `${WEAPS}/weapon_long_prop_black_icon_v001.webp`,
   },
 };
 
@@ -211,35 +213,35 @@ export const productAssets: Record<string, ProductAsset> = {
     displayName: 'Common Pack',
     tier: 1,
     rarity: 'common',
-    icon: `${PRODS}/product_pack_grey_common_icon_v001.png`,
+    icon: `${PRODS}/product_rarity_set_v001.webp`,
   },
   product_uncommon_001: {
     id: 'product_uncommon_001',
     displayName: 'Green Pack',
     tier: 2,
     rarity: 'uncommon',
-    icon: `${PRODS}/product_pack_green_uncommon_icon_v001.png`,
+    icon: `${PRODS}/product_rarity_set_v001.webp`,
   },
   product_rare_001: {
     id: 'product_rare_001',
     displayName: 'Purple Pack',
     tier: 3,
     rarity: 'rare',
-    icon: `${PRODS}/product_pack_purple_rare_icon_v001.png`,
+    icon: `${PRODS}/product_rarity_set_v001.webp`,
   },
   product_legendary_001: {
     id: 'product_legendary_001',
     displayName: 'Gold Pack',
     tier: 4,
     rarity: 'legendary',
-    icon: `${PRODS}/product_pack_gold_legendary_icon_v001.png`,
+    icon: `${PRODS}/product_rarity_set_v001.webp`,
   },
 };
 
 // ─── Effects ─────────────────────────────────────────────────
 
 export const effectAssets = {
-  fx_combat_sheet: `${BASE}/effects/fx_combat_sprite_sheet_v001.png`,
+  fx_combat_sheet: `${BASE}/effects/fx_combat_sprite_sheet_v001.webp`,
 };
 
 // ─── Environments ────────────────────────────────────────────
@@ -248,9 +250,9 @@ export const environmentAssets: Record<string, EnvironmentAsset> = {
   block_stripplaza_miami_001: {
     id: 'block_stripplaza_miami_001',
     displayName: 'South Florida Strip Plaza',
-    topdownBg:           `${ENVS}/topdown/block_stripplaza_topdown_v001.png`,
-    streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.png`,
-    streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.png`,
+    topdownBg:           `${ENVS}/topdown/block_stripplaza_topdown_v001.webp`,
+    streetBackdropDay:   `${ENVS}/street/block_stripplaza_day_street_v001.webp`,
+    streetBackdropNight: `${ENVS}/street/block_stripplaza_night_street_v001.webp`,
   },
 // Las Olas hero block. Processed WebP paths keep shipped runtime assets within budget.
   block_lasolas_miami_001: {
@@ -265,18 +267,18 @@ export const environmentAssets: Record<string, EnvironmentAsset> = {
 // ─── UI Icons (generated set) ────────────────────────────────
 
 export const uiIconPaths: Record<string, string> = {
-  map:      '/assets/icons/icon_map.png',
-  crew:     '/assets/icons/icon_crew.png',
-  market:   '/assets/icons/icon_market.png',
-  shoebox:  '/assets/icons/icon_shoebox.png',
-  slide:    '/assets/icons/icon_slide.png',
-  drive:    '/assets/icons/icon_drive.png',
-  cook:     '/assets/icons/icon_cook.png',
-  casino:   '/assets/icons/icon_casino.png',
-  missions: '/assets/icons/icon_missions.png',
-  settings: '/assets/icons/icon_settings.png',
-  dealt:    '/assets/icons/icon_dealt.png',
-  ops:      '/assets/icons/icon_ops.png',
+  map:      '/assets/runtime/icons/icon_map.webp',
+  crew:     '/assets/runtime/icons/icon_crew.webp',
+  market:   '/assets/runtime/icons/icon_market.webp',
+  shoebox:  '/assets/runtime/icons/icon_shoebox.webp',
+  slide:    '/assets/runtime/icons/icon_slide.webp',
+  drive:    '/assets/runtime/icons/icon_driveby_new.webp',
+  cook:     '/assets/runtime/icons/icon_cook.webp',
+  casino:   '/assets/runtime/icons/icon_casino.webp',
+  missions: '/assets/runtime/icons/icon_attack_new.webp',
+  settings: '/assets/runtime/icons/icon_settings.webp',
+  dealt:    '/assets/runtime/icons/icon_dealt.webp',
+  ops:      '/assets/runtime/icons/icon_ops.webp',
 };
 
 // ─── Aggregated manifest ─────────────────────────────────────

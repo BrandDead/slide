@@ -117,7 +117,17 @@ describe('CombatSession', () => {
     expect(first.seed).toBe(second.seed);
     expect(first.terrain[2][0].zoneType).toBe('alley');
     expect(first.backgroundUrl).toBe('/assets/reference.webp');
+    expect(first.objective.extraction).not.toEqual(first.crew[0].position);
     expect(first.tacticalBrief[0]).toContain('Liberty City Alley');
+  });
+
+  it('keeps opening opposition fire survivable long enough for player input', () => {
+    const advanced = advanceCombat(createCombatSession(preparation()), 40);
+    const crew = advanced.combatants.find((candidate) => candidate.id === 'crew-1');
+
+    expect(advanced.phase).toBe('active');
+    expect(crew?.health).toBeGreaterThan(0);
+    expect(advanced.events.some((event) => event.type === 'weapon-fired')).toBe(true);
   });
 
   it('uses bounded reload timing and ignores stale commands', () => {

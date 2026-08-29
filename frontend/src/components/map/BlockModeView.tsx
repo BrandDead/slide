@@ -5,7 +5,7 @@
 // Sprint: block-mode-combat-assets
 // ============================================================
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
@@ -29,6 +29,8 @@ import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
 import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import './BlockModeView.css';
+
+const ModernOpsEncounter = lazy(() => import('../ops/ModernOpsEncounter'));
 
 // ─── Seed helper ─────────────────────────────────────────────
 function buildDefaultBlock(id: string, address: string): BlockData {
@@ -129,6 +131,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const [showDeployPanel, setShowDeployPanel] = useState(false);
   const [showDriveBy, setShowDriveBy] = useState(false);
   const [showEncounter, setShowEncounter] = useState(false);
+  const [showModernOps, setShowModernOps] = useState(false);
   const [showRaid, setShowRaid] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
@@ -234,6 +237,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     applyEncounterResult(selectedBlockId, result);
     updatePlayer({ heat: Math.max(0, Math.min(5, (player.heat ?? 0) + result.heatDelta)) });
     setShowEncounter(false);
+    setShowModernOps(false);
     if (activeBlock && result.crewDown.length > 0) {
       setBailIncidents(result.crewDown.map((memberId, index) => {
         const placement = activeBlock.placements.find((item) => item.memberId === memberId);
@@ -318,13 +322,19 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         </button>
         <button
           className={`bmv-tab ${showEncounter ? 'active danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowRaid(false); setShowEncounter((v) => !v); }}
+          onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter((v) => !v); }}
         >
           🎯 Encounter
         </button>
         <button
+          className={`bmv-tab ${showModernOps ? 'active danger' : ''}`}
+          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid(false); setShowModernOps((value) => !value); }}
+        >
+          OPS 3D
+        </button>
+        <button
           className={`bmv-tab ${showRaid ? 'active danger' : ''} ${isMaxHeat ? 'pulse-danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid((v) => !v); }}
+          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowModernOps(false); setShowRaid((v) => !v); }}
         >
           🚔 Raid{isMaxHeat ? ' !' : ''}
         </button>
@@ -338,7 +348,15 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
       {/* Main view */}
       <div className="bmv-content">
-        {showEncounter ? (
+        {showModernOps ? (
+          <Suspense fallback={<div className="bmv-spinner">Loading Modern Ops…</div>}>
+            <ModernOpsEncounter
+              block={block}
+              onResolved={handleEncounterResolved}
+              onClose={() => setShowModernOps(false)}
+            />
+          </Suspense>
+        ) : showEncounter ? (
           <UnifiedEncounter
             block={block}
             onResolved={handleEncounterResolved}
@@ -392,10 +410,17 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         </motion.button>
         <motion.button
           className="bmv-btn slide"
-          onClick={() => { setShowDriveBy(false); setShowRaid(false); setShowEncounter(true); }}
+          onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter(true); }}
           whileTap={{ scale: 0.95 }}
         >
           🎯 Encounter
+        </motion.button>
+        <motion.button
+          className="bmv-btn slide modern-ops-launch"
+          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid(false); setShowModernOps(true); }}
+          whileTap={{ scale: 0.95 }}
+        >
+          OPS 3D
         </motion.button>
       </div>
 

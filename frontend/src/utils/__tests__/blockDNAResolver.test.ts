@@ -1,6 +1,6 @@
 // Tests for blockDNAResolver — address-to-block-archetype pipeline
 import { describe, it, expect } from 'vitest';
-import { resolveBlockDNA, type ResolvedBlock } from '../blockDNAResolver';
+import { resolveBlockDNA } from '../blockDNAResolver';
 
 // ─── Las Olas Blvd, Fort Lauderdale ──────────────────────────────────────────
 const LAS_OLAS = { lat: 26.1195, lng: -80.1368, address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312' };
@@ -61,6 +61,34 @@ describe('resolveBlockDNA', () => {
     const res = resolveBlockDNA(LAS_OLAS.lat, LAS_OLAS.lng, LAS_OLAS.address);
     expect(res.startingHeat).toBeGreaterThanOrEqual(0);
     expect(res.startingHeat).toBeLessThanOrEqual(5);
+  });
+
+  it('tier acceptance: starter and elite blocks resolve to different stats (#80)', () => {
+    // Coordinates sit right on top of two curated DNA cards in different tiers.
+    const starter = resolveBlockDNA(25.8190, -80.2410, '5100 NW 24th Ct, Miami, FL');   // brownsville-court (starter)
+    const elite = resolveBlockDNA(25.7630, -80.1918, '950 Brickell Ave, Miami, FL');     // brickell-highrise (elite)
+    expect(starter.dna.id).toBe('brownsville-court');
+    expect(elite.dna.id).toBe('brickell-highrise');
+    // … and they play differently: elite pays more but starts hotter.
+    expect(elite.incomeMultiplier).toBeGreaterThan(starter.incomeMultiplier);
+    expect(elite.startingHeat).toBeGreaterThan(starter.startingHeat);
+    expect(elite.maxMembers).toBeGreaterThan(starter.maxMembers);
+    expect(elite.zoneLayout).not.toEqual(starter.zoneLayout);
+  });
+
+  it('curated cards across all tiers resolve without any Mapbox call', () => {
+    // Resolve each tier's curated coordinate; all must map to a library card.
+    const spots: Array<[number, number, string]> = [
+      [26.1186239, -80.1574818, '1208 W Las Olas Blvd'],
+      [25.8190, -80.2410, '5100 NW 24th Ct'],
+      [25.8894, -80.2920, '2200 W 76th St'],
+      [25.7492, -80.2615, '1200 Coral Way'],
+    ];
+    for (const [lat, lng, address] of spots) {
+      const res = resolveBlockDNA(lat, lng, address);
+      expect(res.dna.id).toBeTruthy();
+      expect(res.zoneLayout).toHaveLength(8);
+    }
   });
 });
 

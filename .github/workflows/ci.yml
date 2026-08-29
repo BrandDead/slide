@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Asset audit
+        run: npm run assets:audit
+
       - name: Build
         run: npx vite build
         env:

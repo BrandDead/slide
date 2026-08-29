@@ -10,6 +10,8 @@ import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/g
 import CarCrewSelector, { type CarCrew } from './CarCrewSelector';
 import DriveByEngine from './DriveByEngine';
 import { vaultDeposit } from '../../utils/moneyRouter';
+import { useCombatIntentStore } from '../../stores/combatIntentStore';
+import { useGhostStore } from '../../stores/ghostCrewStore';
 
 interface GameStats {
   kills: number;
@@ -44,6 +46,15 @@ const DriveByGame: React.FC = () => {
     }
     updateHeat(Math.min(stats.kills * 3 + stats.civilianHits * 10, 50));
     addXP(stats.kills * 20 + stats.blocksCleared * 50);
+
+    // Ghost-crew grudge (#81): if the target block belonged to a rival crew,
+    // a successful hit (kills on their turf) raises that crew's grudge, which
+    // biases its next world-tick decision toward retaliation.
+    const targetCrewId = useCombatIntentStore.getState().targetCrewId;
+    const targetBlockId = crew?.targetBlock?.placeId ?? null;
+    if (targetCrewId && targetBlockId && stats.kills > 0) {
+      useGhostStore.getState().recordPlayerAttack(targetCrewId, targetBlockId);
+    }
     
     // Update crew member XP/stats based on performance
     if (crew) {

@@ -28,6 +28,7 @@ import { attackableNearby, buildNearbyRecon, rankThreats, recommendHit, type Rec
 import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { useCombatIntentStore } from '../../stores/combatIntentStore';
+import { useGhostStore } from '../../stores/ghostCrewStore';
 import type { BlockData, BlockZone, MemberRole } from '../../types/block.types';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
@@ -187,6 +188,12 @@ const TerritoryMap: React.FC = () => {
         heat: live.heat || resolved.startingHeat,
         morale: resolved.startingMorale,
         topdownBgUrl: satelliteUrl,
+        // Stamp the resolved Block DNA so the block keeps its archetype
+        // identity, income multiplier, and deployment cap after claim (#80).
+        dnaId: resolved.dna.id,
+        incomeMultiplier: resolved.incomeMultiplier,
+        heatDecayMultiplier: resolved.dna.heatDecayMultiplier,
+        maxMembers: resolved.maxMembers,
       });
       selectBlock(live.id);
       setSelectedMapBlock(null);
@@ -238,13 +245,15 @@ const TerritoryMap: React.FC = () => {
     selectBlock(block.id);
     setSelectedMapBlock(null);
     setShowRecon(false);
+    // Tag the owning ghost crew so a successful hit raises their grudge (#81).
+    const targetCrewId = useGhostStore.getState().crewForBlock(block.id)?.id ?? null;
     useCombatIntentStore.getState().setPendingTarget({
       address: block.address,
       lat: block.lat,
       lng: block.lng,
       placeId: block.id,
       seedMode: 'geocoded',
-    });
+    }, targetCrewId);
     navigateTo('driveby');
     notify(`Sliding on ${block.address}`);
   }, [navigateTo, selectBlock, notify]);

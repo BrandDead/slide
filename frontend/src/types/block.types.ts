@@ -118,6 +118,18 @@ export interface BlockData {
   taggedBy?: string;
   /** ISO timestamp of the tag recorded in `taggedBy`. */
   taggedAt?: string;
+  /**
+   * Block DNA archetype this block was seeded from (see config/blockDNA.ts).
+   * Set at claim time; drives income multiplier, heat decay, cover, and the
+   * zone layout. Undefined on legacy blocks claimed before DNA assignment.
+   */
+  dnaId?: string;
+  /** Income multiplier inherited from the DNA card (1.0 = normal). */
+  incomeMultiplier?: number;
+  /** Heat decay multiplier inherited from the DNA card. */
+  heatDecayMultiplier?: number;
+  /** Deployment cap inherited from the DNA card. */
+  maxMembers?: number;
 }
 
 // ─── Attack / Drive-By ──────────────────────────────────────
