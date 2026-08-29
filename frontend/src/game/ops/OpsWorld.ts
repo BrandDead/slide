@@ -9,6 +9,7 @@ import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator';
 import { Color3 } from '@babylonjs/core/Maths/math.color';
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector';
+import type { Material } from '@babylonjs/core/Materials/material';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh';
@@ -18,6 +19,7 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
 import type { Observer } from '@babylonjs/core/Misc/observable';
 import type { Scene } from '@babylonjs/core/scene';
+import { loadCharacterPackage } from '../assets/assetPackages';
 import type {
   CombatEvent,
   CombatImpactCandidate,
@@ -39,9 +41,12 @@ import {
   createWetPuddle,
 } from './OpsEnvironmentFactory';
 import { OpsInput } from './OpsInput';
+import { loadPackagedCharacterTemplate, type OpsCharacterTemplate } from './OpsPackagedAssetLoader';
+import { createOpsPbrMaterial } from './OpsPbrMaterials';
 import { gridToWorld, movementToGridStep, OPS_CELL_SIZE } from './opsCoordinates';
 
 const FACADE_URL = '/assets/runtime/generated/environments/street/block_modern_ops_storefront_v001.webp';
+const PRODUCTION_CHARACTER_PACKAGE_URL = '/assets/packages/characters/universal-male/package.v1.json';
 const MOVE_INTERVAL_MS = 155;
 const SIM_TICK_MS = 100;
 const OPS_FIRE_RANGE = 40;
@@ -78,8 +83,9 @@ export class OpsWorld {
   private readonly input: OpsInput;
   private readonly actorVisuals = new Map<string, OpsActorVisual>();
   private readonly effects: TimedEffect[] = [];
-  private readonly materials: StandardMaterial[] = [];
+  private readonly materials: Material[] = [];
   private readonly observers: Observer<Scene>[] = [];
+  private characterTemplate?: OpsCharacterTemplate;
   private readonly shadowGenerator: ShadowGenerator;
   private readonly tacticalCamera: ArcRotateCamera;
   private readonly firstPersonCamera: UniversalCamera;
@@ -101,7 +107,7 @@ export class OpsWorld {
 
   constructor(
     private readonly scene: Scene,
-    canvas: HTMLCanvasElement,
+    private readonly canvas: HTMLCanvasElement,
     private readonly controller: CombatSessionController,
     private readonly preparation: EncounterPreparation,
     private readonly options: OpsWorldOptions = {},
@@ -136,6 +142,32 @@ export class OpsWorld {
     }));
   }
 
+  async initializeProductionAssets(
+    packageUrl = PRODUCTION_CHARACTER_PACKAGE_URL,
+  ): Promise<void> {
+    try {
+      const packageDefinition = await loadCharacterPackage(packageUrl);
+      const template = await loadPackagedCharacterTemplate(
+        this.scene,
+        packageDefinition,
+        (actorMaterial) => this.materials.push(actorMaterial),
+      );
+      if (this.disposed) {
+        template.dispose();
+        return;
+      }
+      this.characterTemplate?.dispose();
+      this.characterTemplate = template;
+      this.canvas.dataset.characterPackage = packageDefinition.packageId;
+      this.actorVisuals.forEach((visual) => visual.dispose());
+      this.actorVisuals.clear();
+      this.syncSnapshot(this.snapshot);
+    } catch (error) {
+      delete this.canvas.dataset.characterPackage;
+      console.warn('Modern Ops production character package could not load; keeping articulated fallbacks.', error);
+    }
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -143,6 +175,11 @@ export class OpsWorld {
     this.input.dispose();
     this.observers.forEach((observer) => this.scene.onBeforeRenderObservable.remove(observer));
     this.effects.forEach((effect) => effect.mesh.dispose());
+    this.actorVisuals.forEach((visual) => visual.dispose());
+    this.actorVisuals.clear();
+    this.characterTemplate?.dispose();
+    this.characterTemplate = undefined;
+    delete this.canvas.dataset.characterPackage;
     this.materials.forEach((item) => item.dispose());
     if (document.pointerLockElement) void document.exitPointerLock?.();
   }
@@ -170,15 +207,18 @@ export class OpsWorld {
     this.scene.clearColor.set(0.012, 0.025, 0.045, 1);
     this.scene.ambientColor = new Color3(0.08, 0.11, 0.16);
 
+    const asphalt = createOpsPbrMaterial(this.scene, 'asphalt033', 'ops-road-pbr', { u: 10, v: 10 });
+    const concrete = createOpsPbrMaterial(this.scene, 'concrete034', 'ops-concrete-pbr', { u: 5, v: 5 });
+    const brick = createOpsPbrMaterial(this.scene, 'bricks097', 'ops-brick-pbr', { u: 4, v: 3 });
     const palette = {
-      street: material(this.scene, 'ops-road', new Color3(0.035, 0.055, 0.075), new Color3(0.95, 0.95, 1)),
-      curb: material(this.scene, 'ops-curb', new Color3(0.19, 0.21, 0.23), new Color3(0.4, 0.4, 0.44)),
-      sidewalk: material(this.scene, 'ops-sidewalk', new Color3(0.13, 0.18, 0.2), new Color3(0.5, 0.54, 0.58)),
-      storefront: material(this.scene, 'ops-storefront-ground', new Color3(0.11, 0.09, 0.14)),
-      alley: material(this.scene, 'ops-alley', new Color3(0.035, 0.08, 0.085)),
-      parking: material(this.scene, 'ops-parking', new Color3(0.095, 0.09, 0.085), new Color3(0.38, 0.35, 0.34)),
-      rooftop: material(this.scene, 'ops-rooftop', new Color3(0.105, 0.08, 0.13)),
-      building: material(this.scene, 'ops-building', new Color3(0.055, 0.045, 0.075)),
+      street: asphalt,
+      curb: concrete,
+      sidewalk: concrete,
+      storefront: brick,
+      alley: asphalt,
+      parking: asphalt,
+      rooftop: concrete,
+      building: brick,
     };
     this.materials.push(...Object.values(palette));
 
@@ -466,7 +506,7 @@ export class OpsWorld {
     const activeIds = new Set(snapshot.combatants.map((actor) => actor.id));
     this.actorVisuals.forEach((visual, id) => {
       if (activeIds.has(id)) return;
-      visual.root.dispose(false, true);
+      visual.dispose();
       this.actorVisuals.delete(id);
     });
 
@@ -479,7 +519,8 @@ export class OpsWorld {
       visual.target.copyFrom(actorPosition(actor));
       const selected = actor.id === this.controller.getHudState().selectedId;
       visual.marker.setEnabled(selected && !actor.isDown);
-      visual.root.rotation.z = actor.isDown ? Math.PI / 2 : 0;
+      visual.root.rotation.z = visual.presentation === 'articulated-fallback' && actor.isDown ? Math.PI / 2 : 0;
+      if (actor.isDown) visual.playAnimation('downed');
       visual.meshes.forEach((mesh) => {
         mesh.visibility = actor.isDown ? 0.42 : 1;
         mesh.isPickable = !actor.isDown;
@@ -488,12 +529,14 @@ export class OpsWorld {
   }
 
   private createActorVisual(actor: Combatant): OpsActorVisual {
-    const visual = createArticulatedActorFallback(
-      this.scene,
-      actor,
-      actorPosition(actor),
-      (actorMaterial) => this.materials.push(actorMaterial),
-    );
+    const visual = this.characterTemplate
+      ? this.characterTemplate.instantiate(actor, actorPosition(actor))
+      : createArticulatedActorFallback(
+          this.scene,
+          actor,
+          actorPosition(actor),
+          (actorMaterial) => this.materials.push(actorMaterial),
+        );
     visual.meshes.forEach((mesh) => this.shadowGenerator.addShadowCaster(mesh));
     return visual;
   }
@@ -509,6 +552,7 @@ export class OpsWorld {
 
   private renderEvent(event: CombatEvent): void {
     if (event.type === 'weapon-fired' && event.actorId) {
+      this.actorVisuals.get(event.actorId)?.playAnimation('fire');
       if (event.actorId === this.controller.getControlledCrewId()) this.weaponKick = 0.13;
       const source = this.actorVisuals.get(event.actorId)?.root.position;
       const impactPoint = event.impact
@@ -526,6 +570,10 @@ export class OpsWorld {
         this.effects.push({ mesh: tracer, remaining: 0.11 });
       }
     }
+
+    if (event.type === 'reload-start' && event.actorId) this.actorVisuals.get(event.actorId)?.playAnimation('reload');
+    if (event.type === 'impact-actor' && event.targetId) this.actorVisuals.get(event.targetId)?.playAnimation('hit');
+    if (event.type === 'actor-downed' && event.targetId) this.actorVisuals.get(event.targetId)?.playAnimation('downed');
 
     const visibleImpactTypes = new Set<CombatEvent['type']>([
       'impact-actor',
@@ -611,9 +659,10 @@ export class OpsWorld {
     this.actorVisuals.forEach((visual, actorId) => {
       const movement = visual.target.subtract(visual.root.position);
       const actor = this.snapshot.combatants.find((candidate) => candidate.id === actorId);
-      if (!actor?.isDown && movement.lengthSquared() > 0.0025) {
-        visual.root.rotation.y = Math.atan2(movement.x, movement.z);
-      }
+      const moving = !actor?.isDown && movement.lengthSquared() > 0.0025;
+      if (moving) visual.root.rotation.y = Math.atan2(movement.x, movement.z);
+      if (actor?.isDown) visual.playAnimation('downed');
+      else visual.playAnimation(moving ? 'walk' : 'idle');
       visual.root.position.copyFrom(Vector3.Lerp(visual.root.position, visual.target, Math.min(1, boundedDelta * 11)));
     });
     this.updateCamera();

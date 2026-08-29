@@ -15,13 +15,32 @@ export interface OpsImpactMetadata {
   hitZone?: CombatHitZone;
 }
 
+export type OpsActorAnimationState =
+  | 'idle'
+  | 'walk'
+  | 'sprint'
+  | 'strafe'
+  | 'aim'
+  | 'aimWalk'
+  | 'fire'
+  | 'reload'
+  | 'crouch'
+  | 'hit'
+  | 'downed'
+  | 'coverEnter'
+  | 'coverIdle'
+  | 'coverExit';
+
 export interface OpsActorVisual {
   root: TransformNode;
   meshes: AbstractMesh[];
+  hitMeshes?: AbstractMesh[];
   marker: Mesh;
   target: Vector3;
   weapon: TransformNode;
   presentation: 'articulated-fallback' | 'production-glb';
+  playAnimation(state: OpsActorAnimationState): void;
+  dispose(): void;
 }
 
 export type RegisterOpsMaterial = (material: StandardMaterial) => void;
@@ -189,6 +208,8 @@ export function createArticulatedActorFallback(
     target: root.position.clone(),
     weapon,
     presentation: 'articulated-fallback',
+    playAnimation: () => undefined,
+    dispose: () => root.dispose(false, false),
   };
 }
 

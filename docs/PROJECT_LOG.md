@@ -68,6 +68,33 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-29 — Portable production-art package v1
+
+- Merged PRs #119 and #120 in order, then created `feat/production-art-package-v1`
+  from the updated protected default branch. The Modern Ops contracts, aimed fire,
+  tactical/FPS/TPS possession, and exactly-once result boundary remain unchanged.
+- Acquired the free Quaternius Universal Base Characters and Universal Animation
+  Library packages through their official zero-price itch paths. Their included
+  creator license is CC0 1.0. A deterministic build script verifies the matching
+  65-joint rigs and copies 12 selected locomotion, pistol, hit, crouch, and death
+  clips into one optimized 1,358,092-byte GLB.
+- Modern Ops now loads the strict runtime package before scene readiness, parses the
+  GLB once into an `AssetContainer`, clones a rig and animation groups per combatant,
+  attaches physical head/torso/arm/leg hit proxies to named bones, attaches the
+  presentation weapon to `hand_r`, and drives animation from existing combat events.
+  Any package failure keeps the verified articulated fallback instead of crashing.
+- Added ambientCG CC0 asphalt, concrete, and brick color/normal/roughness maps to the
+  1208 block. Nine 512px WebP maps replace flat street materials. Package files now
+  count against the global asset gate: 13 files / 1.57 MB, total shipped assets
+  7.38 MB / 20 MB, zero audit warnings.
+- The live isolated WebGL2 gauntlet verified the production package ID, TPS, FPS,
+  tactical commander view, possession transfer from Lil Dre to Kilo, firing, result
+  application, and return to strategy with zero local runtime exceptions. A
+  procedural bone-attached streetwear experiment was rejected and removed after
+  TPS review; the free superhero model proves the pipeline but is not final art.
+  Final character procurement must now satisfy the package specification in
+  `docs/PRODUCTION_ART_PACKAGE_V1.md` rather than being selected from screenshots.
+
 ### 2026-08-29 — 1208 Las Olas visual showdown foundation and multiview verification
 
 - Stacked the showdown branch on PR #119 rather than rewriting its verified Modern Ops

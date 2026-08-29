@@ -25,6 +25,7 @@ import { ASSET_CLASSES, RUNTIME_BUDGET_MB, FRINGE_THRESHOLD, analysePixels } fro
 const JSON_OUT = process.argv.includes('--json');
 const FRONTEND = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const RUNTIME_DIR = path.join(FRONTEND, 'public/assets/runtime');
+const PACKAGE_DIR = path.join(FRONTEND, 'public/assets/packages');
 const MANIFEST = path.join(FRONTEND, 'src/assets/runtimeManifest.json');
 const EXCEPTIONS = path.join(FRONTEND, 'scripts/assets/exceptions.json');
 
@@ -61,6 +62,7 @@ async function main() {
 
   let totalBytes = 0;
   let orphanBytes = 0;
+  let packageBytes = 0;
   let checked = 0;
 
   for (const entry of manifest.entries) {
@@ -115,17 +117,22 @@ async function main() {
     }
   }
   await walk(RUNTIME_DIR);
+  const runtimeFileCount = onDisk.length;
+  await walk(PACKAGE_DIR);
   const manifestPaths = new Set(manifest.entries.map((e) => path.join(FRONTEND, 'public', e.runtimePath.replace(/^\//, ''))));
   for (const p of onDisk) {
     if (!manifestPaths.has(p)) {
-      warn('W_ORPHAN', `Runtime file not in manifest: ${path.relative(FRONTEND, p)}`);
-      // Orphans SHIP to the browser, so they must count against the
-      // budget. Excluding them let ~31 MB of raw PNG land on main while
-      // the gate still reported 5.35/20 MB.
+      const isPackageFile = p.startsWith(PACKAGE_DIR + path.sep);
+      if (!isPackageFile) warn('W_ORPHAN', `Runtime file not in manifest: ${path.relative(FRONTEND, p)}`);
+      // Unregistered runtime files and production-package files SHIP to
+      // the browser, so both must count against the global budget. Package
+      // contents are validated by validate-packages.mjs rather than the
+      // image-only runtime manifest.
       try {
         const oStat = await fs.stat(p);
         totalBytes += oStat.size;
-        orphanBytes += oStat.size;
+        if (isPackageFile) packageBytes += oStat.size;
+        else orphanBytes += oStat.size;
       } catch { /* unreadable file already reported elsewhere */ }
     }
   }
@@ -137,7 +144,14 @@ async function main() {
     fail('E_BUDGET', `Runtime assets ${totalMB.toFixed(2)} MB exceed the ${budgetMB} MB budget.`);
   }
 
-  report({ checked, totalMB, budgetMB, orphanMB: orphanBytes / 1048576 });
+  report({
+    checked,
+    packageFiles: onDisk.length - runtimeFileCount,
+    packageMB: packageBytes / 1048576,
+    totalMB,
+    budgetMB,
+    orphanMB: orphanBytes / 1048576,
+  });
 }
 
 function report(summary = {}) {
@@ -148,6 +162,7 @@ function report(summary = {}) {
     console.log('─'.repeat(70));
     if (summary.checked !== undefined) {
       console.log(`Assets checked : ${summary.checked}`);
+      if (summary.packageFiles) console.log(`Package files  : ${summary.packageFiles} (${summary.packageMB.toFixed(2)} MB)`);
       console.log(`Runtime total  : ${summary.totalMB.toFixed(2)} MB / ${summary.budgetMB} MB budget`);
       if (summary.orphanMB > 0.01) {
         console.log(`  ...of which unregistered (orphan): ${summary.orphanMB.toFixed(2)} MB`);
