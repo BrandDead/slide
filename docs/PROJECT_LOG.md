@@ -68,6 +68,34 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-08-29 — 1208 Las Olas visual showdown foundation and multiview verification
+
+- Stacked the showdown branch on PR #119 rather than rewriting its verified Modern Ops
+  session, React/Babylon lifecycle, or exactly-once strategy result boundary. Added
+  versioned encounter, result, character-package, and block-package JSON Schemas plus
+  canonical 1208 fixtures and renderer-neutral TypeScript adapters.
+- Replaced nearest-target FPS/TPS shooting with authoritative aimed-ray commands and
+  physical actor/head-torso-limb, cover, vehicle, environment, and miss candidates.
+  Added explicit commander versus possession authority, living-member cycling, and
+  deterministic squad AI for every unpossessed deployed member.
+- Replaced player-facing capsule actors and repeated box cover with articulated armed
+  fallbacks, semantic planters, cars, foliage, palms, puddles, storefront depth,
+  background massing, shadows, neon post-processing, and an FPS weapon view. Added a
+  validated GLB character/block loader so final licensed packages can replace fallbacks
+  without touching combat or camera code.
+- Added a private Unreal 5.4 sidecar using the identical fixtures. Source now includes
+  encounter/result codecs, commander and member pawns, TPS/FPS possession, native line
+  traces and skeletal hit-zone mapping, presentation squad AI, input, guarded result
+  consumption, and automation-test seams. Unreal was not compiled or rendered in the
+  default sandbox because the engine and GPU are unavailable; no native visual claim is
+  made until the sidecar runs on an Unreal workstation.
+- Final validation: ESLint 0 errors (194 existing warnings); TypeScript clean; Vitest
+  707/707 across 48 files; runtime asset audit 110 assets at 5.81 MB / 20 MB with zero
+  errors/warnings; four package fixtures against four schemas; backend pytest 42/42;
+  production build passed. The isolated WebGL2 gauntlet verified TPS, FPS, tactical,
+  possession transfer, physical fire, a retreat result, and one strategy return with
+  zero local runtime exceptions. Evidence: `docs/1208_SHOWDOWN_VERIFICATION.md`.
+
 ### 2026-08-24 — Drive-by bullet camera completed and wired into live combat
 
 - Connected the existing `BulletCamEngine` / `BulletCamReplay` pair to the playable
