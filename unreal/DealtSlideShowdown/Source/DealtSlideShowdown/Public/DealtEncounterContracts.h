@@ -241,6 +241,14 @@ struct FDealtInventoryChange
     FString Reason;
 };
 
+UENUM(BlueprintType)
+enum class EDealtInjurySeverity : uint8
+{
+    Minor,
+    Serious,
+    Critical
+};
+
 USTRUCT(BlueprintType)
 struct FDealtInjury
 {
@@ -250,10 +258,10 @@ struct FDealtInjury
     FString MemberId;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 Severity = 1;
+    EDealtInjurySeverity Severity = EDealtInjurySeverity::Minor;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    FString Cause;
+    bool bTreatmentRequired = false;
 };
 
 USTRUCT(BlueprintType)

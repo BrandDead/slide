@@ -193,7 +193,7 @@ export class OpsWorld {
       cellMesh.material = palette[cell.zoneType] ?? palette.sidewalk;
       cellMesh.receiveShadows = true;
       cellMesh.metadata = {
-        impactKind: cell.zoneType === 'parking' ? 'vehicle' : 'environment',
+        impactKind: 'environment',
         entityId: `terrain-${cell.x}-${cell.y}`,
       } satisfies OpsImpactMetadata;
 

@@ -22,6 +22,13 @@ bool FDealtEncounterFixtureTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Opposition is available"), Encounter.Opposition.Num() >= 1);
     TestTrue(TEXT("Terrain was flattened for native use"), Encounter.TerrainCells.Num() >= 9);
     TestEqual(TEXT("Objective kind"), Encounter.Objective.Kind, FString(TEXT("extract")));
+
+    FString EncounterJson;
+    TestTrue(TEXT("Canonical encounter text loads"), FFileHelper::LoadFileToString(EncounterJson, *Path));
+    EncounterJson = EncounterJson.Replace(TEXT("\"role\": \"shooter\""), TEXT("\"role\": \"k9\""), ESearchCase::CaseSensitive);
+    FDealtEncounterPackage K9Encounter;
+    TestTrue(TEXT("K9 encounter variant parses"), UDealtContractCodec::ParseEncounterJson(EncounterJson, K9Encounter, Error));
+    TestEqual(TEXT("K9 role maps to native dog role"), static_cast<uint8>(K9Encounter.Crew[0].Role), static_cast<uint8>(EDealtMemberRole::Dog));
     if (!Error.IsEmpty()) AddError(Error);
     return true;
 }
@@ -41,6 +48,11 @@ bool FDealtResultFixtureTest::RunTest(const FString& Parameters)
     FString Error;
     TestTrue(TEXT("Canonical result parses"), UDealtContractCodec::ParseResultJson(Json, Result, Error));
     TestFalse(TEXT("Idempotency key is present"), Result.IdempotencyKey.IsEmpty());
+    FDealtInjury Injury;
+    Injury.MemberId = TEXT("crew-lil-dre");
+    Injury.Severity = EDealtInjurySeverity::Serious;
+    Injury.bTreatmentRequired = true;
+    Result.Injuries.Add(Injury);
 
     FString RoundTripJson;
     TestTrue(TEXT("Parsed result serializes"), UDealtContractCodec::SerializeResultJson(Result, RoundTripJson, Error));
@@ -48,6 +60,9 @@ bool FDealtResultFixtureTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Serialized result parses"), UDealtContractCodec::ParseResultJson(RoundTripJson, RoundTrip, Error));
     TestEqual(TEXT("Round-trip idempotency"), RoundTrip.IdempotencyKey, Result.IdempotencyKey);
     TestEqual(TEXT("Round-trip outcome"), static_cast<uint8>(RoundTrip.Outcome), static_cast<uint8>(Result.Outcome));
+    TestEqual(TEXT("Round-trip injury count"), RoundTrip.Injuries.Num(), 1);
+    TestEqual(TEXT("Round-trip injury severity"), static_cast<uint8>(RoundTrip.Injuries[0].Severity), static_cast<uint8>(EDealtInjurySeverity::Serious));
+    TestTrue(TEXT("Round-trip treatment requirement"), RoundTrip.Injuries[0].bTreatmentRequired);
     if (!Error.IsEmpty()) AddError(Error);
     return true;
 }

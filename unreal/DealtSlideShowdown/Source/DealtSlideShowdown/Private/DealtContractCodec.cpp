@@ -25,7 +25,7 @@ namespace DealtContract
     {
         if (Value.Equals(TEXT("dealer"), ESearchCase::IgnoreCase)) return EDealtMemberRole::Dealer;
         if (Value.Equals(TEXT("enforcer"), ESearchCase::IgnoreCase)) return EDealtMemberRole::Enforcer;
-        if (Value.Equals(TEXT("dog"), ESearchCase::IgnoreCase)) return EDealtMemberRole::Dog;
+        if (Value.Equals(TEXT("k9"), ESearchCase::IgnoreCase)) return EDealtMemberRole::Dog;
         if (Value.Equals(TEXT("opposition"), ESearchCase::IgnoreCase)) return EDealtMemberRole::Opposition;
         return EDealtMemberRole::Shooter;
     }
@@ -35,6 +35,23 @@ namespace DealtContract
         if (Value.Equals(TEXT("overrun"), ESearchCase::IgnoreCase)) return EDealtOutcome::Overrun;
         if (Value.Equals(TEXT("retreated"), ESearchCase::IgnoreCase)) return EDealtOutcome::Retreated;
         return EDealtOutcome::Secured;
+    }
+
+    EDealtInjurySeverity ReadInjurySeverity(const FString& Value)
+    {
+        if (Value.Equals(TEXT("critical"), ESearchCase::IgnoreCase)) return EDealtInjurySeverity::Critical;
+        if (Value.Equals(TEXT("serious"), ESearchCase::IgnoreCase)) return EDealtInjurySeverity::Serious;
+        return EDealtInjurySeverity::Minor;
+    }
+
+    FString WriteInjurySeverity(EDealtInjurySeverity Value)
+    {
+        switch (Value)
+        {
+        case EDealtInjurySeverity::Critical: return TEXT("critical");
+        case EDealtInjurySeverity::Serious: return TEXT("serious");
+        default: return TEXT("minor");
+        }
     }
 
     FString WriteOutcome(EDealtOutcome Value)
@@ -221,8 +238,8 @@ bool UDealtContractCodec::ParseResultJson(const FString& Json, FDealtEncounterRe
         const TSharedPtr<FJsonObject> InjuryObject = Value->AsObject();
         FDealtInjury Injury;
         Injury.MemberId = InjuryObject->GetStringField(TEXT("memberId"));
-        Injury.Severity = InjuryObject->GetIntegerField(TEXT("severity"));
-        Injury.Cause = InjuryObject->GetStringField(TEXT("cause"));
+        Injury.Severity = DealtContract::ReadInjurySeverity(InjuryObject->GetStringField(TEXT("severity")));
+        Injury.bTreatmentRequired = InjuryObject->GetBoolField(TEXT("treatmentRequired"));
         OutResult.Injuries.Add(Injury);
     }
 
@@ -273,8 +290,8 @@ bool UDealtContractCodec::SerializeResultJson(const FDealtEncounterResult& Resul
     {
         const TSharedRef<FJsonObject> Object = MakeShared<FJsonObject>();
         Object->SetStringField(TEXT("memberId"), Injury.MemberId);
-        Object->SetNumberField(TEXT("severity"), Injury.Severity);
-        Object->SetStringField(TEXT("cause"), Injury.Cause);
+        Object->SetStringField(TEXT("severity"), DealtContract::WriteInjurySeverity(Injury.Severity));
+        Object->SetBoolField(TEXT("treatmentRequired"), Injury.bTreatmentRequired);
         Injuries.Add(MakeShared<FJsonValueObject>(Object));
     }
     Root->SetArrayField(TEXT("injuries"), Injuries);

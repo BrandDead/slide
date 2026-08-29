@@ -156,11 +156,19 @@ FDealtAimedFireCommand UDealtEncounterSubsystem::SubmitNativeHit(
         const FString CoverEntityId = DealtEncounter::TaggedValue(HitActor->Tags, TEXT("dealt.cover:"));
         if (!ActorEntityId.IsEmpty())
         {
-            Command.Candidate.Kind = EDealtImpactKind::Actor;
+            const bool bShooterIsCrew = Encounter.Crew.ContainsByPredicate(
+                [&ActorId](const FDealtCombatant& Combatant) { return Combatant.Id == ActorId; });
+            const bool bHitActorIsCrew = Encounter.Crew.ContainsByPredicate(
+                [&ActorEntityId](const FDealtCombatant& Combatant) { return Combatant.Id == ActorEntityId; });
+            const bool bSameTeam = bShooterIsCrew == bHitActorIsCrew;
+            Command.Candidate.Kind = bSameTeam ? EDealtImpactKind::Cover : EDealtImpactKind::Actor;
             Command.Candidate.EntityId = ActorEntityId;
-            Command.Candidate.HitZone = HitComponent
-                ? DealtEncounter::HitZoneFromTagsOrBone(HitComponent->ComponentTags, Hit.BoneName)
-                : EDealtHitZone::Torso;
+            if (!bSameTeam)
+            {
+                Command.Candidate.HitZone = HitComponent
+                    ? DealtEncounter::HitZoneFromTagsOrBone(HitComponent->ComponentTags, Hit.BoneName)
+                    : EDealtHitZone::Torso;
+            }
         }
         else if (!VehicleEntityId.IsEmpty())
         {

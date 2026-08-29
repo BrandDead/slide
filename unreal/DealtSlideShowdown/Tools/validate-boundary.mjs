@@ -31,11 +31,16 @@ const contracts = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowd
   'FDealtImpactCandidate',
   'EDealtCameraMode',
   'EDealtControlMode',
+  'EDealtInjurySeverity',
 ].forEach((token) => assert.ok(contracts.includes(token), `Missing Unreal contract token ${token}`));
 
 const codecHeader = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Public/DealtContractCodec.h'), 'utf8');
 ['ParseEncounterJson', 'ParseResultJson', 'SerializeResultJson'].forEach((token) => {
   assert.ok(codecHeader.includes(token), `Missing Unreal codec function ${token}`);
+});
+const codecSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Private/DealtContractCodec.cpp'), 'utf8');
+['TEXT("k9")', 'TEXT("severity")', 'TEXT("treatmentRequired")'].forEach((token) => {
+  assert.ok(codecSource.includes(token), `Missing schema-compatible codec token ${token}`);
 });
 
 const requiredSourceFiles = [
@@ -58,7 +63,7 @@ requiredSourceFiles.forEach((relativePath) => {
 });
 
 const subsystemSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Private/DealtEncounterSubsystem.cpp'), 'utf8');
-['SubmitNativeHit', 'CycleSelectedMember', 'AcceptResultJson', 'ConsumePendingResultJson'].forEach((token) => {
+['SubmitNativeHit', 'CycleSelectedMember', 'AcceptResultJson', 'ConsumePendingResultJson', 'bSameTeam ? EDealtImpactKind::Cover'].forEach((token) => {
   assert.ok(subsystemSource.includes(token), `Missing encounter seam ${token}`);
 });
 const playerSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideShowdown/Private/DealtActionPlayerController.cpp'), 'utf8');
@@ -68,4 +73,4 @@ const playerSource = fs.readFileSync(path.join(projectRoot, 'Source/DealtSlideSh
 const gameConfig = fs.readFileSync(path.join(projectRoot, 'Config/DefaultGame.ini'), 'utf8');
 assert.ok(gameConfig.includes('GlobalDefaultGameMode=/Script/DealtSlideShowdown.DealtActionGameMode'));
 
-console.log('Unreal boundary validation passed: 2 canonical fixtures, 7 DTO groups, 3 codec operations, 13 gameplay seam files.');
+console.log('Unreal boundary validation passed: 2 canonical fixtures, 8 DTO groups, 3 codec operations, 4 reviewed invariants, 13 gameplay seam files.');
