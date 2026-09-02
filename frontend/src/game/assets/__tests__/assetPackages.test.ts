@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   anchorsForZone,
@@ -107,6 +109,23 @@ describe('production asset packages', () => {
     expect(isBlockPackageV1(block)).toBe(true);
     expect(isCharacterPackageV1({ schemaVersion: 1, packageId: 'broken' })).toBe(false);
     expect(isBlockPackageV1({ schemaVersion: 1, packageId: 'broken' })).toBe(false);
+  });
+
+  it('ships a validated CC0 rig with real gameplay clips and a web-budgeted GLB', () => {
+    const packagePath = path.resolve(process.cwd(), 'public/assets/packages/characters/universal-male/package.v1.json');
+    const runtimePackage = JSON.parse(fs.readFileSync(packagePath, 'utf8')) as CharacterPackageV1;
+    const glbPath = path.resolve(process.cwd(), 'public', runtimePackage.runtime.babylonGlb.replace(/^\//, ''));
+
+    expect(isCharacterPackageV1(runtimePackage)).toBe(true);
+    expect(runtimePackage.provenance.licenseId).toBe('CC0-1.0');
+    expect(runtimePackage.provenance.engineRestrictions).toEqual([]);
+    expect(runtimePackage.skeleton.rootBone).toBe('root');
+    expect(hitZoneForNode(runtimePackage, 'Head')).toBe('head');
+    expect(hitZoneForNode(runtimePackage, 'upperarm_r')).toBe('arm');
+    expect(runtimePackage.animations.fire).toBe('Pistol_Shoot');
+    expect(runtimePackage.animations.reload).toBe('Pistol_Reload');
+    expect(runtimePackage.animations.downed).toBe('Death01');
+    expect(fs.statSync(glbPath).size).toBeLessThan(1_500_000);
   });
 
   it('maps authored character nodes to renderer-neutral hit zones', () => {

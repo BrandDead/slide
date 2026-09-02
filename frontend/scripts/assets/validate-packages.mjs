@@ -46,8 +46,12 @@ const targets = [
     kind: path.basename(filePath).split('.')[0],
     runtime: false,
   })),
-  ...collectJsonFiles(path.join(publicRoot, 'assets/packages/characters')).map((filePath) => ({ filePath, kind: 'character', runtime: true })),
-  ...collectJsonFiles(path.join(publicRoot, 'assets/packages/blocks')).map((filePath) => ({ filePath, kind: 'block', runtime: true })),
+  ...collectJsonFiles(path.join(publicRoot, 'assets/packages/characters'))
+    .filter((filePath) => path.basename(filePath).startsWith('package.'))
+    .map((filePath) => ({ filePath, kind: 'character', runtime: true })),
+  ...collectJsonFiles(path.join(publicRoot, 'assets/packages/blocks'))
+    .filter((filePath) => path.basename(filePath).startsWith('package.'))
+    .map((filePath) => ({ filePath, kind: 'block', runtime: true })),
 ];
 
 const failures = [];

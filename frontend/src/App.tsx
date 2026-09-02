@@ -14,6 +14,7 @@ import { useHeatDecay } from './hooks/useHeatDecay';
 import { useRaidCheck } from './hooks/useRaidCheck';
 import { useBlockSync } from './hooks/useBlockSync';
 import { useEmpireHydration } from './hooks/useEmpireHydration';
+import { useGhostCrewSync } from './hooks/useGhostCrewSync';
 import { useSoundManager } from './hooks/useSoundManager';
 import { useSalarySystem } from './hooks/useSalarySystem';
 import PayrollModal from './components/economy/PayrollModal';
@@ -139,14 +140,17 @@ const App: React.FC = () => {
   const { raidBlockId, clearRaid } = useRaidCheck();
   useBlockSync(!IS_DEMO_MODE);
   useEmpireHydration(Boolean(authUser) && authChecked && !IS_DEMO_MODE);
+  useGhostCrewSync(authUser?.id ?? null, Boolean(authUser) && authChecked && !IS_DEMO_MODE);
   useSoundManager();
   const salarySystem = useSalarySystem();
   useNPCRetaliation();
   // NPC AI Tick — drives rival gang behavior every 30s
   const playerBlockIds = useTerritoryStore((s) => s.blocks.map((b) => b.id));
   useNPCTick(playerBlockIds);
-  // Ghost Crew world tick — persistent rivals that claim/attack turf (#81)
-  useGhostTick();
+  // Demo/offline sessions retain the local deterministic rival loop. An
+  // authenticated production session hydrates durable crew state instead, so
+  // browser ticks cannot drift ahead of the server-led world timeline.
+  useGhostTick(IS_DEMO_MODE || !authChecked || !authUser);
 
   const { completeStep } = useTutorialProgressStore();
 

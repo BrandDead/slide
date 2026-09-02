@@ -28,6 +28,7 @@ import DrugAssignmentPanel from './DrugAssignmentPanel';
 import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
 import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import { vaultDeposit } from '../../utils/moneyRouter';
+import { commitEncounterResult } from '../../services/worldPersistence.service';
 import './BlockModeView.css';
 
 const ModernOpsEncounter = lazy(() => import('../ops/ModernOpsEncounter'));
@@ -235,6 +236,12 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     if (!selectedBlockId) return;
     const activeBlock = blocks[selectedBlockId];
     applyEncounterResult(selectedBlockId, result);
+    // Keep the encounter UI responsive. The server receipt uses the same
+    // deterministic key and rejects duplicate/replayed results; local block
+    // sync carries the matching projected state in the background.
+    void commitEncounterResult(selectedBlockId, result).catch((error: unknown) => {
+      console.warn('[BlockModeView] Encounter receipt was not persisted:', error);
+    });
     updatePlayer({ heat: Math.max(0, Math.min(5, (player.heat ?? 0) + result.heatDelta)) });
     setShowEncounter(false);
     setShowModernOps(false);

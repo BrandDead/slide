@@ -1,6 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const outputDir = '/home/ubuntu/work/slide-live/verification';
+const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const outputDir = path.join(repositoryRoot, 'verification');
 await mkdir(outputDir, { recursive: true });
 const targets = await fetch('http://127.0.0.1:9222/json/list').then((response) => response.json());
 const target = targets.find((item) => item.type === 'page' && item.url === 'about:blank')
@@ -95,7 +98,7 @@ async function opsState() {
     status: document.querySelector('.ops-status')?.textContent?.trim() ?? null,
     result: document.querySelector('.ops-result')?.textContent?.replace(/\\s+/g, ' ').trim() ?? null,
     canvases: document.querySelectorAll('canvas').length,
-    opsCanvas: (() => { const canvas = document.querySelector('.modern-ops-canvas'); return canvas ? { width: canvas.width, height: canvas.height, clientWidth: canvas.clientWidth, clientHeight: canvas.clientHeight, webgl2: Boolean(canvas.getContext('webgl2')), webgl: Boolean(canvas.getContext('webgl')) } : null; })()
+    opsCanvas: (() => { const canvas = document.querySelector('.modern-ops-canvas'); return canvas ? { width: canvas.width, height: canvas.height, clientWidth: canvas.clientWidth, clientHeight: canvas.clientHeight, webgl2: Boolean(canvas.getContext('webgl2')), webgl: Boolean(canvas.getContext('webgl')), characterPackage: canvas.dataset.characterPackage ?? null } : null; })()
   })`);
   return JSON.parse(raw ?? '{}');
 }
@@ -183,6 +186,7 @@ console.log(JSON.stringify(report, null, 2));
 socket.close();
 
 if (!thirdPersonBefore.modernOps || thirdPersonBefore.error) process.exitCode = 1;
+if (thirdPersonBefore.opsCanvas?.characterPackage !== 'character.universal-male.pipeline-v1') process.exitCode = 1;
 if (thirdPersonBefore.camera !== 'TPS' || firstPerson.camera !== 'FPS' || tactical.camera !== 'TAC') process.exitCode = 1;
 if (!switchedMember || thirdPersonBefore.selected === thirdPersonAfterSwitch.selected) process.exitCode = 1;
 if (!firstPerson.status || firstPerson.status === thirdPersonAfterSwitch.status) process.exitCode = 1;

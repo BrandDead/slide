@@ -211,3 +211,85 @@ body {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
+
+/* Bootstrap failure state — must remain usable before the App module loads. */
+.startup-error-screen {
+  min-height: 100%;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(227, 38, 54, 0.18), transparent 42%),
+    linear-gradient(160deg, #0d0e14 0%, #050505 62%, #16080b 100%);
+}
+
+.startup-error-card {
+  width: min(100%, 440px);
+  border: 1px solid rgba(255, 91, 91, 0.48);
+  border-radius: 16px;
+  padding: 32px 28px;
+  background: rgba(10, 10, 14, 0.95);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.54), 0 0 32px rgba(255, 44, 44, 0.12);
+  text-align: center;
+}
+
+.startup-error-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #ff7777;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+}
+
+.startup-error-card h1 {
+  margin: 0;
+  color: #ffffff;
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  font-size: clamp(30px, 8vw, 44px);
+  font-weight: 400;
+  letter-spacing: 0.055em;
+  line-height: 1;
+}
+
+.startup-error-card p {
+  margin: 20px auto 0;
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.startup-error-retry {
+  margin-top: 28px;
+  min-height: 44px;
+  border: 1px solid #ff6565;
+  border-radius: 8px;
+  padding: 0 20px;
+  background: rgba(222, 44, 44, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.startup-error-retry:hover,
+.startup-error-retry:focus-visible {
+  outline: none;
+  background: rgba(222, 44, 44, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 111, 111, 0.25);
+}
+
+@media (max-width: 360px) {
+  .startup-error-card {
+    padding: 28px 20px;
+  }
+
+  .startup-error-card p {
+    font-size: 15px;
+  }
+}

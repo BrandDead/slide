@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "packageId": "character.universal-male.pipeline-v1",
+  "memberId": "shared-male-production-base",
+  "displayName": "Universal Male Production Base",
+  "role": "shooter",
+  "wardrobeIds": ["quaternius.superhero-male.dark"],
+  "materialVariantIds": ["skin.deep", "outfit.dark"],
+  "portraitAssetId": "generated.characters.portraits.character_shooter_male_portrait_v001",
+  "source": {
+    "editableFiles": [
+      "external/quaternius/Universal Base Characters[Standard].zip",
+      "external/quaternius/Universal Animation Library[Standard].zip"
+    ],
+    "exportFbx": "external/quaternius/Universal Base Characters[Standard]/Base Characters/Unity/Superhero_Male_FullBody.fbx"
+  },
+  "runtime": {
+    "babylonGlb": "/assets/packages/characters/universal-male/universal-male.v1.glb",
+    "unrealSkeletalMesh": "/Game/Dealt/Characters/UniversalMale/SK_UniversalMale"
+  },
+  "skeleton": {
+    "profileId": "quaternius.universal-humanoid.v3",
+    "rootBone": "root",
+    "forwardAxis": "+Z",
+    "upAxis": "+Y",
+    "metersPerUnit": 1
+  },
+  "hitZones": {
+    "head": "Head",
+    "torso": "spine_03",
+    "leftArm": "upperarm_l",
+    "rightArm": "upperarm_r",
+    "leftLeg": "thigh_l",
+    "rightLeg": "thigh_r"
+  },
+  "animations": {
+    "idle": "Idle_Loop",
+    "walk": "Walk_Loop",
+    "sprint": "Sprint_Loop",
+    "strafe": "Walk_Loop",
+    "aim": "Pistol_Aim_Neutral",
+    "aimWalk": "Jog_Fwd_Loop",
+    "fire": "Pistol_Shoot",
+    "reload": "Pistol_Reload",
+    "crouch": "Crouch_Idle_Loop",
+    "hit": "Hit_Chest",
+    "downed": "Death01",
+    "coverEnter": "Crouch_Fwd_Loop",
+    "coverIdle": "Crouch_Idle_Loop",
+    "coverExit": "Crouch_Fwd_Loop"
+  },
+  "weaponSockets": {
+    "rightHand": "hand_r",
+    "leftHandIk": "hand_l",
+    "holster": "pelvis"
+  },
+  "lods": [
+    { "level": 0, "maxTriangles": 15000, "maxBones": 65, "screenCoverage": 0.35 }
+  ],
+  "provenance": {
+    "creator": "Quaternius",
+    "sourceUrl": "https://quaternius.com/packs/universalbasecharacters.html",
+    "licenseId": "CC0-1.0",
+    "commercialUse": true,
+    "engineRestrictions": [],
+    "aiInvolvement": "none",
+    "modificationNotes": "Free standard Universal Base Characters male model combined with selected free Universal Animation Library clips by the deterministic build-character-package.mjs pipeline. Textures were resized to 512px WebP; mesh compression and geometry simplification were disabled. Runtime SHA-256: f800a143bec5241cf21090c0921eedaaf6f2bc9c73261462b197668b2037f06b. This is a legal rigged pipeline stand-in, not the final recognizable Lil Dre art."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "generator": "frontend/scripts/assets/prepare-pbr-textures.py",
+  "assets": [
+    {
+      "assetId": "Asphalt033",
+      "sourceArchive": "Asphalt033_1K-JPG.zip",
+      "sourceSha256": "c71801b342dbea594dbdd0bd2ddc0a6d13f813c923fca408b9f5b9ee5e58aba2",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://ambientcg.com/a/Asphalt033",
+      "maps": [
+        {
+          "map": "color",
+          "sourceFile": "Asphalt033_1K-JPG_Color.jpg",
+          "runtimeFile": "asphalt033-color.webp",
+          "width": 512,
+          "height": 512,
+          "bytes": 17566,
+          "sha256": "b26fb79701b95061400dc92a72c86009dfe7e68264e7931c0b0c498ee9542875"
+        },
+        {
+          "map": "normal",
+          "sourceFile": "Asphalt033_1K-JPG_NormalGL.jpg",
+          "runtimeFile": "asphalt033-normal.webp",
+          "width": 512,
+          "height": 512,
+          "bytes": 71870,
+          "sha256": "ac3862f5eb29b26aaa303bfda1678fd10551d0eed91681f77fa5e80803e2cf39"
+        },
+        {
+          "map": "roughness",
+          "sourceFile": "Asphalt033_1K-JPG_Roughness.jpg",
+          "runtimeFile": "asphalt033-roughness.webp",
+          "width": 512,
+          "height": 512,
+          "bytes": 46458,
+          "sha256": "d65ddbab9f86a9bee19aaed58256ef7db341a802d93064d7388b5fa0b0b8000c"
+        }
+      ]
+    },
+    {
+      "assetId": "Concrete034",
+      "sourceArchive": "Concrete034_1K-JPG.zip",
+      "sourceSha256": "5839d284d94ffb8d2a56df742ec522b13dd311c52dbd42b8fd33f0409ceedb81",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://ambientcg.com/a/Concrete034",
+      "maps": [
+        {
+          "map": "color",
+          "sourceFile": "Concrete034_1K-JPG_Color.jpg",
+          "runtimeFile": "concrete034-color.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 7814,
+          "sha256": "09399e857ac48047d95d9d1023b6cc756726a94edcaa27d6ce17718c4dcba39c"
+        },
+        {
+          "map": "normal",
+          "sourceFile": "Concrete034_1K-JPG_NormalGL.jpg",
+          "runtimeFile": "concrete034-normal.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 17534,
+          "sha256": "111af614841a597e7d767506208b6b710fbfae756aae81d331d5d5c65fffb32c"
+        },
+        {
+          "map": "roughness",
+          "sourceFile": "Concrete034_1K-JPG_Roughness.jpg",
+          "runtimeFile": "concrete034-roughness.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 10072,
+          "sha256": "7fa4e905894fd98539e3d83ee88e7dc7c4ee2317cd96b660a417a464645cf34f"
+        }
+      ]
+    },
+    {
+      "assetId": "Bricks097",
+      "sourceArchive": "Bricks097_1K-JPG.zip",
+      "sourceSha256": "97b5df360161e48bcfed609aef361e8115b680ddc0aea4ad9321d4b00e222ad0",
+      "license": "CC0-1.0",
+      "sourceUrl": "https://ambientcg.com/a/Bricks097",
+      "maps": [
+        {
+          "map": "color",
+          "sourceFile": "Bricks097_1K-JPG_Color.jpg",
+          "runtimeFile": "bricks097-color.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 41352,
+          "sha256": "37203da23d0c3a4af18293246e1cbe9cf809f7755100dc11873281e40047c676"
+        },
+        {
+          "map": "normal",
+          "sourceFile": "Bricks097_1K-JPG_NormalGL.jpg",
+          "runtimeFile": "bricks097-normal.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 29292,
+          "sha256": "d6e25eec6d928e34da65613ebc8f29b4cfb92d53c1846e7d1f4c40e6e61ebe1f"
+        },
+        {
+          "map": "roughness",
+          "sourceFile": "Bricks097_1K-JPG_Roughness.jpg",
+          "runtimeFile": "bricks097-roughness.webp",
+          "width": 512,
+          "height": 256,
+          "bytes": 35868,
+          "sha256": "afb8fc4a1a52246a4d7e1fbc6e9189c350f3d2cc7b6da169111c7bdc526dbbec"
+        }
+      ]
+    }
+  ]
+}

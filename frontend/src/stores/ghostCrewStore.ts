@@ -59,6 +59,8 @@ export interface GhostStoreActions {
   recordPlayerAttack(crewId: string, blockId: string): void;
   /** The crew that owns a given block, if any. */
   crewForBlock(blockId: string): GhostCrew | undefined;
+  /** Overlay the latest durable state fetched from the authoritative world. */
+  replaceAuthoritativeState(crews: GhostCrew[], feed: GhostFeedEvent[]): void;
   setTickActive(active: boolean): void;
 }
 
@@ -186,6 +188,36 @@ export const useGhostStore = create<GhostStore>()(
           );
         },
 
+        replaceAuthoritativeState(crews, feed) {
+          set(
+            (state) => {
+              if (crews.length === 0 && feed.length === 0) return state;
+
+              const nextCrews = { ...state.crews };
+              for (const remoteCrew of crews) {
+                const localCrew = state.crews[remoteCrew.id];
+                // Browser state may have progressed while the initial fetch was
+                // in flight. Keep the newest complete crew record; authenticated
+                // sessions disable local ticking once hydration is active.
+                const localTick = localCrew ? Date.parse(localCrew.lastTickAt) : Number.NEGATIVE_INFINITY;
+                const remoteTick = Date.parse(remoteCrew.lastTickAt);
+                nextCrews[remoteCrew.id] = localCrew && localTick > remoteTick ? localCrew : remoteCrew;
+              }
+
+              const seen = new Set<string>();
+              const mergedFeed = [...feed, ...state.feed].filter((event) => {
+                if (seen.has(event.id)) return false;
+                seen.add(event.id);
+                return true;
+              }).slice(0, FEED_LIMIT);
+
+              return { crews: nextCrews, feed: mergedFeed };
+            },
+            false,
+            'ghost/replaceAuthoritativeState',
+          );
+        },
+
         setTickActive(active) {
           set({ tickActive: active }, false, 'ghost/setTickActive');
         },
@@ -209,7 +241,7 @@ const GHOST_TICK_MS = 30_000; // 30 s real time = one world tick
  * tick. The store persists, so rivals keep their turf and grudges across
  * sessions.
  */
-export function useGhostTick(): void {
+export function useGhostTick(enabled = true): void {
   const { crews, seedCrews, setTickActive } = useGhostStore();
 
   // Seed once on first mount.
@@ -221,6 +253,10 @@ export function useGhostTick(): void {
   const tick = useCallback(() => useGhostStore.getState().runTick(), []);
 
   useEffect(() => {
+    if (!enabled) {
+      setTickActive(false);
+      return;
+    }
     setTickActive(true);
     // First tick is delayed so the player isn't ambushed on load.
     const interval = setInterval(tick, GHOST_TICK_MS);
@@ -228,7 +264,7 @@ export function useGhostTick(): void {
       clearInterval(interval);
       setTickActive(false);
     };
-  }, [tick, setTickActive]);
+  }, [enabled, tick, setTickActive]);
 }
 
 // ─── Selectors ───────────────────────────────────────────────
