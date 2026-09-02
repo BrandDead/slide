@@ -89,11 +89,35 @@ describe('ghostCrewStore', () => {
       timestamp: Date.now(),
     }]);
 
-    expect(useGhostStore.getState().crews).toEqual({ [crew.id]: crew });
+    expect(useGhostStore.getState().crews[crew.id]).toEqual(crew);
+    expect(Object.keys(useGhostStore.getState().crews)).toHaveLength(originalCount);
     expect(useGhostStore.getState().feed[0]?.id).toBe('server-event-1');
 
     useGhostStore.getState().replaceAuthoritativeState([], []);
-    expect(Object.keys(useGhostStore.getState().crews)).toHaveLength(1);
+    expect(Object.keys(useGhostStore.getState().crews)).toHaveLength(originalCount);
     expect(originalCount).toBeGreaterThan(1);
+  });
+});
+
+
+describe('authoritative Ghost Crew hydration ordering', () => {
+  beforeEach(resetStores);
+
+  it('keeps a newer local crew record when a stale remote snapshot arrives', () => {
+    useGhostStore.getState().seedCrews();
+    const local = {
+      ...useGhostStore.getState().crews['ghost-nightfall'],
+      treasury: 7777,
+      lastTickAt: '2026-09-02T20:30:00.000Z',
+    };
+    useGhostStore.setState({ crews: { ...useGhostStore.getState().crews, [local.id]: local } });
+
+    useGhostStore.getState().replaceAuthoritativeState([{
+      ...local,
+      treasury: 100,
+      lastTickAt: '2026-09-02T20:00:00.000Z',
+    }], []);
+
+    expect(useGhostStore.getState().crews[local.id].treasury).toBe(7777);
   });
 });

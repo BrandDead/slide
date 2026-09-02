@@ -10,6 +10,8 @@
 import { supabase } from './supabase';
 import type { BlockData, BlockPlacement } from '../types/block.types';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 // ─── Helpers ─────────────────────────────────────────────────
 
 function isSupabaseConfigured(): boolean {
@@ -22,6 +24,17 @@ function isSupabaseConfigured(): boolean {
   }
 }
 
+function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
+function isMissingProjectionRpc(error: { code?: string }): boolean {
+  // PGRST202 is returned while the PostgREST schema cache cannot find the
+  // function. 42883 is PostgreSQL's undefined-function error. Any other
+  // failure must not fall through to an unguarded write.
+  return error.code === 'PGRST202' || error.code === '42883';
+}
+
 // ─── Block CRUD ──────────────────────────────────────────────
 
 /**
@@ -31,37 +44,74 @@ function isSupabaseConfigured(): boolean {
 export async function persistBlock(block: BlockData, userId: string): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
-  const { error } = await (supabase as any).from('blocks').upsert(
-    {
-      id: block.id,
-      address: block.address,
-      // Supabase geography point: POINT(lng lat)
-      location: `POINT(${block.lng} ${block.lat})`,
-      owner_id: block.owner === 'player' ? userId : null,
-      status: block.owner === 'player' ? 'claimed' : block.owner === 'npc' ? 'claimed' : 'unclaimed',
-      block_heat: block.heat * 20, // 0-5 → 0-100
-      base_income: block.incomePerTick,
-      updated_at: new Date().toISOString(),
-      // Store grid, placements, morale as JSONB metadata
-      metadata: {
-        morale: block.morale,
-        pendingIncome: block.pendingIncome,
-        viewMode: block.viewMode,
-        streetBackdropUrl: block.streetBackdropUrl,
-        topdownBgUrl: block.topdownBgUrl,
-        dnaId: block.dnaId,
-        incomeMultiplier: block.incomeMultiplier,
-        heatDecayMultiplier: block.heatDecayMultiplier,
-        maxMembers: block.maxMembers,
-        lastEncounterResultKey: block.appliedEncounterResultKeys?.[block.appliedEncounterResultKeys.length - 1],
-      },
-    },
-    { onConflict: 'id' }
-  );
+  const lastEncounterResultKey = block.appliedEncounterResultKeys?.[block.appliedEncounterResultKeys.length - 1];
+  const metadata = {
+    morale: block.morale,
+    pendingIncome: block.pendingIncome,
+    viewMode: block.viewMode,
+    streetBackdropUrl: block.streetBackdropUrl,
+    topdownBgUrl: block.topdownBgUrl,
+    dnaId: block.dnaId,
+    incomeMultiplier: block.incomeMultiplier,
+    heatDecayMultiplier: block.heatDecayMultiplier,
+    maxMembers: block.maxMembers,
+    lastEncounterResultKey,
+  };
+  const status = block.owner === 'player' ? 'claimed' : block.owner === 'npc' ? 'claimed' : 'unclaimed';
+  const db = supabase as any;
 
-  if (error) {
-    console.warn('[BlockPersistence] Failed to upsert block:', error.message);
-    return;
+  // Blocks created by the authenticated application have UUIDs. When the
+  // integrity migration exists, use one atomic RPC so a delayed autosave
+  // cannot overwrite a newer encounter receipt. Demo/local placeholder IDs
+  // retain the legacy best-effort path below.
+  let persistedAtomically = false;
+  if (isUuid(block.id)) {
+    const { data, error: projectionError } = await db.rpc('persist_player_block_projection', {
+      p_block_id: block.id,
+      p_address: block.address,
+      p_lng: block.lng,
+      p_lat: block.lat,
+      p_status: status,
+      p_block_heat: block.heat * 20,
+      p_base_income: block.incomePerTick,
+      p_metadata: metadata,
+      p_client_result_key: lastEncounterResultKey ?? null,
+    });
+
+    if (!projectionError) {
+      if (data?.applied === false) {
+        console.warn('[BlockPersistence] Skipped stale block projection after a newer encounter result.');
+        return;
+      }
+      persistedAtomically = true;
+    } else if (!isMissingProjectionRpc(projectionError)) {
+      console.warn('[BlockPersistence] Failed to persist atomic block projection:', projectionError.message);
+      return;
+    }
+  }
+
+  if (!persistedAtomically) {
+    const { error } = await db.from('blocks').upsert(
+      {
+        id: block.id,
+        address: block.address,
+        // Supabase geography point: POINT(lng lat)
+        location: `POINT(${block.lng} ${block.lat})`,
+        owner_id: block.owner === 'player' ? userId : null,
+        status,
+        block_heat: block.heat * 20, // 0-5 → 0-100
+        base_income: block.incomePerTick,
+        updated_at: new Date().toISOString(),
+        // Store grid, placements, morale as JSONB metadata
+        metadata,
+      },
+      { onConflict: 'id' }
+    );
+
+    if (error) {
+      console.warn('[BlockPersistence] Failed to upsert block:', error.message);
+      return;
+    }
   }
 
   // `claimed_block_dna` intentionally stores only the approved gameplay

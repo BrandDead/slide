@@ -147,8 +147,10 @@ const App: React.FC = () => {
   // NPC AI Tick — drives rival gang behavior every 30s
   const playerBlockIds = useTerritoryStore((s) => s.blocks.map((b) => b.id));
   useNPCTick(playerBlockIds);
-  // Ghost Crew world tick — persistent rivals that claim/attack turf (#81)
-  useGhostTick();
+  // Demo/offline sessions retain the local deterministic rival loop. An
+  // authenticated production session hydrates durable crew state instead, so
+  // browser ticks cannot drift ahead of the server-led world timeline.
+  useGhostTick(IS_DEMO_MODE || !authChecked || !authUser);
 
   const { completeStep } = useTutorialProgressStore();
 
