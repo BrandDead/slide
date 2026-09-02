@@ -65,6 +65,10 @@ export function useBlockSync(enabled = true) {
             pendingIncome: partial.pendingIncome ?? 0,
             streetBackdropUrl: partial.streetBackdropUrl,
             topdownBgUrl: partial.topdownBgUrl,
+            dnaId: partial.dnaId,
+            incomeMultiplier: partial.incomeMultiplier,
+            heatDecayMultiplier: partial.heatDecayMultiplier,
+            maxMembers: partial.maxMembers,
           });
         }
       } catch (err) {

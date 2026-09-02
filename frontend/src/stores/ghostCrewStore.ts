@@ -59,6 +59,8 @@ export interface GhostStoreActions {
   recordPlayerAttack(crewId: string, blockId: string): void;
   /** The crew that owns a given block, if any. */
   crewForBlock(blockId: string): GhostCrew | undefined;
+  /** Overlay the latest durable state fetched from the authoritative world. */
+  replaceAuthoritativeState(crews: GhostCrew[], feed: GhostFeedEvent[]): void;
   setTickActive(active: boolean): void;
 }
 
@@ -183,6 +185,18 @@ export const useGhostStore = create<GhostStore>()(
             }),
             false,
             'ghost/runTick',
+          );
+        },
+
+        replaceAuthoritativeState(crews, feed) {
+          const indexedCrews = Object.fromEntries(crews.map((crew) => [crew.id, crew]));
+          set(
+            (state) => ({
+              crews: Object.keys(indexedCrews).length > 0 ? indexedCrews : state.crews,
+              feed: feed.length > 0 ? feed.slice(0, FEED_LIMIT) : state.feed,
+            }),
+            false,
+            'ghost/replaceAuthoritativeState',
           );
         },
 

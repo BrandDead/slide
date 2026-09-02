@@ -14,6 +14,7 @@ import { useHeatDecay } from './hooks/useHeatDecay';
 import { useRaidCheck } from './hooks/useRaidCheck';
 import { useBlockSync } from './hooks/useBlockSync';
 import { useEmpireHydration } from './hooks/useEmpireHydration';
+import { useGhostCrewSync } from './hooks/useGhostCrewSync';
 import { useSoundManager } from './hooks/useSoundManager';
 import { useSalarySystem } from './hooks/useSalarySystem';
 import PayrollModal from './components/economy/PayrollModal';
@@ -139,6 +140,7 @@ const App: React.FC = () => {
   const { raidBlockId, clearRaid } = useRaidCheck();
   useBlockSync(!IS_DEMO_MODE);
   useEmpireHydration(Boolean(authUser) && authChecked && !IS_DEMO_MODE);
+  useGhostCrewSync(authUser?.id ?? null, Boolean(authUser) && authChecked && !IS_DEMO_MODE);
   useSoundManager();
   const salarySystem = useSalarySystem();
   useNPCRetaliation();
