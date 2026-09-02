@@ -34,6 +34,7 @@ export async function createModernOpsScene(
   glow.intensity = 0.52;
   const world = new OpsWorld(scene, canvas, controller, preparation, options);
 
+  await world.initializeProductionAssets();
   await scene.whenReadyAsync();
 
   let disposed = false;
