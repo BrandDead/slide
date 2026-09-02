@@ -150,22 +150,26 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
     return [];
   }
 
-  return data.map((row: any) => ({
-    id: row.id,
-    address: row.address,
-    owner: 'player' as const,
-    heat: Math.round((row.block_heat ?? 0) / 20),
-    incomePerTick: row.base_income ?? 0,
-    morale: row.metadata?.morale ?? 80,
-    pendingIncome: row.metadata?.pendingIncome ?? 0,
-    viewMode: row.metadata?.viewMode ?? 'topdown',
-    streetBackdropUrl: row.metadata?.streetBackdropUrl,
-    topdownBgUrl: row.metadata?.topdownBgUrl,
-    dnaId: row.metadata?.dnaId,
-    incomeMultiplier: row.metadata?.incomeMultiplier,
-    heatDecayMultiplier: row.metadata?.heatDecayMultiplier,
-    maxMembers: row.metadata?.maxMembers,
-  }));
+  return data.map((row: any) => {
+    const lastEncounterResultKey = row.metadata?.lastEncounterResultKey;
+    return {
+      id: row.id,
+      address: row.address,
+      owner: 'player' as const,
+      heat: Math.round((row.block_heat ?? 0) / 20),
+      incomePerTick: row.base_income ?? 0,
+      morale: row.metadata?.morale ?? 80,
+      pendingIncome: row.metadata?.pendingIncome ?? 0,
+      viewMode: row.metadata?.viewMode ?? 'topdown',
+      streetBackdropUrl: row.metadata?.streetBackdropUrl,
+      topdownBgUrl: row.metadata?.topdownBgUrl,
+      dnaId: row.metadata?.dnaId,
+      incomeMultiplier: row.metadata?.incomeMultiplier,
+      heatDecayMultiplier: row.metadata?.heatDecayMultiplier,
+      maxMembers: row.metadata?.maxMembers,
+      appliedEncounterResultKeys: lastEncounterResultKey ? [lastEncounterResultKey] : undefined,
+    };
+  });
 }
 
 // ─── Placement CRUD ──────────────────────────────────────────

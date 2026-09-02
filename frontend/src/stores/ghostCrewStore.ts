@@ -195,13 +195,10 @@ export const useGhostStore = create<GhostStore>()(
 
               const nextCrews = { ...state.crews };
               for (const remoteCrew of crews) {
-                const localCrew = state.crews[remoteCrew.id];
-                // Browser state may have progressed while the initial fetch was
-                // in flight. Keep the newest complete crew record; authenticated
-                // sessions disable local ticking once hydration is active.
-                const localTick = localCrew ? Date.parse(localCrew.lastTickAt) : Number.NEGATIVE_INFINITY;
-                const remoteTick = Date.parse(remoteCrew.lastTickAt);
-                nextCrews[remoteCrew.id] = localCrew && localTick > remoteTick ? localCrew : remoteCrew;
+                // In authenticated sessions, the server is authoritative.
+                // Always overlay remote crew data to ensure production sessions
+                // follow the server-led world timeline rather than stale local seeds.
+                nextCrews[remoteCrew.id] = remoteCrew;
               }
 
               const seen = new Set<string>();
