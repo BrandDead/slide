@@ -49,6 +49,11 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
         viewMode: block.viewMode,
         streetBackdropUrl: block.streetBackdropUrl,
         topdownBgUrl: block.topdownBgUrl,
+        dnaId: block.dnaId,
+        incomeMultiplier: block.incomeMultiplier,
+        heatDecayMultiplier: block.heatDecayMultiplier,
+        maxMembers: block.maxMembers,
+        lastEncounterResultKey: block.appliedEncounterResultKeys?.[block.appliedEncounterResultKeys.length - 1],
       },
     },
     { onConflict: 'id' }
@@ -56,6 +61,25 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
 
   if (error) {
     console.warn('[BlockPersistence] Failed to upsert block:', error.message);
+    return;
+  }
+
+  // `claimed_block_dna` intentionally stores only the approved gameplay
+  // archetype and derived tactical values, not a second copy of location data.
+  if (block.dnaId) {
+    const { error: dnaError } = await (supabase as any).from('claimed_block_dna').upsert(
+      {
+        block_id: block.id,
+        dna_id: block.dnaId,
+        tactical_snapshot: {
+          incomeMultiplier: block.incomeMultiplier ?? 1,
+          heatDecayMultiplier: block.heatDecayMultiplier ?? 1,
+          maxMembers: block.maxMembers ?? null,
+        },
+      },
+      { onConflict: 'block_id' },
+    );
+    if (dnaError) console.warn('[BlockPersistence] Failed to persist Block DNA:', dnaError.message);
   }
 }
 
@@ -87,6 +111,10 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
     viewMode: row.metadata?.viewMode ?? 'topdown',
     streetBackdropUrl: row.metadata?.streetBackdropUrl,
     topdownBgUrl: row.metadata?.topdownBgUrl,
+    dnaId: row.metadata?.dnaId,
+    incomeMultiplier: row.metadata?.incomeMultiplier,
+    heatDecayMultiplier: row.metadata?.heatDecayMultiplier,
+    maxMembers: row.metadata?.maxMembers,
   }));
 }
 

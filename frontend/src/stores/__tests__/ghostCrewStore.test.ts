@@ -70,4 +70,30 @@ describe('ghostCrewStore', () => {
       expect(owner!.ownedBlockIds).toContain(npcBlock.id);
     }
   });
+
+  it('overlays durable Ghost Crew data while retaining a local fallback for an empty server response', () => {
+    useGhostStore.getState().seedCrews();
+    const originalCount = Object.keys(useGhostStore.getState().crews).length;
+    const crew = {
+      ...useGhostStore.getState().crews['ghost-nightfall'],
+      treasury: 3333,
+      lastMove: 'Applied from authoritative world.',
+    };
+
+    useGhostStore.getState().replaceAuthoritativeState([crew], [{
+      id: 'server-event-1',
+      crewId: crew.id,
+      crewName: crew.name,
+      action: 'reinforce',
+      description: crew.lastMove!,
+      timestamp: Date.now(),
+    }]);
+
+    expect(useGhostStore.getState().crews).toEqual({ [crew.id]: crew });
+    expect(useGhostStore.getState().feed[0]?.id).toBe('server-event-1');
+
+    useGhostStore.getState().replaceAuthoritativeState([], []);
+    expect(Object.keys(useGhostStore.getState().crews)).toHaveLength(1);
+    expect(originalCount).toBeGreaterThan(1);
+  });
 });
