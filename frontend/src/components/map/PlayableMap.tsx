@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Map as MapLibreMap,
   NavigationControl,
   ScaleControl,
   setWorkerUrl,
+  type ErrorEvent as MapLibreErrorEvent,
   type MapOptions,
 } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
@@ -13,6 +14,8 @@ import './PlayableMap.css';
 setWorkerUrl(workerUrl);
 
 export type PlayableMapMode = 'territory' | 'inspect' | 'placement';
+export type PlayableMapStatus = 'loading' | 'ready' | 'error';
+export type PlayableMapFailure = 'connection' | 'timeout' | null;
 
 export interface PlayableMapController {
   flyTo: (opts: { center: [number, number]; zoom?: number; duration?: number }) => void;
@@ -27,9 +30,12 @@ interface PlayableMapProps {
   onMapLoad?: (map: MapLibreMap) => void;
   onControllerReady?: (controller: PlayableMapController) => void;
   onZoomChange?: (zoom: number) => void;
+  onStatusChange?: (status: PlayableMapStatus) => void;
+  onUseTacticalBoard?: () => void;
 }
 
 const DEFAULT_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+const MAP_LOAD_TIMEOUT_MS = 10_000;
 
 const MODE_ZOOM: Record<PlayableMapMode, number> = {
   territory: 15,
@@ -50,13 +56,24 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
   onMapLoad,
   onControllerReady,
   onZoomChange,
+  onStatusChange,
+  onUseTacticalBoard,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const callbacksRef = useRef({ onMapLoad, onControllerReady, onZoomChange });
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const callbacksRef = useRef({ onMapLoad, onControllerReady, onZoomChange, onStatusChange });
+  const [status, setStatus] = useState<PlayableMapStatus>('loading');
+  const [failure, setFailure] = useState<PlayableMapFailure>(null);
+  const [attempt, setAttempt] = useState(0);
 
-  callbacksRef.current = { onMapLoad, onControllerReady, onZoomChange };
+  callbacksRef.current = { onMapLoad, onControllerReady, onZoomChange, onStatusChange };
+
+  const restartMap = useCallback(() => {
+    setFailure(null);
+    setStatus('loading');
+    callbacksRef.current.onStatusChange?.('loading');
+    setAttempt((current) => current + 1);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -78,10 +95,21 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
     };
 
     let map: MapLibreMap;
+    let disposed = false;
+    let hasLoaded = false;
+    let loadTimer: number | undefined;
+
+    const updateStatus = (nextStatus: PlayableMapStatus, nextFailure: PlayableMapFailure = null) => {
+      if (disposed) return;
+      setFailure(nextFailure);
+      setStatus(nextStatus);
+      callbacksRef.current.onStatusChange?.(nextStatus);
+    };
+
     try {
       map = new MapLibreMap(options);
     } catch {
-      setStatus('error');
+      updateStatus('error', 'connection');
       return;
     }
 
@@ -106,23 +134,47 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
       getMap: () => mapRef.current,
     };
 
-    map.once('load', () => {
-      setStatus('ready');
+    const clearLoadTimer = () => {
+      if (loadTimer !== undefined) {
+        window.clearTimeout(loadTimer);
+        loadTimer = undefined;
+      }
+    };
+
+    const onLoad = () => {
+      hasLoaded = true;
+      clearLoadTimer();
+      updateStatus('ready');
       callbacksRef.current.onMapLoad?.(map);
       callbacksRef.current.onControllerReady?.(controller);
-    });
+    };
 
-    map.on('zoomend', () => callbacksRef.current.onZoomChange?.(map.getZoom()));
-    map.on('error', (event) => {
-      if (!event.error) return;
-      setStatus((current) => current === 'ready' ? current : 'error');
-    });
+    const onError = (event: MapLibreErrorEvent) => {
+      if (!event.error || disposed || hasLoaded) return;
+      if (mapRef.current === map) updateStatus('error', 'connection');
+    };
+
+    const onZoomEnd = () => callbacksRef.current.onZoomChange?.(map.getZoom());
+
+    map.once('load', onLoad);
+    map.on('error', onError);
+    map.on('zoomend', onZoomEnd);
+    loadTimer = window.setTimeout(() => {
+      updateStatus('error', 'timeout');
+    }, MAP_LOAD_TIMEOUT_MS);
 
     return () => {
-      map.remove();
-      mapRef.current = null;
+      disposed = true;
+      clearLoadTimer();
+      map.off('error', onError);
+      map.off('zoomend', onZoomEnd);
+      try {
+        map.remove();
+      } finally {
+        if (mapRef.current === map) mapRef.current = null;
+      }
     };
-  }, []);
+  }, [attempt]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -137,20 +189,35 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
     });
   }, [center, mode, status, zoom]);
 
+  const failureMessage = failure === 'timeout'
+    ? 'Street view took too long to load. Your territory is still operational.'
+    : 'Street view is unavailable. Your territory is still operational.';
+
   return (
-    <div className={`playable-map playable-map--${mode}`} data-testid="playable-territory-map">
+    <div className={`playable-map playable-map--${mode} playable-map--${status}`} data-testid="playable-territory-map">
       <div ref={containerRef} className="playable-map__canvas" aria-label="Interactive territory map" />
       {status === 'loading' && (
-        <div className="playable-map__status" role="status">
+        <div className="playable-map__status" role="status" aria-live="polite">
           <span className="playable-map__pulse" />
           Loading streets and buildings…
         </div>
       )}
       {status === 'error' && (
-        <div className="playable-map__status playable-map__status--error" role="alert">
-          <strong>Map connection interrupted</strong>
-          <span>The selected block is still safe. Check your connection and reopen Maps.</span>
-        </div>
+        <section className="playable-map__status playable-map__status--error" role="alert" aria-live="assertive">
+          <div className="playable-map__recovery-mark" aria-hidden="true">!</div>
+          <div>
+            <strong>Street view unavailable</strong>
+            <span>{failureMessage}</span>
+          </div>
+          <div className="playable-map__recovery-actions">
+            <button type="button" onClick={restartMap}>Retry street view</button>
+            {onUseTacticalBoard && (
+              <button type="button" className="playable-map__tactical-button" onClick={onUseTacticalBoard}>
+                Use tactical board
+              </button>
+            )}
+          </div>
+        </section>
       )}
       {selectedAddress && (
         <div className="playable-map__location" aria-live="polite">
@@ -168,4 +235,5 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
   );
 };
 
+export { MAP_LOAD_TIMEOUT_MS };
 export default PlayableMap;
