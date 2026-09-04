@@ -1,8 +1,9 @@
 # AGENTS.md
 
-> **Start here:** `docs/PROJECT_LOG.md` is the running record of decisions, current
-> direction, active roadmap order, and rollback anchors. Read it before starting work
-> and append a dated entry when you land meaningful changes.
+> **Start here:** Read `docs/AI_CONTRIBUTOR_START_HERE.md`, then `docs/PROJECT_LOG.md`.
+> The first file gives the current multi-model workflow, safety boundaries, test gates,
+> and active queue. The project log is the append-only record of decisions, direction,
+> roadmap order, and rollback anchors. Append a dated log entry when meaningful work lands.
 
 ## Cursor Cloud specific instructions
 
@@ -18,14 +19,17 @@ Standard scripts live in `frontend/package.json` (`dev`, `build`, `preview`, `li
 ### Backend runs fully offline (dev mode)
 The Flask backend falls back to an **in-memory mock store** and **bypasses auth** (`DEV_USER`) whenever Supabase is not configured. Keep `SUPABASE_URL` (and `DATABASE_URL`) **blank** in `backend/python/.env` — setting an invalid/placeholder Supabase URL makes real client calls that return 500s and break `pytest`. With them blank, `./venv/bin/python -m pytest` passes and every `/api/*` endpoint works without a token.
 
-### GOTCHA 1 — `npm run dev` renders a blank page (mapbox-gl)
-`vite.config.ts` has `optimizeDeps.exclude: ['mapbox-gl']`, while `components/map/MapboxMap.tsx` and `BlockOverlay.tsx` use a default `import mapboxgl from 'mapbox-gl'`. In dev, Vite serves mapbox-gl's UMD build un-bundled and the default-export interop fails (console: *"does not provide an export named 'default'"*), which blanks the whole app because `TerritoryMap` is eagerly imported by `App.tsx`. The **production build works** (rollup handles the UMD), so to exercise the full UI use:
+### GOTCHA 1 — MapLibre street context is optional
+
+The current territory shell uses `components/map/PlayableMap.tsx`. Street/building imagery is optional context, not a gameplay prerequisite: its loading, timeout, and connection failures must retain the Strip board, recon, claims, crew placement, and other strategy controls. Do not replace this recovery behavior with a blocking map error.
+
+For a deterministic local player path, use the build-time flag:
 
 ```
-cd frontend && npm run build && npm run preview -- --port 3000 --host 0.0.0.0
+cd frontend && VITE_DEMO_MODE=1 npm run dev -- --host 0.0.0.0
 ```
 
-(A source fix would be to move `mapbox-gl` into `optimizeDeps.include`, but that is a code change.)
+`VITE_*` values are compiled into the client. Restart the dev server after changing them. Use `npm run build` followed by `npm run preview` when validating production-bundle behavior.
 
 ### GOTCHA 2 — the UI is gated behind Supabase auth
 `App.tsx` shows the app only after a valid Supabase session (`AuthScreen` → onboarding → game). To run the UI locally there are two options:

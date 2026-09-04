@@ -68,6 +68,15 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-04 — Closed-alpha map resilience + Block DNA batch-one integration (PR #128)
+
+- Merged the combined release candidate into protected `main-tL2525` at `4fa68d6` after integration validation, GitHub frontend/backend CI, Vercel deployment, and automated review. PRs #126 and #127 were integrated through #128 rather than released independently.
+- The territory loop now treats the optional street-map provider as context, not a strategy dependency. During a bounded map failure, the player can retry, use the Strip, open Nearby Recon, claim or review a block, and carry a selected crew member into the canonical tactical-placement mode.
+- Added eight fictional Block DNA cards, bringing the library to 25. A claimed block's persisted DNA now owns its grid, zone modifiers, encounter terrain, and economy modifiers across reloads. Legacy placement migration protects crew by relocating only illegal/occupied cells to the first legal empty cell and recalculating location-dependent income.
+- Authenticated block hydration preserves persisted PostGIS coordinates before legacy DNA resolution, preventing invented `(0,0)` DNA assignment. Validation on the integrated release: 56 frontend test files / 735 tests, TypeScript, asset audit, production build, 42 backend tests, GitHub CI, Vercel preview, and completed automated review all passed.
+- Added `docs/AI_CONTRIBUTOR_START_HERE.md` as the current onboarding guide for any human or AI contributor. It defines source-of-truth order, safe parallel branch ownership, product/data contracts, validation gates, a PR template, and an assignment prompt. Historical prompt files remain background only.
+- The remaining P0 operational gate is unchanged: prove authoritative-world migrations, RLS, and the guarded Ghost Crew tick in a named non-production Supabase target before changing any real database, deployment secret, or scheduler.
+
 ### 2026-09-04 — Closed-alpha map resilience slice (PR #126)
 
 - Reframed the street/building layer as optional geographic context rather than a prerequisite for fictional territory strategy. `PlayableMap` now has a bounded 10-second initial-load timeout and distinct pre-load connection/timeout recovery paths.
