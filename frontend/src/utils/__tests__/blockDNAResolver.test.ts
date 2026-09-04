@@ -1,6 +1,7 @@
 // Tests for blockDNAResolver — address-to-block-archetype pipeline
 import { describe, it, expect } from 'vitest';
 import { resolveBlockDNA } from '../blockDNAResolver';
+import { BLOCK_DNA_LIBRARY } from '../../config/blockDNA';
 
 // ─── Las Olas Blvd, Fort Lauderdale ──────────────────────────────────────────
 const LAS_OLAS = { lat: 26.1195, lng: -80.1368, address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312' };
@@ -74,6 +75,41 @@ describe('resolveBlockDNA', () => {
     expect(elite.startingHeat).toBeGreaterThan(starter.startingHeat);
     expect(elite.maxMembers).toBeGreaterThan(starter.maxMembers);
     expect(elite.zoneLayout).not.toEqual(starter.zoneLayout);
+  });
+
+  it('adds eight distinct fictional Block DNA archetypes without changing deterministic resolution', () => {
+    const batch: Array<{ id: string; lat: number; lng: number; address: string }> = [
+      { id: 'harbor-spur', lat: 25.7752, lng: -80.1748, address: 'Freight Spur & Dockside Ave' },
+      { id: 'rail-market', lat: 25.7896, lng: -80.1862, address: 'Viaduct Market & Ember St' },
+      { id: 'canal-court', lat: 26.0437, lng: -80.1518, address: 'Canal Court & Lantern Bridge' },
+      { id: 'stadium-service', lat: 26.1592, lng: -80.2191, address: 'Service Gate & Floodlight Way' },
+      { id: 'night-market', lat: 25.8091, lng: -80.2074, address: 'Neon Market & Glasshouse Ave' },
+      { id: 'courtyard-walkups', lat: 25.8338, lng: -80.2366, address: 'Courtyard Row & Garden Walk' },
+      { id: 'floodgate-repair', lat: 26.0756, lng: -80.1289, address: 'Floodgate Lane & Drydock Rd' },
+      { id: 'ring-road-underpass', lat: 25.8704, lng: -80.2602, address: 'Ring Road & Pillar 17' },
+    ];
+
+    expect(BLOCK_DNA_LIBRARY).toHaveLength(25);
+    const signatures = new Set<string>();
+
+    for (const spot of batch) {
+      const first = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      const second = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      expect(first.dna.id).toBe(spot.id);
+      expect(second).toEqual(first);
+      expect(first.zoneLayout).toHaveLength(8);
+      signatures.add([
+        first.zoneLayout.join(','),
+        first.incomeMultiplier,
+        first.dna.heatDecayMultiplier,
+        first.dna.globalCoverBonus,
+        first.startingMorale,
+        first.maxMembers,
+        first.startingHeat,
+      ].join('|'));
+    }
+
+    expect(signatures.size).toBe(batch.length);
   });
 
   it('curated cards across all tiers resolve without any Mapbox call', () => {

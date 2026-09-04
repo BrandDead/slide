@@ -121,6 +121,22 @@ describe('CombatSession', () => {
     expect(first.tacticalBrief[0]).toContain('Liberty City Alley');
   });
 
+  it('carries a batch-one harbor archetype into the existing encounter terrain and tactical brief', () => {
+    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
+      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50, coverScore: 0.3, passable: true, occupantId: null,
+    })));
+    const harborBlock: BlockData = {
+      id: 'harbor-reference', address: 'Freight Spur & Dockside Ave', lat: 25.7752, lng: -80.1748, owner: 'player',
+      grid, placements: [], incomePerTick: 0, heat: 2, morale: 64, members: 0, viewMode: 'topdown', pendingIncome: 0,
+    };
+
+    const preparation = prepareEncounter(harborBlock);
+
+    expect(preparation.terrain[2][0].zoneType).toBe('parking');
+    expect(preparation.terrain[5][0].zoneType).toBe('alley');
+    expect(preparation.tacticalBrief[0]).toContain('Harbor Spur');
+  });
+
   it('keeps opening opposition fire survivable long enough for player input', () => {
     const advanced = advanceCombat(createCombatSession(preparation()), 40);
     const crew = advanced.combatants.find((candidate) => candidate.id === 'crew-1');
