@@ -8,7 +8,7 @@ import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/g
 import { useBlockStore } from '../../stores/blockStore';
 import { useShoeboxStore } from '../../stores/useShoeboxStore';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
-import PlayableMap from './PlayableMap';
+import PlayableMap, { type PlayableMapStatus } from './PlayableMap';
 import BlockOverlay, { type BlockData as MapBlockData } from './BlockOverlay';
 import TacticalPlacementOverlay from './TacticalPlacementOverlay';
 import type { Map as MapLibreMap } from 'maplibre-gl';
@@ -74,7 +74,7 @@ const TerritoryMap: React.FC = () => {
   const { goBack, navigateTo } = useNavigationStore();
   const { player, updatePlayer } = usePlayerStore();
   const { members } = useGangStore();
-  const { blocks, selectedBlockId, selectBlock, upsertBlock, placeMember, collectIncome } = useBlockStore();
+  const { blocks, selectedBlockId, selectBlock, upsertBlock, placeMember, collectIncome, setPlacementMode } = useBlockStore();
   const vault = useShoeboxStore((s) => s.bankBalance);
   const ledger = useShoeboxStore((s) => s.ledger);
 
@@ -82,6 +82,7 @@ const TerritoryMap: React.FC = () => {
   const { completeStep: completeTutorialStep } = useTutorialProgressStore();
   const [notification, setNotification] = useState<string | null>(null);
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
+  const [mapStatus, setMapStatus] = useState<PlayableMapStatus>('loading');
   const [selectedMapBlock, setSelectedMapBlock] = useState<MapBlockData | null>(null);
   const [searchPins, setSearchPins] = useState<ReconBlock[]>([]);
   const [showBlockSearch, setShowBlockSearch] = useState(false);
@@ -211,6 +212,20 @@ const TerritoryMap: React.FC = () => {
   }, [player, vault, updatePlayer, upsertBlock, selectBlock, notify, completeTutorialStep]);
 
   const handleMapLoad = useCallback((map: MapLibreMap) => setMapInstance(map), []);
+  const handleMapStatusChange = useCallback((status: PlayableMapStatus) => {
+    // A missing street layer is a recoverable display concern. Preserve the
+    // existing recon, selection, and crew-sheet state so strategy controls
+    // remain usable through their own panels while only map-bound overlays
+    // wait for a healthy MapLibre instance. A fresh loading/error transition
+    // also invalidates any controller retained from an earlier Maps mount.
+    setMapStatus(status);
+    if (status !== 'ready') setMapInstance(null);
+  }, []);
+
+  const useTacticalBoard = useCallback(() => {
+    setView('block');
+    notify('Street view is optional. Your tactical board is ready.');
+  }, [notify]);
 
   const handleHoodSearchResult = useCallback((result: AddressResult) => {
     flyTo(result.lat, result.lng);
@@ -276,6 +291,25 @@ const TerritoryMap: React.FC = () => {
         return;
       }
       selectBlock(block.id);
+      setShowDrop(false);
+
+      if (mapStatus !== 'ready') {
+        // Street imagery is optional. Preserve the member choice by handing
+        // placement to the established Strip board rather than leaving a
+        // MapLibre-only placement draft with no selectable cells.
+        setPlacementDraft(null);
+        setSelectedMapBlock(null);
+        setPlacementMode(true, {
+          memberId,
+          memberName,
+          role: (role as MemberRole) || 'dealer',
+          level,
+        });
+        setView('block');
+        notify(`Street view is unavailable. Choose a tactical cell for ${memberName} on the Strip board.`, 4000);
+        return;
+      }
+
       setPlacementDraft({
         memberId,
         memberName,
@@ -283,12 +317,11 @@ const TerritoryMap: React.FC = () => {
         level,
       });
       setSelectedMapBlock(toOverlay(block));
-      setShowDrop(false);
       setView('hood');
       flyTo(block.lat, block.lng, 19);
       notify(`Tap a highlighted sidewalk, storefront, or cover cell for ${memberName}.`, 3500);
     },
-    [selectedBlockId, liveList, blocks, selectBlock, flyTo, notify],
+    [mapStatus, selectedBlockId, liveList, blocks, selectBlock, setPlacementMode, flyTo, notify],
   );
 
   const completeMapPlacement = useCallback((zone: BlockZone) => {
@@ -458,56 +491,62 @@ const TerritoryMap: React.FC = () => {
           <div className="hood-map-container maps-stage">
             <PlayableMap
               onMapLoad={handleMapLoad}
+              onStatusChange={handleMapStatusChange}
+              onUseTacticalBoard={useTacticalBoard}
               center={mapCenter}
               zoom={placementDraft ? 19 : undefined}
               mode={placementDraft ? 'placement' : selectedMapBlock ? 'inspect' : 'territory'}
               selectedAddress={placementDraft ? activeBlockAddress : selectedMapBlock?.address ?? activeBlockAddress}
             />
             <MapsSearchField onFocus={() => setShowRecon(true)} />
-            <BlockOverlay
-              map={mapInstance}
-              blocks={overlayBlocks}
-              selectedId={placementDraft ? activeBlockId : selectedMapBlock?.id ?? activeBlockId}
-              onBlockClick={(blockData) => {
-                setSelectedMapBlock(blockData);
-                flyTo(blockData.lat, blockData.lng, 17.25);
-                if (blockData.owner === 'player') selectBlock(blockData.id);
-              }}
-            />
-            <TacticalPlacementOverlay
-              map={mapInstance}
-              block={placementDraft ? activeBlock : null}
-              active={Boolean(placementDraft)}
-              onChooseCell={completeMapPlacement}
-            />
-            <div className="map-camera-actions" aria-label="Map camera actions">
-              <button
-                type="button"
-                onClick={() => {
-                  const home = liveList.find((block) => block.owner === 'player' && block.lat === origin.lat && block.lng === origin.lng);
-                  if (home) {
-                    selectBlock(home.id);
-                    setSelectedMapBlock(toOverlay(home));
-                  }
-                  flyTo(origin.lat, origin.lng, placementDraft ? 19 : 15);
-                }}
-              >
-                <span aria-hidden="true">◎</span> Home block
-              </button>
-              {placementDraft && (
-                <button
-                  type="button"
-                  className="map-camera-actions__cancel"
-                  onClick={() => {
-                    setPlacementDraft(null);
-                    setSelectedMapBlock(null);
-                    flyTo(origin.lat, origin.lng, 15);
+            {mapStatus === 'ready' && (
+              <>
+                <BlockOverlay
+                  map={mapInstance}
+                  blocks={overlayBlocks}
+                  selectedId={placementDraft ? activeBlockId : selectedMapBlock?.id ?? activeBlockId}
+                  onBlockClick={(blockData) => {
+                    setSelectedMapBlock(blockData);
+                    flyTo(blockData.lat, blockData.lng, 17.25);
+                    if (blockData.owner === 'player') selectBlock(blockData.id);
                   }}
-                >
-                  Cancel placement
-                </button>
-              )}
-            </div>
+                />
+                <TacticalPlacementOverlay
+                  map={mapInstance}
+                  block={placementDraft ? activeBlock : null}
+                  active={Boolean(placementDraft)}
+                  onChooseCell={completeMapPlacement}
+                />
+                <div className="map-camera-actions" aria-label="Map camera actions">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const home = liveList.find((block) => block.owner === 'player' && block.lat === origin.lat && block.lng === origin.lng);
+                      if (home) {
+                        selectBlock(home.id);
+                        setSelectedMapBlock(toOverlay(home));
+                      }
+                      flyTo(origin.lat, origin.lng, placementDraft ? 19 : 15);
+                    }}
+                  >
+                    <span aria-hidden="true">◎</span> Home block
+                  </button>
+                  {placementDraft && (
+                    <button
+                      type="button"
+                      className="map-camera-actions__cancel"
+                      onClick={() => {
+                        setPlacementDraft(null);
+                        setSelectedMapBlock(null);
+                        flyTo(origin.lat, origin.lng, 15);
+                      }}
+                    >
+                      Cancel placement
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
             {selectedMapBlock && !placementDraft && (
               <BlockDetailPanel
                 block={selectedMapBlock}

@@ -10,7 +10,7 @@ vi.mock('./supabase', () => ({
   supabase: { rpc, from },
 }));
 
-import { persistBlock } from './blockPersistence.service';
+import { loadPlayerBlocks, persistBlock } from './blockPersistence.service';
 
 const block = {
   id: '11111111-1111-4111-8111-111111111111',
@@ -36,6 +36,28 @@ describe('blockPersistence.service authoritative projection', () => {
     upsert.mockReset();
     from.mockReturnValue({ upsert });
     upsert.mockResolvedValue({ error: null });
+  });
+
+  it('hydrates persisted WKT coordinates for downstream Block DNA resolution', async () => {
+    const eq = vi.fn().mockResolvedValue({
+      data: [{
+        id: '22222222-2222-4222-8222-222222222222',
+        address: 'Freight Spur & Dockside Ave',
+        location: 'POINT(-80.1748 25.7752)',
+        block_heat: 40,
+        base_income: 120,
+        metadata: {},
+        status: 'claimed',
+      }],
+      error: null,
+    });
+    const select = vi.fn().mockReturnValue({ eq });
+    from.mockReturnValue({ select });
+
+    const blocks = await loadPlayerBlocks('11111111-1111-4111-8111-111111111111');
+
+    expect(select).toHaveBeenCalledWith('id, address, location, block_heat, base_income, metadata, status');
+    expect(blocks[0]).toMatchObject({ lat: 25.7752, lng: -80.1748 });
   });
 
   it('uses the atomic projection RPC for UUID-backed player blocks', async () => {

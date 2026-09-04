@@ -152,7 +152,7 @@ function seedToNumber(seed: string): number {
  * Build the 8-row zone layout from a BlockDNA's zoneOverrides,
  * falling back to a sensible default layout.
  */
-function buildZoneLayout(dna: BlockDNA): BlockZoneType[] {
+export function buildZoneLayout(dna: BlockDNA): BlockZoneType[] {
   const defaultLayout: BlockZoneType[] = [
     'street',     // row 0 — closest to street
     'curb',       // row 1

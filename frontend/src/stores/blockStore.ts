@@ -44,9 +44,14 @@ const ZONE_STATS: Record<BlockZoneType, { income: number; exposure: number; cove
   building:   { income: 0,   exposure: 0,  cover: 1.00, passable: false },
 };
 
-function generateDefaultGrid(): BlockZone[][] {
+/**
+ * Build the canonical 8×8 placement grid from an optional per-row Block DNA
+ * layout. Unknown or absent rows retain the default placement contract.
+ */
+export function generateGridForZoneLayout(zoneLayout?: readonly BlockZoneType[]): BlockZone[][] {
   return ZONE_LAYOUT.map((row, y) =>
-    row.map((zoneType, x) => {
+    row.map((defaultZoneType, x) => {
+      const zoneType = zoneLayout?.[y] ?? defaultZoneType;
       const stats = ZONE_STATS[zoneType];
       return {
         x,
@@ -62,10 +67,14 @@ function generateDefaultGrid(): BlockZone[][] {
   );
 }
 
+function generateDefaultGrid(): BlockZone[][] {
+  return generateGridForZoneLayout();
+}
+
 /** Roles that generate income when placed on a block */
 const INCOME_ROLES = new Set<string>(['dealer', 'chemist', 'runner']);
 
-function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][], incomeMultiplier = 1): number {
+export function calculatePlacementIncome(placement: BlockPlacement, grid: BlockZone[][], incomeMultiplier = 1): number {
   const zone = grid[placement.y]?.[placement.x];
   if (!zone || !INCOME_ROLES.has(placement.role)) return 0;
   const base = zone.incomeModifier;
@@ -74,6 +83,8 @@ function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][], inc
   const roleMult = placement.role === 'dealer' ? 1.0 : 0.7;
   return Math.round(base * levelBonus * roleMult * incomeMultiplier);
 }
+
+const calcPlacementIncome = calculatePlacementIncome;
 
 // ─── Store ───────────────────────────────────────────────────
 

@@ -1,56 +1,94 @@
 /**
  * Gate 0B — map Flask claim/my-blocks payloads into local BlockData.
+ *
+ * This is the canonical API-to-client bridge. It restores a persisted DNA
+ * assignment before rebuilding an 8×8 grid, so catalog growth cannot silently
+ * change an owned block's tactical identity on reload.
  */
 
 import type { BlockData, BlockPlacement, BlockZone } from '../types/block.types';
-import { useBlockStore } from '../stores/blockStore';
+import { calculatePlacementIncome, generateGridForZoneLayout } from '../stores/blockStore';
+import { getDNAById } from '../config/blockDNA';
+import { buildZoneLayout, resolveBlockDNA } from './blockDNAResolver';
 import { gridCellToAnchorId } from '../types/contracts/blockScene.types';
 
+function findFirstOpenPassableZone(grid: BlockZone[][]): BlockZone | undefined {
+  return grid.flat().find((zone) => zone.passable && !zone.occupantId);
+}
+
 export function apiBlockToBlockData(raw: Record<string, unknown>): BlockData {
-  const generateDefaultGrid = useBlockStore.getState().generateDefaultGrid;
   const coords = (raw.coordinates as { lat?: number; lng?: number } | undefined) || {};
+  const address = String(raw.address ?? 'Unknown');
+  const lat = Number(coords.lat ?? raw.lat ?? 0);
+  const lng = Number(coords.lng ?? raw.lng ?? 0);
+  const rawDnaId = raw.dnaId ?? raw.dna_id;
+  const storedDNA = typeof rawDnaId === 'string' ? getDNAById(rawDnaId) : undefined;
+  const resolved = storedDNA
+    ? { dna: storedDNA, zoneLayout: buildZoneLayout(storedDNA) }
+    : resolveBlockDNA(lat, lng, address);
+  const incomeMultiplier = Number(raw.incomeMultiplier ?? raw.income_multiplier ?? resolved.dna.incomeMultiplier);
   const placementsRaw = (raw.placements as Record<string, unknown>[] | undefined) || [];
 
-  const placements: BlockPlacement[] = placementsRaw.map((p) => {
-    const x = Number(p.gridX ?? p.x ?? 0);
-    const y = Number(p.gridY ?? p.y ?? 0);
-    return {
-      memberId: String(p.memberId ?? p.member_id ?? ''),
-      memberName: String(p.memberName ?? p.member_name ?? 'Member'),
-      role: (p.role as BlockPlacement['role']) || 'dealer',
-      x,
-      y,
-      zoneType: (p.zoneType as BlockPlacement['zoneType']) || 'sidewalk',
-      incomePerTick: Number(p.incomePerTick ?? p.income_per_tick ?? 0),
-      exposureRisk: Number(p.exposureRisk ?? 50),
-      level: Number(p.level ?? 1),
-      health: Number(p.health ?? 100),
-      portraitUrl: (p.portraitUrl as string | undefined),
-      topdownUrl: (p.topdownUrl as string | undefined),
-    };
-  });
+  const placements: BlockPlacement[] = placementsRaw.map((p) => ({
+    memberId: String(p.memberId ?? p.member_id ?? ''),
+    memberName: String(p.memberName ?? p.member_name ?? 'Member'),
+    role: (p.role as BlockPlacement['role']) || 'dealer',
+    x: Number(p.gridX ?? p.x ?? 0),
+    y: Number(p.gridY ?? p.y ?? 0),
+    zoneType: (p.zoneType as BlockPlacement['zoneType']) || 'sidewalk',
+    incomePerTick: Number(p.incomePerTick ?? p.income_per_tick ?? 0),
+    exposureRisk: Number(p.exposureRisk ?? 50),
+    level: Number(p.level ?? 1),
+    health: Number(p.health ?? 100),
+    portraitUrl: (p.portraitUrl as string | undefined),
+    topdownUrl: (p.topdownUrl as string | undefined),
+  }));
 
-  const grid: BlockZone[][] = generateDefaultGrid();
-  for (const p of placements) {
-    if (grid[p.y]?.[p.x]) {
-      grid[p.y][p.x].occupantId = p.memberId;
-    }
-  }
+  const grid: BlockZone[][] = generateGridForZoneLayout(resolved.zoneLayout);
+  const normalizedPlacements = placements.flatMap((placement) => {
+    const requestedZone = grid[placement.y]?.[placement.x];
+    // Legacy/default-layout placement data can become illegal when the block
+    // is restored with its DNA-specific rows. Preserve the crew member by
+    // moving only an illegal or occupied location to the first open legal cell.
+    const zone = requestedZone?.passable && !requestedZone.occupantId
+      ? requestedZone
+      : findFirstOpenPassableZone(grid);
+    if (!zone) return [];
+
+    zone.occupantId = placement.memberId;
+    const normalized = {
+      ...placement,
+      x: zone.x,
+      y: zone.y,
+      zoneType: zone.zoneType,
+      exposureRisk: zone.exposureRisk,
+    };
+    return [{
+      ...normalized,
+      incomePerTick: calculatePlacementIncome(normalized, grid, incomeMultiplier),
+    }];
+  });
 
   return {
     id: String(raw.id),
-    address: String(raw.address ?? 'Unknown'),
-    lat: Number(coords.lat ?? raw.lat ?? 0),
-    lng: Number(coords.lng ?? raw.lng ?? 0),
+    address,
+    lat,
+    lng,
     owner: 'player',
     grid,
-    placements,
-    incomePerTick: Number(raw.incomePerTick ?? 0),
+    placements: normalizedPlacements,
+    incomePerTick: Number(raw.incomePerTick ?? raw.income_per_tick ?? 0),
     heat: Number(raw.heatLevel ?? raw.heat ?? 0),
-    morale: 80,
-    members: placements.length,
-    viewMode: 'topdown',
-    pendingIncome: Number(raw.pendingIncome ?? 0),
+    morale: Number(raw.morale ?? 80),
+    members: normalizedPlacements.length,
+    viewMode: (raw.viewMode as BlockData['viewMode']) ?? 'topdown',
+    pendingIncome: Number(raw.pendingIncome ?? raw.pending_income ?? 0),
+    streetBackdropUrl: raw.streetBackdropUrl as string | undefined,
+    topdownBgUrl: raw.topdownBgUrl as string | undefined,
+    dnaId: resolved.dna.id,
+    incomeMultiplier,
+    heatDecayMultiplier: Number(raw.heatDecayMultiplier ?? raw.heat_decay_multiplier ?? resolved.dna.heatDecayMultiplier),
+    maxMembers: Number(raw.maxMembers ?? raw.max_members ?? resolved.dna.maxMembers),
   };
 }
 
