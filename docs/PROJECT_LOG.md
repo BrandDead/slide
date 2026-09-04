@@ -68,6 +68,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-04 — Closed-alpha map resilience slice (PR #126)
+
+- Reframed the street/building layer as optional geographic context rather than a prerequisite for fictional territory strategy. `PlayableMap` now has a bounded 10-second initial-load timeout and distinct pre-load connection/timeout recovery paths.
+- The recovery card is visible inside the portrait map frame and offers two deliberate actions: retry the optional street layer or open the existing tactical Strip board. The map shell now gates only MapLibre-dependent overlays/camera controls while preserving Search Maps, Nearby Recon, block detail, rival-slide, open-strip claim, and crew-deployment paths during a failure.
+- Browser verification forced an unreachable style URL: the recovery card and both controls rendered in-frame; tactical-board fallback retained Home Block, income, heat, morale, collection, grid, placement, and encounter controls; Nearby Recon opened above the failure card with search, claim, slide, and crew-drop actions.
+- Added `PlayableMap.test.tsx` coverage for timeout recovery, pre-load connection error, retry rebuild, tactical fallback callback, the rule that a later tile error does not replace a successfully loaded usable map, and a queued-timeout guard. A selected crew member now hands off to the existing Strip board when street context is unavailable, rather than opening a map-only placement draft. Full validation: Vitest 733/733 across 55 files, TypeScript clean, asset audit clean, and production build passed. The persistent build-size warnings remain a separate optimization backlog item.
+
 ### 2026-08-29 — Portable production-art package v1
 
 - Merged PRs #119 and #120 in order, then created `feat/production-art-package-v1`

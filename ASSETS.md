@@ -62,3 +62,14 @@ Quaternius's **Universal Base Characters** page describes six game-ready base ch
 | Returning Empire command desktop visual target | QA reference for command-desktop hierarchy, persistent world-event briefing, action hierarchy, and tropical-noir palette | 2560×1440 | `/home/ubuntu/slide-artifact-audit/returning_empire_command_desktop_reference.png` | No; review reference only |
 
 The Returning Empire milestone does not add a production runtime image, sprite, texture, or model. `CityBriefing` deliberately uses CSS-drawn status signals and the existing shell palette, avoiding a new manifest entry, runtime URL, dependency, or asset-budget impact. The reference image must remain outside the runtime asset tree and be attached to review evidence rather than loaded by the player build.
+
+
+## 2026-09-04 — Map Resilience Fallback Target
+
+| Name | Role | Size | File | Runtime |
+|---|---|---:|---|---|
+| Map resilience strategy fallback target | QA reference for the territory app when optional street/building context fails, while the fictional tactical board and strategy controls remain playable | 1440×2560 | `/home/ubuntu/slide-artifact-audit/map_resilience_strategy_fallback_reference.png` | No; review reference only |
+
+The map-resilience slice uses the reference to guide fallback hierarchy, state messaging, and tactile action priority. It does not add a production runtime image, map tile, sprite, texture, or model. The reference remains outside the runtime asset tree and must be attached to review evidence rather than loaded into the player build.
+
+**Prompt summary:** Portrait fictional territory command interface with a deliberate street-view-unavailable recovery panel, safe retry action, tactical-board fallback, highlighted home territory, bounded rival-pressure context, and existing Maps/Strip/Crew paths. The target excludes real place names, addresses, people, weapons, branded maps, and photoreal city imagery.
