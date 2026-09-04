@@ -19,7 +19,7 @@ The deployable source of truth is the protected default branch: **`main-tL2525`*
 | Command desktop and return-state briefing | Merged. Durable Ghost Crew events appear in the City Briefing and route to an existing response. | PR #125; `components/layout/CityBriefing.tsx` |
 | Territory strategy | Merged. Territory remains playable if the optional street map fails; the player can retry or use the Strip, recon, claims, and crew placement. | PR #128; `components/map/PlayableMap.tsx`, `TerritoryMap.tsx` |
 | Block DNA | Merged. The library currently has **25 fictional archetypes**, and the stored DNA assignment owns a claimed block's grid and encounter terrain. | PR #128; `config/blockDNA.ts`, `utils/blockDNAResolver.ts` |
-| Authoritative-world foundation | Code is merged, but its migrations and guarded tick endpoint have **not** been proven in a confirmed non-production Supabase project. | `backend/supabase/migrations/005_*`, `006_*`; `functions/world-tick-ghost/` |
+| Authoritative-world foundation | Code is merged, but its migrations and guarded tick endpoint have **not** been proven in a confirmed non-production Supabase project. | `backend/supabase/migrations/005_*`, `006_*`; `backend/supabase/functions/world-tick-ghost/` |
 | Default branch quality | Verified at the latest closed-alpha release: frontend tests, TypeScript, asset audit, production build, backend tests, GitHub CI, Vercel preview, and automated review passed. | `docs/CLOSED_ALPHA_SPRINT_INTEGRATION_REPORT.md`; PR #128 |
 
 ## 3. The living sources of truth
@@ -55,15 +55,16 @@ Multiple models can work at the same time **when their file ownership does not o
 |---:|---|
 | 1 | Read the six source-of-truth items above, then inspect open PRs, issues, and recent commits. |
 | 2 | State the exact user outcome, in-scope files, out-of-scope files, and acceptance checks before coding. |
-| 3 | Create one branch such as `feature/80-block-dna-batch-two` or `fix/79-alpha-cleanup`. Do not use a generic branch. |
-| 4 | Reuse existing components, stores, services, types, and tests. Search before creating a new file or system. |
-| 5 | Add focused regression tests for the changed behavior and run the relevant full validation commands. |
-| 6 | Open one focused PR with changed files, player impact, verification evidence, known limitations, and operational impact. Do not merge it. |
-| 7 | Leave the branch and PR for the integration steward to reconcile with compatible work in an isolated integration branch. |
+| 3 | Reserve the file list on the assigned GitHub issue **before coding**. If no issue exists, stop and ask the integration owner to create or assign one; do not race another contributor. |
+| 4 | Create one branch such as `feature/80-block-dna-batch-two` or `fix/79-alpha-cleanup`. Do not use a generic branch. |
+| 5 | Reuse existing components, stores, services, types, and tests. Search before creating a new file or system. |
+| 6 | Add focused regression tests for the changed behavior and run the relevant full validation commands. |
+| 7 | Open one focused PR with changed files, player impact, verification evidence, known limitations, and operational impact. Do not merge it. |
+| 8 | Leave the branch and PR for the integration steward to reconcile with compatible work in an isolated integration branch. |
 
 ### File ownership rule
 
-Before parallel work begins, reserve files by writing them in the PR description. Two agents must not independently edit the same store, mapper, migration, root application shell, or shared CSS file. If overlap is unavoidable, split the work into a design-only PR and an implementation PR, or assign a single integration owner.
+Before coding begins, reserve files in a comment on the assigned GitHub issue. Two agents must not independently edit the same store, mapper, migration, root application shell, or shared CSS file. The later pull request repeats the reservation for review traceability. If overlap is unavoidable, split the work into a design-only PR and an implementation PR, or assign a single integration owner.
 
 ## 6. Current work queue
 
@@ -72,7 +73,7 @@ The active GitHub issues are the backlog. Do not assume that the oldest issue is
 | Priority | Work | Suggested branch | Parallel safety |
 |---:|---|---|---|
 | P0 | Prove the authoritative-world migrations, RLS, guarded Ghost Crew tick, idempotency, and rollback in a confirmed non-production Supabase project. | `ops/closed-alpha-world-proof` | **Do not execute** until a disposable/staging project is explicitly named. |
-| P1 | Improve the visual stack by connecting the asset manifest to player-facing renderers, cleaning assets, and locking the 2.5D scene/camera contract. | Separate branches for #78, #79, and #77 | Coordinate carefully: these three tasks touch shared renderer and asset files and should not be developed concurrently without an explicit file plan. |
+| P1 | Finish the remaining 2.5D scene and camera contract work. Asset-manifest wiring and the initial asset cleanup are already merged; audit #78/#79 before proposing only genuinely unfinished follow-up work. | `feature/77-diorama-camera-contract` | Renderer and asset files are shared; reserve exact files before coding and avoid parallel changes without an explicit integration plan. |
 | P1 | Continue Block DNA toward the planned 30–40 fictional cards. | `feature/80-block-dna-batch-two` | Safe in parallel only if it limits changes to DNA config, its design brief, and resolver/encounter tests. Do not edit map resilience or persistence code. |
 | P1 | Strengthen Ghost Crew / NPC rival behavior after the non-production proof clarifies durable tick operations. | `feature/81-ghost-crew-alpha` | Begin with a design/test branch; do not introduce a scheduler or migration without the P0 proof. |
 | P2 | Beta art, QA, performance, and release readiness. | `chore/45-beta-gate-*` | Split into non-overlapping audit, performance, accessibility, and release-checklist branches. |
@@ -83,13 +84,11 @@ Run the narrowest relevant test first, then the full checks before opening a PR.
 
 ```bash
 cd frontend
-npm test -- --run
-npm run typecheck
-npm run assets:audit
+npm run validate
 npm run build
 
 cd ../backend/python
-python3 -m pytest tests -q
+./venv/bin/python -m pytest tests -q
 ```
 
 Also perform a player-path check when a feature changes strategy, placement, notifications, a mini-game, or recovery behavior. Verify the happy path and a realistic failure path. Use deterministic demo mode only for demo verification; never treat it as proof of durable Supabase behavior.
@@ -144,6 +143,7 @@ Rules:
 - Keep content fictional and preserve the existing 18+ game boundary.
 - Reuse current stores, services, types, and components. Do not create a duplicate system.
 - Do not merge, deploy, alter Supabase, change secrets, close issues, delete branches, or edit another contributor’s branch.
+- Before coding, reserve your allowed files in a comment on the assigned GitHub issue. If a conflicting reservation exists, stop and ask the integration owner to split or sequence the work.
 - Do not apply migrations, RLS changes, tick endpoints, or schedulers unless a confirmed non-production target and the prepared `ops/closed-alpha-world-proof` runbook are explicitly part of the assignment.
 - Add focused tests and run the full validation commands documented in AI_CONTRIBUTOR_START_HERE.md.
 - Open one PR using the required PR template. Include exact changed files, test evidence, known limits, and integration notes.
