@@ -8,7 +8,10 @@ import {
 import './CityBriefing.css';
 
 interface CityBriefingProps {
-  onNavigate: (destination: 'map' | 'gang_hq' | 'dealt_v2') => void;
+  onNavigate: (
+    destination: 'map' | 'gang_hq' | 'dealt_v2',
+    targetBlockId?: string,
+  ) => void;
 }
 
 const TONE_LABEL: Record<CityBriefTone, string> = {
@@ -69,7 +72,7 @@ const CityBriefing: React.FC<CityBriefingProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 className="city-briefing__action"
-                onClick={() => onNavigate(item.cta.destination)}
+                onClick={() => onNavigate(item.cta.destination, item.targetBlockId)}
               >
                 {item.cta.label}
               </button>

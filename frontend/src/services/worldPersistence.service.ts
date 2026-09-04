@@ -90,7 +90,10 @@ export function toGhostFeedEvent(row: WorldEventRow, crews: GhostCrew[]): GhostF
     id: `server-${row.id}`,
     crewId: row.crew_id ?? 'system',
     crewName: crew?.name ?? 'City Feed',
-    action: row.event_type === 'encounter' || row.event_type === 'system' ? 'lay-low' : row.event_type,
+    // Encounter rows may contain a player loss or other high-consequence
+    // result. System rows are informational. Neither should inherit the
+    // low-priority green "lay low" presentation intended for a rival action.
+    action: row.event_type === 'encounter' ? 'attack' : row.event_type === 'system' ? 'reinforce' : row.event_type,
     description: row.description,
     targetBlockId: row.target_block_key ?? undefined,
     timestamp: Date.parse(row.occurred_at) || Date.now(),

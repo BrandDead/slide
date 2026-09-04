@@ -713,6 +713,13 @@ export const useEconomyStore = create<EconomyState>()(
 
 // ============ NOTIFICATIONS STORE ============
 
+let notificationSequence = 0;
+
+function createNotificationId(now = Date.now()): string {
+  notificationSequence = (notificationSequence + 1) % Number.MAX_SAFE_INTEGER;
+  return `${now}-${notificationSequence}`;
+}
+
 interface NotificationState {
   notifications: Notification[];
   
@@ -733,9 +740,9 @@ export const useNotificationStore = create<NotificationState>()(
           notifications: [
             {
               ...notification,
-              id: Date.now().toString(),
+              id: createNotificationId(),
               timestamp: notification.timestamp ?? Date.now(),
-              createdAt: new Date().toISOString(),
+              createdAt: notification.createdAt ?? new Date(notification.timestamp ?? Date.now()).toISOString(),
               read: false,
             },
             ...state.notifications,

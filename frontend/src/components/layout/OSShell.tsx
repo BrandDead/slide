@@ -14,6 +14,7 @@ import {
 } from '../../stores/gameStore';
 import { useMostWantedStore } from '../../stores/mostWantedStore';
 import { useShoeboxStore } from '../../stores/useShoeboxStore';
+import { useBlockStore } from '../../stores/blockStore';
 import { formatCash } from '../../utils/shoeboxAnalytics';
 import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
@@ -49,6 +50,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
   const { player } = usePlayerStore();
   const vault = useShoeboxStore((s) => s.bankBalance);
   const { members } = useGangStore();
+  const blocks = useBlockStore((state) => state.blocks);
+  const selectBlock = useBlockStore((state) => state.selectBlock);
   const { getUnreadCount, notifications, markAllAsRead } = useNotificationStore();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHeatDetail, setShowHeatDetail] = useState(false);
@@ -61,6 +64,15 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
   const raidProb = useMemo(() => getRaidProbability(player.heat), [player.heat]);
   const moraleDesc = useMemo(() => getMoraleDescription(gangMorale), [gangMorale]);
+  const handleCityBriefNavigate = React.useCallback(
+    (destination: 'map' | 'gang_hq' | 'dealt_v2', targetBlockId?: string) => {
+      if (destination === 'map' && targetBlockId && blocks[targetBlockId]) {
+        selectBlock(targetBlockId);
+      }
+      navigateTo(destination);
+    },
+    [blocks, navigateTo, selectBlock],
+  );
 
   // Badge the bounty board with how many contracts are live, including any
   // posted against this player's own crew.
@@ -404,7 +416,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         </div>
       </div>
 
-      <CityBriefing onNavigate={navigateTo} />
+      <CityBriefing onNavigate={handleCityBriefNavigate} />
 
       {/* Heat Detail Popup */}
       <AnimatePresence>

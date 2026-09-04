@@ -93,6 +93,31 @@ describe('worldPersistence.service', () => {
     });
   });
 
+  it('maps consequential encounter rows to a high-priority rival-pressure action and system rows to an informational action', () => {
+    const crew = [{
+      id: 'ghost-nightfall',
+      name: 'Nightfall Crew',
+      homeTag: 'downtown',
+      personality: { type: 'territory-hungry' as const, aggression: 55, expansionDrive: 85, grudgeWeight: 40, caution: 30 },
+      treasury: 0,
+      roster: [],
+      ownedBlockIds: [],
+      claimedDnaIds: [],
+      grudge: { score: 0 },
+      incomePerTick: 0,
+      lastTickAt: '2026-09-01T00:00:00.000Z',
+    }];
+
+    expect(toGhostFeedEvent({
+      id: 'encounter-overrun', crew_id: 'ghost-nightfall', event_type: 'encounter', target_block_key: 'block-a',
+      description: 'Your crew was overrun.', occurred_at: '2026-09-01T00:00:00.000Z',
+    }, crew).action).toBe('attack');
+    expect(toGhostFeedEvent({
+      id: 'system-tick', crew_id: null, event_type: 'system', target_block_key: null,
+      description: 'World state refreshed.', occurred_at: '2026-09-01T00:00:00.000Z',
+    }, crew).action).toBe('reinforce');
+  });
+
   it('does not submit a local placeholder block to the authoritative receipt endpoint', async () => {
     await expect(commitEncounterResult('home-block', result)).resolves.toBeNull();
     expect(rpc).not.toHaveBeenCalled();

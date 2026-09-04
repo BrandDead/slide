@@ -29,11 +29,13 @@ const serverEvent = {
 describe('useGhostCrewSync', () => {
   beforeEach(() => {
     loadAuthoritativeWorld.mockReset();
+    window.localStorage.clear();
     useGhostStore.setState({ crews: {}, feed: [], tickActive: false, tickIndex: 0 });
     useNotificationStore.setState({ notifications: [] });
   });
 
   it('mirrors a hydrated durable event once and preserves the stable event identity', async () => {
+    window.localStorage.setItem('dealt-slide-world-event-watermark:player-42', String(serverEvent.timestamp - 1));
     loadAuthoritativeWorld.mockResolvedValue({ crews: [], feed: [serverEvent] });
 
     const first = renderHook(() => useGhostCrewSync('player-42', true));
@@ -50,6 +52,16 @@ describe('useGhostCrewSync', () => {
 
     await waitFor(() => expect(loadAuthoritativeWorld).toHaveBeenCalledTimes(2));
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
+  });
+
+  it('uses the first sync as a passive briefing boundary instead of filling the unread inbox', async () => {
+    loadAuthoritativeWorld.mockResolvedValue({ crews: [], feed: [serverEvent] });
+
+    renderHook(() => useGhostCrewSync('new-player', true));
+    await waitFor(() => expect(useGhostStore.getState().feed).toHaveLength(1));
+
+    expect(useNotificationStore.getState().notifications).toHaveLength(0);
+    expect(window.localStorage.getItem('dealt-slide-world-event-watermark:new-player')).toBe(String(serverEvent.timestamp));
   });
 
   it('does not mirror local fallback events as authoritative return-state notifications', async () => {

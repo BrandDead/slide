@@ -60,6 +60,6 @@ describe('cityBriefing', () => {
     expect(screen.getByText('Nightfall')).toBeInTheDocument();
     expect(screen.getByText('Nightfall is pressing your eastern block.')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'REVIEW DEFENSE' }));
-    expect(onNavigate).toHaveBeenCalledWith('map');
+    expect(onNavigate).toHaveBeenCalledWith('map', 'block-east');
   });
 });
