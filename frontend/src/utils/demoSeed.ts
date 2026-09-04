@@ -26,6 +26,7 @@ import { usePlayerStore, useGangStore } from '../stores/gameStore';
 import { useBlockStore } from '../stores/blockStore';
 import { useNavigationStore } from '../stores/gameStore';
 import { useShoeboxStore } from '../stores/useShoeboxStore';
+import { useGhostStore, type GhostFeedEvent } from '../stores/ghostCrewStore';
 import type { GangMember } from '../types/game.types';
 
 /** True only when the build was started with VITE_DEMO_MODE=1 */
@@ -41,10 +42,47 @@ const DEMO_ENFORCER_ID = 'demo-enforcer-1';
 // sidewalk (incomeModifier=60) × level-2 bonus (1.12) = round(67.2) = 67
 const DEALER_INCOME_PER_TICK = 67;
 
+/**
+ * A bounded local preview of the server-shaped City Briefing. It is demo-only
+ * and lets reviewers inspect the returning-player screen without presenting
+ * the browser tick as production authority.
+ */
+function buildDemoCityBriefing(now: number): GhostFeedEvent[] {
+  return [
+    {
+      id: 'demo-city-brief-attack',
+      crewId: 'ghost-nightfall',
+      crewName: 'Nightfall',
+      action: 'attack',
+      description: 'Nightfall is testing the edge of your Las Olas block. Review your crew positions before the next move.',
+      targetBlockId: DEMO_BLOCK_ID,
+      timestamp: now - 6 * 60_000,
+    },
+    {
+      id: 'demo-city-brief-claim',
+      crewId: 'ghost-sistrunk',
+      crewName: 'Sistrunk Kings',
+      action: 'claim',
+      description: 'A rival crew expanded into a nearby fictional district. Their new turf is visible on the map.',
+      targetBlockId: 'ghost-demo-district',
+      timestamp: now - 24 * 60_000,
+    },
+    {
+      id: 'demo-city-brief-reinforce',
+      crewId: 'ghost-riverwalk',
+      crewName: 'Riverwalk',
+      action: 'reinforce',
+      description: 'Rivals reinforced their roster after recent city activity. Check your crew readiness before pressing further.',
+      timestamp: now - 2 * 60 * 60_000,
+    },
+  ];
+}
+
 /** Seed all stores for the birthday demo path and navigate to MAP. */
 export function applyDemoSeed(): void {
 
   const now = new Date().toISOString();
+  const nowMs = Date.now();
 
   // ── 1. Reset demo-owned data deterministically ────────────
   // Clear any stale blocks and account-specific data so a dirty
@@ -263,6 +301,10 @@ export function applyDemoSeed(): void {
 
   blockStore.upsertBlock(demoBlock);
   blockStore.selectBlock(demoBlock.id);
+
+  // City Briefing is a visual/player-path fixture in demo mode. Authenticated
+  // production sessions only display state hydrated from the durable service.
+  useGhostStore.setState({ feed: buildDemoCityBriefing(nowMs) });
 
   const shoebox = useShoeboxStore.getState();
   shoebox.reset();

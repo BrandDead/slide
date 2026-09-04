@@ -34,3 +34,17 @@ Use the generated storefront facade texture as the authored landmark across a si
 `BlockModeView → prepareEncounter(block) → CombatSessionController → Modern Ops scene ↔ typed CombatCommand → CombatSnapshot/CombatEvent → CombatResult → BlockModeView.applyEncounterResult`.
 
 Camera changes, interpolation, particles, muzzle flashes, tracer lines, pointer lock, and UI animation never enter `CombatSession`. Strategy stores and money routing never enter Babylon modules.
+
+
+## Returning Empire Command Brief
+
+| Layer | Primary paths | Responsibility |
+|---|---|---|
+| Durable world transport | `frontend/src/services/worldPersistence.service.ts`, `frontend/src/hooks/useGhostCrewSync.ts` | Hydrates authenticated server-owned Ghost Crews and player-visible world events; does not resolve local gameplay or create a second cache. |
+| Rival/world event state | `frontend/src/stores/ghostCrewStore.ts` | Owns the merged local fallback and durable Ghost Crew feed, including its stable event IDs. |
+| Command briefing projection | `frontend/src/components/layout/cityBriefing.ts`, `CityBriefing.tsx` | Derives the three newest readable briefing cards and their route actions from the existing feed; performs no fetch, tick, or persistence work. |
+| Desktop integration | `frontend/src/components/layout/OSShell.tsx`, `CityBriefing.css` | Presents returning-player state in the existing iOS-style command shell, with an accessible empty state and bounded single-column event layout. |
+| Notification bridge | `frontend/src/hooks/useGhostCrewSync.ts`, `useNotificationStore` | Mirrors only durable `server-` event IDs into the established notification center, exactly once per event ID. Local Ghost Crew ticks retain their existing notifications. |
+| Demo review fixture | `frontend/src/utils/demoSeed.ts` | Supplies three clearly local, fictional briefing events solely to make the returning-player presentation and strategic actions repeatably reviewable. |
+
+The flow is `loadAuthoritativeWorld → replaceAuthoritativeState → Ghost Crew feed → CityBriefing → existing navigation`, with a separate idempotent `server-` event bridge to the existing notification center. The City Briefing never writes world state, awards resources, starts world ticks, or substitutes for the transient threat banner.

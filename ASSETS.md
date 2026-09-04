@@ -53,3 +53,12 @@ All procedural fallbacks are code, not claimed production art. They exist to rem
 ### Evaluated External Character Reference
 
 Quaternius's **Universal Base Characters** page describes six game-ready base characters, 20 hairstyles, an average 13,000-triangle model, humanoid retargeting, FBX/glTF exports, and compatibility with Unreal, Unity, and Godot: https://quaternius.com/packs/universalbasecharacters.html. The selected free standard archive includes `CC0 1.0 Universal (CC0 1.0) Public Domain Dedication` and identifies Quaternius as the model creator; that exact license is preserved at `frontend/public/assets/packages/characters/universal-male/LICENSE-QUATERNIUS-CC0.txt`. Acquisition and transformation details are recorded in `docs/PRODUCTION_ART_SOURCES.md` and `docs/PRODUCTION_ART_PACKAGE_V1.md`.
+
+
+## 2026-09-04 — Returning Empire Command Brief
+
+| Name | Role | Size | File | Runtime |
+|---|---|---:|---|---|
+| Returning Empire command desktop visual target | QA reference for command-desktop hierarchy, persistent world-event briefing, action hierarchy, and tropical-noir palette | 2560×1440 | `/home/ubuntu/slide-artifact-audit/returning_empire_command_desktop_reference.png` | No; review reference only |
+
+The Returning Empire milestone does not add a production runtime image, sprite, texture, or model. `CityBriefing` deliberately uses CSS-drawn status signals and the existing shell palette, avoiding a new manifest entry, runtime URL, dependency, or asset-budget impact. The reference image must remain outside the runtime asset tree and be attached to review evidence rather than loaded by the player build.

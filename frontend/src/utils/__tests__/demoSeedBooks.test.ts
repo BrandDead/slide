@@ -3,6 +3,7 @@ import { applyDemoSeed } from '../demoSeed';
 import { useBlockStore } from '../../stores/blockStore';
 import { useGangStore } from '../../stores/gameStore';
 import { useShoeboxStore } from '../../stores/useShoeboxStore';
+import { useGhostStore } from '../../stores/ghostCrewStore';
 import { computeEmpirePnl } from '../shoeboxAnalytics';
 
 describe('applyDemoSeed empire books', () => {
@@ -10,6 +11,17 @@ describe('applyDemoSeed empire books', () => {
     useBlockStore.setState({ blocks: {}, selectedBlockId: null });
     useShoeboxStore.getState().reset();
     applyDemoSeed();
+  });
+
+  it('seeds a bounded City Briefing so the returning-player path is visually reviewable', () => {
+    const feed = useGhostStore.getState().feed;
+    expect(feed).toHaveLength(3);
+    expect(feed.map((event) => event.id)).toEqual([
+      'demo-city-brief-attack',
+      'demo-city-brief-claim',
+      'demo-city-brief-reinforce',
+    ]);
+    expect(feed[0].description).toContain('Las Olas block');
   });
 
   it('places a dealer so the Las Olas strip has a weekly cost and take', () => {
