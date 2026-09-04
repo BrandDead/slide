@@ -18,6 +18,7 @@ import { formatCash } from '../../utils/shoeboxAnalytics';
 import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
 import { GameSprite } from '../common/GameSprite';
+import CityBriefing from './CityBriefing';
 import '../common/GameSprite.css';
 import './OSShell.css';
 
@@ -402,6 +403,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <div className="stat-label">Level</div>
         </div>
       </div>
+
+      <CityBriefing onNavigate={navigateTo} />
 
       {/* Heat Detail Popup */}
       <AnimatePresence>
