@@ -137,6 +137,23 @@ describe('CombatSession', () => {
     expect(preparation.tacticalBrief[0]).toContain('Harbor Spur');
   });
 
+  it('keeps an owned block’s stored DNA terrain stable as the catalog grows', () => {
+    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
+      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50, coverScore: 0.3, passable: true, occupantId: null,
+    })));
+    const storedCanalBlock: BlockData = {
+      id: 'stable-canal-reference', address: '1 Broadway, New York, NY 10004', lat: 40.7128, lng: -74.006, owner: 'player',
+      grid, placements: [], incomePerTick: 0, heat: 1, morale: 70, members: 0, viewMode: 'topdown', pendingIncome: 0,
+      dnaId: 'canal-court',
+    };
+
+    const preparation = prepareEncounter(storedCanalBlock);
+
+    expect(preparation.sceneLabel).toBe('Canal Court');
+    expect(preparation.terrain[3][0].zoneType).toBe('alley');
+    expect(preparation.terrain[5][0].zoneType).toBe('parking');
+  });
+
   it('keeps opening opposition fire survivable long enough for player input', () => {
     const advanced = advanceCombat(createCombatSession(preparation()), 40);
     const crew = advanced.combatants.find((candidate) => candidate.id === 'crew-1');

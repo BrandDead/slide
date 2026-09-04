@@ -44,9 +44,14 @@ const ZONE_STATS: Record<BlockZoneType, { income: number; exposure: number; cove
   building:   { income: 0,   exposure: 0,  cover: 1.00, passable: false },
 };
 
-function generateDefaultGrid(): BlockZone[][] {
+/**
+ * Build the canonical 8×8 placement grid from an optional per-row Block DNA
+ * layout. Unknown or absent rows retain the default placement contract.
+ */
+export function generateGridForZoneLayout(zoneLayout?: readonly BlockZoneType[]): BlockZone[][] {
   return ZONE_LAYOUT.map((row, y) =>
-    row.map((zoneType, x) => {
+    row.map((defaultZoneType, x) => {
+      const zoneType = zoneLayout?.[y] ?? defaultZoneType;
       const stats = ZONE_STATS[zoneType];
       return {
         x,
@@ -60,6 +65,10 @@ function generateDefaultGrid(): BlockZone[][] {
       };
     })
   );
+}
+
+function generateDefaultGrid(): BlockZone[][] {
+  return generateGridForZoneLayout();
 }
 
 /** Roles that generate income when placed on a block */

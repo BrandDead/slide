@@ -74,7 +74,7 @@ const TerritoryMap: React.FC = () => {
   const { goBack, navigateTo } = useNavigationStore();
   const { player, updatePlayer } = usePlayerStore();
   const { members } = useGangStore();
-  const { blocks, selectedBlockId, selectBlock, upsertBlock, placeMember, collectIncome } = useBlockStore();
+  const { blocks, selectedBlockId, selectBlock, upsertBlock, placeMember, collectIncome, setPlacementMode } = useBlockStore();
   const vault = useShoeboxStore((s) => s.bankBalance);
   const ledger = useShoeboxStore((s) => s.ledger);
 
@@ -212,13 +212,14 @@ const TerritoryMap: React.FC = () => {
   }, [player, vault, updatePlayer, upsertBlock, selectBlock, notify, completeTutorialStep]);
 
   const handleMapLoad = useCallback((map: MapLibreMap) => setMapInstance(map), []);
-
   const handleMapStatusChange = useCallback((status: PlayableMapStatus) => {
     // A missing street layer is a recoverable display concern. Preserve the
     // existing recon, selection, and crew-sheet state so strategy controls
     // remain usable through their own panels while only map-bound overlays
-    // wait for a healthy MapLibre instance.
+    // wait for a healthy MapLibre instance. A fresh loading/error transition
+    // also invalidates any controller retained from an earlier Maps mount.
     setMapStatus(status);
+    if (status !== 'ready') setMapInstance(null);
   }, []);
 
   const useTacticalBoard = useCallback(() => {
@@ -298,6 +299,12 @@ const TerritoryMap: React.FC = () => {
         // MapLibre-only placement draft with no selectable cells.
         setPlacementDraft(null);
         setSelectedMapBlock(null);
+        setPlacementMode(true, {
+          memberId,
+          memberName,
+          role: (role as MemberRole) || 'dealer',
+          level,
+        });
         setView('block');
         notify(`Street view is unavailable. Choose a tactical cell for ${memberName} on the Strip board.`, 4000);
         return;
@@ -314,7 +321,7 @@ const TerritoryMap: React.FC = () => {
       flyTo(block.lat, block.lng, 19);
       notify(`Tap a highlighted sidewalk, storefront, or cover cell for ${memberName}.`, 3500);
     },
-    [mapStatus, selectedBlockId, liveList, blocks, selectBlock, flyTo, notify],
+    [mapStatus, selectedBlockId, liveList, blocks, selectBlock, setPlacementMode, flyTo, notify],
   );
 
   const completeMapPlacement = useCallback((zone: BlockZone) => {

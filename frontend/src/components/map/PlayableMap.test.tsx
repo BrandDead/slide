@@ -59,6 +59,18 @@ describe('PlayableMap recovery', () => {
     vi.useRealTimers();
   });
 
+  it('announces loading on each fresh mount before creating a replacement controller', () => {
+    const onStatusChange = vi.fn();
+    const { unmount } = render(<PlayableMap {...props} onStatusChange={onStatusChange} />);
+
+    expect(onStatusChange).toHaveBeenCalledWith('loading');
+    unmount();
+
+    render(<PlayableMap {...props} onStatusChange={onStatusChange} />);
+    expect(onStatusChange).toHaveBeenCalledTimes(2);
+    expect(onStatusChange).toHaveBeenLastCalledWith('loading');
+  });
+
   it('shows a bounded timeout recovery state and opens the tactical fallback', () => {
     vi.useFakeTimers();
     const onUseTacticalBoard = vi.fn();

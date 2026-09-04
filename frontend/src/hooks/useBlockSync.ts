@@ -12,6 +12,7 @@
 // ============================================================
 import { useEffect, useRef, useCallback } from 'react';
 import { useBlockStore } from '../stores/blockStore';
+import { apiBlockToBlockData } from '../utils/blockMappers';
 import { usePlayerStore } from '../stores/gameStore';
 import {
   persistBlock,
@@ -23,7 +24,7 @@ import {
 const DEBOUNCE_MS = 3000; // 3 s debounce before writing to Supabase
 
 export function useBlockSync(enabled = true) {
-  const { blocks, upsertBlock, generateDefaultGrid } = useBlockStore();
+  const { blocks, upsertBlock } = useBlockStore();
   const { player } = usePlayerStore();
   const userId = player?.id;
 
@@ -45,37 +46,17 @@ export function useBlockSync(enabled = true) {
           const existing = useBlockStore.getState().blocks[partial.id];
           if (existing) continue;
 
-          // Rebuild full BlockData with default grid
-          const grid = generateDefaultGrid();
           const placements = await loadPlacements(partial.id);
-
-          upsertBlock({
-            id: partial.id!,
-            address: partial.address ?? '',
-            lat: 0,
-            lng: 0,
-            owner: 'player',
-            grid,
+          upsertBlock(apiBlockToBlockData({
+            ...partial,
             placements,
-            incomePerTick: partial.incomePerTick ?? 0,
-            heat: partial.heat ?? 0,
-            morale: partial.morale ?? 80,
-            members: placements.length,
-            viewMode: partial.viewMode ?? 'topdown',
-            pendingIncome: partial.pendingIncome ?? 0,
-            streetBackdropUrl: partial.streetBackdropUrl,
-            topdownBgUrl: partial.topdownBgUrl,
-            dnaId: partial.dnaId,
-            incomeMultiplier: partial.incomeMultiplier,
-            heatDecayMultiplier: partial.heatDecayMultiplier,
-            maxMembers: partial.maxMembers,
-          });
+          } as Record<string, unknown>));
         }
       } catch (err) {
         console.warn('[BlockSync] Failed to load remote blocks:', err);
       }
     })();
-  }, [enabled, userId, upsertBlock, generateDefaultGrid]);
+  }, [enabled, userId, upsertBlock]);
 
   // ── Debounced persist on block changes ──
   const scheduleSync = useCallback(

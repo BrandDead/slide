@@ -1,4 +1,5 @@
-import { resolveBlockDNA } from '../../utils/blockDNAResolver';
+import { buildZoneLayout, resolveBlockDNA } from '../../utils/blockDNAResolver';
+import { getDNAById } from '../../config/blockDNA';
 import type { BlockData, BlockPlacement, BlockZoneType } from '../../types/block.types';
 import type {
   CombatTerrainCell,
@@ -106,7 +107,13 @@ function findOppositionStart(terrain: CombatTerrainCell[][], seed: number, index
 }
 
 export function prepareEncounter(block: BlockData): EncounterPreparation {
-  const resolved = resolveBlockDNA(block.lat, block.lng, block.address);
+  // An owned block keeps the DNA chosen at claim time. Only unclaimed or
+  // legacy blocks resolve from live inputs, preventing catalog growth from
+  // rewriting an existing tactical identity.
+  const storedDNA = block.dnaId ? getDNAById(block.dnaId) : undefined;
+  const resolved = storedDNA
+    ? { dna: storedDNA, zoneLayout: buildZoneLayout(storedDNA), seed: `stored:${storedDNA.id}` }
+    : resolveBlockDNA(block.lat, block.lng, block.address);
   const seed = hashString(`${block.id}:${resolved.seed}:${block.heat}:${block.morale}`);
   const terrain = toTerrain(block, resolved.dna.globalCoverBonus, resolved.zoneLayout);
   const crew = toCrew(block.placements);

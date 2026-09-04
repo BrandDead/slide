@@ -78,6 +78,10 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
+    // A parent can retain a previous ready state while this view is unmounted.
+    // Publish the fresh lifecycle before a replacement controller is created.
+    callbacksRef.current.onStatusChange?.('loading');
+
     const style = ((import.meta.env as Record<string, string | undefined>).VITE_SLIDE_MAP_STYLE_URL || DEFAULT_STYLE).trim();
     const options: MapOptions = {
       container: containerRef.current,
