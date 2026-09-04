@@ -35,6 +35,24 @@ function isMissingProjectionRpc(error: { code?: string }): boolean {
   return error.code === 'PGRST202' || error.code === '42883';
 }
 
+function parseBlockLocation(location: unknown): { lat: number; lng: number } | undefined {
+  // PostgREST/PostGIS may expose geography as WKT or GeoJSON depending on the
+  // configured representation. Support both while retaining undefined for a
+  // malformed legacy value rather than manufacturing a coordinate.
+  if (typeof location === 'string') {
+    const match = location.match(/^POINT\(\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s*\)$/i);
+    if (match) return { lng: Number(match[1]), lat: Number(match[2]) };
+  }
+  if (location && typeof location === 'object') {
+    const coordinates = (location as { coordinates?: unknown }).coordinates;
+    if (Array.isArray(coordinates) && coordinates.length >= 2
+      && typeof coordinates[0] === 'number' && typeof coordinates[1] === 'number') {
+      return { lng: coordinates[0], lat: coordinates[1] };
+    }
+  }
+  return undefined;
+}
+
 // ─── Block CRUD ──────────────────────────────────────────────
 
 /**
@@ -142,7 +160,7 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
 
   const { data, error } = await (supabase as any)
     .from('blocks')
-    .select('id, address, block_heat, base_income, metadata, status')
+    .select('id, address, location, block_heat, base_income, metadata, status')
     .eq('owner_id', userId);
 
   if (error || !data) {
@@ -150,9 +168,12 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
     return [];
   }
 
-  return data.map((row: any) => ({
+  return data.map((row: any) => {
+    const coordinates = parseBlockLocation(row.location);
+    return {
     id: row.id,
     address: row.address,
+    ...(coordinates ?? {}),
     owner: 'player' as const,
     heat: Math.round((row.block_heat ?? 0) / 20),
     incomePerTick: row.base_income ?? 0,
@@ -165,7 +186,8 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
     incomeMultiplier: row.metadata?.incomeMultiplier,
     heatDecayMultiplier: row.metadata?.heatDecayMultiplier,
     maxMembers: row.metadata?.maxMembers,
-  }));
+    };
+  });
 }
 
 // ─── Placement CRUD ──────────────────────────────────────────
