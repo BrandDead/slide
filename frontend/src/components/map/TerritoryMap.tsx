@@ -290,6 +290,19 @@ const TerritoryMap: React.FC = () => {
         return;
       }
       selectBlock(block.id);
+      setShowDrop(false);
+
+      if (mapStatus !== 'ready') {
+        // Street imagery is optional. Preserve the member choice by handing
+        // placement to the established Strip board rather than leaving a
+        // MapLibre-only placement draft with no selectable cells.
+        setPlacementDraft(null);
+        setSelectedMapBlock(null);
+        setView('block');
+        notify(`Street view is unavailable. Choose a tactical cell for ${memberName} on the Strip board.`, 4000);
+        return;
+      }
+
       setPlacementDraft({
         memberId,
         memberName,
@@ -297,12 +310,11 @@ const TerritoryMap: React.FC = () => {
         level,
       });
       setSelectedMapBlock(toOverlay(block));
-      setShowDrop(false);
       setView('hood');
       flyTo(block.lat, block.lng, 19);
       notify(`Tap a highlighted sidewalk, storefront, or cover cell for ${memberName}.`, 3500);
     },
-    [selectedBlockId, liveList, blocks, selectBlock, flyTo, notify],
+    [mapStatus, selectedBlockId, liveList, blocks, selectBlock, flyTo, notify],
   );
 
   const completeMapPlacement = useCallback((zone: BlockZone) => {

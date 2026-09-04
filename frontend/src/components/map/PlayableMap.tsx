@@ -160,7 +160,9 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
     map.on('error', onError);
     map.on('zoomend', onZoomEnd);
     loadTimer = window.setTimeout(() => {
-      updateStatus('error', 'timeout');
+      // A queued timeout can still run after an initial load or effect cleanup.
+      // Never let it overwrite a usable map or a newer failure outcome.
+      if (!disposed && !hasLoaded) updateStatus('error', 'timeout');
     }, MAP_LOAD_TIMEOUT_MS);
 
     return () => {

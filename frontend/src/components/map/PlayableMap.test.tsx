@@ -92,6 +92,22 @@ describe('PlayableMap recovery', () => {
     expect(onStatusChange).toHaveBeenCalledWith('loading');
   });
 
+  it('does not let a queued load timeout overwrite a ready map', () => {
+    vi.useFakeTimers();
+    const onStatusChange = vi.fn();
+    const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout').mockImplementation(() => undefined);
+    render(<PlayableMap {...props} onStatusChange={onStatusChange} />);
+
+    act(() => {
+      mapHarness.onceListeners.load?.();
+      vi.advanceTimersByTime(MAP_LOAD_TIMEOUT_MS);
+    });
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(onStatusChange).toHaveBeenLastCalledWith('ready');
+    clearTimeoutSpy.mockRestore();
+  });
+
   it('keeps an already loaded strategy map available when a later tile error occurs', () => {
     const onStatusChange = vi.fn();
     render(<PlayableMap {...props} onStatusChange={onStatusChange} />);
