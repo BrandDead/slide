@@ -62,3 +62,11 @@ Quaternius's **Universal Base Characters** page describes six game-ready base ch
 | Returning Empire command desktop visual target | QA reference for command-desktop hierarchy, persistent world-event briefing, action hierarchy, and tropical-noir palette | 2560×1440 | `/home/ubuntu/slide-artifact-audit/returning_empire_command_desktop_reference.png` | No; review reference only |
 
 The Returning Empire milestone does not add a production runtime image, sprite, texture, or model. `CityBriefing` deliberately uses CSS-drawn status signals and the existing shell palette, avoiding a new manifest entry, runtime URL, dependency, or asset-budget impact. The reference image must remain outside the runtime asset tree and be attached to review evidence rather than loaded by the player build.
+
+## 2026-09-04 — Closed-Alpha Block DNA Batch One
+
+| Name | Role | Size | File | Runtime |
+|---|---|---:|---|---|
+| Block DNA expansion visual target | QA reference for eight fictional tactical archetypes and their terrain silhouettes | 2560×1440 | `/home/ubuntu/slide-artifact-audit/block_dna_expansion_batch_reference.png` | No; review reference only |
+
+The Block DNA batch-one reference establishes harbor, transit-market, canal, and service-district silhouettes in the canonical tropical-noir oblique-diorama direction. It remains outside the runtime asset tree and must not be copied into `frontend/public` or registered in `runtimeManifest.json`; the content expansion is intentionally data-driven and has no asset-budget impact.
