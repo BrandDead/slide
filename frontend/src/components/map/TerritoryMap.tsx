@@ -214,13 +214,11 @@ const TerritoryMap: React.FC = () => {
   const handleMapLoad = useCallback((map: MapLibreMap) => setMapInstance(map), []);
 
   const handleMapStatusChange = useCallback((status: PlayableMapStatus) => {
+    // A missing street layer is a recoverable display concern. Preserve the
+    // existing recon, selection, and crew-sheet state so strategy controls
+    // remain usable through their own panels while only map-bound overlays
+    // wait for a healthy MapLibre instance.
     setMapStatus(status);
-    if (status === 'error') {
-      setSelectedMapBlock(null);
-      setShowRecon(false);
-      setShowDrop(false);
-      setPlacementDraft(null);
-    }
   }, []);
 
   const useTacticalBoard = useCallback(() => {
@@ -481,9 +479,9 @@ const TerritoryMap: React.FC = () => {
               mode={placementDraft ? 'placement' : selectedMapBlock ? 'inspect' : 'territory'}
               selectedAddress={placementDraft ? activeBlockAddress : selectedMapBlock?.address ?? activeBlockAddress}
             />
+            <MapsSearchField onFocus={() => setShowRecon(true)} />
             {mapStatus === 'ready' && (
               <>
-                <MapsSearchField onFocus={() => setShowRecon(true)} />
                 <BlockOverlay
                   map={mapInstance}
                   blocks={overlayBlocks}
@@ -528,44 +526,44 @@ const TerritoryMap: React.FC = () => {
                     </button>
                   )}
                 </div>
-                {selectedMapBlock && !placementDraft && (
-                  <BlockDetailPanel
-                    block={selectedMapBlock}
-                    onClose={() => setSelectedMapBlock(null)}
-                    onCollectIncome={(b) => {
-                      const live = blocks[b.id];
-                      const amount = live ? collectIncome(b.id) : (b.income || 0);
-                      if (amount > 0) {
-                        vaultDeposit(amount, 'block_income', `Collected from ${b.address}`, { blockId: b.id });
-                        notify(`Collected $${amount} from ${b.address}`);
-                      } else {
-                        notify('Nothing sitting on that strip yet.');
-                      }
-                      setSelectedMapBlock(null);
-                    }}
-                    onDeployMember={(b) => handleHold(b)}
-                    onStartSlide={(b) => handleAttack(b)}
-                    onClaimBlock={(b) => void claimBlock(b.id, b.address, b.lat, b.lng)}
-                    claimCost={CLAIM_BLOCK_COST}
-                  />
-                )}
-                <NearbyReconSheet
-                  open={showRecon}
-                  blocks={recon}
-                  onClose={() => setShowRecon(false)}
-                  onSelect={selectRecon}
-                  onAttack={handleAttack}
-                  onClaim={(b) => void claimBlock(b.id, b.address, b.lat, b.lng)}
-                  onHold={handleHold}
-                  onGeocode={handleHoodSearchResult}
-                />
-                <MemberDropSheet
-                  open={showDrop}
-                  onClose={() => setShowDrop(false)}
-                  onDrop={dropMemberOnSelected}
-                />
               </>
             )}
+            {selectedMapBlock && !placementDraft && (
+              <BlockDetailPanel
+                block={selectedMapBlock}
+                onClose={() => setSelectedMapBlock(null)}
+                onCollectIncome={(b) => {
+                  const live = blocks[b.id];
+                  const amount = live ? collectIncome(b.id) : (b.income || 0);
+                  if (amount > 0) {
+                    vaultDeposit(amount, 'block_income', `Collected from ${b.address}`, { blockId: b.id });
+                    notify(`Collected $${amount} from ${b.address}`);
+                  } else {
+                    notify('Nothing sitting on that strip yet.');
+                  }
+                  setSelectedMapBlock(null);
+                }}
+                onDeployMember={(b) => handleHold(b)}
+                onStartSlide={(b) => handleAttack(b)}
+                onClaimBlock={(b) => void claimBlock(b.id, b.address, b.lat, b.lng)}
+                claimCost={CLAIM_BLOCK_COST}
+              />
+            )}
+            <NearbyReconSheet
+              open={showRecon}
+              blocks={recon}
+              onClose={() => setShowRecon(false)}
+              onSelect={selectRecon}
+              onAttack={handleAttack}
+              onClaim={(b) => void claimBlock(b.id, b.address, b.lat, b.lng)}
+              onHold={handleHold}
+              onGeocode={handleHoodSearchResult}
+            />
+            <MemberDropSheet
+              open={showDrop}
+              onClose={() => setShowDrop(false)}
+              onDrop={dropMemberOnSelected}
+            />
           </div>
           <div className="hood-legend">
             <span className="legend-item"><span className="dot home" /> Yours</span>
