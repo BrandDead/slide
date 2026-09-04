@@ -19,6 +19,22 @@ describe('apiBlockToBlockData', () => {
     expect(block.incomeMultiplier).toBe(1.45);
   });
 
+  it('moves a legacy placement off a newly impassable DNA row and recalculates its cell income', () => {
+    const block = apiBlockToBlockData({
+      id: 'legacy-harbor-claim',
+      address: 'Freight Spur & Dockside Ave',
+      lat: 25.7752,
+      lng: -80.1748,
+      dnaId: 'harbor-spur',
+      placements: [{ memberId: 'dealer-1', memberName: 'Solo', role: 'dealer', x: 2, y: 6, incomePerTick: 60, level: 1 }],
+    });
+
+    expect(block.grid[6][2].zoneType).toBe('building');
+    expect(block.grid[6][2].occupantId).toBeNull();
+    expect(block.placements[0]).toMatchObject({ x: 0, y: 1, zoneType: 'curb', incomePerTick: 116 });
+    expect(block.grid[1][0].occupantId).toBe('dealer-1');
+  });
+
   it('uses a newly resolved DNA layout when no persisted assignment exists', () => {
     const block = apiBlockToBlockData({
       id: 'canal-claim',

@@ -74,7 +74,7 @@ function generateDefaultGrid(): BlockZone[][] {
 /** Roles that generate income when placed on a block */
 const INCOME_ROLES = new Set<string>(['dealer', 'chemist', 'runner']);
 
-function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][], incomeMultiplier = 1): number {
+export function calculatePlacementIncome(placement: BlockPlacement, grid: BlockZone[][], incomeMultiplier = 1): number {
   const zone = grid[placement.y]?.[placement.x];
   if (!zone || !INCOME_ROLES.has(placement.role)) return 0;
   const base = zone.incomeModifier;
@@ -83,6 +83,8 @@ function calcPlacementIncome(placement: BlockPlacement, grid: BlockZone[][], inc
   const roleMult = placement.role === 'dealer' ? 1.0 : 0.7;
   return Math.round(base * levelBonus * roleMult * incomeMultiplier);
 }
+
+const calcPlacementIncome = calculatePlacementIncome;
 
 // ─── Store ───────────────────────────────────────────────────
 

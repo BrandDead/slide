@@ -7,10 +7,14 @@
  */
 
 import type { BlockData, BlockPlacement, BlockZone } from '../types/block.types';
-import { generateGridForZoneLayout } from '../stores/blockStore';
+import { calculatePlacementIncome, generateGridForZoneLayout } from '../stores/blockStore';
 import { getDNAById } from '../config/blockDNA';
 import { buildZoneLayout, resolveBlockDNA } from './blockDNAResolver';
 import { gridCellToAnchorId } from '../types/contracts/blockScene.types';
+
+function findFirstOpenPassableZone(grid: BlockZone[][]): BlockZone | undefined {
+  return grid.flat().find((zone) => zone.passable && !zone.occupantId);
+}
 
 export function apiBlockToBlockData(raw: Record<string, unknown>): BlockData {
   const coords = (raw.coordinates as { lat?: number; lng?: number } | undefined) || {};
@@ -22,37 +26,47 @@ export function apiBlockToBlockData(raw: Record<string, unknown>): BlockData {
   const resolved = storedDNA
     ? { dna: storedDNA, zoneLayout: buildZoneLayout(storedDNA) }
     : resolveBlockDNA(lat, lng, address);
+  const incomeMultiplier = Number(raw.incomeMultiplier ?? raw.income_multiplier ?? resolved.dna.incomeMultiplier);
   const placementsRaw = (raw.placements as Record<string, unknown>[] | undefined) || [];
 
-  const placements: BlockPlacement[] = placementsRaw.map((p) => {
-    const x = Number(p.gridX ?? p.x ?? 0);
-    const y = Number(p.gridY ?? p.y ?? 0);
-    return {
-      memberId: String(p.memberId ?? p.member_id ?? ''),
-      memberName: String(p.memberName ?? p.member_name ?? 'Member'),
-      role: (p.role as BlockPlacement['role']) || 'dealer',
-      x,
-      y,
-      zoneType: (p.zoneType as BlockPlacement['zoneType']) || 'sidewalk',
-      incomePerTick: Number(p.incomePerTick ?? p.income_per_tick ?? 0),
-      exposureRisk: Number(p.exposureRisk ?? 50),
-      level: Number(p.level ?? 1),
-      health: Number(p.health ?? 100),
-      portraitUrl: (p.portraitUrl as string | undefined),
-      topdownUrl: (p.topdownUrl as string | undefined),
-    };
-  });
+  const placements: BlockPlacement[] = placementsRaw.map((p) => ({
+    memberId: String(p.memberId ?? p.member_id ?? ''),
+    memberName: String(p.memberName ?? p.member_name ?? 'Member'),
+    role: (p.role as BlockPlacement['role']) || 'dealer',
+    x: Number(p.gridX ?? p.x ?? 0),
+    y: Number(p.gridY ?? p.y ?? 0),
+    zoneType: (p.zoneType as BlockPlacement['zoneType']) || 'sidewalk',
+    incomePerTick: Number(p.incomePerTick ?? p.income_per_tick ?? 0),
+    exposureRisk: Number(p.exposureRisk ?? 50),
+    level: Number(p.level ?? 1),
+    health: Number(p.health ?? 100),
+    portraitUrl: (p.portraitUrl as string | undefined),
+    topdownUrl: (p.topdownUrl as string | undefined),
+  }));
 
   const grid: BlockZone[][] = generateGridForZoneLayout(resolved.zoneLayout);
-  const normalizedPlacements = placements.map((placement) => {
-    const zone = grid[placement.y]?.[placement.x];
-    if (!zone) return placement;
+  const normalizedPlacements = placements.flatMap((placement) => {
+    const requestedZone = grid[placement.y]?.[placement.x];
+    // Legacy/default-layout placement data can become illegal when the block
+    // is restored with its DNA-specific rows. Preserve the crew member by
+    // moving only an illegal or occupied location to the first open legal cell.
+    const zone = requestedZone?.passable && !requestedZone.occupantId
+      ? requestedZone
+      : findFirstOpenPassableZone(grid);
+    if (!zone) return [];
+
     zone.occupantId = placement.memberId;
-    return {
+    const normalized = {
       ...placement,
+      x: zone.x,
+      y: zone.y,
       zoneType: zone.zoneType,
       exposureRisk: zone.exposureRisk,
     };
+    return [{
+      ...normalized,
+      incomePerTick: calculatePlacementIncome(normalized, grid, incomeMultiplier),
+    }];
   });
 
   return {
@@ -72,7 +86,7 @@ export function apiBlockToBlockData(raw: Record<string, unknown>): BlockData {
     streetBackdropUrl: raw.streetBackdropUrl as string | undefined,
     topdownBgUrl: raw.topdownBgUrl as string | undefined,
     dnaId: resolved.dna.id,
-    incomeMultiplier: Number(raw.incomeMultiplier ?? raw.income_multiplier ?? resolved.dna.incomeMultiplier),
+    incomeMultiplier,
     heatDecayMultiplier: Number(raw.heatDecayMultiplier ?? raw.heat_decay_multiplier ?? resolved.dna.heatDecayMultiplier),
     maxMembers: Number(raw.maxMembers ?? raw.max_members ?? resolved.dna.maxMembers),
   };
