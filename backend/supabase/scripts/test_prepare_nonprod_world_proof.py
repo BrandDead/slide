@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import tempfile
 import unittest
@@ -19,6 +20,15 @@ class WorldProofBootstrapTests(unittest.TestCase):
     def test_manifest_has_no_validation_errors(self) -> None:
         manifest = MODULE.load_manifest()
         self.assertEqual(MODULE.validate(manifest), [])
+
+    def test_missing_source_is_reported_without_crashing(self) -> None:
+        manifest = copy.deepcopy(MODULE.load_manifest())
+        manifest["canonical_migrations"][0]["source"] = "migrations/does_not_exist.sql"
+
+        errors = MODULE.validate(manifest)
+
+        self.assertTrue(any("Missing canonical migration" in error for error in errors))
+        self.assertTrue(any("required base table" in error for error in errors))
 
     def test_materialization_is_deterministic_and_excludes_legacy_sql(self) -> None:
         manifest = MODULE.load_manifest()

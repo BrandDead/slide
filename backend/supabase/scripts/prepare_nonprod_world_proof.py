@@ -37,12 +37,15 @@ def load_manifest() -> dict:
 def validate(manifest: dict) -> list[str]:
     errors: list[str] = []
     targets: set[str] = set()
+    source_sql: dict[str, str] = {}
 
     for entry in manifest["canonical_migrations"]:
         source = SUPABASE_ROOT / entry["source"]
         target = entry["target"]
         if not source.is_file():
             errors.append(f"Missing canonical migration: {source}")
+        else:
+            source_sql[entry["source"]] = source.read_text(encoding="utf-8")
         if not target.endswith(".sql") or not target[:14].isdigit():
             errors.append(f"Invalid deterministic target name: {target}")
         if target in targets:
@@ -56,7 +59,7 @@ def validate(manifest: dict) -> list[str]:
 
     required = manifest.get("required_objects", {})
     master_entry = manifest["canonical_migrations"][0]
-    master_sql = (SUPABASE_ROOT / master_entry["source"]).read_text(encoding="utf-8")
+    master_sql = source_sql.get(master_entry["source"], "")
     for table in required.get("base_tables", []):
         if f"public.{table}" not in master_sql:
             errors.append(f"Master schema does not define required base table public.{table}")
@@ -68,15 +71,12 @@ def validate(manifest: dict) -> list[str]:
     if foundation_entry is None:
         errors.append("Manifest does not include authoritative-world migration 005.")
     else:
-        foundation_sql = (SUPABASE_ROOT / foundation_entry["source"]).read_text(encoding="utf-8")
+        foundation_sql = source_sql.get(foundation_entry["source"], "")
         for table in required.get("authoritative_tables", []):
             if f"public.{table}" not in foundation_sql:
                 errors.append(f"Foundation migration does not define public.{table}")
 
-    authoritative_sql = "\n".join(
-        (SUPABASE_ROOT / entry["source"]).read_text(encoding="utf-8")
-        for entry in manifest["canonical_migrations"]
-    )
+    authoritative_sql = "\n".join(source_sql.values())
     for function in required.get("authoritative_functions", []):
         if function not in authoritative_sql:
             errors.append(f"Canonical migration set does not define {function}")
