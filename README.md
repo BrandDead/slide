@@ -4,6 +4,10 @@
 
 ---
 
+## Contributors and AI Agents
+
+Before changing code, read **[AI Contributor Start Here](docs/AI_CONTRIBUTOR_START_HERE.md)** and then the **[Project Log](docs/PROJECT_LOG.md)**. They define the current game direction, active work queue, safe parallel branch workflow, test gates, and the operational boundary for Supabase work. Older prompt files are historical context only.
+
 ## How to Run Locally
 
 See **[README_RUN.md](README_RUN.md)** for the complete setup guide.
