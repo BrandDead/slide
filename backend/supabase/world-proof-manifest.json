@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "purpose": "Materialize a disposable Supabase CLI workdir for the DEALT/SLIDE authoritative-world proof. This manifest is not a production deployment plan.",
+  "canonical_migrations": [
+    {
+      "source": "migrations/000_master_schema.sql",
+      "target": "20260905000000_master_schema.sql",
+      "reason": "Creates the canonical profiles, blocks, enums, helper functions, RLS baseline, and realtime baseline required by the current application."
+    },
+    {
+      "source": "migrations/003_block_backgrounds.sql",
+      "target": "20260905000100_block_backgrounds.sql",
+      "reason": "Creates optional Block-mode support tables that depend on the canonical blocks table."
+    },
+    {
+      "source": "migrations/004_paid_entitlements.sql",
+      "target": "20260905000200_paid_entitlements.sql",
+      "reason": "Retains the current schema’s additive billing tables without activating products or processing payment data."
+    },
+    {
+      "source": "migrations/005_authoritative_world_foundation.sql",
+      "target": "20260905000300_authoritative_world_foundation.sql",
+      "reason": "Adds the durable Ghost Crew state, world-event ledger, safe Block DNA projection, and idempotent encounter receipts required by the proof."
+    },
+    {
+      "source": "migrations/006_authoritative_world_integrity_hardening.sql",
+      "target": "20260905000400_authoritative_world_integrity_hardening.sql",
+      "reason": "Adds bounded encounter deltas and stale-projection protection required by the proof."
+    }
+  ],
+  "excluded_legacy_migrations": [
+    {
+      "source": "migrations/001_mvp_tables.sql",
+      "reason": "References historical users and gangs tables that are not created by the canonical master schema and cannot be replayed safely in a fresh proof environment."
+    },
+    {
+      "source": "migrations/002_combat_tables.sql",
+      "reason": "Depends on the historical migration-001 table shape and is not part of the current authoritative-world proof contract."
+    }
+  ],
+  "required_objects": {
+    "base_tables": ["profiles", "blocks"],
+    "authoritative_tables": ["ghost_crews", "claimed_block_dna", "world_ticks", "world_events", "encounter_results"],
+    "authoritative_functions": ["apply_ghost_world_tick", "commit_encounter_result", "persist_player_block_projection"],
+    "edge_function": "world-tick-ghost"
+  },
+  "safety": {
+    "target_environment": "explicitly named Supabase preview, staging, development, or sandbox project only",
+    "forbidden_targets": ["production", "main"],
+    "required_preflight": ["migration list", "database push dry run", "baseline object inventory", "documented disposal or reset path"],
+    "rollback": "Delete or reset only the disposable target after capturing evidence; never repair migration history on production from this workflow."
+  }
+}

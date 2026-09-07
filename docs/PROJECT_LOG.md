@@ -68,6 +68,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-05 — Preview bootstrap readiness repair (pending review)
+
+- The explicitly authorized `slide` preview branch `closed-alpha-world-proof` was created from the production project without changing production `main`. Read-only dashboard and log inspection then identified a provisioning failure: a historical migration attempted to create a table referencing `public.blocks` before the current canonical base schema had been applied. The preview is unhealthy and must not be used for the authoritative-world proof.
+- Added `backend/supabase/world-proof-manifest.json` and an offline materialization/validation utility. The manifest declares the compatible fresh-proof migration set: current master schema, block backgrounds, paid-entitlements schema, authoritative-world foundation, and integrity hardening. It explicitly excludes historical `001_mvp_tables.sql` and `002_combat_tables.sql`, whose old table dependencies are not created by the current master schema.
+- Added `docs/SUPABASE_PREVIEW_BOOTSTRAP.md` and offline tests. The next safe sequence is: merge this repair, recreate a disposable preview, materialize the manifest workdir, link only to the named preview, run `supabase db push --dry-run`, and stop on any migration-history divergence. Only then may the separate RLS/tick/idempotency proof begin. Do not repair production migration history or use the SQL Editor for remote schema changes.
+
 ### 2026-09-04 — Closed-alpha map resilience + Block DNA batch-one integration (PR #128)
 
 - Merged the combined release candidate into protected `main-tL2525` at `4fa68d6` after integration validation, GitHub frontend/backend CI, Vercel deployment, and automated review. PRs #126 and #127 were integrated through #128 rather than released independently.
