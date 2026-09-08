@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'npm:zod@3.23.8';
 import { corsHeaders } from '../_shared/cors.ts';
 import { errorResponse, successResponse, parseBody } from '../_shared/utils.ts';
 import { createAdminSupabaseClient } from '../_shared/supabaseClient.ts';
