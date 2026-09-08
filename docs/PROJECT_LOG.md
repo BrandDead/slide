@@ -68,6 +68,15 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-08 — Authoritative-world standalone staging proof passed
+
+- Merged PR #130, which introduced the source-controlled world-proof manifest and bootstrap validator, then merged PR #132, which corrects explicit Deno-compatible `npm:zod@3.23.8` imports across all affected Supabase Edge Functions. The default branch passed post-merge frontend CI, backend CI, and Vercel verification.
+- The first `slide` preview branch was unhealthy because it replayed incompatible historical migration lineage. It was retired after a standalone replacement was verified. Do not recreate or use that failed preview path.
+- Created the explicitly isolated `dealt-world-proof-staging` project (`zfgclgnyqlabttymxwuw`) and applied the tracked manifest: `000_master_schema.sql`, `003_block_backgrounds.sql`, `004_paid_entitlements.sql`, `005_authoritative_world_foundation.sql`, and `006_authoritative_world_integrity_hardening.sql`. The incompatible legacy `001_mvp_tables.sql` remained excluded.
+- Proved in staging that all five authoritative-world tables exist with RLS enabled; direct anonymous/authenticated writes are denied; Ghost Crew tick is service-only; encounter and block-projection RPCs are authenticated-only; public crews remain readable; anonymous encounter receipts are invisible; duplicate ticks create exactly one ledger row and one world event.
+- Deployed `world-tick-ghost` to standalone staging with a transient staging-only secret. The endpoint returned 401 without the secret, 400 for an invalid payload, applied a valid synthetic tick once, and returned `applied: false` for the duplicate. No scheduler was enabled and no production database, function, secret, or data was changed.
+- Canonical evidence is `docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`. The remaining P0 decision is deliberate production promotion with backup/rollback evidence, an approved rollout window, a new production-only secret, a post-deploy smoke check, and a separate scheduler design review. This is not authorized merely because staging passed.
+
 ### 2026-09-05 — Preview bootstrap readiness repair (pending review)
 
 - The explicitly authorized `slide` preview branch `closed-alpha-world-proof` was created from the production project without changing production `main`. Read-only dashboard and log inspection then identified a provisioning failure: a historical migration attempted to create a table referencing `public.blocks` before the current canonical base schema had been applied. The preview is unhealthy and must not be used for the authoritative-world proof.

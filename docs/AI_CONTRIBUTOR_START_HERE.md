@@ -19,7 +19,7 @@ The deployable source of truth is the protected default branch: **`main-tL2525`*
 | Command desktop and return-state briefing | Merged. Durable Ghost Crew events appear in the City Briefing and route to an existing response. | PR #125; `components/layout/CityBriefing.tsx` |
 | Territory strategy | Merged. Territory remains playable if the optional street map fails; the player can retry or use the Strip, recon, claims, and crew placement. | PR #128; `components/map/PlayableMap.tsx`, `TerritoryMap.tsx` |
 | Block DNA | Merged. The library currently has **25 fictional archetypes**, and the stored DNA assignment owns a claimed block's grid and encounter terrain. | PR #128; `config/blockDNA.ts`, `utils/blockDNAResolver.ts` |
-| Authoritative-world foundation | Code is merged, but its migrations and guarded tick endpoint have **not** been proven in a confirmed non-production Supabase project. The first preview bootstrap exposed a migration-lineage blocker and must be repaired before proof execution. | `backend/supabase/migrations/005_*`, `006_*`; `backend/supabase/functions/world-tick-ghost/`; `docs/SUPABASE_PREVIEW_BOOTSTRAP.md` |
+| Authoritative-world foundation | **Staging proof passed.** The manifest migrations, RLS boundaries, idempotent Ghost Crew tick, and guarded endpoint were proven in an isolated standalone project. Production remains intentionally unchanged pending a separate promotion decision. | `docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`; `backend/supabase/migrations/005_*`, `006_*`; `backend/supabase/functions/world-tick-ghost/` |
 | Default branch quality | Verified at the latest closed-alpha release: frontend tests, TypeScript, asset audit, production build, backend tests, GitHub CI, Vercel preview, and automated review passed. | `docs/CLOSED_ALPHA_SPRINT_INTEGRATION_REPORT.md`; PR #128 |
 
 ## 3. The living sources of truth
@@ -30,9 +30,10 @@ Read these **in this order** before changing code. If two documents disagree, th
 2. [`docs/PROJECT_LOG.md`](PROJECT_LOG.md): current decisions, merged work, roadmap order, and rollback history. Append a dated entry when meaningful work lands; do not rewrite older entries.
 3. Open GitHub issues and pull requests: they are the active work queue and review record.
 4. [`docs/AI_MANUS_AUTHORITATIVE_WORLD_DESIGN.md`](AI_MANUS_AUTHORITATIVE_WORLD_DESIGN.md): ownership and idempotency boundaries for durable world state.
-5. [`docs/SUPABASE_PREVIEW_BOOTSTRAP.md`](SUPABASE_PREVIEW_BOOTSTRAP.md) and [`backend/supabase/world-proof-manifest.json`](../backend/supabase/world-proof-manifest.json): the current manifest-driven bootstrap boundary for a disposable proof target.
-6. The prepared non-production proof runbook on the [`ops/closed-alpha-world-proof` branch](https://github.com/BrandDead/slide/blob/ops/closed-alpha-world-proof/docs/NONPRODUCTION_AUTHORITATIVE_WORLD_PROOF.md): the exact proof required after the bootstrap dry-run passes and before a scheduler can touch any live service.
-7. The relevant code, test, and existing component/store/service contract.
+5. [`docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`](AUTHORITATIVE_WORLD_STAGING_PROOF.md): the completed staging evidence, production boundary, and required promotion controls.
+6. [`docs/SUPABASE_PREVIEW_BOOTSTRAP.md`](SUPABASE_PREVIEW_BOOTSTRAP.md) and [`backend/supabase/world-proof-manifest.json`](../backend/supabase/world-proof-manifest.json): the manifest-driven bootstrap boundary for any new disposable proof target.
+7. The prepared non-production proof runbook on the [`ops/closed-alpha-world-proof` branch](https://github.com/BrandDead/slide/blob/ops/closed-alpha-world-proof/docs/NONPRODUCTION_AUTHORITATIVE_WORLD_PROOF.md): the proof scope and rollback checks. Treat the completed staging record as newer status where they differ.
+8. The relevant code, test, and existing component/store/service contract.
 
 The following documents are **background only**, not current execution instructions: `docs/AI_MODEL_ASSIGNMENTS.md`, `docs/AI_MODEL_PROMPTS.md`, `docs/AI_DEVELOPER_CODEBASE_PROMPT.md`, older files in `prompts/`, and old status sections in `README.md`. Do not blindly implement tasks described there.
 
@@ -73,7 +74,7 @@ The active GitHub issues are the backlog. Do not assume that the oldest issue is
 
 | Priority | Work | Suggested branch | Parallel safety |
 |---:|---|---|---|
-| P0 | Repair and prove the authoritative-world migrations, RLS, guarded Ghost Crew tick, idempotency, and rollback in a confirmed non-production Supabase project. | `fix/supabase-preview-bootstrap-readiness` then `ops/closed-alpha-world-proof` | The first preview branch is blocked by migration-lineage drift. Use the bootstrap manifest, validate it, run a preview-only dry run, and stop on any history divergence. |
+| P0 | Decide whether to promote the **staging-proven** authoritative-world migrations and guarded tick endpoint to production. | `ops/authoritative-world-production-promotion` | Requires explicit production approval, backup/rollback evidence, a low-traffic rollout window, a newly generated production-only tick secret, post-deploy smoke tests, and a separate scheduler design review. Do not begin from the retired preview path. |
 | P1 | Finish the remaining 2.5D scene and camera contract work. Asset-manifest wiring and the initial asset cleanup are already merged; audit #78/#79 before proposing only genuinely unfinished follow-up work. | `feature/77-diorama-camera-contract` | Renderer and asset files are shared; reserve exact files before coding and avoid parallel changes without an explicit integration plan. |
 | P1 | Continue Block DNA toward the planned 30–40 fictional cards. | `feature/80-block-dna-batch-two` | Safe in parallel only if it limits changes to DNA config, its design brief, and resolver/encounter tests. Do not edit map resilience or persistence code. |
 | P1 | Strengthen Ghost Crew / NPC rival behavior after the non-production proof clarifies durable tick operations. | `feature/81-ghost-crew-alpha` | Begin with a design/test branch; do not introduce a scheduler or migration without the P0 proof. |
@@ -158,4 +159,4 @@ The integration owner, not the contributing model, combines compatible PRs. Befo
 
 ## 11. Known release gate
 
-The build is **closed-alpha ready for continued feature work**, but it is **not yet proven for durable authoritative-world operations**. The remaining P0 requirement is a repaired non-production Supabase bootstrap followed by the RLS/world-tick proof against a clearly named disposable or staging project. Treat this as blocked until the manifest dry-run and the full proof pass.
+The build is **closed-alpha ready for continued feature work**, and the authoritative-world foundation is now **proven in isolated standalone staging**. The remaining P0 requirement is a deliberate production-promotion decision with the controls recorded in [`AUTHORITATIVE_WORLD_STAGING_PROOF.md`](AUTHORITATIVE_WORLD_STAGING_PROOF.md). Treat production rollout and any recurring scheduler as blocked until that separate approval and runbook are complete.
