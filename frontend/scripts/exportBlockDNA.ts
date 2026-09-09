@@ -21,13 +21,15 @@ import { buildCatalogExport, buildParityFixture } from '../src/config/blockDNAEx
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '../..');
 
-const targets: [string, unknown][] = [
-  [resolve(repoRoot, 'backend/python/data/block_dna_catalog.json'), buildCatalogExport()],
-  [resolve(repoRoot, 'backend/python/tests/fixtures/dna_resolver_parity.json'), buildParityFixture()],
+const targets: [string, unknown, number | undefined][] = [
+  // Human-inspectable: reviewers should be able to read the card data.
+  [resolve(repoRoot, 'backend/python/data/block_dna_catalog.json'), buildCatalogExport(), 2],
+  // Machine-only golden: kept compact so it stays reviewable as a diff.
+  [resolve(repoRoot, 'backend/python/tests/fixtures/dna_resolver_parity.json'), buildParityFixture(), undefined],
 ];
 
-for (const [path, payload] of targets) {
+for (const [path, payload, indent] of targets) {
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, `${JSON.stringify(payload, null, 2)}\n`);
+  writeFileSync(path, `${JSON.stringify(payload, null, indent)}\n`);
   console.log(`wrote ${path}`);
 }
