@@ -1102,6 +1102,130 @@ export function getNearestDNA(lat: number, lng: number): BlockDNA {
 }
 
 /**
+ * Find the nearest DNA record to a lat/lng within an explicit catalog.
+ * Catalog-scoped twin of getNearestDNA — used by the versioned resolver so
+ * that catalog growth cannot change what an older claim resolves to.
+ */
+export function getNearestDNAFrom(
+  catalog: readonly BlockDNA[],
+  lat: number,
+  lng: number,
+): BlockDNA {
+  let nearest = catalog[0];
+  let nearestDist = Infinity;
+  for (const dna of catalog) {
+    const dlat = dna.lat - lat;
+    const dlng = dna.lng - lng;
+    const dist = dlat * dlat + dlng * dlng;
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearest = dna;
+    }
+  }
+  return nearest;
+}
+
+// ─── Resolver catalog versioning ──────────────────────────────
+//
+// SAVE-INTEGRITY CONTRACT
+//
+// The generic resolver (blockDNAResolver) picks a DNA by indexing into
+// catalog-derived arrays: `seedNum % matches.length` for the address-keyword
+// pool, nearest-by-distance over the catalog, and a final `seed % length`
+// fallback. Every one of those is sensitive to catalog MEMBERSHIP, so simply
+// appending new cards would silently re-resolve blocks a player already
+// claimed — changing their tactical layout, income, heat and capacity on
+// reload.
+//
+// The fix is to freeze catalog membership per version. A block claimed while
+// catalog v1 was live is always re-resolved against v1, forever. New claims
+// use the current version. Growing the library is therefore always safe.
+//
+// RULES FOR FUTURE BATCHES
+//   1. APPEND new cards to BLOCK_DNA_LIBRARY. Never remove or rename an id
+//      that appears in a frozen version list below.
+//   2. Add a new version constant (v3, v4 …) listing the ids live at that
+//      point, and bump CURRENT_RESOLVER_CATALOG_VERSION.
+//   3. Never edit an existing version's id list.
+
+export type ResolverCatalogVersion = 'v1' | 'v2';
+
+/** Catalog version applied to blocks claimed from now on. */
+export const CURRENT_RESOLVER_CATALOG_VERSION: ResolverCatalogVersion = 'v2';
+
+/**
+ * Frozen membership of the pre-batch-two (25 card) catalog.
+ * Any block claimed before Block DNA batch two resolves against exactly this
+ * pool, in exactly this order. Do not reorder, remove or rename entries.
+ */
+export const RESOLVER_CATALOG_V1_IDS: readonly string[] = Object.freeze([
+  'las-olas-1208',
+  'overtown-nw3',
+  'liberty-city-alley',
+  'wynwood-warehouse',
+  'south-beach-ocean',
+  'opalocka-parking',
+  'little-havana-8th',
+  'carol-city-183rd',
+  'brownsville-court',
+  'pompano-strip',
+  'coral-gables-estate',
+  'hialeah-warehouse-row',
+  'hollywood-broadwalk',
+  'liberty-square-projects',
+  'plantation-acres',
+  'brickell-highrise',
+  'dania-jai-alai',
+  'harbor-spur',
+  'rail-market',
+  'canal-court',
+  'stadium-service',
+  'night-market',
+  'courtyard-walkups',
+  'floodgate-repair',
+  'ring-road-underpass',
+]);
+
+let cachedCatalogV1: readonly BlockDNA[] | null = null;
+
+function buildCatalogV1(): readonly BlockDNA[] {
+  const missing: string[] = [];
+  const records: BlockDNA[] = [];
+  for (const id of RESOLVER_CATALOG_V1_IDS) {
+    const dna = BLOCK_DNA_LIBRARY.find((entry) => entry.id === id);
+    if (!dna) {
+      missing.push(id);
+      continue;
+    }
+    records.push(dna);
+  }
+  if (missing.length > 0) {
+    // A removed or renamed v1 card would silently change the pool length and
+    // re-resolve existing player blocks. Fail loudly instead — CI covers this.
+    throw new Error(
+      `Resolver catalog v1 is incomplete. Missing ids: ${missing.join(', ')}. ` +
+        'Frozen catalog versions must never lose entries; append new cards instead.',
+    );
+  }
+  return Object.freeze(records);
+}
+
+/**
+ * Resolve the frozen DNA pool for a catalog version.
+ * v1 = the 25 cards that shipped before batch two.
+ * v2 = the live library (currently 33 cards).
+ */
+export function getResolverCatalog(
+  version: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
+): readonly BlockDNA[] {
+  if (version === 'v1') {
+    if (!cachedCatalogV1) cachedCatalogV1 = buildCatalogV1();
+    return cachedCatalogV1;
+  }
+  return BLOCK_DNA_LIBRARY;
+}
+
+/**
  * Build a resolved ProjectionProfile for a block DNA.
  * Merges the DNA's projectionOverrides on top of DEFAULT_PROFILE.
  */

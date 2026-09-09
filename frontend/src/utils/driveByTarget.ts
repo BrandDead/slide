@@ -27,7 +27,7 @@ import {
   type StreetSceneProjection,
   type StreetSegment,
 } from '../render/proceduralStreet';
-import { BLOCK_DNA_LIBRARY } from '../config/blockDNA';
+import { BLOCK_DNA_LIBRARY, CURRENT_RESOLVER_CATALOG_VERSION } from '../config/blockDNA';
 import type { ResolvedBlock } from './blockDNAResolver';
 import type { BlockZoneType } from '../types/block.types';
 
@@ -155,6 +155,9 @@ function offlineResolvedFromTextSeed(textSeed: string): ResolvedBlock {
     startingMorale: dna.startingMorale,
     startingHeat: dna.startingHeat,
     maxMembers: dna.maxMembers,
+    // Offline drive-by targets are ephemeral scenery, not claimed blocks, so
+    // they intentionally index the live library rather than a frozen catalog.
+    catalogVersion: CURRENT_RESOLVER_CATALOG_VERSION,
   };
 }
 
