@@ -98,10 +98,24 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
   test guards against confusing the two.
 - Client precedence in `blockMappers`: snapshot → stored `dnaId` → pinned legacy
   resolver. A malformed snapshot is rejected rather than half-building a grid.
-- Tests: 22 backend (parity, catalog invariants, snapshot payload, grid_data
-  integration, legacy/malformed reads) and 12 frontend (export drift; end-to-end
-  claim → snapshot → `/my-blocks` → hydrate identity, including the
-  balance-edit and no-snapshot-legacy cases).
+- Tests: 27 backend and 12 frontend. Backend covers cross-language parity,
+  catalog invariants, snapshot payload, `grid_data` integration and
+  legacy/malformed reads, plus an **endpoint-level regression on the real player
+  path** (`tests/test_block_dna_endpoint.py`): claim with a forged client
+  `dnaId` → server-selected snapshot returned and the forgery ignored → board
+  payload preserved → place/tick/collect → reload through
+  `/api/blocks/my-blocks` returns the identical snapshot. Offline and in-memory
+  against the dev adapter; no Supabase, secrets, migrations or scheduler.
+  Frontend covers export drift and the end-to-end hydrate path including the
+  balance-edit and no-snapshot-legacy cases.
+- **`grid_data` shape, for the record:** `generate_block_grid().to_dict()` nests
+  the board as `{'grid': {…, 'tiles': […]}, 'metadata': {…}}`. There is no
+  top-level `tiles` key, before this change or after it, so the snapshot written
+  as a top-level sibling cannot collide with or shadow the board. Note that
+  `block_state_engine` reads `grid_data.get('tiles')` — one level too shallow —
+  and therefore always falls back to `_generate_default_grid(8, 8)`. That is
+  pre-existing behaviour, unchanged here, and worth its own issue: the tactical
+  state engine is not currently seeing the generated block board.
 - Scope: claim path, serializer, one new service, one generated artifact and
   tests. No Supabase change, no migration, no secret, no scheduler, no deploy.
 

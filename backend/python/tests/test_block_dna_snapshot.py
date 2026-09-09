@@ -159,6 +159,11 @@ def test_snapshot_is_by_value_not_a_catalog_reference():
 # ─── grid_data integration ───────────────────────────────────────────────────
 
 def test_attach_snapshot_preserves_tiles_and_siblings():
+    """
+    Shape-agnostic: attach must preserve every sibling key whatever the payload
+    looks like. The real claim payload is {'grid': {...'tiles'...}, 'metadata':
+    {...}} — that exact shape is asserted end to end in test_block_dna_endpoint.
+    """
     grid = {
         'tiles': [[{'x': 0, 'y': 0}]],
         'width': 8,
