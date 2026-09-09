@@ -68,6 +68,43 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-09 — Server-authoritative Block DNA snapshots (no migration)
+
+- Closes the gap left open by the batch-two PR: the Flask serializer never
+  returned a block's DNA, so `apiBlockToBlockData`'s restore path could not fire
+  and every reload re-resolved the block from (lat, lng, address).
+- **Claim is now authoritative.** `/api/blocks/claim` resolves DNA server-side
+  from verified geocoder output and stores a versioned snapshot carrying dnaId,
+  catalog version, seed, the resolved eight-row layout, income multiplier, heat
+  decay, cover bonus, starting morale, max members, starting heat and hot-block
+  status. Values are copied **by value**, so a claimed block is insulated from
+  both catalog growth and later balance edits to the card it came from. A
+  client-supplied `dnaId` is never trusted — it is logged if it disagrees.
+- **No schema migration.** The snapshot lives under the namespaced key
+  `grid_data['__dna__']`, additive to the existing JSON column. `grid_data`'s
+  other keys, including the `tiles` payload `block_state_engine` reads, are
+  preserved untouched; a test asserts this.
+- `_serialize_block` now returns `dnaSnapshot` (and `dnaId`) on every block
+  response — claim, `/my-blocks`, single block, tick and collect. Pre-snapshot
+  records return `null` and the client falls back to its pinned v1 resolver.
+- **Single source of truth for card data.** `backend/python/data/block_dna_catalog.json`
+  is generated from `frontend/src/config/blockDNA.ts` via `npm run export:block-dna`.
+  A vitest drift test fails if the artifact and the TypeScript catalog disagree,
+  and `services/block_dna.py` replays an 800-case fixture of TypeScript-resolved
+  locations to prove the two resolvers agree card-for-card and field-for-field.
+  Keyword rules are exported as JS/Python-portable pattern strings rather than
+  hand-copied. `generate_block_seed` is the coordinate-string seed and is
+  explicitly *not* `geocoding_service.generate_block_hash` (an md5 digest) — a
+  test guards against confusing the two.
+- Client precedence in `blockMappers`: snapshot → stored `dnaId` → pinned legacy
+  resolver. A malformed snapshot is rejected rather than half-building a grid.
+- Tests: 22 backend (parity, catalog invariants, snapshot payload, grid_data
+  integration, legacy/malformed reads) and 12 frontend (export drift; end-to-end
+  claim → snapshot → `/my-blocks` → hydrate identity, including the
+  balance-edit and no-snapshot-legacy cases).
+- Scope: claim path, serializer, one new service, one generated artifact and
+  tests. No Supabase change, no migration, no secret, no scheduler, no deploy.
+
 ### 2026-09-09 — Block DNA batch two (25 → 33) + frozen resolver catalog (PR #134)
 
 - Catalog grows to **33** fictional archetypes. Batch two adds Signal Yard, Marina Cut,

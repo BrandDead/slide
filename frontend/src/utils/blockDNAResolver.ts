@@ -55,48 +55,62 @@ interface KeywordRule {
   preferredTags: BlockTag[];
 }
 
-const KEYWORD_RULES: KeywordRule[] = [
+/**
+ * Plain-data form of the keyword rules, in priority order.
+ *
+ * This is the exported contract: the authoritative Flask claim path resolves
+ * DNA from the same rules (see backend/python/services/block_dna.py), reading
+ * them out of the generated catalog artifact rather than keeping a hand-copy.
+ * Patterns use only syntax that behaves identically in JS and Python `re`
+ * (\b word boundaries, `.?`), and are always matched case-insensitively.
+ */
+export const KEYWORD_RULE_SOURCE: { patterns: string[]; preferredTags: BlockTag[] }[] = [
   // Boulevards, avenues, main streets → corner store / open air
   {
-    patterns: [/\bblvd\b/i, /\bboulevard\b/i, /\bave\b/i, /\bavenue\b/i, /\bmain\b/i, /\bbroadway\b/i],
+    patterns: ['\\bblvd\\b', '\\bboulevard\\b', '\\bave\\b', '\\bavenue\\b', '\\bmain\\b', '\\bbroadway\\b'],
     preferredTags: ['corner-store', 'open-air'],
   },
   // Parks, plazas, greens
   {
-    patterns: [/\bpark\b/i, /\bplaza\b/i, /\bgreen\b/i, /\bcommons\b/i, /\bsquare\b/i],
+    patterns: ['\\bpark\\b', '\\bplaza\\b', '\\bgreen\\b', '\\bcommons\\b', '\\bsquare\\b'],
     preferredTags: ['open-air'],
   },
   // Alleys, courts, lanes, ways → trap house / alley heavy
   {
-    patterns: [/\bally\b/i, /\balley\b/i, /\bct\b/i, /\bcourt\b/i, /\bln\b/i, /\blane\b/i, /\bway\b/i, /\bpl\b/i, /\bplace\b/i],
+    patterns: ['\\bally\\b', '\\balley\\b', '\\bct\\b', '\\bcourt\\b', '\\bln\\b', '\\blane\\b', '\\bway\\b', '\\bpl\\b', '\\bplace\\b'],
     preferredTags: ['alley-heavy'],
   },
   // Warehouses, industrial
   {
-    patterns: [/\bwarehouse\b/i, /\bindustrial\b/i, /\bdock\b/i, /\bport\b/i, /\byard\b/i],
+    patterns: ['\\bwarehouse\\b', '\\bindustrial\\b', '\\bdock\\b', '\\bport\\b', '\\byard\\b'],
     preferredTags: ['warehouse'],
   },
   // Beach, ocean, waterfront
   {
-    patterns: [/\bocean\b/i, /\bbeach\b/i, /\bbay\b/i, /\bshore\b/i, /\bcoast\b/i, /\bharbor\b/i],
+    patterns: ['\\bocean\\b', '\\bbeach\\b', '\\bbay\\b', '\\bshore\\b', '\\bcoast\\b', '\\bharbor\\b'],
     preferredTags: ['beachfront'],
   },
   // Strip malls, shopping
   {
-    patterns: [/\bstrip\b/i, /\bmall\b/i, /\bshopping\b/i, /\bplaza\b/i, /\bcenter\b/i],
+    patterns: ['\\bstrip\\b', '\\bmall\\b', '\\bshopping\\b', '\\bplaza\\b', '\\bcenter\\b'],
     preferredTags: ['strip-mall'],
   },
   // Parking lots
   {
-    patterns: [/\bparking\b/i, /\blot\b/i, /\bgarage\b/i],
+    patterns: ['\\bparking\\b', '\\blot\\b', '\\bgarage\\b'],
     preferredTags: ['parking-lot'],
   },
   // Rooftop / high-rise
   {
-    patterns: [/\btower\b/i, /\bhigh.?rise\b/i, /\bpenthouse\b/i, /\bterrace\b/i],
+    patterns: ['\\btower\\b', '\\bhigh.?rise\\b', '\\bpenthouse\\b', '\\bterrace\\b'],
     preferredTags: ['rooftop-access'],
   },
 ];
+
+const KEYWORD_RULES: KeywordRule[] = KEYWORD_RULE_SOURCE.map((rule) => ({
+  patterns: rule.patterns.map((pattern) => new RegExp(pattern, 'i')),
+  preferredTags: rule.preferredTags,
+}));
 
 // ─── Core resolver ───────────────────────────────────────────
 

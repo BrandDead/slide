@@ -1,0 +1,1032 @@
+{
+  "schema": 1,
+  "currentVersion": "v2",
+  "versions": {
+    "v1": [
+      "las-olas-1208",
+      "overtown-nw3",
+      "liberty-city-alley",
+      "wynwood-warehouse",
+      "south-beach-ocean",
+      "opalocka-parking",
+      "little-havana-8th",
+      "carol-city-183rd",
+      "brownsville-court",
+      "pompano-strip",
+      "coral-gables-estate",
+      "hialeah-warehouse-row",
+      "hollywood-broadwalk",
+      "liberty-square-projects",
+      "plantation-acres",
+      "brickell-highrise",
+      "dania-jai-alai",
+      "harbor-spur",
+      "rail-market",
+      "canal-court",
+      "stadium-service",
+      "night-market",
+      "courtyard-walkups",
+      "floodgate-repair",
+      "ring-road-underpass"
+    ],
+    "v2": [
+      "las-olas-1208",
+      "overtown-nw3",
+      "liberty-city-alley",
+      "wynwood-warehouse",
+      "south-beach-ocean",
+      "opalocka-parking",
+      "little-havana-8th",
+      "carol-city-183rd",
+      "brownsville-court",
+      "pompano-strip",
+      "coral-gables-estate",
+      "hialeah-warehouse-row",
+      "hollywood-broadwalk",
+      "liberty-square-projects",
+      "plantation-acres",
+      "brickell-highrise",
+      "dania-jai-alai",
+      "harbor-spur",
+      "rail-market",
+      "canal-court",
+      "stadium-service",
+      "night-market",
+      "courtyard-walkups",
+      "floodgate-repair",
+      "ring-road-underpass",
+      "signal-yard",
+      "marina-cut",
+      "sable-plaza",
+      "orchard-row",
+      "switchback-garage",
+      "civic-arcade",
+      "ridge-estates",
+      "vernon-court"
+    ]
+  },
+  "keywordRules": [
+    {
+      "patterns": [
+        "\\bblvd\\b",
+        "\\bboulevard\\b",
+        "\\bave\\b",
+        "\\bavenue\\b",
+        "\\bmain\\b",
+        "\\bbroadway\\b"
+      ],
+      "preferredTags": [
+        "corner-store",
+        "open-air"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bpark\\b",
+        "\\bplaza\\b",
+        "\\bgreen\\b",
+        "\\bcommons\\b",
+        "\\bsquare\\b"
+      ],
+      "preferredTags": [
+        "open-air"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bally\\b",
+        "\\balley\\b",
+        "\\bct\\b",
+        "\\bcourt\\b",
+        "\\bln\\b",
+        "\\blane\\b",
+        "\\bway\\b",
+        "\\bpl\\b",
+        "\\bplace\\b"
+      ],
+      "preferredTags": [
+        "alley-heavy"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bwarehouse\\b",
+        "\\bindustrial\\b",
+        "\\bdock\\b",
+        "\\bport\\b",
+        "\\byard\\b"
+      ],
+      "preferredTags": [
+        "warehouse"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bocean\\b",
+        "\\bbeach\\b",
+        "\\bbay\\b",
+        "\\bshore\\b",
+        "\\bcoast\\b",
+        "\\bharbor\\b"
+      ],
+      "preferredTags": [
+        "beachfront"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bstrip\\b",
+        "\\bmall\\b",
+        "\\bshopping\\b",
+        "\\bplaza\\b",
+        "\\bcenter\\b"
+      ],
+      "preferredTags": [
+        "strip-mall"
+      ]
+    },
+    {
+      "patterns": [
+        "\\bparking\\b",
+        "\\blot\\b",
+        "\\bgarage\\b"
+      ],
+      "preferredTags": [
+        "parking-lot"
+      ]
+    },
+    {
+      "patterns": [
+        "\\btower\\b",
+        "\\bhigh.?rise\\b",
+        "\\bpenthouse\\b",
+        "\\bterrace\\b"
+      ],
+      "preferredTags": [
+        "rooftop-access"
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "id": "las-olas-1208",
+      "lat": 26.1186239,
+      "lng": -80.1574818,
+      "tags": [
+        "corner-store",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "alley",
+        "5": "sidewalk",
+        "6": "curb",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1,
+      "heatDecayMultiplier": 1,
+      "globalCoverBonus": 0,
+      "startingMorale": 70,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "overtown-nw3",
+      "lat": 25.7875,
+      "lng": -80.2016,
+      "tags": [
+        "corner-store",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.75,
+      "heatDecayMultiplier": 1.4,
+      "globalCoverBonus": 0.05,
+      "startingMorale": 80,
+      "maxMembers": 6,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "liberty-city-alley",
+      "lat": 25.8487,
+      "lng": -80.2298,
+      "tags": [
+        "alley-heavy",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "alley",
+        "3": "alley",
+        "4": "alley",
+        "5": "storefront",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.85,
+      "heatDecayMultiplier": 1.2,
+      "globalCoverBonus": 0.15,
+      "startingMorale": 65,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "wynwood-warehouse",
+      "lat": 25.7999,
+      "lng": -80.1994,
+      "tags": [
+        "warehouse",
+        "alley-heavy"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "alley",
+        "5": "alley",
+        "6": "parking",
+        "7": "building"
+      },
+      "incomeMultiplier": 1.5,
+      "heatDecayMultiplier": 0.7,
+      "globalCoverBonus": 0.1,
+      "startingMorale": 60,
+      "maxMembers": 10,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "south-beach-ocean",
+      "lat": 25.7814,
+      "lng": -80.13,
+      "tags": [
+        "beachfront",
+        "open-air",
+        "strip-mall"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "sidewalk",
+        "6": "curb",
+        "7": "street"
+      },
+      "incomeMultiplier": 2,
+      "heatDecayMultiplier": 0.5,
+      "globalCoverBonus": -0.05,
+      "startingMorale": 55,
+      "maxMembers": 8,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "opalocka-parking",
+      "lat": 25.9016,
+      "lng": -80.2498,
+      "tags": [
+        "parking-lot",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "parking",
+        "5": "alley",
+        "6": "storefront",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.9,
+      "heatDecayMultiplier": 1.1,
+      "globalCoverBonus": 0.08,
+      "startingMorale": 70,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "little-havana-8th",
+      "lat": 25.7654,
+      "lng": -80.2201,
+      "tags": [
+        "rooftop-access",
+        "corner-store"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.2,
+      "heatDecayMultiplier": 0.9,
+      "globalCoverBonus": 0.12,
+      "startingMorale": 72,
+      "maxMembers": 9,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "carol-city-183rd",
+      "lat": 25.942,
+      "lng": -80.2498,
+      "tags": [
+        "strip-mall",
+        "parking-lot",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "parking",
+        "6": "alley",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.8,
+      "heatDecayMultiplier": 0.65,
+      "globalCoverBonus": 0.05,
+      "startingMorale": 60,
+      "maxMembers": 12,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "brownsville-court",
+      "lat": 25.819,
+      "lng": -80.241,
+      "tags": [
+        "alley-heavy",
+        "corner-store"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "alley",
+        "3": "alley",
+        "4": "storefront",
+        "5": "alley",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.7,
+      "heatDecayMultiplier": 1.5,
+      "globalCoverBonus": 0.12,
+      "startingMorale": 82,
+      "maxMembers": 5,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "pompano-strip",
+      "lat": 26.2478,
+      "lng": -80.112,
+      "tags": [
+        "strip-mall",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "storefront",
+        "5": "storefront",
+        "6": "sidewalk",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.1,
+      "heatDecayMultiplier": 1,
+      "globalCoverBonus": 0.06,
+      "startingMorale": 72,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "coral-gables-estate",
+      "lat": 25.7492,
+      "lng": -80.2615,
+      "tags": [
+        "rooftop-access",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "sidewalk",
+        "4": "storefront",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 2.2,
+      "heatDecayMultiplier": 0.45,
+      "globalCoverBonus": -0.02,
+      "startingMorale": 58,
+      "maxMembers": 9,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "hialeah-warehouse-row",
+      "lat": 25.8894,
+      "lng": -80.292,
+      "tags": [
+        "warehouse",
+        "alley-heavy"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "alley",
+        "4": "alley",
+        "5": "storefront",
+        "6": "parking",
+        "7": "building"
+      },
+      "incomeMultiplier": 1.05,
+      "heatDecayMultiplier": 1.15,
+      "globalCoverBonus": 0.14,
+      "startingMorale": 68,
+      "maxMembers": 9,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "hollywood-broadwalk",
+      "lat": 26.0189,
+      "lng": -80.1168,
+      "tags": [
+        "beachfront",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "sidewalk",
+        "4": "storefront",
+        "5": "sidewalk",
+        "6": "curb",
+        "7": "street"
+      },
+      "incomeMultiplier": 2.1,
+      "heatDecayMultiplier": 0.5,
+      "globalCoverBonus": -0.06,
+      "startingMorale": 56,
+      "maxMembers": 8,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "liberty-square-projects",
+      "lat": 25.8415,
+      "lng": -80.2213,
+      "tags": [
+        "open-air",
+        "alley-heavy"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "alley",
+        "4": "storefront",
+        "5": "alley",
+        "6": "curb",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.85,
+      "heatDecayMultiplier": 0.9,
+      "globalCoverBonus": 0.1,
+      "startingMorale": 75,
+      "maxMembers": 6,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "plantation-acres",
+      "lat": 26.1217,
+      "lng": -80.266,
+      "tags": [
+        "open-air",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "parking",
+        "5": "sidewalk",
+        "6": "curb",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.95,
+      "heatDecayMultiplier": 1.6,
+      "globalCoverBonus": 0.04,
+      "startingMorale": 78,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "brickell-highrise",
+      "lat": 25.763,
+      "lng": -80.1918,
+      "tags": [
+        "rooftop-access",
+        "warehouse"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "building",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 2.4,
+      "heatDecayMultiplier": 0.55,
+      "globalCoverBonus": 0.08,
+      "startingMorale": 62,
+      "maxMembers": 11,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "dania-jai-alai",
+      "lat": 26.0523,
+      "lng": -80.1439,
+      "tags": [
+        "parking-lot",
+        "strip-mall"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "storefront",
+        "5": "alley",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.15,
+      "heatDecayMultiplier": 0.95,
+      "globalCoverBonus": 0.07,
+      "startingMorale": 70,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "harbor-spur",
+      "lat": 25.7752,
+      "lng": -80.1748,
+      "tags": [
+        "warehouse",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.45,
+      "heatDecayMultiplier": 0.72,
+      "globalCoverBonus": 0.13,
+      "startingMorale": 64,
+      "maxMembers": 10,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "rail-market",
+      "lat": 25.7896,
+      "lng": -80.1862,
+      "tags": [
+        "corner-store",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.35,
+      "heatDecayMultiplier": 0.76,
+      "globalCoverBonus": 0.11,
+      "startingMorale": 69,
+      "maxMembers": 9,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "canal-court",
+      "lat": 26.0437,
+      "lng": -80.1518,
+      "tags": [
+        "open-air",
+        "alley-heavy"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "alley",
+        "4": "alley",
+        "5": "parking",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.82,
+      "heatDecayMultiplier": 1.42,
+      "globalCoverBonus": 0.19,
+      "startingMorale": 84,
+      "maxMembers": 6,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "stadium-service",
+      "lat": 26.1592,
+      "lng": -80.2191,
+      "tags": [
+        "parking-lot",
+        "warehouse"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "storefront",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.9,
+      "heatDecayMultiplier": 0.58,
+      "globalCoverBonus": 0.08,
+      "startingMorale": 61,
+      "maxMembers": 12,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "night-market",
+      "lat": 25.8091,
+      "lng": -80.2074,
+      "tags": [
+        "corner-store",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.28,
+      "heatDecayMultiplier": 0.88,
+      "globalCoverBonus": 0.07,
+      "startingMorale": 74,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "courtyard-walkups",
+      "lat": 25.8338,
+      "lng": -80.2366,
+      "tags": [
+        "alley-heavy",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "alley",
+        "4": "storefront",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.92,
+      "heatDecayMultiplier": 1.18,
+      "globalCoverBonus": 0.18,
+      "startingMorale": 88,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "floodgate-repair",
+      "lat": 26.0756,
+      "lng": -80.1289,
+      "tags": [
+        "parking-lot",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "sidewalk",
+        "4": "storefront",
+        "5": "alley",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.12,
+      "heatDecayMultiplier": 1.04,
+      "globalCoverBonus": 0.14,
+      "startingMorale": 71,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "ring-road-underpass",
+      "lat": 25.8704,
+      "lng": -80.2602,
+      "tags": [
+        "parking-lot",
+        "alley-heavy"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "alley",
+        "4": "alley",
+        "5": "storefront",
+        "6": "parking",
+        "7": "building"
+      },
+      "incomeMultiplier": 0.98,
+      "heatDecayMultiplier": 1.26,
+      "globalCoverBonus": 0.21,
+      "startingMorale": 76,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "signal-yard",
+      "lat": 25.6942,
+      "lng": -80.3486,
+      "tags": [
+        "warehouse",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "building",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.58,
+      "heatDecayMultiplier": 0.68,
+      "globalCoverBonus": 0.09,
+      "startingMorale": 63,
+      "maxMembers": 11,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "marina-cut",
+      "lat": 26.2215,
+      "lng": -80.0783,
+      "tags": [
+        "beachfront",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "sidewalk",
+        "5": "parking",
+        "6": "curb",
+        "7": "street"
+      },
+      "incomeMultiplier": 2.18,
+      "heatDecayMultiplier": 0.48,
+      "globalCoverBonus": -0.07,
+      "startingMorale": 57,
+      "maxMembers": 9,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "sable-plaza",
+      "lat": 26.3128,
+      "lng": -80.1914,
+      "tags": [
+        "strip-mall",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "sidewalk",
+        "4": "storefront",
+        "5": "storefront",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.19,
+      "heatDecayMultiplier": 0.98,
+      "globalCoverBonus": 0.08,
+      "startingMorale": 73,
+      "maxMembers": 8,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "orchard-row",
+      "lat": 26.2797,
+      "lng": -80.3211,
+      "tags": [
+        "open-air",
+        "corner-store"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "sidewalk",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.79,
+      "heatDecayMultiplier": 1.48,
+      "globalCoverBonus": 0.13,
+      "startingMorale": 83,
+      "maxMembers": 6,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "switchback-garage",
+      "lat": 25.6418,
+      "lng": -80.2764,
+      "tags": [
+        "parking-lot",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "building",
+        "5": "building",
+        "6": "parking",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.47,
+      "heatDecayMultiplier": 0.74,
+      "globalCoverBonus": 0.16,
+      "startingMorale": 66,
+      "maxMembers": 10,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "civic-arcade",
+      "lat": 26.4024,
+      "lng": -80.1146,
+      "tags": [
+        "corner-store",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.31,
+      "heatDecayMultiplier": 0.86,
+      "globalCoverBonus": 0.12,
+      "startingMorale": 70,
+      "maxMembers": 9,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "ridge-estates",
+      "lat": 26.4811,
+      "lng": -80.2839,
+      "tags": [
+        "rooftop-access",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "building",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 2.32,
+      "heatDecayMultiplier": 0.44,
+      "globalCoverBonus": 0.02,
+      "startingMorale": 59,
+      "maxMembers": 10,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "vernon-court",
+      "lat": 25.5733,
+      "lng": -80.3918,
+      "tags": [
+        "alley-heavy",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "alley",
+        "4": "alley",
+        "5": "storefront",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.88,
+      "heatDecayMultiplier": 1.34,
+      "globalCoverBonus": 0.2,
+      "startingMorale": 85,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 0
+    }
+  ]
+}

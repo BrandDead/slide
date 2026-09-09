@@ -16,6 +16,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives",
     "preview": "vite preview",
     "seed": "tsx src/scripts/seed.ts",
+    "export:block-dna": "tsx scripts/exportBlockDNA.ts",
     "test": "vitest run",
     "assets:process": "node scripts/assets/process.mjs",
     "assets:audit": "node scripts/assets/audit.mjs",
