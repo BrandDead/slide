@@ -13,8 +13,8 @@ import {
 import { DEFAULT_PROFILE } from '../../render/projection';
 
 describe('BLOCK_DNA_LIBRARY', () => {
-  it('has at least 15 premade blocks across all tiers', () => {
-    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThanOrEqual(15);
+  it('has at least 33 premade blocks across all tiers after batch two', () => {
+    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThanOrEqual(33);
   });
 
   it('every tier has at least 2 cards', () => {
@@ -61,6 +61,22 @@ describe('BLOCK_DNA_LIBRARY', () => {
     for (const dna of BLOCK_DNA_LIBRARY) {
       expect(dna.globalCoverBonus).toBeGreaterThanOrEqual(-0.1);
       expect(dna.globalCoverBonus).toBeLessThanOrEqual(0.3);
+    }
+  });
+
+  it('keeps every tactical override inside the shared eight-row zone contract', () => {
+    const validZones = new Set([
+      'street', 'curb', 'sidewalk', 'storefront',
+      'alley', 'parking', 'rooftop', 'building',
+    ]);
+
+    for (const dna of BLOCK_DNA_LIBRARY) {
+      for (const [row, zone] of Object.entries(dna.zoneOverrides ?? {})) {
+        expect(Number(row)).toBeGreaterThanOrEqual(0);
+        expect(Number(row)).toBeLessThanOrEqual(7);
+        expect(zone).toBeDefined();
+        if (zone) expect(validZones.has(zone)).toBe(true);
+      }
     }
   });
 });
@@ -130,6 +146,12 @@ describe('getDNAByTier', () => {
     expect(elites.length).toBeGreaterThan(0);
     for (const dna of elites) {
       expect(dna.tier).toBe('elite');
+    }
+  });
+
+  it('gives every tier enough choices after the 33-card milestone', () => {
+    for (const tier of ['starter', 'mid', 'high', 'elite'] as const) {
+      expect(getDNAByTier(tier).length).toBeGreaterThanOrEqual(5);
     }
   });
 
