@@ -9,15 +9,22 @@
 // Selection priority:
 //   1. Exact address keyword match (blvd/ave/st → corner-store, etc.)
 //   2. Nearest DNA record by geographic distance
-//   3. Seed-based fallback from the full library
+//   3. Seed-based fallback from the versioned catalog
+//
+// Every step above depends on catalog MEMBERSHIP, so the catalog is frozen
+// per version (see blockDNA.ts "Resolver catalog versioning"). Blocks claimed
+// before a catalog grew keep resolving against the version they were claimed
+// under, which is what stops library growth from rewriting saved blocks.
 //
 // Sprint: address-block-pipeline
 // ============================================================
 import {
-  BLOCK_DNA_LIBRARY,
-  getNearestDNA,
+  CURRENT_RESOLVER_CATALOG_VERSION,
+  getNearestDNAFrom,
+  getResolverCatalog,
   type BlockDNA,
   type BlockTag,
+  type ResolverCatalogVersion,
 } from '../config/blockDNA';
 import { generateBlockHash } from '../config/mapbox.config';
 import type { BlockZoneType } from '../types/block.types';
@@ -38,6 +45,8 @@ export interface ResolvedBlock {
   startingHeat: number;
   /** Max members */
   maxMembers: number;
+  /** Which frozen catalog version produced this result */
+  catalogVersion: ResolverCatalogVersion;
 }
 
 // ─── Address keyword → tag mapping ───────────────────────────
@@ -110,8 +119,12 @@ function detectTagFromAddress(address: string): BlockTag | null {
  * Find the best DNA record that has the given tag.
  * If multiple records match, pick by seed-based index.
  */
-function findDNAByTag(tag: BlockTag, seed: string): BlockDNA | null {
-  const matches = BLOCK_DNA_LIBRARY.filter(dna => dna.tags.includes(tag));
+function findDNAByTag(
+  catalog: readonly BlockDNA[],
+  tag: BlockTag,
+  seed: string,
+): BlockDNA | null {
+  const matches = catalog.filter(dna => dna.tags.includes(tag));
   if (matches.length === 0) return null;
   // Use the seed to deterministically pick from matches
   const seedNum = seedToNumber(seed);
@@ -123,11 +136,15 @@ function findDNAByTag(tag: BlockTag, seed: string): BlockDNA | null {
  * coordinate is genuinely nearby. This prevents generic road words such as
  * "Avenue" from overriding a more meaningful local archetype.
  */
-function findNearbyCuratedDNA(lat: number, lng: number): BlockDNA | null {
+function findNearbyCuratedDNA(
+  catalog: readonly BlockDNA[],
+  lat: number,
+  lng: number,
+): BlockDNA | null {
   const maxDistanceSquared = 0.000025; // roughly a few city blocks
   let closest: BlockDNA | null = null;
   let closestDistance = Infinity;
-  for (const candidate of BLOCK_DNA_LIBRARY) {
+  for (const candidate of catalog) {
     const distance = (candidate.lat - lat) ** 2 + (candidate.lng - lng) ** 2;
     if (distance <= maxDistanceSquared && distance < closestDistance) {
       closest = candidate;
@@ -178,32 +195,40 @@ export function buildZoneLayout(dna: BlockDNA): BlockZoneType[] {
  * @param lat  Latitude from geocoding
  * @param lng  Longitude from geocoding
  * @param address  Full formatted address string
+ * @param catalogVersion  Frozen catalog to resolve against. Defaults to the
+ *   current version for new claims. Pass 'v1' when re-resolving a block that
+ *   was claimed before Block DNA batch two and carries no stored DNA
+ *   snapshot — every step below is catalog-membership sensitive, so using the
+ *   live catalog for an old block would silently change its layout, income,
+ *   heat and capacity.
  */
 export function resolveBlockDNA(
   lat: number,
   lng: number,
   address: string,
+  catalogVersion: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
 ): ResolvedBlock {
   const seed = generateBlockHash(lat, lng);
+  const catalog = getResolverCatalog(catalogVersion);
 
   // 1. Preserve the authored visual identity for a nearby curated place.
-  let dna: BlockDNA | null = findNearbyCuratedDNA(lat, lng);
+  let dna: BlockDNA | null = findNearbyCuratedDNA(catalog, lat, lng);
 
   // 2. Use broad address cues when the player is not near a curated record.
   const detectedTag = detectTagFromAddress(address);
   if (!dna && detectedTag) {
-    dna = findDNAByTag(detectedTag, seed);
+    dna = findDNAByTag(catalog, detectedTag, seed);
   }
 
   // 3. Fall back to nearest DNA by geographic distance.
   if (!dna) {
-    dna = getNearestDNA(lat, lng);
+    dna = getNearestDNAFrom(catalog, lat, lng);
   }
 
-  // 4. Final fallback: seed-based pick from full library
+  // 4. Final fallback: seed-based pick from the versioned catalog
   if (!dna) {
-    const idx = seedToNumber(seed) % BLOCK_DNA_LIBRARY.length;
-    dna = BLOCK_DNA_LIBRARY[idx];
+    const idx = seedToNumber(seed) % catalog.length;
+    dna = catalog[idx];
   }
 
   return {
@@ -214,7 +239,24 @@ export function resolveBlockDNA(
     startingMorale: dna.startingMorale,
     startingHeat: dna.startingHeat,
     maxMembers: dna.maxMembers,
+    catalogVersion,
   };
+}
+
+/**
+ * Re-resolve a block that predates DNA snapshot persistence.
+ *
+ * Legacy records carry no stored DNA, so the only way to keep their tactical
+ * identity stable is to pin them to the catalog that was live when they were
+ * claimed. Callers hydrating a snapshot-less block MUST use this rather than
+ * resolveBlockDNA, or catalog growth will rewrite the player's block.
+ */
+export function resolveLegacyBlockDNA(
+  lat: number,
+  lng: number,
+  address: string,
+): ResolvedBlock {
+  return resolveBlockDNA(lat, lng, address, 'v1');
 }
 
 // ─── Convenience exports ──────────────────────────────────────
@@ -223,13 +265,23 @@ export function resolveBlockDNA(
  * Quick check: does this address resolve to a specific DNA ID?
  * Useful for testing.
  */
-export function resolveBlockDNAId(lat: number, lng: number, address: string): string {
-  return resolveBlockDNA(lat, lng, address).dna.id;
+export function resolveBlockDNAId(
+  lat: number,
+  lng: number,
+  address: string,
+  catalogVersion: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
+): string {
+  return resolveBlockDNA(lat, lng, address, catalogVersion).dna.id;
 }
 
 /**
  * Get the display name for a resolved block.
  */
-export function getResolvedBlockName(lat: number, lng: number, address: string): string {
-  return resolveBlockDNA(lat, lng, address).dna.name;
+export function getResolvedBlockName(
+  lat: number,
+  lng: number,
+  address: string,
+  catalogVersion: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
+): string {
+  return resolveBlockDNA(lat, lng, address, catalogVersion).dna.name;
 }

@@ -68,6 +68,42 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-09 — Block DNA batch two (25 → 33) + frozen resolver catalog (PR #134)
+
+- Catalog grows to **33** fictional archetypes. Batch two adds Signal Yard, Marina Cut,
+  Sable Plaza, Orchard Row, Switchback Garage, Civic Arcade, Ridge Estates and Vernon
+  Court, each with its own eight-row tactical layout and risk/reward signature.
+- **Save-integrity defect found in review and fixed in the same PR.** The generic
+  resolver selects a DNA by indexing catalog-derived arrays — `seedNum %
+  matches.length` for the address-keyword pool, nearest-by-distance over the catalog,
+  and a `seed % catalog.length` final fallback. All three depend on catalog
+  *membership*, so appending cards silently re-resolved blocks a player had already
+  claimed, rewriting their layout, income multiplier, heat decay, cover, morale and
+  capacity on reload. Measured against the pre-batch-two resolver, **485 of 610 sampled
+  generic locations moved to a different card** once the catalog went 25 → 33.
+- **Fix: catalog membership is now frozen per version.** `RESOLVER_CATALOG_V1_IDS`
+  pins the 25 pre-batch-two cards; `getResolverCatalog(version)` serves that frozen pool
+  for v1 and the live library for v2 (current). `resolveBlockDNA` takes an explicit
+  `catalogVersion` (defaulting to current) and threads it through every selection step;
+  `resolveLegacyBlockDNA` is the v1-pinned entry point for records with no stored DNA.
+  `ResolvedBlock` now reports the `catalogVersion` it resolved under.
+- **Rule for future batches:** append to `BLOCK_DNA_LIBRARY`, never remove or rename an
+  id listed in a frozen version, add a new version constant and bump
+  `CURRENT_RESOLVER_CATALOG_VERSION`. Never edit an existing version's id list. A
+  missing frozen id now throws rather than silently shortening the pool.
+- Tests: `blockDNALegacyContract.test.ts` locks ten generic-address goldens (id, zone
+  layout, income, heat decay, cover, morale, max members, starting heat, hot-block)
+  generated from the pre-batch-two resolver, asserts the v1 pool cannot shrink or
+  absorb batch-two cards, and keeps a guard rail proving the live catalog *would* still
+  move those blocks. Equivalence was verified over 610 sampled locations before the
+  goldens were frozen.
+- Scope: frontend config + resolver + tests + this log only. No store, Supabase,
+  migration, secret, scheduler or deployment change.
+- **Known gap, tracked separately:** the Flask serializer does not persist or return a
+  block's DNA, so `apiBlockToBlockData`'s restore path never fires and every reload
+  re-resolves. Version pinning protects existing blocks from catalog growth but does not
+  make identity authoritative. Server-side DNA snapshot persistence lands in its own PR.
+
 ### 2026-09-08 — Authoritative-world standalone staging proof passed
 
 - Merged PR #130, which introduced the source-controlled world-proof manifest and bootstrap validator, then merged PR #132, which corrects explicit Deno-compatible `npm:zod@3.23.8` imports across all affected Supabase Edge Functions. The default branch passed post-merge frontend CI, backend CI, and Vercel verification.

@@ -889,6 +889,190 @@ export const BLOCK_DNA_LIBRARY: BlockDNA[] = [
     hotBlock: false,
     startingHeat: 1,
   },
+
+  // ── 26. Signal Yard (high-value industrial exposure) ───────────
+  {
+    id: 'signal-yard',
+    name: 'Signal Yard',
+    address: 'Signal Yard & Copper Spur',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.6942,
+    lng: -80.3486,
+    tier: 'high',
+    tags: ['warehouse', 'parking-lot'],
+    flavour: 'Freight signals and wide loading lanes. Big capacity rewards a crew that can survive the open approaches.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'parking', 4: 'building', 5: 'alley', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.96, horizonYRatio: 0.26, actorHeightRatio: 0.28, cellWidthRatio: 0.122 },
+    incomeMultiplier: 1.58,
+    heatDecayMultiplier: 0.68,
+    globalCoverBonus: 0.09,
+    startingMorale: 63,
+    maxMembers: 11,
+    hotBlock: true,
+    startingHeat: 2,
+  },
+
+  // ── 27. Marina Cut (elite waterfront exposure) ─────────────────
+  {
+    id: 'marina-cut',
+    name: 'Marina Cut',
+    address: 'Marina Cut & Breakwater Drive',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.2215,
+    lng: -80.0783,
+    tier: 'elite',
+    tags: ['beachfront', 'open-air'],
+    flavour: 'A bright waterfront pinch point. Premium traffic moves through fast, but there is nowhere to hide.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'sidewalk', 5: 'parking', 6: 'curb', 7: 'street' },
+    projectionOverrides: { groundYRatio: 0.90, horizonYRatio: 0.20, actorHeightRatio: 0.30, cellWidthRatio: 0.124, shadowLengthRatio: 0.58 },
+    incomeMultiplier: 2.18,
+    heatDecayMultiplier: 0.48,
+    globalCoverBonus: -0.07,
+    startingMorale: 57,
+    maxMembers: 9,
+    hotBlock: true,
+    startingHeat: 3,
+  },
+
+  // ── 28. Sable Plaza (balanced retail pressure) ──────────────────
+  {
+    id: 'sable-plaza',
+    name: 'Sable Plaza',
+    address: 'Sable Plaza & Meridian Avenue',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.3128,
+    lng: -80.1914,
+    tier: 'mid',
+    tags: ['strip-mall', 'parking-lot'],
+    flavour: 'A compact retail plaza with two clean exits. It rewards a balanced crew rather than a single all-in lane.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'sidewalk', 4: 'storefront', 5: 'storefront', 6: 'parking', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.93, horizonYRatio: 0.27, actorHeightRatio: 0.26, cellWidthRatio: 0.109 },
+    incomeMultiplier: 1.19,
+    heatDecayMultiplier: 0.98,
+    globalCoverBonus: 0.08,
+    startingMorale: 73,
+    maxMembers: 8,
+    hotBlock: false,
+    startingHeat: 1,
+  },
+
+  // ── 29. Orchard Row (resilient starter block) ───────────────────
+  {
+    id: 'orchard-row',
+    name: 'Orchard Row',
+    address: 'Orchard Row & Lantern Lane',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.2797,
+    lng: -80.3211,
+    tier: 'starter',
+    tags: ['open-air', 'corner-store'],
+    flavour: 'Low-rise homes around a quiet corner. It is not lucrative, but a new crew can learn to hold it.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'storefront', 5: 'alley', 6: 'sidewalk', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.91, horizonYRatio: 0.32, actorHeightRatio: 0.23, cellWidthRatio: 0.098 },
+    incomeMultiplier: 0.79,
+    heatDecayMultiplier: 1.48,
+    globalCoverBonus: 0.13,
+    startingMorale: 83,
+    maxMembers: 6,
+    hotBlock: false,
+    startingHeat: 0,
+  },
+
+  // ── 30. Switchback Garage (high-risk vehicle corridor) ─────────
+  {
+    id: 'switchback-garage',
+    name: 'Switchback Garage',
+    address: 'Switchback Garage & Ramp Street',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.6418,
+    lng: -80.2764,
+    tier: 'high',
+    tags: ['parking-lot', 'rooftop-access'],
+    flavour: 'A stacked parking ramp with sightlines on every level. Strong positioning is valuable until attention arrives.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'parking', 4: 'building', 5: 'building', 6: 'parking', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.95, horizonYRatio: 0.22, actorHeightRatio: 0.29, cellWidthRatio: 0.116, zNear: 3.15 },
+    incomeMultiplier: 1.47,
+    heatDecayMultiplier: 0.74,
+    globalCoverBonus: 0.16,
+    startingMorale: 66,
+    maxMembers: 10,
+    hotBlock: true,
+    startingHeat: 2,
+  },
+
+  // ── 31. Civic Arcade (mid-tier street commerce) ────────────────
+  {
+    id: 'civic-arcade',
+    name: 'Civic Arcade',
+    address: 'Civic Arcade & Union Boulevard',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.4024,
+    lng: -80.1146,
+    tier: 'mid',
+    tags: ['corner-store', 'rooftop-access'],
+    flavour: 'Covered storefronts face a steady boulevard. The front earns well while the back lane keeps a crew flexible.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'storefront', 5: 'alley', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.93, horizonYRatio: 0.24, actorHeightRatio: 0.27, rowDepth: 0.63 },
+    incomeMultiplier: 1.31,
+    heatDecayMultiplier: 0.86,
+    globalCoverBonus: 0.12,
+    startingMorale: 70,
+    maxMembers: 9,
+    hotBlock: false,
+    startingHeat: 1,
+  },
+
+  // ── 32. Ridge Estates (elite defended terrace) ─────────────────
+  {
+    id: 'ridge-estates',
+    name: 'Ridge Estates',
+    address: 'Ridge Terrace & Observatory Way',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.4811,
+    lng: -80.2839,
+    tier: 'elite',
+    tags: ['rooftop-access', 'open-air'],
+    flavour: 'Elevated terraces and guarded drives. The ceiling is high, but pressure starts the moment a crew moves in.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'building', 5: 'building', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.94, horizonYRatio: 0.18, actorHeightRatio: 0.30, rowDepth: 0.59, zNear: 3.35 },
+    incomeMultiplier: 2.32,
+    heatDecayMultiplier: 0.44,
+    globalCoverBonus: 0.02,
+    startingMorale: 59,
+    maxMembers: 10,
+    hotBlock: true,
+    startingHeat: 3,
+  },
+
+  // ── 33. Vernon Court (defensive alley starter) ─────────────────
+  {
+    id: 'vernon-court',
+    name: 'Vernon Court',
+    address: 'Vernon Court & Service Lane',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.5733,
+    lng: -80.3918,
+    tier: 'starter',
+    tags: ['alley-heavy', 'parking-lot'],
+    flavour: 'A narrow service court with layered cover. It gives a smaller crew room to recover after a rough night.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'alley', 4: 'alley', 5: 'storefront', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.94, horizonYRatio: 0.31, actorHeightRatio: 0.24, cellWidthRatio: 0.101 },
+    incomeMultiplier: 0.88,
+    heatDecayMultiplier: 1.34,
+    globalCoverBonus: 0.20,
+    startingMorale: 85,
+    maxMembers: 7,
+    hotBlock: false,
+    startingHeat: 0,
+  },
 ];
 
 // ─── Lookup helpers ───────────────────────────────────────────
@@ -915,6 +1099,130 @@ export function getNearestDNA(lat: number, lng: number): BlockDNA {
     }
   }
   return nearest;
+}
+
+/**
+ * Find the nearest DNA record to a lat/lng within an explicit catalog.
+ * Catalog-scoped twin of getNearestDNA — used by the versioned resolver so
+ * that catalog growth cannot change what an older claim resolves to.
+ */
+export function getNearestDNAFrom(
+  catalog: readonly BlockDNA[],
+  lat: number,
+  lng: number,
+): BlockDNA {
+  let nearest = catalog[0];
+  let nearestDist = Infinity;
+  for (const dna of catalog) {
+    const dlat = dna.lat - lat;
+    const dlng = dna.lng - lng;
+    const dist = dlat * dlat + dlng * dlng;
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearest = dna;
+    }
+  }
+  return nearest;
+}
+
+// ─── Resolver catalog versioning ──────────────────────────────
+//
+// SAVE-INTEGRITY CONTRACT
+//
+// The generic resolver (blockDNAResolver) picks a DNA by indexing into
+// catalog-derived arrays: `seedNum % matches.length` for the address-keyword
+// pool, nearest-by-distance over the catalog, and a final `seed % length`
+// fallback. Every one of those is sensitive to catalog MEMBERSHIP, so simply
+// appending new cards would silently re-resolve blocks a player already
+// claimed — changing their tactical layout, income, heat and capacity on
+// reload.
+//
+// The fix is to freeze catalog membership per version. A block claimed while
+// catalog v1 was live is always re-resolved against v1, forever. New claims
+// use the current version. Growing the library is therefore always safe.
+//
+// RULES FOR FUTURE BATCHES
+//   1. APPEND new cards to BLOCK_DNA_LIBRARY. Never remove or rename an id
+//      that appears in a frozen version list below.
+//   2. Add a new version constant (v3, v4 …) listing the ids live at that
+//      point, and bump CURRENT_RESOLVER_CATALOG_VERSION.
+//   3. Never edit an existing version's id list.
+
+export type ResolverCatalogVersion = 'v1' | 'v2';
+
+/** Catalog version applied to blocks claimed from now on. */
+export const CURRENT_RESOLVER_CATALOG_VERSION: ResolverCatalogVersion = 'v2';
+
+/**
+ * Frozen membership of the pre-batch-two (25 card) catalog.
+ * Any block claimed before Block DNA batch two resolves against exactly this
+ * pool, in exactly this order. Do not reorder, remove or rename entries.
+ */
+export const RESOLVER_CATALOG_V1_IDS: readonly string[] = Object.freeze([
+  'las-olas-1208',
+  'overtown-nw3',
+  'liberty-city-alley',
+  'wynwood-warehouse',
+  'south-beach-ocean',
+  'opalocka-parking',
+  'little-havana-8th',
+  'carol-city-183rd',
+  'brownsville-court',
+  'pompano-strip',
+  'coral-gables-estate',
+  'hialeah-warehouse-row',
+  'hollywood-broadwalk',
+  'liberty-square-projects',
+  'plantation-acres',
+  'brickell-highrise',
+  'dania-jai-alai',
+  'harbor-spur',
+  'rail-market',
+  'canal-court',
+  'stadium-service',
+  'night-market',
+  'courtyard-walkups',
+  'floodgate-repair',
+  'ring-road-underpass',
+]);
+
+let cachedCatalogV1: readonly BlockDNA[] | null = null;
+
+function buildCatalogV1(): readonly BlockDNA[] {
+  const missing: string[] = [];
+  const records: BlockDNA[] = [];
+  for (const id of RESOLVER_CATALOG_V1_IDS) {
+    const dna = BLOCK_DNA_LIBRARY.find((entry) => entry.id === id);
+    if (!dna) {
+      missing.push(id);
+      continue;
+    }
+    records.push(dna);
+  }
+  if (missing.length > 0) {
+    // A removed or renamed v1 card would silently change the pool length and
+    // re-resolve existing player blocks. Fail loudly instead — CI covers this.
+    throw new Error(
+      `Resolver catalog v1 is incomplete. Missing ids: ${missing.join(', ')}. ` +
+        'Frozen catalog versions must never lose entries; append new cards instead.',
+    );
+  }
+  return Object.freeze(records);
+}
+
+/**
+ * Resolve the frozen DNA pool for a catalog version.
+ * v1 = the 25 cards that shipped before batch two.
+ * v2 = the live library (currently 33 cards).
+ */
+export function getResolverCatalog(
+  version: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
+): readonly BlockDNA[] {
+  if (version === 'v1') {
+    if (!cachedCatalogV1) cachedCatalogV1 = buildCatalogV1();
+    return cachedCatalogV1;
+  }
+  return BLOCK_DNA_LIBRARY;
 }
 
 /**

@@ -77,7 +77,7 @@ describe('resolveBlockDNA', () => {
     expect(elite.zoneLayout).not.toEqual(starter.zoneLayout);
   });
 
-  it('adds eight distinct fictional Block DNA archetypes without changing deterministic resolution', () => {
+  it('keeps batch-one fictional Block DNA archetypes deterministic after expansion', () => {
     const batch: Array<{ id: string; lat: number; lng: number; address: string }> = [
       { id: 'harbor-spur', lat: 25.7752, lng: -80.1748, address: 'Freight Spur & Dockside Ave' },
       { id: 'rail-market', lat: 25.7896, lng: -80.1862, address: 'Viaduct Market & Ember St' },
@@ -89,7 +89,7 @@ describe('resolveBlockDNA', () => {
       { id: 'ring-road-underpass', lat: 25.8704, lng: -80.2602, address: 'Ring Road & Pillar 17' },
     ];
 
-    expect(BLOCK_DNA_LIBRARY).toHaveLength(25);
+    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThanOrEqual(25);
     const signatures = new Set<string>();
 
     for (const spot of batch) {
@@ -99,6 +99,42 @@ describe('resolveBlockDNA', () => {
       expect(second).toEqual(first);
       expect(first.zoneLayout).toHaveLength(8);
       signatures.add([
+        first.zoneLayout.join(','),
+        first.incomeMultiplier,
+        first.dna.heatDecayMultiplier,
+        first.dna.globalCoverBonus,
+        first.startingMorale,
+        first.maxMembers,
+        first.startingHeat,
+      ].join('|'));
+    }
+
+    expect(signatures.size).toBe(batch.length);
+  });
+
+  it('adds eight distinct batch-two archetypes with deterministic eight-row profiles', () => {
+    const batch: Array<{ id: string; lat: number; lng: number; address: string }> = [
+      { id: 'signal-yard', lat: 25.6942, lng: -80.3486, address: 'Signal Yard & Copper Spur' },
+      { id: 'marina-cut', lat: 26.2215, lng: -80.0783, address: 'Marina Cut & Breakwater Drive' },
+      { id: 'sable-plaza', lat: 26.3128, lng: -80.1914, address: 'Sable Plaza & Meridian Avenue' },
+      { id: 'orchard-row', lat: 26.2797, lng: -80.3211, address: 'Orchard Row & Lantern Lane' },
+      { id: 'switchback-garage', lat: 25.6418, lng: -80.2764, address: 'Switchback Garage & Ramp Street' },
+      { id: 'civic-arcade', lat: 26.4024, lng: -80.1146, address: 'Civic Arcade & Union Boulevard' },
+      { id: 'ridge-estates', lat: 26.4811, lng: -80.2839, address: 'Ridge Terrace & Observatory Way' },
+      { id: 'vernon-court', lat: 25.5733, lng: -80.3918, address: 'Vernon Court & Service Lane' },
+    ];
+
+    expect(BLOCK_DNA_LIBRARY).toHaveLength(33);
+    const signatures = new Set<string>();
+
+    for (const spot of batch) {
+      const first = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      const second = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      expect(first.dna.id).toBe(spot.id);
+      expect(second).toEqual(first);
+      expect(first.zoneLayout).toHaveLength(8);
+      signatures.add([
+        first.dna.tier,
         first.zoneLayout.join(','),
         first.incomeMultiplier,
         first.dna.heatDecayMultiplier,
