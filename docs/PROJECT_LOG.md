@@ -68,6 +68,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-10 — Tactical grid-state compatibility repair proposed in PR #137
+
+- Confirmed that `GridGenerationResult.to_dict()` stores the playable board under `grid.tiles`, while the tactical state engine previously read only top-level `grid_data.tiles` and could silently fall back to a generic 8×8 board.
+- PR #137 keeps both shapes compatible: it prefers the canonical nested board, accepts the legacy top-level shape, and retains offline snapshot archives so encounter startup can reload the immutable snapshot without Supabase.
+- Added a claim → place crew → encounter regression path proving the encounter snapshot consumes the claimed board shape. Focused checks pass; full backend pytest passes with 69 tests.
+- Production Supabase, migrations, functions, secrets, scheduler, and data remain untouched. Merge is pending PR review and required CI.
+
 ### 2026-09-09 — Server-authoritative Block DNA snapshots (no migration)
 
 - Closes the gap left open by the batch-two PR: the Flask serializer never

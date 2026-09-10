@@ -69,6 +69,21 @@ def test_claim_place_earn_collect_reload(client, auth_headers):
     assert place.status_code == 200, place.get_json()
     assert place.get_json()['incomePerTick'] == 40
 
+    # The generated board is nested under grid.tiles. The tactical engine must
+    # consume that board rather than silently replacing it with its default grid.
+    raw_grid_data = _mock_blocks[block_id]['grid_data']
+    nested_tiles = raw_grid_data['grid']['tiles']
+    encounter = client.post('/api/combat/start', json={
+        'attacker_gang_id': 'gang-1',
+        'target_block_id': block_id,
+        'attacker_members': ['dealer-1'],
+    }, headers=auth_headers)
+    assert encounter.status_code == 201, encounter.get_json()
+    snapshot = encounter.get_json()['target_snapshot']
+    assert snapshot['grid_height'] == len(nested_tiles)
+    assert snapshot['grid_width'] == len(nested_tiles[0])
+    assert snapshot['tiles'][0][0]['tile_type'] == nested_tiles[0][0]['type']
+
     tick = client.post(f'/api/blocks/{block_id}/tick-income', headers=auth_headers)
     assert tick.status_code == 200
     assert tick.get_json()['block']['pendingIncome'] == 40
