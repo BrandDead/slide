@@ -16,6 +16,11 @@ from services.db import get_db
 from middleware.auth import require_auth
 from config.game_constants import CLAIM_BLOCK_COST, CLAIM_HEAT_DELTA
 from schemas.block_contracts import build_default_manifest, grid_cell_to_anchor_id
+from services.block_dna import (
+    attach_dna_snapshot,
+    build_dna_snapshot,
+    read_dna_snapshot,
+)
 
 SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 
@@ -53,6 +58,14 @@ def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[
         'placements': block.get('placements') or [],
         'backgrounds': block.get('backgrounds') or {},
     }
+    # Authoritative tactical identity. Always returned (claim, my-blocks, single
+    # block, tick, collect) so the client never has to re-resolve a claimed
+    # block against a catalog that may have grown since it was claimed.
+    # None for records claimed before snapshots shipped — the client falls back
+    # to its pinned legacy resolver for those.
+    snapshot = read_dna_snapshot(block.get('grid_data'))
+    out['dnaSnapshot'] = snapshot
+    out['dnaId'] = snapshot.get('dnaId') if snapshot else None
     if include_grid:
         out['gridData'] = block.get('grid_data') or {}
         out['sceneManifest'] = block.get('scene_manifest') or {}
@@ -198,6 +211,24 @@ def claim_block():
             seed=location.block_hash,
         )
 
+        # Server-authoritative DNA. Resolved here from verified geocoder output,
+        # never from a client-supplied dnaId, and snapshotted by value so the
+        # block keeps this tactical identity through catalog growth and later
+        # balance edits. Stored additively inside the existing grid_data JSON,
+        # which is why this needs no schema migration.
+        dna_snapshot = build_dna_snapshot(
+            lat=location.lat,
+            lng=location.lng,
+            address=address,
+        )
+        claimed_dna_id = data.get('dnaId') or data.get('dna_id')
+        if claimed_dna_id and claimed_dna_id != dna_snapshot['dnaId']:
+            logger.info(
+                'Ignoring client-proposed dnaId %s; server resolved %s for %s',
+                claimed_dna_id, dna_snapshot['dnaId'], location.block_hash,
+            )
+        grid_payload = attach_dna_snapshot(grid_result.to_dict(), dna_snapshot)
+
         updated_player = db.apply_economy_delta(
             user_id,
             cash_delta=-CLAIM_BLOCK_COST,
@@ -222,7 +253,7 @@ def claim_block():
             city=city,
             bounds=location.bounds,
             gang_name=gang_name,
-            grid_data=grid_result.to_dict(),
+            grid_data=grid_payload,
             traffic_score=location.traffic_score,
             block_hash=location.block_hash,
             scene_manifest=manifest.to_dict(),
