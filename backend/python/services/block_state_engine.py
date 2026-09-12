@@ -94,6 +94,7 @@ class BlockStateEngine:
         else:
             self.supabase = None
             self.use_supabase = False
+            self._mock_snapshots = {}
             logger.warning("BlockStateEngine initialized without Supabase - using mock data")
     
     def get_block_snapshot(
@@ -150,7 +151,10 @@ class BlockStateEngine:
                 
                 return snapshot.snapshot_id
             else:
-                logger.warning("Snapshot created but not persisted (no Supabase)")
+                # Keep the offline engine’s archive semantics aligned with the
+                # production path so encounter tests can reload the immutable
+                # snapshot without requiring a database connection.
+                self._mock_snapshots[snapshot.snapshot_id] = snapshot
                 return snapshot.snapshot_id
                 
         except Exception as e:
@@ -212,7 +216,14 @@ class BlockStateEngine:
             if isinstance(grid_data, str):
                 grid_data = json.loads(grid_data)
             
-            tiles_data = grid_data.get('tiles', [])
+            # GridGenerationResult serializes the board under `grid.tiles`.
+            # Keep accepting the older top-level `tiles` shape for existing data.
+            nested_grid = grid_data.get('grid', {})
+            if isinstance(nested_grid, str):
+                nested_grid = json.loads(nested_grid)
+            tiles_data = nested_grid.get('tiles', []) if isinstance(nested_grid, dict) else []
+            if not tiles_data:
+                tiles_data = grid_data.get('tiles', [])
             if not tiles_data:
                 # Generate default grid if missing
                 tiles_data = self._generate_default_grid(8, 8)
@@ -285,23 +296,43 @@ class BlockStateEngine:
             return None
     
     def _generate_mock_snapshot(self, block_id: str) -> BlockSnapshot:
-        """Generate a mock snapshot for testing without database — uses rich grid."""
+        """Generate a mock snapshot for testing without database — uses stored block grid when available."""
         snapshot_id = self._generate_snapshot_id(block_id, 1)
         seed = self._generate_seed(block_id, 1)
 
-        # Use the rich grid generator
-        raw_tiles = self._generate_default_grid(8, 8, seed=seed)
+        # Prefer the claimed block's persisted board so offline combat exercises
+        # the same nested `grid.tiles` shape used by the real claim path.
+        from services.db import get_db
+        block = get_db().get_block(block_id) or {}
+        grid_data = block.get('grid_data', {})
+        if isinstance(grid_data, str):
+            grid_data = json.loads(grid_data)
+        nested_grid = grid_data.get('grid', {}) if isinstance(grid_data, dict) else {}
+        if isinstance(nested_grid, str):
+            nested_grid = json.loads(nested_grid)
+        raw_tiles = nested_grid.get('tiles', []) if isinstance(nested_grid, dict) else []
+        if not raw_tiles and isinstance(grid_data, dict):
+            raw_tiles = grid_data.get('tiles', [])
+        if not raw_tiles:
+            raw_tiles = self._generate_default_grid(8, 8, seed=seed)
 
         # Convert raw dicts to TileSnapshot objects
         tiles = []
         for row_data in raw_tiles:
             row = []
             for td in row_data:
+                # Canonical generated tiles expose cover/visibility at the
+                # tile root; older tactical grids already use terrain_bonus.
+                legacy_bonus = td.get('terrain_bonus') or {}
+                terrain_bonus = {
+                    'cover': td.get('cover', legacy_bonus.get('cover', 0.0)),
+                    'visibility': td.get('visibility', legacy_bonus.get('visibility', 1.0)),
+                }
                 row.append(TileSnapshot(
                     x=td['x'],
                     y=td['y'],
                     tile_type=td['type'],
-                    terrain_bonus=td['terrain_bonus'],
+                    terrain_bonus=terrain_bonus,
                 ))
             tiles.append(row)
 
@@ -320,12 +351,12 @@ class BlockStateEngine:
             snapshot_id=snapshot_id,
             snapshot_version=1,
             created_at=datetime.utcnow().isoformat(),
-            address='123 Mock St',
-            city='Los Angeles',
+            address=block.get('address', '123 Mock St'),
+            city=block.get('city', 'Los Angeles'),
             bbox=[-118.25, 34.05, -118.24, 34.06],
             center=[-118.245, 34.055],
-            grid_width=8,
-            grid_height=8,
+            grid_width=len(tiles[0]) if tiles else 8,
+            grid_height=len(tiles) if tiles else 8,
             tiles=tiles,
             members=members,
             heat_level=30.0,
@@ -338,7 +369,7 @@ class BlockStateEngine:
     def _get_archived_snapshot(self, snapshot_id: str) -> Optional[BlockSnapshot]:
         """Retrieve a previously saved snapshot"""
         if not self.use_supabase:
-            return None
+            return self._mock_snapshots.get(snapshot_id)
         
         try:
             result = self.supabase.table('block_snapshots').select('snapshot_data').eq('id', snapshot_id).single().execute()
