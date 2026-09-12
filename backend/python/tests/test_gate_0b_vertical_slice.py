@@ -83,6 +83,8 @@ def test_claim_place_earn_collect_reload(client, auth_headers):
     assert snapshot['grid_height'] == len(nested_tiles)
     assert snapshot['grid_width'] == len(nested_tiles[0])
     assert snapshot['tiles'][0][0]['tile_type'] == nested_tiles[0][0]['type']
+    assert snapshot['tiles'][0][0]['terrain_bonus']['cover'] == nested_tiles[0][0].get('cover', 0.0)
+    assert snapshot['tiles'][0][0]['terrain_bonus']['visibility'] == nested_tiles[0][0].get('visibility', 1.0)
 
     tick = client.post(f'/api/blocks/{block_id}/tick-income', headers=auth_headers)
     assert tick.status_code == 200

@@ -321,11 +321,18 @@ class BlockStateEngine:
         for row_data in raw_tiles:
             row = []
             for td in row_data:
+                # Canonical generated tiles expose cover/visibility at the
+                # tile root; older tactical grids already use terrain_bonus.
+                legacy_bonus = td.get('terrain_bonus') or {}
+                terrain_bonus = {
+                    'cover': td.get('cover', legacy_bonus.get('cover', 0.0)),
+                    'visibility': td.get('visibility', legacy_bonus.get('visibility', 1.0)),
+                }
                 row.append(TileSnapshot(
                     x=td['x'],
                     y=td['y'],
                     tile_type=td['type'],
-                    terrain_bonus=td.get('terrain_bonus', {}),
+                    terrain_bonus=terrain_bonus,
                 ))
             tiles.append(row)
 
