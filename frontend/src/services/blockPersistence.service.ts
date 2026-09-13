@@ -59,10 +59,11 @@ function parseBlockLocation(location: unknown): { lat: number; lng: number } | u
  * Upsert a block record into the `blocks` table.
  * Maps BlockData fields to the DB schema.
  */
-export async function persistBlock(block: BlockData, userId: string): Promise<void> {
-  if (!isSupabaseConfigured()) return;
+export async function persistBlock(block: BlockData, userId: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
 
-  const lastEncounterResultKey = block.appliedEncounterResultKeys?.[block.appliedEncounterResultKeys.length - 1];
+  const appliedEncounterResultKeys = [...new Set(block.appliedEncounterResultKeys ?? [])].slice(-24);
+  const lastEncounterResultKey = appliedEncounterResultKeys[appliedEncounterResultKeys.length - 1];
   const metadata = {
     morale: block.morale,
     pendingIncome: block.pendingIncome,
@@ -73,6 +74,9 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
     incomeMultiplier: block.incomeMultiplier,
     heatDecayMultiplier: block.heatDecayMultiplier,
     maxMembers: block.maxMembers,
+    globalCoverBonus: block.globalCoverBonus,
+    liveRevision: block.liveRevision,
+    appliedEncounterResultKeys,
     lastEncounterResultKey,
   };
   const status = block.owner === 'player' ? 'claimed' : block.owner === 'npc' ? 'claimed' : 'unclaimed';
@@ -99,12 +103,12 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
     if (!projectionError) {
       if (data?.applied === false) {
         console.warn('[BlockPersistence] Skipped stale block projection after a newer encounter result.');
-        return;
+        return false;
       }
       persistedAtomically = true;
     } else if (!isMissingProjectionRpc(projectionError)) {
       console.warn('[BlockPersistence] Failed to persist atomic block projection:', projectionError.message);
-      return;
+      return false;
     }
   }
 
@@ -128,7 +132,7 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
 
     if (error) {
       console.warn('[BlockPersistence] Failed to upsert block:', error.message);
-      return;
+      return false;
     }
   }
 
@@ -149,6 +153,7 @@ export async function persistBlock(block: BlockData, userId: string): Promise<vo
     );
     if (dnaError) console.warn('[BlockPersistence] Failed to persist Block DNA:', dnaError.message);
   }
+  return true;
 }
 
 /**
@@ -170,6 +175,15 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
 
   return data.map((row: any) => {
     const coordinates = parseBlockLocation(row.location);
+    const persistedKeys = Array.isArray(row.metadata?.appliedEncounterResultKeys)
+      ? row.metadata.appliedEncounterResultKeys.filter((key: unknown): key is string => (
+        typeof key === 'string' && key.length > 0
+      ))
+      : [];
+    const lastKey = row.metadata?.lastEncounterResultKey;
+    if (typeof lastKey === 'string' && lastKey && !persistedKeys.includes(lastKey)) {
+      persistedKeys.push(lastKey);
+    }
     return {
     id: row.id,
     address: row.address,
@@ -186,6 +200,11 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
     incomeMultiplier: row.metadata?.incomeMultiplier,
     heatDecayMultiplier: row.metadata?.heatDecayMultiplier,
     maxMembers: row.metadata?.maxMembers,
+    globalCoverBonus: row.metadata?.globalCoverBonus,
+    liveRevision: row.metadata?.liveRevision,
+    appliedEncounterResultKeys: persistedKeys.length > 0
+      ? [...new Set(persistedKeys)].slice(-24)
+      : undefined,
     };
   });
 }

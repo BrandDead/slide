@@ -20,7 +20,6 @@ import NearbyReconSheet from './NearbyReconSheet';
 import MemberDropSheet from './MemberDropSheet';
 import EmpireCommandBar from './EmpireCommandBar';
 import WarBriefingCard from './WarBriefingCard';
-import { resolveBlockDNA } from '../../utils/blockDNAResolver';
 import { buildStaticImageUrl } from '../../config/mapbox.config';
 import { CLAIM_BLOCK_COST } from '../../config/gameEconomy';
 import { LAS_OLAS_CENTER } from '../../config/mapboxToken';
@@ -29,7 +28,7 @@ import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { useCombatIntentStore } from '../../stores/combatIntentStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
-import type { BlockData, BlockZone, MemberRole } from '../../types/block.types';
+import type { BlockZone, MemberRole } from '../../types/block.types';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
 import './MapsChrome.css';
@@ -160,11 +159,10 @@ const TerritoryMap: React.FC = () => {
 
     try {
       const { blocksApi } = await import('../../services/api.service');
-      const { apiBlockToBlockData } = await import('../../utils/blockMappers');
+      const { apiBlockToBlockData, withClaimBackdrop } = await import('../../utils/blockMappers');
       const result = await blocksApi.claim({
         address,
         coordinates: { lat, lng },
-        city: 'miami',
         gangName: player?.gangName || 'Crew',
       });
 
@@ -174,9 +172,8 @@ const TerritoryMap: React.FC = () => {
       });
 
       const live = apiBlockToBlockData(result.block as Record<string, unknown>);
-      const resolved = resolveBlockDNA(lat, lng, address);
       const satelliteUrl = buildStaticImageUrl({
-        coordinates: { lat, lng },
+        coordinates: { lat: live.lat, lng: live.lng },
         zoom: 18,
         width: 512,
         height: 512,
@@ -184,18 +181,9 @@ const TerritoryMap: React.FC = () => {
         highRes: true,
       });
 
-      upsertBlock({
-        ...live,
-        heat: live.heat || resolved.startingHeat,
-        morale: resolved.startingMorale,
-        topdownBgUrl: satelliteUrl,
-        // Stamp the resolved Block DNA so the block keeps its archetype
-        // identity, income multiplier, and deployment cap after claim (#80).
-        dnaId: resolved.dna.id,
-        incomeMultiplier: resolved.incomeMultiplier,
-        heatDecayMultiplier: resolved.dna.heatDecayMultiplier,
-        maxMembers: resolved.maxMembers,
-      });
+      // The verified claim response owns DNA, balance, coordinates, and grid.
+      // A local satellite plate is visual-only and cannot rewrite that state.
+      upsertBlock(withClaimBackdrop(live, satelliteUrl));
       selectBlock(live.id);
       setSelectedMapBlock(null);
       setShowBlockSearch(false);
