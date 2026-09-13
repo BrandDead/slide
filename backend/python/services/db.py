@@ -35,6 +35,77 @@ def _make_id() -> str:
     return str(uuid.uuid4())
 
 
+_LEGACY_BLOCK_METADATA_KEY = 'legacyBlockState'
+
+
+def _legacy_block_state(
+    *,
+    coords: Dict,
+    bounds: Dict,
+    gang_name: str,
+    grid_data: Dict,
+    traffic_score: float,
+    block_hash: str,
+    scene_version: str,
+    scene_manifest: Dict,
+    pending_income: int = 0,
+    live_revision: int = 1,
+    placements: Optional[List[Dict]] = None,
+) -> Dict:
+    """Encode Flask-era block fields inside canonical blocks.metadata JSON."""
+    return {
+        'version': 1,
+        'lat': coords.get('lat'),
+        'lng': coords.get('lng'),
+        'bounds': dict(bounds or {}),
+        'gangName': gang_name,
+        'gridData': grid_data or {},
+        'trafficScore': traffic_score,
+        'incomePerHour': traffic_score * 10,
+        'incomePerTick': 0,
+        'pendingIncome': pending_income,
+        'blockHash': block_hash,
+        'sceneVersion': scene_version,
+        'sceneManifest': scene_manifest or {},
+        'liveRevision': live_revision,
+        'placements': list(placements or []),
+    }
+
+
+def _normalize_canonical_block(row: Optional[Dict]) -> Optional[Dict]:
+    """Expose canonical master-schema rows through the Flask block contract."""
+    if not row:
+        return row
+    metadata = row.get('metadata') if isinstance(row.get('metadata'), dict) else {}
+    state = metadata.get(_LEGACY_BLOCK_METADATA_KEY)
+    if not isinstance(state, dict):
+        return row
+
+    normalized = dict(row)
+    normalized.update({
+        'lat': state.get('lat'),
+        'lng': state.get('lng'),
+        'bounds_north': (state.get('bounds') or {}).get('north'),
+        'bounds_south': (state.get('bounds') or {}).get('south'),
+        'bounds_east': (state.get('bounds') or {}).get('east'),
+        'bounds_west': (state.get('bounds') or {}).get('west'),
+        'gang_name': state.get('gangName', ''),
+        'grid_data': state.get('gridData') or {},
+        'traffic_score': state.get('trafficScore', (row.get('traffic_value', 0) or 0) / 100),
+        'income_per_hour': state.get('incomePerHour', row.get('base_income', 0) or 0),
+        'income_per_tick': state.get('incomePerTick', 0),
+        'pending_income': state.get('pendingIncome', 0),
+        'heat_level': row.get('block_heat', 0) or 0,
+        'block_hash': state.get('blockHash', ''),
+        'scene_version': state.get('sceneVersion', ''),
+        'scene_manifest': state.get('sceneManifest') or {},
+        'live_revision': state.get('liveRevision', 1),
+        'placements': state.get('placements') or [],
+        'claimed_at': row.get('claimed_at'),
+    })
+    return normalized
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # DB ADAPTER CLASS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -441,8 +512,37 @@ class DBAdapter:
             return block
 
         try:
-            result = self._sb.table('blocks').insert(block).execute()
-            return result.data[0] if result.data else block
+            # The authoritative master schema stores the Flask-era fields in
+            # metadata and exposes canonical income/heat/status columns. Do not
+            # send legacy-only columns such as grid_data or traffic_score to
+            # PostgREST; doing so makes the real claim path fail before the
+            # player can ever reach placement or encounter.
+            canonical = {
+                'id': block_id,
+                'address': address,
+                'city': city,
+                'owner_id': user_id,
+                'claimed_at': block['claimed_at'],
+                'status': 'claimed',
+                'traffic_value': max(0, min(100, round(traffic_score * 100))),
+                'base_income': round(traffic_score * 10),
+                'block_heat': max(0, min(100, heat_level)),
+                'metadata': {
+                    _LEGACY_BLOCK_METADATA_KEY: _legacy_block_state(
+                        coords=coords,
+                        bounds=bounds,
+                        gang_name=gang_name,
+                        grid_data=grid_data or {},
+                        traffic_score=traffic_score,
+                        block_hash=block_hash,
+                        scene_version=scene_version,
+                        scene_manifest=scene_manifest or {},
+                    ),
+                },
+            }
+            result = self._sb.table('blocks').insert(canonical).execute()
+            stored = result.data[0] if result.data else canonical
+            return _normalize_canonical_block(stored) or block
         except Exception as e:
             logger.error(f"claim_block failed: {e}")
             raise
@@ -460,7 +560,7 @@ class DBAdapter:
                 .limit(limit)
                 .execute()
             )
-            return result.data or []
+            return [_normalize_canonical_block(row) for row in (result.data or [])]
         except Exception as e:
             logger.error(f"get_blocks_for_city failed: {e}")
             return []
@@ -477,7 +577,7 @@ class DBAdapter:
                 .eq('owner_id', user_id)
                 .execute()
             )
-            return result.data or []
+            return [_normalize_canonical_block(row) for row in (result.data or [])]
         except Exception as e:
             logger.error(f"get_user_blocks failed: {e}")
             return []
@@ -489,7 +589,7 @@ class DBAdapter:
 
         try:
             result = self._sb.table('blocks').select('*').eq('id', block_id).execute()
-            return result.data[0] if result.data else None
+            return _normalize_canonical_block(result.data[0]) if result.data else None
         except Exception as e:
             logger.error(f"get_block failed: {e}")
             return None
