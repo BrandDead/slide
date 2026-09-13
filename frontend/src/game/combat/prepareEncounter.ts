@@ -1,6 +1,7 @@
 import { buildZoneLayout, resolveBlockDNA } from '../../utils/blockDNAResolver';
 import { getDNAById } from '../../config/blockDNA';
-import type { BlockData, BlockPlacement, BlockZoneType } from '../../types/block.types';
+import type { BlockData, BlockPlacement } from '../../types/block.types';
+import { getEncounterPlacements } from '../../stores/blockStore';
 import type {
   CombatTerrainCell,
   Combatant,
@@ -22,43 +23,28 @@ function seededIndex(seed: number, index: number, modulo: number): number {
   return value % modulo;
 }
 
-const DNA_ZONE_PROFILE: Record<BlockZoneType, { cover: number; exposure: number; passable: boolean }> = {
-  street: { cover: 0.05, exposure: 0.95, passable: false },
-  curb: { cover: 0.15, exposure: 0.8, passable: true },
-  sidewalk: { cover: 0.3, exposure: 0.5, passable: true },
-  storefront: { cover: 0.6, exposure: 0.25, passable: true },
-  alley: { cover: 0.8, exposure: 0.1, passable: true },
-  parking: { cover: 0.35, exposure: 0.4, passable: true },
-  rooftop: { cover: 0.9, exposure: 0.05, passable: true },
-  building: { cover: 1, exposure: 0, passable: false },
-};
-
-function toTerrain(block: BlockData, coverBonus: number, zoneLayout: BlockZoneType[]): CombatTerrainCell[][] {
+function toTerrain(block: BlockData, coverBonus: number): CombatTerrainCell[][] {
   return block.grid.map((row) => row.map((zone) => {
-    const zoneType = zoneLayout[zone.y] ?? zone.zoneType;
-    const profile = DNA_ZONE_PROFILE[zoneType];
     return {
       x: zone.x,
       y: zone.y,
-      zoneType,
-      passable: zone.passable && profile.passable,
-      cover: Math.max(0, Math.min(1, Math.max(zone.coverScore, profile.cover) + coverBonus)),
-      exposure: Math.max(0, Math.min(1, Math.min(zone.exposureRisk / 100, profile.exposure))),
+      zoneType: zone.zoneType,
+      passable: zone.passable,
+      cover: Math.max(0, Math.min(1, zone.coverScore + coverBonus)),
+      exposure: Math.max(0, Math.min(1, zone.exposureRisk / 100)),
     };
   }));
 }
 
 function toCrew(placements: BlockPlacement[]): Combatant[] {
   return placements
-    .filter((placement) => placement.health > 0)
-    .slice(0, 4)
     .map((placement) => ({
       id: placement.memberId,
       name: placement.memberName,
       team: 'crew' as const,
       role: placement.role,
       position: { x: placement.x, y: placement.y },
-      health: Math.max(1, placement.health),
+      health: Math.max(0, Math.min(100, placement.health)),
       maxHealth: 100,
       armor: placement.role === 'enforcer' ? 2 : placement.role === 'shooter' ? 1 : 0,
       ammo: placement.role === 'shooter' ? 8 + placement.level : 5 + placement.level,
@@ -67,7 +53,7 @@ function toCrew(placements: BlockPlacement[]): Combatant[] {
       nextFireTick: 0,
       level: Math.max(1, placement.level),
       lastSequence: -1,
-      isDown: false,
+      isDown: placement.health <= 0,
     }));
 }
 
@@ -115,9 +101,21 @@ export function prepareEncounter(block: BlockData): EncounterPreparation {
     ? { dna: storedDNA, zoneLayout: buildZoneLayout(storedDNA), seed: `stored:${storedDNA.id}` }
     : resolveBlockDNA(block.lat, block.lng, block.address);
   const seed = hashString(`${block.id}:${resolved.seed}:${block.heat}:${block.morale}`);
-  const terrain = toTerrain(block, resolved.dna.globalCoverBonus, resolved.zoneLayout);
-  const crew = toCrew(block.placements);
-  const fallbackCrew: Combatant[] = crew.length > 0 ? crew : [{
+  // API-mapped server and DNA-fallback grids both have the snapshotted bonus
+  // baked into their cell cover. Only older locally constructed BlockData,
+  // which has no gridSource marker, needs the compatibility adjustment here.
+  const coverBonus = block.gridSource
+    ? 0
+    : (block.globalCoverBonus ?? resolved.dna.globalCoverBonus);
+  const terrain = toTerrain(block, coverBonus);
+  // A pending optimistic placement is visible on the board, but encounter
+  // setup must match the backend's last confirmed placement snapshot.
+  const confirmedPlacements = getEncounterPlacements(block);
+  const crew = toCrew(confirmedPlacements);
+  // Only records that genuinely have no saved defenders receive the seeded
+  // preview scout. A persisted all-downed roster must remain downed so reload
+  // cannot erase the encounter consequence by inventing a healthy member.
+  const fallbackCrew: Combatant[] = confirmedPlacements.length > 0 ? crew : [{
     id: 'crew-scout',
     name: 'Scout',
     team: 'crew',

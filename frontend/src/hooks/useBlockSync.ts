@@ -16,7 +16,6 @@ import { apiBlockToBlockData } from '../utils/blockMappers';
 import { usePlayerStore } from '../stores/gameStore';
 import {
   persistBlock,
-  persistPlacements,
   loadPlayerBlocks,
   loadPlacements,
 } from '../services/blockPersistence.service';
@@ -42,11 +41,50 @@ export function useBlockSync(enabled = true) {
         for (const partial of remoteBlocks) {
           if (!partial.id) continue;
 
-          // Don't overwrite blocks already in local store
-          const existing = useBlockStore.getState().blocks[partial.id];
-          if (existing) continue;
+          // A Flask hydration may already own the complete block/grid. Import
+          // only the durable receipt projection in that case; upsertBlock
+          // unions it with existing keys without replacing canonical state.
+          const mergeReceiptsIntoExisting = () => {
+            const existing = useBlockStore.getState().blocks[partial.id!];
+            if (!existing) return false;
+            const currentKeys = existing.appliedEncounterResultKeys ?? [];
+            const incomingKeys = partial.appliedEncounterResultKeys ?? [];
+            const currentKeySet = new Set(currentKeys);
+            const newKeys = incomingKeys.filter((key) => !currentKeySet.has(key));
+            const currentTail = currentKeys.at(-1);
+            const tailIndex = currentTail ? incomingKeys.lastIndexOf(currentTail) : -1;
+            const projectionAdvancesReceipts = incomingKeys.length > 0 && (
+              currentKeys.length === 0
+              || (tailIndex >= 0 && tailIndex < incomingKeys.length - 1)
+            );
+            if (incomingKeys.length) {
+              upsertBlock({
+                ...existing,
+                // The Supabase projection is partial, but a new durable
+                // receipt means its consequence fields outrank an older Flask
+                // hydration. Keep Flask's canonical grid/roster and import the
+                // atomic economy projection alongside the extended ledger.
+                ...(projectionAdvancesReceipts ? {
+                  heat: partial.heat ?? existing.heat,
+                  morale: partial.morale ?? existing.morale,
+                  pendingIncome: partial.pendingIncome ?? existing.pendingIncome,
+                } : {}),
+                appliedEncounterResultKeys: projectionAdvancesReceipts
+                  ? [...currentKeys, ...newKeys]
+                  : incomingKeys,
+              });
+            }
+            return true;
+          };
+          if (mergeReceiptsIntoExisting()) {
+            continue;
+          }
 
           const placements = await loadPlacements(partial.id);
+          // Flask can finish hydrating while the placement query is in
+          // flight. Re-check after the await so a partial Supabase projection
+          // never replaces the complete canonical block/grid.
+          if (mergeReceiptsIntoExisting()) continue;
           upsertBlock(apiBlockToBlockData({
             ...partial,
             placements,
@@ -70,7 +108,6 @@ export function useBlockSync(enabled = true) {
         if (!block || block.owner !== 'player') return;
         try {
           await persistBlock(block, userId);
-          await persistPlacements(blockId, block.placements);
         } catch (err) {
           console.warn('[BlockSync] Failed to persist block:', err);
         }
