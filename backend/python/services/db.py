@@ -9,6 +9,7 @@ Usage:
     profile = db.get_or_create_profile(user_id)
 """
 
+import json
 import os
 import logging
 import uuid
@@ -176,22 +177,38 @@ class DBAdapter:
                 rows.append({
                     'block_id': block_id,
                     'member_id': p.get('memberId') or p.get('member_id'),
-                    'role': p.get('role'),
-                    'x': p.get('gridX', p.get('x')),
-                    'y': p.get('gridY', p.get('y')),
-                    'anchor_id': p.get('anchorId') or p.get('anchor_id'),
+                    'member_name': p.get('memberName') or p.get('member_name') or 'Member',
+                    'role': p.get('role') or 'dealer',
+                    'grid_x': p.get('gridX', p.get('grid_x', p.get('x'))),
+                    'grid_y': p.get('gridY', p.get('grid_y', p.get('y'))),
+                    'zone_type': p.get('zoneType') or p.get('zone_type') or 'sidewalk',
                     'health': p.get('health', 100),
-                    'income_per_tick': p.get('incomePerTick') or p.get('income_per_tick') or 0,
-                    'payload': p,
+                    'income_per_tick': p.get('incomePerTick', p.get('income_per_tick', 0)),
+                    'exposure_risk': p.get('exposureRisk', p.get('exposure_risk', 50)),
+                    'level': p.get('level', 1),
+                    'portrait_url': p.get('portraitUrl') or p.get('portrait_url'),
+                    'topdown_url': p.get('topdownUrl') or p.get('topdown_url'),
                 })
             if rows:
                 self._sb.table('block_placements').insert(rows).execute()
             block = self.get_block(block_id)
             if block:
-                rev = int(block.get('live_revision', 0)) + 1
+                metadata = block.get('metadata') or {}
+                if isinstance(metadata, str):
+                    try:
+                        metadata = json.loads(metadata)
+                    except (TypeError, ValueError):
+                        metadata = {}
+                if not isinstance(metadata, dict):
+                    metadata = {}
+                rev = int(block.get('live_revision', metadata.get('liveRevision', 0))) + 1
+                metadata = {
+                    **metadata,
+                    'liveRevision': rev,
+                    'incomePerTick': sum(int(r.get('income_per_tick') or 0) for r in rows),
+                }
                 self._sb.table('blocks').update({
-                    'live_revision': rev,
-                    'income_per_tick': sum(int(r.get('income_per_tick') or 0) for r in rows),
+                    'metadata': metadata,
                 }).eq('id', block_id).execute()
             return normalized
         except Exception as e:
@@ -214,21 +231,84 @@ class DBAdapter:
             rows = result.data or []
             out = []
             for row in rows:
-                payload = row.get('payload') or {}
                 out.append({
-                    **payload,
-                    'memberId': row.get('member_id') or payload.get('memberId'),
-                    'role': row.get('role') or payload.get('role'),
-                    'gridX': row.get('x'),
-                    'gridY': row.get('y'),
-                    'anchorId': row.get('anchor_id') or payload.get('anchorId'),
+                    'memberId': row.get('member_id'),
+                    'memberName': row.get('member_name') or 'Member',
+                    'role': row.get('role') or 'dealer',
+                    'gridX': row.get('grid_x'),
+                    'gridY': row.get('grid_y'),
+                    'x': row.get('grid_x'),
+                    'y': row.get('grid_y'),
+                    'zoneType': row.get('zone_type') or 'sidewalk',
                     'health': row.get('health', 100),
                     'incomePerTick': row.get('income_per_tick', 0),
+                    'exposureRisk': row.get('exposure_risk', 50),
+                    'level': row.get('level', 1),
+                    'portraitUrl': row.get('portrait_url'),
+                    'topdownUrl': row.get('topdown_url'),
                 })
             return out
         except Exception as e:
             logger.error(f"get_placements failed: {e}")
             return []
+
+    def get_owned_members(self, user_id: str, member_ids: List[str]) -> List[Dict]:
+        """Return requested roster rows that belong to the authenticated owner."""
+        requested = [str(member_id) for member_id in member_ids if member_id]
+        if not requested:
+            return []
+        if self._dev_mode:
+            # Local mode deliberately has no durable roster table. Preserve the
+            # documented DEV_USER bypass while production remains explicit.
+            return [{'id': member_id} for member_id in requested]
+        database_ids = []
+        for member_id in requested:
+            try:
+                uuid.UUID(member_id)
+                database_ids.append(member_id)
+            except (ValueError, AttributeError):
+                # Production roster ids are UUID-backed. Local text ids exist
+                # only in the explicit in-memory DEV_USER path above; treating
+                # them as owned here would let a caller invent a crew member.
+                continue
+        if not database_ids:
+            return []
+        try:
+            result = (
+                self._sb.table('gang_members')
+                .select('*')
+                .eq('owner_id', user_id)
+                .in_('id', database_ids)
+                .execute()
+            )
+            return result.data or []
+        except Exception as e:
+            logger.error(f"get_owned_members failed: {e}")
+            raise
+
+    def get_member_loadouts(self, member_ids: List[str]) -> Dict[str, Dict]:
+        """Return optional equipment rows keyed by member id."""
+        requested = []
+        for member_id in member_ids:
+            try:
+                requested.append(str(uuid.UUID(str(member_id))))
+            except (ValueError, AttributeError):
+                continue
+        if self._dev_mode or not requested:
+            return {}
+        try:
+            result = (
+                self._sb.table('member_loadouts')
+                .select('member_id, weapon_id, armor_id, items')
+                .in_('member_id', requested)
+                .execute()
+            )
+            return {str(row['member_id']): row for row in (result.data or [])}
+        except Exception as e:
+            # The canonical staging manifest does not promise this legacy
+            # optional table. A missing loadout must not make combat disappear.
+            logger.warning(f"get_member_loadouts unavailable: {e}")
+            return {}
 
     def collect_block_income(self, user_id: str, block_id: str) -> Optional[Dict]:
         """Move pending_income to player cash. Returns {collected, player, block}."""
