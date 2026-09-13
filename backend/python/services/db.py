@@ -9,6 +9,7 @@ Usage:
     profile = db.get_or_create_profile(user_id)
 """
 
+import json
 import os
 import logging
 import uuid
@@ -32,6 +33,77 @@ _mock_player_heat: Dict[str, int] = {}
 
 def _make_id() -> str:
     return str(uuid.uuid4())
+
+
+_LEGACY_BLOCK_METADATA_KEY = 'legacyBlockState'
+
+
+def _legacy_block_state(
+    *,
+    coords: Dict,
+    bounds: Dict,
+    gang_name: str,
+    grid_data: Dict,
+    traffic_score: float,
+    block_hash: str,
+    scene_version: str,
+    scene_manifest: Dict,
+    pending_income: int = 0,
+    live_revision: int = 1,
+    placements: Optional[List[Dict]] = None,
+) -> Dict:
+    """Encode Flask-era block fields inside canonical blocks.metadata JSON."""
+    return {
+        'version': 1,
+        'lat': coords.get('lat'),
+        'lng': coords.get('lng'),
+        'bounds': dict(bounds or {}),
+        'gangName': gang_name,
+        'gridData': grid_data or {},
+        'trafficScore': traffic_score,
+        'incomePerHour': traffic_score * 10,
+        'incomePerTick': 0,
+        'pendingIncome': pending_income,
+        'blockHash': block_hash,
+        'sceneVersion': scene_version,
+        'sceneManifest': scene_manifest or {},
+        'liveRevision': live_revision,
+        'placements': list(placements or []),
+    }
+
+
+def _normalize_canonical_block(row: Optional[Dict]) -> Optional[Dict]:
+    """Expose canonical master-schema rows through the Flask block contract."""
+    if not row:
+        return row
+    metadata = row.get('metadata') if isinstance(row.get('metadata'), dict) else {}
+    state = metadata.get(_LEGACY_BLOCK_METADATA_KEY)
+    if not isinstance(state, dict):
+        return row
+
+    normalized = dict(row)
+    normalized.update({
+        'lat': state.get('lat'),
+        'lng': state.get('lng'),
+        'bounds_north': (state.get('bounds') or {}).get('north'),
+        'bounds_south': (state.get('bounds') or {}).get('south'),
+        'bounds_east': (state.get('bounds') or {}).get('east'),
+        'bounds_west': (state.get('bounds') or {}).get('west'),
+        'gang_name': state.get('gangName', ''),
+        'grid_data': state.get('gridData') or {},
+        'traffic_score': state.get('trafficScore', (row.get('traffic_value', 0) or 0) / 100),
+        'income_per_hour': state.get('incomePerHour', row.get('base_income', 0) or 0),
+        'income_per_tick': state.get('incomePerTick', 0),
+        'pending_income': state.get('pendingIncome', 0),
+        'heat_level': row.get('block_heat', 0) or 0,
+        'block_hash': state.get('blockHash', ''),
+        'scene_version': state.get('sceneVersion', ''),
+        'scene_manifest': state.get('sceneManifest') or {},
+        'live_revision': state.get('liveRevision', 1),
+        'placements': state.get('placements') or [],
+        'claimed_at': row.get('claimed_at'),
+    })
+    return normalized
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -176,22 +248,38 @@ class DBAdapter:
                 rows.append({
                     'block_id': block_id,
                     'member_id': p.get('memberId') or p.get('member_id'),
-                    'role': p.get('role'),
-                    'x': p.get('gridX', p.get('x')),
-                    'y': p.get('gridY', p.get('y')),
-                    'anchor_id': p.get('anchorId') or p.get('anchor_id'),
+                    'member_name': p.get('memberName') or p.get('member_name') or 'Member',
+                    'role': p.get('role') or 'dealer',
+                    'grid_x': p.get('gridX', p.get('grid_x', p.get('x'))),
+                    'grid_y': p.get('gridY', p.get('grid_y', p.get('y'))),
+                    'zone_type': p.get('zoneType') or p.get('zone_type') or 'sidewalk',
                     'health': p.get('health', 100),
-                    'income_per_tick': p.get('incomePerTick') or p.get('income_per_tick') or 0,
-                    'payload': p,
+                    'income_per_tick': p.get('incomePerTick', p.get('income_per_tick', 0)),
+                    'exposure_risk': p.get('exposureRisk', p.get('exposure_risk', 50)),
+                    'level': p.get('level', 1),
+                    'portrait_url': p.get('portraitUrl') or p.get('portrait_url'),
+                    'topdown_url': p.get('topdownUrl') or p.get('topdown_url'),
                 })
             if rows:
                 self._sb.table('block_placements').insert(rows).execute()
             block = self.get_block(block_id)
             if block:
-                rev = int(block.get('live_revision', 0)) + 1
+                metadata = block.get('metadata') or {}
+                if isinstance(metadata, str):
+                    try:
+                        metadata = json.loads(metadata)
+                    except (TypeError, ValueError):
+                        metadata = {}
+                if not isinstance(metadata, dict):
+                    metadata = {}
+                rev = int(block.get('live_revision', metadata.get('liveRevision', 0))) + 1
+                metadata = {
+                    **metadata,
+                    'liveRevision': rev,
+                    'incomePerTick': sum(int(r.get('income_per_tick') or 0) for r in rows),
+                }
                 self._sb.table('blocks').update({
-                    'live_revision': rev,
-                    'income_per_tick': sum(int(r.get('income_per_tick') or 0) for r in rows),
+                    'metadata': metadata,
                 }).eq('id', block_id).execute()
             return normalized
         except Exception as e:
@@ -214,21 +302,84 @@ class DBAdapter:
             rows = result.data or []
             out = []
             for row in rows:
-                payload = row.get('payload') or {}
                 out.append({
-                    **payload,
-                    'memberId': row.get('member_id') or payload.get('memberId'),
-                    'role': row.get('role') or payload.get('role'),
-                    'gridX': row.get('x'),
-                    'gridY': row.get('y'),
-                    'anchorId': row.get('anchor_id') or payload.get('anchorId'),
+                    'memberId': row.get('member_id'),
+                    'memberName': row.get('member_name') or 'Member',
+                    'role': row.get('role') or 'dealer',
+                    'gridX': row.get('grid_x'),
+                    'gridY': row.get('grid_y'),
+                    'x': row.get('grid_x'),
+                    'y': row.get('grid_y'),
+                    'zoneType': row.get('zone_type') or 'sidewalk',
                     'health': row.get('health', 100),
                     'incomePerTick': row.get('income_per_tick', 0),
+                    'exposureRisk': row.get('exposure_risk', 50),
+                    'level': row.get('level', 1),
+                    'portraitUrl': row.get('portrait_url'),
+                    'topdownUrl': row.get('topdown_url'),
                 })
             return out
         except Exception as e:
             logger.error(f"get_placements failed: {e}")
             return []
+
+    def get_owned_members(self, user_id: str, member_ids: List[str]) -> List[Dict]:
+        """Return requested roster rows that belong to the authenticated owner."""
+        requested = [str(member_id) for member_id in member_ids if member_id]
+        if not requested:
+            return []
+        if self._dev_mode:
+            # Local mode deliberately has no durable roster table. Preserve the
+            # documented DEV_USER bypass while production remains explicit.
+            return [{'id': member_id} for member_id in requested]
+        database_ids = []
+        for member_id in requested:
+            try:
+                uuid.UUID(member_id)
+                database_ids.append(member_id)
+            except (ValueError, AttributeError):
+                # Production roster ids are UUID-backed. Local text ids exist
+                # only in the explicit in-memory DEV_USER path above; treating
+                # them as owned here would let a caller invent a crew member.
+                continue
+        if not database_ids:
+            return []
+        try:
+            result = (
+                self._sb.table('gang_members')
+                .select('*')
+                .eq('owner_id', user_id)
+                .in_('id', database_ids)
+                .execute()
+            )
+            return result.data or []
+        except Exception as e:
+            logger.error(f"get_owned_members failed: {e}")
+            raise
+
+    def get_member_loadouts(self, member_ids: List[str]) -> Dict[str, Dict]:
+        """Return optional equipment rows keyed by member id."""
+        requested = []
+        for member_id in member_ids:
+            try:
+                requested.append(str(uuid.UUID(str(member_id))))
+            except (ValueError, AttributeError):
+                continue
+        if self._dev_mode or not requested:
+            return {}
+        try:
+            result = (
+                self._sb.table('member_loadouts')
+                .select('member_id, weapon_id, armor_id, items')
+                .in_('member_id', requested)
+                .execute()
+            )
+            return {str(row['member_id']): row for row in (result.data or [])}
+        except Exception as e:
+            # The canonical staging manifest does not promise this legacy
+            # optional table. A missing loadout must not make combat disappear.
+            logger.warning(f"get_member_loadouts unavailable: {e}")
+            return {}
 
     def collect_block_income(self, user_id: str, block_id: str) -> Optional[Dict]:
         """Move pending_income to player cash. Returns {collected, player, block}."""
@@ -361,8 +512,37 @@ class DBAdapter:
             return block
 
         try:
-            result = self._sb.table('blocks').insert(block).execute()
-            return result.data[0] if result.data else block
+            # The authoritative master schema stores the Flask-era fields in
+            # metadata and exposes canonical income/heat/status columns. Do not
+            # send legacy-only columns such as grid_data or traffic_score to
+            # PostgREST; doing so makes the real claim path fail before the
+            # player can ever reach placement or encounter.
+            canonical = {
+                'id': block_id,
+                'address': address,
+                'city': city,
+                'owner_id': user_id,
+                'claimed_at': block['claimed_at'],
+                'status': 'claimed',
+                'traffic_value': max(0, min(100, round(traffic_score * 100))),
+                'base_income': round(traffic_score * 10),
+                'block_heat': max(0, min(100, heat_level)),
+                'metadata': {
+                    _LEGACY_BLOCK_METADATA_KEY: _legacy_block_state(
+                        coords=coords,
+                        bounds=bounds,
+                        gang_name=gang_name,
+                        grid_data=grid_data or {},
+                        traffic_score=traffic_score,
+                        block_hash=block_hash,
+                        scene_version=scene_version,
+                        scene_manifest=scene_manifest or {},
+                    ),
+                },
+            }
+            result = self._sb.table('blocks').insert(canonical).execute()
+            stored = result.data[0] if result.data else canonical
+            return _normalize_canonical_block(stored) or block
         except Exception as e:
             logger.error(f"claim_block failed: {e}")
             raise
@@ -380,7 +560,7 @@ class DBAdapter:
                 .limit(limit)
                 .execute()
             )
-            return result.data or []
+            return [_normalize_canonical_block(row) for row in (result.data or [])]
         except Exception as e:
             logger.error(f"get_blocks_for_city failed: {e}")
             return []
@@ -397,7 +577,7 @@ class DBAdapter:
                 .eq('owner_id', user_id)
                 .execute()
             )
-            return result.data or []
+            return [_normalize_canonical_block(row) for row in (result.data or [])]
         except Exception as e:
             logger.error(f"get_user_blocks failed: {e}")
             return []
@@ -409,7 +589,7 @@ class DBAdapter:
 
         try:
             result = self._sb.table('blocks').select('*').eq('id', block_id).execute()
-            return result.data[0] if result.data else None
+            return _normalize_canonical_block(result.data[0]) if result.data else None
         except Exception as e:
             logger.error(f"get_block failed: {e}")
             return None

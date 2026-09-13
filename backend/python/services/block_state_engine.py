@@ -12,7 +12,147 @@ from datetime import datetime
 from supabase import create_client, Client
 import os
 
+from services.grid_generator import (
+    parse_finite_decimal,
+    parse_python_integer,
+    resolve_block_grid_tiles,
+)
+
 logger = logging.getLogger(__name__)
+
+def _tile_terrain_bonus(tile_data: Dict[str, Any]) -> Dict[str, float]:
+    """Normalize canonical root values while retaining legacy bonus fields."""
+    legacy = tile_data.get('terrain_bonus')
+    bonus = dict(legacy) if isinstance(legacy, dict) else {}
+    bonus['cover'] = tile_data.get('cover', bonus.get('cover', 0.0))
+    bonus['visibility'] = tile_data.get('visibility', bonus.get('visibility', 1.0))
+    return bonus
+
+def _members_from_placements(
+    placements: List[Dict[str, Any]],
+    roster_by_id: Optional[Dict[str, Dict[str, Any]]] = None,
+    loadouts_by_id: Optional[Dict[str, Dict[str, Any]]] = None,
+    require_roster: bool = False,
+    gameplay_tiles: Optional[List[List[Dict[str, Any]]]] = None,
+) -> List['MemberSnapshot']:
+    """Overlay saved state and normalize positions onto the gameplay board."""
+    roster_by_id = roster_by_id or {}
+    loadouts_by_id = loadouts_by_id or {}
+    placement_grid = gameplay_tiles or [
+        [{'deployable': True} for _x in range(8)] for _y in range(8)
+    ]
+    occupied = set()
+
+    def tile_is_deployable(tile: Any) -> bool:
+        if not isinstance(tile, dict):
+            return False
+        deployable = tile.get('deployable')
+        if isinstance(deployable, bool):
+            return deployable
+        return tile.get('type') not in {'street', 'building'}
+
+    def first_open_position() -> Optional[Dict[str, int]]:
+        for candidate_y, row in enumerate(placement_grid):
+            if not isinstance(row, list):
+                continue
+            for candidate_x, tile in enumerate(row):
+                if (
+                    isinstance(tile, dict)
+                    and tile_is_deployable(tile)
+                    and (candidate_x, candidate_y) not in occupied
+                ):
+                    return {'x': candidate_x, 'y': candidate_y}
+        return None
+
+    members = []
+    ordered_placements = sorted(
+        placements,
+        key=lambda item: str(
+            (item.get('memberId') or item.get('member_id') or '')
+            if isinstance(item, dict) else ''
+        ),
+    )
+    for placement in ordered_placements:
+        if not isinstance(placement, dict):
+            continue
+        member_id = placement.get('memberId') or placement.get('member_id')
+        if not member_id:
+            continue
+        member_id = str(member_id)
+        roster = roster_by_id.get(member_id)
+        if require_roster and roster is None:
+            logger.warning('Skipping placement for unresolved member %s', member_id)
+            continue
+        roster = roster or {}
+        x = placement.get('gridX', placement.get('x', 0))
+        y = placement.get('gridY', placement.get('y', 0))
+        requested = None
+        try:
+            if isinstance(x, bool) or isinstance(y, bool):
+                raise ValueError
+            numeric_x = parse_finite_decimal(x)
+            numeric_y = parse_finite_decimal(y)
+            if not numeric_x.is_integer() or not numeric_y.is_integer():
+                raise ValueError
+            requested = {'x': int(numeric_x), 'y': int(numeric_y)}
+        except (TypeError, ValueError, OverflowError):
+            # Match the client compatibility mapper: malformed legacy
+            # coordinates relocate deterministically rather than inventing a
+            # partially valid position or dropping an otherwise valid member.
+            requested = None
+        try:
+            health = max(0, min(100, parse_python_integer(placement.get('health', 100))))
+        except (TypeError, ValueError, OverflowError):
+            logger.warning('Skipping malformed block placement for member %s', member_id)
+            continue
+        try:
+            damage = parse_python_integer(roster.get('damage', placement.get('damage', 10)))
+        except (TypeError, ValueError, OverflowError):
+            damage = 10
+        try:
+            defense = parse_python_integer(
+                roster.get('defense', roster.get('armor_rating', placement.get('defense', 5)))
+            )
+        except (TypeError, ValueError, OverflowError):
+            defense = 5
+        requested_tile = (
+            placement_grid[requested['y']][requested['x']]
+            if requested is not None
+            and 0 <= requested['y'] < len(placement_grid)
+            and isinstance(placement_grid[requested['y']], list)
+            and 0 <= requested['x'] < len(placement_grid[requested['y']])
+            else None
+        )
+        if (
+            isinstance(requested_tile, dict)
+            and tile_is_deployable(requested_tile)
+            and (requested['x'], requested['y']) not in occupied
+        ):
+            position = requested
+        else:
+            position = first_open_position()
+        if position is None:
+            logger.warning('Skipping placement with no open gameplay tile for member %s', member_id)
+            continue
+        occupied.add((position['x'], position['y']))
+        loadout_row = loadouts_by_id.get(member_id) or {}
+        loadout = {
+            'weapon_id': loadout_row.get('weapon_id') or roster.get('weapon_name'),
+            'armor_id': loadout_row.get('armor_id'),
+            'items': loadout_row.get('items') or [],
+        } if loadout_row or roster.get('weapon_name') else {}
+        members.append(MemberSnapshot(
+            id=member_id,
+            role=str(roster.get('role', placement.get('role', 'soldier'))),
+            stats={
+                'health': health,
+                'damage': damage,
+                'defense': defense,
+            },
+            position=position,
+            loadout=loadout,
+        ))
+    return members
 
 
 @dataclass
@@ -174,77 +314,86 @@ class BlockStateEngine:
                 return None
             
             block = block_data.data
-            
-            # Fetch members on this block
-            members_data = self.supabase.table('gang_members').select(
-                'id, role, stats, position, health, damage, defense'
-            ).eq('current_block_id', block_id).execute()
-            
-            # Fetch member loadouts
-            member_ids = [m['id'] for m in members_data.data] if members_data.data else []
-            loadouts = {}
-            if member_ids:
-                loadouts_data = self.supabase.table('member_loadouts').select(
-                    'member_id, weapon_id, armor_id, items'
-                ).in_('member_id', member_ids).execute()
-                
-                for loadout in loadouts_data.data:
-                    loadouts[loadout['member_id']] = loadout
-            
-            # Build member snapshots
-            members = []
-            for member in (members_data.data or []):
-                member_loadout = loadouts.get(member['id'], {})
-                members.append(MemberSnapshot(
-                    id=member['id'],
-                    role=member.get('role', 'soldier'),
-                    stats={
-                        'health': member.get('health', 100),
-                        'damage': member.get('damage', 10),
-                        'defense': member.get('defense', 5),
-                    },
-                    position=member.get('position', {'x': 0, 'y': 0}),
-                    loadout={
-                        'weapon_id': member_loadout.get('weapon_id'),
-                        'armor_id': member_loadout.get('armor_id'),
-                        'items': member_loadout.get('items', [])
-                    }
-                ))
-            
-            # Parse grid data
-            grid_data = block.get('grid_data', {})
-            if isinstance(grid_data, str):
-                grid_data = json.loads(grid_data)
-            
-            # GridGenerationResult serializes the board under `grid.tiles`.
-            # Keep accepting the older top-level `tiles` shape for existing data.
-            nested_grid = grid_data.get('grid', {})
-            if isinstance(nested_grid, str):
-                nested_grid = json.loads(nested_grid)
-            tiles_data = nested_grid.get('tiles', []) if isinstance(nested_grid, dict) else []
+
+            # Resolve the gameplay board before members so malformed/legacy
+            # placements follow the same first-open relocation rule as the
+            # client mapper.
+            tiles_data, _grid_source = resolve_block_grid_tiles(block)
             if not tiles_data:
-                tiles_data = grid_data.get('tiles', [])
-            if not tiles_data:
-                # Generate default grid if missing
                 tiles_data = self._generate_default_grid(8, 8)
             
+            # The block placement route writes `block_placements`; consume that
+            # exact contract first so the encounter cannot relocate defenders.
+            # Older records may still assign members directly on gang_members,
+            # so retain that path only when no placement rows exist.
+            from services.db import get_db
+            db = get_db()
+            placements = db.get_placements(block_id)
+            placement_ids = [
+                str(p.get('memberId') or p.get('member_id'))
+                for p in placements
+                if p.get('memberId') or p.get('member_id')
+            ]
+            roster_rows = db.get_owned_members(block.get('owner_id'), placement_ids)
+            roster_by_id = {str(row['id']): row for row in roster_rows if row.get('id')}
+            members = _members_from_placements(
+                placements,
+                roster_by_id=roster_by_id,
+                loadouts_by_id=db.get_member_loadouts(placement_ids),
+                require_roster=bool(placements),
+                gameplay_tiles=tiles_data,
+            )
+            if not placements:
+                # Compatibility only: pre-placement records assigned members
+                # directly on one of two historical gang_members columns.
+                members_data = None
+                for assignment_column in ('assigned_block_id', 'current_block_id'):
+                    try:
+                        members_data = (
+                            self.supabase.table('gang_members')
+                            .select('*')
+                            .eq(assignment_column, block_id)
+                            .execute()
+                        )
+                        break
+                    except Exception:
+                        continue
+                legacy_rows = members_data.data if members_data and members_data.data else []
+                legacy_ids = [str(member['id']) for member in legacy_rows if member.get('id')]
+                legacy_placements = []
+                for member in legacy_rows:
+                    position = member.get('position') if isinstance(member.get('position'), dict) else {}
+                    legacy_placements.append({
+                        'memberId': member.get('id'),
+                        'role': member.get('role', 'soldier'),
+                        'gridX': position.get('x', member.get('grid_x', 0)),
+                        'gridY': position.get('y', member.get('grid_y', 0)),
+                        'health': member.get('health', 100),
+                    })
+                members = _members_from_placements(
+                    legacy_placements,
+                    roster_by_id={str(row['id']): row for row in legacy_rows if row.get('id')},
+                    loadouts_by_id=db.get_member_loadouts(legacy_ids),
+                    gameplay_tiles=tiles_data,
+                )
+
             # Build tile snapshots
             tiles = []
-            for row_data in tiles_data:
+            for y, row_data in enumerate(tiles_data):
                 row = []
-                for tile_data in row_data:
+                for x, tile_data in enumerate(row_data):
                     # Find member on this tile
                     member_on_tile = None
                     for m in members:
-                        if m.position.get('x') == tile_data.get('x') and m.position.get('y') == tile_data.get('y'):
+                        if m.position.get('x') == x and m.position.get('y') == y:
                             member_on_tile = m.id
                             break
                     
                     row.append(TileSnapshot(
-                        x=tile_data.get('x', 0),
-                        y=tile_data.get('y', 0),
+                        x=x,
+                        y=y,
                         tile_type=tile_data.get('type', 'building'),
-                        terrain_bonus=tile_data.get('terrain_bonus', {}),
+                        terrain_bonus=_tile_terrain_bonus(tile_data),
                         member_id=member_on_tile
                     ))
                 tiles.append(row)
@@ -295,7 +444,7 @@ class BlockStateEngine:
             logger.error(f"Failed to generate snapshot: {e}", exc_info=True)
             return None
     
-    def _generate_mock_snapshot(self, block_id: str) -> BlockSnapshot:
+    def _generate_mock_snapshot(self, block_id: str) -> Optional[BlockSnapshot]:
         """Generate a mock snapshot for testing without database — uses stored block grid when available."""
         snapshot_id = self._generate_snapshot_id(block_id, 1)
         seed = self._generate_seed(block_id, 1)
@@ -303,48 +452,38 @@ class BlockStateEngine:
         # Prefer the claimed block's persisted board so offline combat exercises
         # the same nested `grid.tiles` shape used by the real claim path.
         from services.db import get_db
-        block = get_db().get_block(block_id) or {}
-        grid_data = block.get('grid_data', {})
-        if isinstance(grid_data, str):
-            grid_data = json.loads(grid_data)
-        nested_grid = grid_data.get('grid', {}) if isinstance(grid_data, dict) else {}
-        if isinstance(nested_grid, str):
-            nested_grid = json.loads(nested_grid)
-        raw_tiles = nested_grid.get('tiles', []) if isinstance(nested_grid, dict) else []
-        if not raw_tiles and isinstance(grid_data, dict):
-            raw_tiles = grid_data.get('tiles', [])
+        block = get_db().get_block(block_id)
+        if not block:
+            logger.error(f"Block {block_id} not found")
+            return None
+        raw_tiles, _grid_source = resolve_block_grid_tiles(block)
         if not raw_tiles:
             raw_tiles = self._generate_default_grid(8, 8, seed=seed)
 
+        members = _members_from_placements(
+            get_db().get_placements(block_id),
+            gameplay_tiles=raw_tiles,
+        )
+
         # Convert raw dicts to TileSnapshot objects
         tiles = []
-        for row_data in raw_tiles:
+        for y, row_data in enumerate(raw_tiles):
             row = []
-            for td in row_data:
-                # Canonical generated tiles expose cover/visibility at the
-                # tile root; older tactical grids already use terrain_bonus.
-                legacy_bonus = td.get('terrain_bonus') or {}
-                terrain_bonus = {
-                    'cover': td.get('cover', legacy_bonus.get('cover', 0.0)),
-                    'visibility': td.get('visibility', legacy_bonus.get('visibility', 1.0)),
-                }
+            for x, td in enumerate(row_data):
+                terrain_bonus = _tile_terrain_bonus(td)
+                member_on_tile = next((
+                    member.id for member in members
+                    if member.position.get('x') == x
+                    and member.position.get('y') == y
+                ), None)
                 row.append(TileSnapshot(
-                    x=td['x'],
-                    y=td['y'],
+                    x=x,
+                    y=y,
                     tile_type=td['type'],
                     terrain_bonus=terrain_bonus,
+                    member_id=member_on_tile,
                 ))
             tiles.append(row)
-
-        members = [
-            MemberSnapshot(
-                id='member-1',
-                role='shooter',
-                stats={'health': 100, 'damage': 15, 'defense': 5},
-                position={'x': 3, 'y': 3},
-                loadout={'weapon_id': 'pistol-1', 'armor_id': None, 'items': []}
-            )
-        ]
 
         return BlockSnapshot(
             block_id=block_id,
@@ -359,9 +498,9 @@ class BlockStateEngine:
             grid_height=len(tiles) if tiles else 8,
             tiles=tiles,
             members=members,
-            heat_level=30.0,
-            income_rate=100.0,
-            defense_rating=25.0,
+            heat_level=float(block.get('heat_level', 0)),
+            income_rate=self.compute_income(block, members),
+            defense_rating=self.compute_defense(block, members),
             fortification_level=0,
             seed=seed
         )
@@ -375,9 +514,26 @@ class BlockStateEngine:
             result = self.supabase.table('block_snapshots').select('snapshot_data').eq('id', snapshot_id).single().execute()
             if result.data:
                 data = result.data['snapshot_data']
-                # Reconstruct snapshot from stored data
-                # (Simplified - in production would fully reconstruct all objects)
-                return BlockSnapshot(**data)
+                if isinstance(data, str):
+                    data = json.loads(data)
+                if not isinstance(data, dict):
+                    return None
+                raw_tiles = data.get('tiles')
+                raw_members = data.get('members')
+                if not isinstance(raw_tiles, list) or not isinstance(raw_members, list):
+                    return None
+                tiles = [
+                    [tile if isinstance(tile, TileSnapshot) else TileSnapshot(**tile) for tile in row]
+                    for row in raw_tiles
+                    if isinstance(row, list)
+                ]
+                if len(tiles) != len(raw_tiles):
+                    return None
+                members = [
+                    member if isinstance(member, MemberSnapshot) else MemberSnapshot(**member)
+                    for member in raw_members
+                ]
+                return BlockSnapshot(**{**data, 'tiles': tiles, 'members': members})
             return None
         except Exception as e:
             logger.error(f"Failed to get archived snapshot: {e}")
@@ -388,7 +544,7 @@ class BlockStateEngine:
         Compute current heat level for a block.
         MVP: Simple formula based on recent activity.
         """
-        current_heat = float(block.get('current_heat', 0))
+        current_heat = float(block.get('current_heat', block.get('heat_level', block.get('block_heat', 0))))
         max_heat = float(block.get('max_heat', 100))
         
         # Heat decays over time (simplified)

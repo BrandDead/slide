@@ -27,6 +27,7 @@ const block = {
   viewMode: 'topdown' as const,
   pendingIncome: 90,
   appliedEncounterResultKeys: ['result-1'],
+  liveRevision: 4,
 };
 
 describe('blockPersistence.service authoritative projection', () => {
@@ -46,7 +47,14 @@ describe('blockPersistence.service authoritative projection', () => {
         location: 'POINT(-80.1748 25.7752)',
         block_heat: 40,
         base_income: 120,
-        metadata: {},
+        metadata: {
+          morale: 58,
+          pendingIncome: 50,
+          appliedEncounterResultKeys: ['encounter-0:secured', 'encounter-1:overrun'],
+          lastEncounterResultKey: 'encounter-1:overrun',
+          globalCoverBonus: 0.12,
+          liveRevision: 4,
+        },
         status: 'claimed',
       }],
       error: null,
@@ -57,19 +65,29 @@ describe('blockPersistence.service authoritative projection', () => {
     const blocks = await loadPlayerBlocks('11111111-1111-4111-8111-111111111111');
 
     expect(select).toHaveBeenCalledWith('id, address, location, block_heat, base_income, metadata, status');
-    expect(blocks[0]).toMatchObject({ lat: 25.7752, lng: -80.1748 });
+    expect(blocks[0]).toMatchObject({
+      lat: 25.7752,
+      lng: -80.1748,
+      morale: 58,
+      pendingIncome: 50,
+      globalCoverBonus: 0.12,
+      liveRevision: 4,
+      appliedEncounterResultKeys: ['encounter-0:secured', 'encounter-1:overrun'],
+    });
   });
 
   it('uses the atomic projection RPC for UUID-backed player blocks', async () => {
     rpc.mockResolvedValue({ data: { applied: true }, error: null });
 
-    await persistBlock(block, '11111111-1111-4111-8111-111111111111');
+    const accepted = await persistBlock(block, '11111111-1111-4111-8111-111111111111');
 
+    expect(accepted).toBe(true);
     expect(rpc).toHaveBeenCalledWith('persist_player_block_projection', expect.objectContaining({
       p_block_id: block.id,
       p_client_result_key: 'result-1',
       p_block_heat: 40,
       p_base_income: 120,
+      p_metadata: expect.objectContaining({ liveRevision: 4 }),
     }));
     expect(from).not.toHaveBeenCalled();
   });
@@ -77,20 +95,26 @@ describe('blockPersistence.service authoritative projection', () => {
   it('does not fall through to an unguarded upsert when the server rejects a stale projection', async () => {
     rpc.mockResolvedValue({ data: { applied: false, reason: 'stale_encounter_projection' }, error: null });
 
-    await persistBlock(block, '11111111-1111-4111-8111-111111111111');
+    const accepted = await persistBlock(block, '11111111-1111-4111-8111-111111111111');
 
+    expect(accepted).toBe(false);
     expect(from).not.toHaveBeenCalled();
   });
 
   it('retains the legacy upsert path only when the new RPC is absent from an older server schema', async () => {
     rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Function not found' } });
 
-    await persistBlock(block, '11111111-1111-4111-8111-111111111111');
+    const accepted = await persistBlock(block, '11111111-1111-4111-8111-111111111111');
 
+    expect(accepted).toBe(true);
     expect(from).toHaveBeenCalledWith('blocks');
     expect(upsert).toHaveBeenCalledWith(expect.objectContaining({
       id: block.id,
-      metadata: expect.objectContaining({ lastEncounterResultKey: 'result-1' }),
+      metadata: expect.objectContaining({
+        appliedEncounterResultKeys: ['result-1'],
+        lastEncounterResultKey: 'result-1',
+        liveRevision: 4,
+      }),
     }), { onConflict: 'id' });
   });
 });

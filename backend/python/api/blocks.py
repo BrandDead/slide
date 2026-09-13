@@ -7,11 +7,19 @@ from __future__ import annotations
 
 from flask import Blueprint, request, jsonify, g
 from typing import Any, Dict
+import json
 import logging
+import math
 import uuid
 
 from services.geocoding_service import get_geocoding_service
-from services.grid_generator import generate_block_grid
+from services.grid_generator import (
+    generate_block_grid,
+    parse_finite_decimal,
+    parse_python_integer,
+    resolve_block_dna_profile,
+    resolve_block_grid_tiles,
+)
 from services.db import get_db
 from middleware.auth import require_auth
 from config.game_constants import CLAIM_BLOCK_COST, CLAIM_HEAT_DELTA
@@ -26,11 +34,35 @@ SUPPORTED_CITIES = ['nyc', 'la', 'miami', 'chicago', 'detroit', 'nola']
 
 logger = logging.getLogger(__name__)
 
+PLACEMENT_ZONE_INCOME = {
+    'street': 100,
+    'curb': 80,
+    'sidewalk': 60,
+    'storefront': 40,
+    'alley': 20,
+    'parking': 30,
+    'rooftop': 0,
+    'building': 0,
+}
+INCOME_ROLES = {'dealer', 'chemist', 'runner'}
+NON_DEPLOYABLE_MEMBER_STATUSES = {
+    'dead', 'arrested', 'hospitalized', 'injured', 'jailed', 'defected',
+    'backdoored', 'on_the_run', 'missing',
+}
+
 blocks_bp = Blueprint('blocks', __name__, url_prefix='/api/blocks')
 
 
 def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[str, Any]:
     """Normalize DBAdapter block records for the frontend."""
+    metadata = block.get('metadata') or {}
+    if isinstance(metadata, str):
+        try:
+            metadata = json.loads(metadata)
+        except (TypeError, ValueError):
+            metadata = {}
+    if not isinstance(metadata, dict):
+        metadata = {}
     out = {
         'id': block.get('id'),
         'ownerId': block.get('owner_id'),
@@ -42,12 +74,13 @@ def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[
         'gangName': block.get('gang_name'),
         'trafficScore': block.get('traffic_score'),
         'incomePerHour': block.get('income_per_hour'),
-        'incomePerTick': block.get('income_per_tick', 0),
-        'pendingIncome': block.get('pending_income', 0),
-        'heatLevel': block.get('heat_level', 0),
+        'incomePerTick': block.get('income_per_tick', metadata.get('incomePerTick', 0)),
+        'pendingIncome': block.get('pending_income', metadata.get('pendingIncome', 0)),
+        'heatLevel': block.get('heat_level', metadata.get('heatLevel', 0)),
+        'morale': block.get('morale', metadata.get('morale')),
         'blockHash': block.get('block_hash'),
         'sceneVersion': block.get('scene_version'),
-        'liveRevision': block.get('live_revision', 1),
+        'liveRevision': block.get('live_revision', metadata.get('liveRevision', 1)),
         'claimedAt': block.get('claimed_at'),
         'bounds': {
             'north': block.get('bounds_north'),
@@ -57,6 +90,10 @@ def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[
         },
         'placements': block.get('placements') or [],
         'backgrounds': block.get('backgrounds') or {},
+        # Existing JSON metadata carries the durable encounter receipt used by
+        # the parallel Supabase hydration path. Returning it makes either
+        # hydration order preserve local consequence idempotency.
+        'metadata': metadata,
     }
     # Authoritative tactical identity. Always returned (claim, my-blocks, single
     # block, tick, collect) so the client never has to re-resolve a claimed
@@ -73,10 +110,35 @@ def _serialize_block(block: Dict[str, Any], include_grid: bool = False) -> Dict[
 
 
 def _extract_coords(data: Dict[str, Any]):
-    coords = data.get('coordinates') or {}
+    coords = data.get('coordinates')
+    if coords is None:
+        coords = {}
+    if not isinstance(coords, dict):
+        raise ValueError('coordinates must be an object')
     lat = coords.get('lat', data.get('lat'))
     lng = coords.get('lng', data.get('lng'))
     return lat, lng
+
+
+def _parse_grid_coordinate(value: Any) -> int:
+    """Parse an integer-like grid coordinate without truncating decimals."""
+    try:
+        numeric = parse_finite_decimal(value)
+    except ValueError:
+        raise ValueError('Grid coordinates must be integers') from None
+    if not numeric.is_integer():
+        raise ValueError('Grid coordinates must be integers')
+    return int(numeric)
+
+
+def _placement_income(zone_type: str, role: str, level: int, income_multiplier: float) -> int:
+    """Mirror the existing client placement formula with server-owned inputs."""
+    if role not in INCOME_ROLES:
+        return 0
+    base = PLACEMENT_ZONE_INCOME.get(zone_type, 0)
+    level_bonus = 1 + (level - 1) * 0.12
+    role_multiplier = 1.0 if role == 'dealer' else 0.7
+    return math.floor(base * level_bonus * role_multiplier * income_multiplier + 0.5)
 
 
 @blocks_bp.route('/search', methods=['GET'])
@@ -113,9 +175,14 @@ def search_address():
 @blocks_bp.route('/preview', methods=['POST'])
 def get_block_preview():
     """Get preview of a block before claiming."""
-    data = request.get_json() or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object'}), 400
     address = data.get('address')
-    lat, lng = _extract_coords(data)
+    try:
+        lat, lng = _extract_coords(data)
+    except ValueError as error:
+        return jsonify({'error': str(error)}), 400
 
     if not address and (lat is None or lng is None):
         return jsonify({'error': 'Address or coordinates required'}), 400
@@ -156,20 +223,46 @@ def get_block_preview():
 @require_auth
 def claim_block():
     """Claim a block for the user (server-authoritative cost)."""
-    data = request.get_json() or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object'}), 400
     user_id = g.user['id']
     address = data.get('address')
-    lat, lng = _extract_coords(data)
-    city = data.get('city')
-    gang_name = data.get('gangName') or data.get('gang_name') or 'Unknown Gang'
+    try:
+        lat, lng = _extract_coords(data)
+    except ValueError as error:
+        return jsonify({'error': str(error)}), 400
+    if 'gangName' in data:
+        gang_name = data['gangName']
+    elif 'gang_name' in data:
+        gang_name = data['gang_name']
+    else:
+        gang_name = 'Unknown Gang'
 
-    if not address or lat is None or lng is None:
+    if not isinstance(address, str) or not address.strip() or lat is None or lng is None:
         return jsonify({'error': 'Address and coordinates required'}), 400
+    if not isinstance(gang_name, str):
+        return jsonify({'error': 'gangName must be a string'}), 400
+    gang_name = gang_name.strip() or 'Unknown Gang'
+    if isinstance(lat, bool) or isinstance(lng, bool):
+        return jsonify({'error': 'Coordinates must be finite numbers'}), 400
+    try:
+        lat = float(lat)
+        lng = float(lng)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Coordinates must be finite numbers'}), 400
+    if (
+        not math.isfinite(lat)
+        or not math.isfinite(lng)
+        or not -90 <= lat <= 90
+        or not -180 <= lng <= 180
+    ):
+        return jsonify({'error': 'Coordinates are outside valid latitude/longitude bounds'}), 400
 
     try:
         geocoding = get_geocoding_service()
         location = geocoding.get_block_location(
-            address=address, lat=float(lat), lng=float(lng),
+            address=address.strip(), lat=lat, lng=lng,
         )
         if not location:
             return jsonify({
@@ -177,7 +270,9 @@ def claim_block():
                 'reason': 'invalid_address',
             }), 400
 
-        city = city or location.city
+        # The geocoder-verified coordinates own the service-area city. Never
+        # let an optional client label misclassify a real address.
+        city = location.city
         if city not in SUPPORTED_CITIES:
             return jsonify({
                 'error': f'City not supported. Valid cities: {", ".join(SUPPORTED_CITIES)}',
@@ -205,12 +300,6 @@ def claim_block():
                 'cash': player['cash'],
             }), 400
 
-        grid_result = generate_block_grid(
-            city=city,
-            traffic_score=location.traffic_score,
-            seed=location.block_hash,
-        )
-
         # Server-authoritative DNA. Resolved here from verified geocoder output,
         # never from a client-supplied dnaId, and snapshotted by value so the
         # block keeps this tactical identity through catalog growth and later
@@ -227,6 +316,13 @@ def claim_block():
                 'Ignoring client-proposed dnaId %s; server resolved %s for %s',
                 claimed_dna_id, dna_snapshot['dnaId'], location.block_hash,
             )
+        grid_result = generate_block_grid(
+            city=city,
+            traffic_score=location.traffic_score,
+            seed=location.block_hash,
+            zone_layout=dna_snapshot['zoneLayout'],
+            global_cover_bonus=dna_snapshot.get('globalCoverBonus', 0.0),
+        )
         grid_payload = attach_dna_snapshot(grid_result.to_dict(), dna_snapshot)
 
         updated_player = db.apply_economy_delta(
@@ -394,8 +490,14 @@ def get_supported_cities():
 def place_members(block_id: str):
     """Replace crew placements on a block (owner only)."""
     user_id = g.user['id']
-    data = request.get_json() or {}
-    placements = data.get('placements') or []
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object'}), 400
+    if 'placements' not in data:
+        return jsonify({'error': 'placements is required'}), 400
+    placements = data['placements']
+    if not isinstance(placements, list):
+        return jsonify({'error': 'placements must be an array'}), 400
     try:
         db = get_db()
         block = db.get_block(block_id)
@@ -404,40 +506,169 @@ def place_members(block_id: str):
         if block.get('owner_id') != user_id:
             return jsonify({'error': 'Not authorized'}), 403
 
-        normalized = []
+        gameplay_tiles, grid_source = resolve_block_grid_tiles(block)
+        if grid_source == 'missing':
+            return jsonify({'error': 'Block has no usable placement grid'}), 400
+
+        dna_profile = resolve_block_dna_profile(block)
+        max_members = dna_profile.get('maxMembers') if dna_profile else None
+        if (
+            isinstance(max_members, (int, float))
+            and not isinstance(max_members, bool)
+            and math.isfinite(max_members)
+        ):
+            member_cap = int(max_members)
+            if len(placements) > member_cap:
+                return jsonify({'error': f'Block supports at most {member_cap} members'}), 400
+
+        validated = []
+        occupied_cells = set()
+        member_ids = set()
         for p in placements:
-            x = int(p.get('gridX', p.get('x', 0)))
-            y = int(p.get('gridY', p.get('y', 0)))
-            if not (0 <= x < 8 and 0 <= y < 8):
+            if not isinstance(p, dict):
+                return jsonify({'error': 'Each placement must be an object'}), 400
+            try:
+                x = _parse_grid_coordinate(p.get('gridX', p.get('x')))
+                y = _parse_grid_coordinate(p.get('gridY', p.get('y')))
+            except ValueError as error:
+                return jsonify({'error': str(error)}), 400
+
+            height = len(gameplay_tiles)
+            width = len(gameplay_tiles[0])
+            if not (0 <= x < width and 0 <= y < height):
                 return jsonify({'error': f'Invalid grid cell ({x},{y})'}), 400
-            if y in (0, 7):
-                return jsonify({'error': 'Cannot place on street lane'}), 400
+
+            tile = gameplay_tiles[y][x]
+            if not tile.get('deployable', False):
+                return jsonify({'error': f'Grid cell ({x},{y}) is not deployable'}), 400
+
+            member_id = p.get('memberId') or p.get('member_id')
+            if not isinstance(member_id, str) or not member_id.strip():
+                return jsonify({'error': 'memberId is required'}), 400
+            member_id = member_id.strip()
+            if member_id in member_ids:
+                return jsonify({'error': f'Duplicate memberId: {member_id}'}), 400
+            if (x, y) in occupied_cells:
+                return jsonify({'error': f'Grid cell ({x},{y}) is already occupied'}), 400
+            member_ids.add(member_id)
+            occupied_cells.add((x, y))
+
+            validated.append((p, member_id, x, y, tile))
+
+        roster_rows = db.get_owned_members(user_id, list(member_ids))
+        roster_by_id = {
+            str(row.get('id')): row
+            for row in roster_rows
+            if isinstance(row, dict) and row.get('id')
+        }
+        missing_members = sorted(member_ids - set(roster_by_id))
+        if missing_members:
+            return jsonify({'error': 'One or more members do not belong to this player'}), 400
+
+        for member_id, roster in roster_by_id.items():
+            status = str(roster.get('status') or '').lower()
+            if status in NON_DEPLOYABLE_MEMBER_STATUSES:
+                return jsonify({'error': f'Member {member_id} cannot be deployed while {status}'}), 400
+
+        existing_by_member = {
+            str(p.get('memberId') or p.get('member_id')): p
+            for p in db.get_placements(block_id)
+            if isinstance(p, dict) and (p.get('memberId') or p.get('member_id'))
+        }
+        try:
+            income_multiplier = float(
+                dna_profile.get('incomeMultiplier', 1.0) if dna_profile else 1.0
+            )
+        except (TypeError, ValueError, OverflowError):
+            income_multiplier = 1.0
+        if not math.isfinite(income_multiplier) or income_multiplier < 0:
+            income_multiplier = 1.0
+
+        normalized = []
+        for p, member_id, x, y, tile in validated:
+            roster = roster_by_id[member_id]
+            local_dev_member = set(roster) <= {'id'}
+            zone_type = tile.get('type')
+            level_value = p.get('level', 1) if local_dev_member else roster.get('level', 1)
+            previous = existing_by_member.get(member_id)
+            if previous is not None:
+                previous_health_value = previous.get('health', 100)
+                requested_health_value = p.get('health', previous_health_value)
+                roster_health_value = roster.get('health', previous_health_value)
+                health_values = (
+                    previous_health_value,
+                    requested_health_value,
+                    roster_health_value,
+                )
+            elif local_dev_member:
+                health_values = (p.get('health', 100),)
+            else:
+                # A confirmed defender can be removed by an earlier queued
+                # replacement and then re-added by a later encounter result.
+                # The requested injury may lower roster health but can never
+                # heal it, preserving monotonic consequences in either order.
+                roster_health_value = roster.get('health', 100)
+                health_values = (
+                    p.get('health', roster_health_value),
+                    roster_health_value,
+                )
+            facing_value = p.get('facingDeg', 0)
+            if (
+                isinstance(level_value, bool)
+                or isinstance(facing_value, bool)
+                or any(isinstance(value, bool) for value in health_values)
+            ):
+                return jsonify({'error': 'Placement numeric fields are malformed'}), 400
+            try:
+                exposure_risk = (
+                    int(math.floor(float(tile.get('visibility', 1.0)) * 100 + 0.5))
+                )
+                level = parse_python_integer(level_value)
+                # Placement replacement is also the existing persistence seam
+                # for encounter injuries. Health may only move downward here;
+                # relocating a member can never heal or resurrect them.
+                health = min(parse_python_integer(value) for value in health_values)
+                facing_deg = parse_finite_decimal(facing_value)
+            except (TypeError, ValueError, OverflowError):
+                return jsonify({'error': 'Placement numeric fields are malformed'}), 400
+            if not 0 <= health <= 100:
+                return jsonify({'error': 'health must be between 0 and 100'}), 400
+            if not 1 <= level <= 10:
+                return jsonify({'error': 'level must be between 1 and 10'}), 400
+            if not 0 <= exposure_risk <= 100 or not math.isfinite(facing_deg):
+                return jsonify({'error': 'Placement tactical fields are malformed'}), 400
+            role = str(p.get('role', 'dealer') if local_dev_member else roster.get('role', 'dealer'))
+            income_per_tick = _placement_income(zone_type, role, level, income_multiplier)
             normalized.append({
-                'memberId': p.get('memberId') or p.get('member_id'),
-                'memberName': p.get('memberName') or p.get('member_name') or 'Member',
-                'role': p.get('role', 'dealer'),
+                'memberId': member_id,
+                'memberName': (
+                    p.get('memberName') or p.get('member_name') or 'Member'
+                    if local_dev_member else roster.get('name') or 'Member'
+                ),
+                'role': role,
                 'anchorId': p.get('anchorId') or p.get('anchor_id') or grid_cell_to_anchor_id(x, y),
                 'gridX': x,
                 'gridY': y,
                 'x': x,
                 'y': y,
-                'zoneType': p.get('zoneType') or p.get('zone_type') or 'sidewalk',
-                'incomePerTick': int(p.get('incomePerTick') or p.get('income_per_tick') or 0),
-                'exposureRisk': int(p.get('exposureRisk') or 50),
-                'level': int(p.get('level') or 1),
-                'health': int(p.get('health') or 100),
-                'facingDeg': float(p.get('facingDeg') or 0),
-                'loadout': p.get('loadout') or {},
+                'zoneType': zone_type,
+                'incomePerTick': income_per_tick,
+                'exposureRisk': exposure_risk,
+                'level': level,
+                'health': health,
+                'facingDeg': facing_deg,
+                'loadout': {},
             })
 
         saved = db.save_placements(block_id, normalized)
         block = db.get_block(block_id)
+        serialized = _serialize_block(block) if block else {}
         return jsonify({
             'success': True,
             'blockId': block_id,
             'placements': saved,
-            'liveRevision': block.get('live_revision', 1) if block else 1,
-            'incomePerTick': block.get('income_per_tick', 0) if block else 0,
+            'liveRevision': serialized.get('liveRevision', 1),
+            'incomePerTick': serialized.get('incomePerTick', 0),
         })
     except Exception as e:
         logger.error(f"Place members failed: {e}")
