@@ -5,7 +5,7 @@ Covers the actual player path end to end, offline and in-memory:
 
     claim (with a FORGED client dnaId)
       -> server resolves and stores its own snapshot
-      -> grid_data['tiles'] survives the additive write
+      -> the marked grid_data['grid']['tiles'] board uses that DNA layout
       -> place / tick / collect
       -> reload through /api/blocks/my-blocks
       -> the same snapshot comes back, and the forged id was never trusted
@@ -134,6 +134,9 @@ def test_claim_ignores_forged_dna_id_and_survives_reload(client, auth_headers):
     assert grid['grid']['tiles'], 'the generated board must survive the snapshot write'
     assert len(grid['grid']['tiles']) == 8
     assert grid['metadata'], 'grid metadata must survive the snapshot write'
+    assert grid['metadata']['gridContract']['name'] == 'block-dna-grid'
+    assert grid['metadata']['gridContract']['version'] == 1
+    assert [row[0]['type'] for row in grid['grid']['tiles']] == snapshot['zoneLayout']
     assert grid[DNA_SNAPSHOT_KEY] == snapshot
     assert set(grid) == {'grid', 'metadata', DNA_SNAPSHOT_KEY}
     stored_grid = grid['grid']

@@ -68,6 +68,60 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-12 — One canonical Block DNA board through claim, placement, encounter, and reload
+
+- Closed the remaining split after PR #137: claim generated a generic
+  sidewalk/street board while the client discarded it and rebuilt different
+  rows from Block DNA. New claims now resolve the authoritative DNA snapshot
+  first and generate one marked `block-dna-grid` v1 board from its eight-row
+  layout. The snapshotted global cover bonus is baked into the stored tile
+  values.
+- Frontend hydration consumes a complete, coordinate-consistent marked board.
+  Snapshot-bearing damaged records continue through saved snapshot → saved id
+  → pinned v1 resolver; snapshot-less records may share a validated 8×8 legacy
+  board, while missing, ragged, or differently sized boards use that same
+  pinned fallback on client and server.
+- Placement validates the stored board dimensions and deployability, rejects
+  malformed/duplicate coordinates and members, derives zone/exposure from the
+  tile instead of the client, applies the saved DNA capacity and income
+  contract, and accepts only monotonic health reductions. The Python adapter now uses the tracked
+  `grid_x/grid_y` placement schema. The combat snapshot reads those saved rows,
+  overlays database-backed roster stats/equipment when available, and retains
+  the older assignment fallback.
+- Damaged DNA records now use the same recovery ladder on both sides: complete
+  snapshot → known stored id → pinned v1 address resolver. Canonical root tile
+  values cannot be substituted from a legacy nested bonus, and verified
+  coordinates—not a client-supplied city label—own the stored city.
+- Encounter preparation uses the hydrated board's exact cover, visibility,
+  passability, and type. It does not reapply the global DNA bonus to a server
+  board. The real map claim consumer no longer re-resolves and overwrites the
+  server DNA. Parallel Flask/Supabase hydration unions a bounded persisted
+  encounter receipt ledger, preserving consequence idempotency after refresh.
+- Crew-down health now uses the same serialized, owner-checked Flask replacement
+  queue as placement/removal, survives `/my-blocks` reload, and cannot be undone
+  by a later placement refresh. A failed health write can be retried with the
+  same encounter key without replaying economy deltas. The seeded backend-free
+  demo explicitly bypasses this network queue.
+- Dual-source hydration re-checks after its placement await. Flask is the sole
+  runtime placement writer; queued failures return to the last server-confirmed
+  roster instead of retaining a rejected optimistic dependency.
+- Regression coverage includes the connected claim → placement → encounter →
+  visible consequence → reload path; ownership/missing-block and malformed
+  coordinate failures; malformed-grid fallback; legacy grid compatibility;
+  stable DNA identity; exact tile/member coordinates; and duplicate result or
+  placement/health retries, malformed gang/numeric fields, two-decimal legacy
+  parity, and JavaScript/Python cover-rounding parity.
+- Validation on the repo-declared Node 24 runtime: backend 87/87 tests,
+  frontend 794/794 tests, TypeScript clean, ESLint 0 errors/193 warnings,
+  110 assets at 7.38 MB of the 20 MB budget, five asset packages/four schemas
+  valid, and production build successful. macOS verification used a temporary
+  case-safe mirror because tracked `CityBriefing.tsx` and `cityBriefing.ts`
+  collide under TypeScript's Darwin casing rules; repository source was not
+  renamed in this slice.
+- Scope deliberately excludes Supabase data/schema/RLS/migrations/Functions,
+  secrets, scheduler, deployment, renderer/art, Mapbox, economy balance, Ghost
+  Crew, and payments. Rollback is a single revert of the pending focused PR.
+
 ### 2026-09-10 — Tactical grid-state compatibility repair proposed in PR #137
 
 - Confirmed that `GridGenerationResult.to_dict()` stores the playable board under `grid.tiles`, while the tactical state engine previously read only top-level `grid_data.tiles` and could silently fall back to a generic 8×8 board.

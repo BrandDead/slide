@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { advanceCombat, createCombatSession, dispatchCombatCommand, getCombatSnapshot } from '../combatSession';
 import { prepareEncounter } from '../prepareEncounter';
+import { apiBlockToBlockData } from '../../../utils/blockMappers';
 import type { BlockData } from '../../../types/block.types';
 import type { Combatant, EncounterPreparation } from '../types';
 
@@ -102,14 +103,11 @@ describe('CombatSession', () => {
   });
 
   it('turns a claimed location archetype into deterministic terrain and a fallback scene brief', () => {
-    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
-      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50, coverScore: 0.3, passable: true, occupantId: null,
-    })));
-    const block: BlockData = {
-      id: 'alley-reference', address: '6200 NW 17th Ave', lat: 25.8487, lng: -80.2298, owner: 'player',
-      grid, placements: [], incomePerTick: 0, heat: 1, morale: 70, members: 0, viewMode: 'topdown', pendingIncome: 0,
+    const block = apiBlockToBlockData({
+      id: 'alley-reference', address: '6200 NW 17th Ave', lat: 25.8487, lng: -80.2298,
+      placements: [], heat: 1, morale: 70,
       topdownBgUrl: '/assets/reference.webp',
-    };
+    });
 
     const first = prepareEncounter(block);
     const second = prepareEncounter(block);
@@ -122,13 +120,10 @@ describe('CombatSession', () => {
   });
 
   it('carries a batch-one harbor archetype into the existing encounter terrain and tactical brief', () => {
-    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
-      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50, coverScore: 0.3, passable: true, occupantId: null,
-    })));
-    const harborBlock: BlockData = {
-      id: 'harbor-reference', address: 'Freight Spur & Dockside Ave', lat: 25.7752, lng: -80.1748, owner: 'player',
-      grid, placements: [], incomePerTick: 0, heat: 2, morale: 64, members: 0, viewMode: 'topdown', pendingIncome: 0,
-    };
+    const harborBlock = apiBlockToBlockData({
+      id: 'harbor-reference', address: 'Freight Spur & Dockside Ave', lat: 25.7752, lng: -80.1748,
+      dnaId: 'harbor-spur', placements: [], heat: 2, morale: 64,
+    });
 
     const preparation = prepareEncounter(harborBlock);
 
@@ -138,20 +133,100 @@ describe('CombatSession', () => {
   });
 
   it('keeps an owned block’s stored DNA terrain stable as the catalog grows', () => {
-    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
-      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50, coverScore: 0.3, passable: true, occupantId: null,
-    })));
-    const storedCanalBlock: BlockData = {
-      id: 'stable-canal-reference', address: '1 Broadway, New York, NY 10004', lat: 40.7128, lng: -74.006, owner: 'player',
-      grid, placements: [], incomePerTick: 0, heat: 1, morale: 70, members: 0, viewMode: 'topdown', pendingIncome: 0,
-      dnaId: 'canal-court',
-    };
+    const storedCanalBlock = apiBlockToBlockData({
+      id: 'stable-canal-reference', address: '1 Broadway, New York, NY 10004', lat: 40.7128, lng: -74.006,
+      placements: [], heat: 1, morale: 70, dnaId: 'canal-court',
+    });
 
     const preparation = prepareEncounter(storedCanalBlock);
 
     expect(preparation.sceneLabel).toBe('Canal Court');
     expect(preparation.terrain[3][0].zoneType).toBe('alley');
     expect(preparation.terrain[5][0].zoneType).toBe('parking');
+  });
+
+  it('uses exact canonical cover and visibility without reapplying DNA balance', () => {
+    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
+      x,
+      y,
+      zoneType: 'sidewalk' as const,
+      incomeModifier: 60,
+      exposureRisk: x === 2 && y === 3 ? 83 : 50,
+      coverScore: x === 2 && y === 3 ? 0.17 : 0.3,
+      passable: true,
+      occupantId: null,
+    })));
+    const canonicalBlock: BlockData = {
+      id: 'canonical-terrain', address: 'Fictional Harbor Reference', lat: 25.7752, lng: -80.1748,
+      owner: 'player', grid, gridSource: 'server', globalCoverBonus: 0.2,
+      placements: [], incomePerTick: 0, heat: 1, morale: 70, members: 0,
+      viewMode: 'topdown', pendingIncome: 0, dnaId: 'harbor-spur',
+    };
+
+    const encounter = prepareEncounter(canonicalBlock);
+
+    expect(encounter.terrain[3][2]).toEqual({
+      x: 2,
+      y: 3,
+      zoneType: 'sidewalk',
+      passable: true,
+      cover: 0.17,
+      exposure: 0.83,
+    });
+  });
+
+  it('carries every saved living defender allowed by Block DNA into the encounter', () => {
+    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
+      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50,
+      coverScore: 0.3, passable: true, occupantId: null,
+    })));
+    const placements = Array.from({ length: 6 }, (_, index) => ({
+      memberId: `crew-${index + 1}`,
+      memberName: `Crew ${index + 1}`,
+      role: 'shooter' as const,
+      x: index,
+      y: 2,
+      zoneType: 'sidewalk' as const,
+      incomePerTick: 0,
+      exposureRisk: 50,
+      level: 1,
+      health: 100,
+    }));
+    const block: BlockData = {
+      id: 'six-defenders', address: 'Fictional Six Defender Block', lat: 0, lng: 0,
+      owner: 'player', grid, gridSource: 'server', placements, incomePerTick: 0,
+      heat: 1, morale: 70, members: placements.length, viewMode: 'topdown', pendingIncome: 0,
+    };
+
+    const encounter = prepareEncounter(block);
+
+    expect(encounter.crew.map((member) => member.id)).toEqual(
+      placements.map((placement) => placement.memberId),
+    );
+    expect(encounter.crew[5].position).toEqual({ x: 5, y: 2 });
+  });
+
+  it('keeps a persisted all-downed roster down instead of inventing a healthy scout', () => {
+    const grid = Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ({
+      x, y, zoneType: 'sidewalk' as const, incomeModifier: 60, exposureRisk: 50,
+      coverScore: 0.3, passable: true, occupantId: null,
+    })));
+    const downedBlock: BlockData = {
+      id: 'downed-defenders', address: 'Fictional Downed Block', lat: 0, lng: 0,
+      owner: 'player', grid, gridSource: 'server', placements: [{
+        memberId: 'crew-downed', memberName: 'Downed Crew', role: 'shooter', x: 2, y: 3,
+        zoneType: 'sidewalk', incomePerTick: 0, exposureRisk: 50, level: 1, health: 0,
+      }], incomePerTick: 0, heat: 1, morale: 70, members: 1,
+      viewMode: 'topdown', pendingIncome: 0,
+    };
+
+    const encounter = prepareEncounter(downedBlock);
+    expect(encounter.crew).toEqual([
+      expect.objectContaining({
+        id: 'crew-downed', position: { x: 2, y: 3 }, health: 0, isDown: true,
+      }),
+    ]);
+    expect(advanceCombat(createCombatSession(encounter), 1).result?.outcome).toBe('overrun');
   });
 
   it('keeps opening opposition fire survivable long enough for player input', () => {

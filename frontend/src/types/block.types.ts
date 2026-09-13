@@ -83,10 +83,14 @@ export interface BlockData {
   lng: number;
   owner: BlockOwner;
   ownerGangName?: string;
-  /** 8×8 zone grid */
+  /** Tactical zone grid (canonical, DNA fallback, and accepted legacy boards are 8×8). */
   grid: BlockZone[][];
+  /** Whether `grid` came from the marked server contract or a compatibility rebuild. */
+  gridSource?: 'server' | 'dna-fallback' | 'legacy';
   /** Active placements on this block */
   placements: BlockPlacement[];
+  /** Monotonic server revision for mutable placement/live-state projections. */
+  liveRevision?: number;
   /** Aggregate income per tick (sum of all dealer placements) */
   incomePerTick: number;
   /** Heat level 0-5 */
@@ -130,6 +134,8 @@ export interface BlockData {
   heatDecayMultiplier?: number;
   /** Deployment cap inherited from the DNA card. */
   maxMembers?: number;
+  /** DNA-wide cover adjustment; already baked into a `server` grid. */
+  globalCoverBonus?: number;
 }
 
 // ─── Attack / Drive-By ──────────────────────────────────────
