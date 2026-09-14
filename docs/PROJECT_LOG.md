@@ -68,6 +68,28 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-14 — Ghost Crew authoritative gameplay slice (#81)
+
+- Ghost Crew ticks now expose deterministic seed/reason traces and pass through
+  a checked mutation boundary before changing treasury, roster, grudges, or the
+  shared Block Store. Bounded tick and encounter-response receipt ledgers make
+  replays exact-once, including after localStorage rehydration.
+- Rival claims reuse the canonical Block DNA zone-layout grid, retain DNA
+  identity, and reconcile into the existing map/encounter territory store
+  without replacing player-owned DNA. Authenticated server snapshots override
+  stale local demo state and repair their shared-world projection.
+- Rival-map attacks now open the existing unified encounter instead of the
+  legacy standalone drive-by path. A secured encounter records one replay-safe
+  grudge/feed response using the existing combat result idempotency key.
+- Acceptance coverage includes deterministic action variety, malformed state,
+  missing targets, ownership and treasury failures, authoritative income,
+  three visible world ticks, duplicate delivery, unified encounter replay, and
+  reload persistence. The case-colliding `cityBriefing.ts` helper was renamed
+  to `cityBriefingModel.ts` with import-only updates so the full TypeScript and
+  Vitest suites resolve consistently on case-insensitive filesystems.
+- No Supabase migration, RLS policy, Edge Function, scheduler, secret,
+  production data, auth, billing, or deployment change is included.
+
 ### 2026-09-12 — One canonical Block DNA board through claim, placement, encounter, and reload
 
 - Closed the remaining split after PR #137: claim generated a generic

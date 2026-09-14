@@ -6,7 +6,7 @@ import {
   formatCityBriefTime,
   getCityBriefAction,
   toCityBriefItems,
-} from './cityBriefing';
+} from './cityBriefingModel';
 import { useGhostStore, type GhostFeedEvent } from '../../stores/ghostCrewStore';
 
 vi.mock('../common/GameSprite', () => ({

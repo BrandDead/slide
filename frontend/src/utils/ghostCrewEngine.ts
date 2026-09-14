@@ -24,6 +24,8 @@
 // ============================================================
 
 import { BLOCK_DNA_LIBRARY, type BlockDNA } from '../config/blockDNA';
+import { buildZoneLayout } from './blockDNAResolver';
+import { generateGridForZoneLayout } from '../stores/blockStore';
 import type { BlockData } from '../types/block.types';
 
 // ─── Types ───────────────────────────────────────────────────
@@ -83,6 +85,28 @@ export interface GhostCrew {
 
 export type GhostActionType = 'claim' | 'reinforce' | 'attack' | 'lay-low';
 
+export type GhostActionReason =
+  | 'roster-critical'
+  | 'heat-caution'
+  | 'grudge-retaliation'
+  | 'territory-expansion'
+  | 'opportunistic-pressure'
+  | 'hold-and-earn'
+  | 'insufficient-resources'
+  | 'no-legal-action'
+  | 'malformed-state';
+
+export interface GhostDecisionTrace {
+  /** Stable caller-owned identity used for exactly-once application. */
+  tickKey: string;
+  /** Integer seed supplied by the trusted tick boundary. */
+  seed: number;
+  /** Personality decision roll in the range [0, 1). */
+  decisionRoll: number;
+  /** Independent target-selection roll in the range [0, 1). */
+  targetRoll: number;
+}
+
 export interface GhostAction {
   type: GhostActionType;
   crewId: string;
@@ -96,6 +120,10 @@ export interface GhostAction {
   claimedDnaId?: string;
   /** Whether this move is a direct threat to the player */
   threatensPlayer: boolean;
+  /** Stable explanation used by tests and operator-visible event data. */
+  reason: GhostActionReason;
+  /** Deterministic trace. It contains no secret or real-world targeting data. */
+  trace: GhostDecisionTrace;
 }
 
 export interface GhostTickContext {
@@ -105,22 +133,62 @@ export interface GhostTickContext {
   ghostOwnedBlockIds: Set<string>;
   /** Monotonic tick counter used for deterministic seeds */
   tickIndex: number;
+  /** Caller-owned replay key. Defaults to a local key for compatibility. */
+  tickKey?: string;
+  /** Explicit deterministic seed. Defaults to tickIndex for compatibility. */
+  seed?: number;
+  /** Highest current heat across this crew's shared territory. */
+  crewHeat?: number;
 }
 
-// ─── Name pools (deterministic) ──────────────────────────────
+export type GhostActionFailure =
+  | 'malformed-state'
+  | 'crew-mismatch'
+  | 'missing-target'
+  | 'invalid-ownership'
+  | 'insufficient-treasury';
 
-const MEMBER_NAMES = [
-  'Ghost', 'Smoke', 'Trey', 'Bricks', 'Slim', 'Ace', 'Dre', 'Boonie',
-  'Casper', 'Havoc', 'Static', 'Murk', 'Reap', 'Yayo', 'Frost', 'Loco',
-];
+export interface GhostActionApplication {
+  applied: boolean;
+  reason?: GhostActionFailure;
+  crew: GhostCrew;
+  blockUpsert?: BlockData;
+}
+
+export interface GhostActionApplyContext {
+  blocks: Record<string, BlockData>;
+  occurredAt: number;
+}
 
 function seeded(seed: number, salt: number): number {
   const x = Math.sin(seed * 12.9898 + salt * 78.233) * 43758.5453;
   return x - Math.floor(x);
 }
 
-function pickName(seed: number, salt: number): string {
-  return MEMBER_NAMES[Math.floor(seeded(seed, salt) * MEMBER_NAMES.length)];
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function tickSeed(ctx: GhostTickContext): number {
+  return Number.isFinite(ctx.seed) ? Math.trunc(ctx.seed!) : ctx.tickIndex;
+}
+
+function decisionTrace(
+  crewId: string,
+  ctx: GhostTickContext,
+): GhostDecisionTrace {
+  const seed = tickSeed(ctx);
+  return {
+    tickKey: ctx.tickKey ?? `local:${ctx.tickIndex}`,
+    seed,
+    decisionRoll: seeded(seed, hashString(`${crewId}:decision`)),
+    targetRoll: seeded(seed, hashString(`${crewId}:target`)),
+  };
 }
 
 // ─── Default crew roster (seeded once, then persisted) ───────
@@ -251,7 +319,7 @@ export function pickClaimTarget(
   const scored = affordable
     .map((dna) => {
       const tierScore = tierRank[dna.tier] + reach;
-      const jitter = seeded(ctx.tickIndex, crew.id.length + dna.id.length);
+      const jitter = seeded(tickSeed(ctx), hashString(`${crew.id}:${dna.id}`));
       return { dna, score: tierScore + jitter * 0.5 };
     })
     .sort((a, b) => b.score - a.score);
@@ -261,16 +329,16 @@ export function pickClaimTarget(
 /** Build the BlockData a ghost crew owns after claiming a DNA card. */
 export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
   const id = `ghost-${dna.id}`;
-  const grid = Array.from({ length: 8 }, (_, y) =>
-    Array.from({ length: 8 }, (_, x) => {
-      const zoneType = (dna.zoneOverrides?.[y] ?? 'sidewalk') as BlockData['grid'][0][0]['zoneType'];
-      return {
-        x, y, zoneType,
-        incomeModifier: 0, exposureRisk: 0, coverScore: 0,
-        passable: zoneType !== 'building' && zoneType !== 'street',
-        occupantId: null,
-      };
-    }),
+  // Reuse the canonical eight-row Block DNA builder. The previous rival
+  // projection created a second zero-stat grid and therefore disagreed with
+  // placement and encounter preparation for the same dnaId.
+  const grid = generateGridForZoneLayout(buildZoneLayout(dna)).map((row) =>
+    row.map((zone) => ({
+      ...zone,
+      coverScore: Math.max(0, Math.min(1, Number(
+        (zone.coverScore + dna.globalCoverBonus).toFixed(2),
+      ))),
+    })),
   );
   return {
     id,
@@ -280,6 +348,7 @@ export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
     owner: 'npc',
     ownerGangName: crew.name,
     grid,
+    gridSource: 'dna-fallback',
     placements: [],
     incomePerTick: ghostBlockIncome(dna),
     heat: dna.startingHeat,
@@ -291,6 +360,7 @@ export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
     incomeMultiplier: dna.incomeMultiplier,
     heatDecayMultiplier: dna.heatDecayMultiplier,
     maxMembers: dna.maxMembers,
+    globalCoverBonus: dna.globalCoverBonus,
   };
 }
 
@@ -307,13 +377,26 @@ export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
  *   - reinforce   otherwise (bank income, heal, build treasury)
  */
 export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): GhostAction {
+  const trace = decisionTrace(crew?.id ?? 'invalid-crew', ctx);
+  if (validateGhostCrewState(crew)) {
+    return {
+      type: 'lay-low',
+      crewId: typeof crew?.id === 'string' ? crew.id : 'invalid-crew',
+      crewName: typeof crew?.name === 'string' ? crew.name : 'Unknown crew',
+      threatensPlayer: false,
+      description: 'Rival action was skipped because its saved state was invalid.',
+      reason: 'malformed-state',
+      trace,
+    };
+  }
   const alive = crew.roster.filter((m) => m.alive).length;
   const p = crew.personality;
-  const roll = seeded(ctx.tickIndex, crew.id.length * 7 + alive);
-  const base: Omit<GhostAction, 'type' | 'description'> = {
+  const roll = trace.decisionRoll;
+  const base: Omit<GhostAction, 'type' | 'description' | 'reason'> = {
     crewId: crew.id,
     crewName: crew.name,
     threatensPlayer: false,
+    trace,
   };
 
   // 1. Regroup when the crew is broken.
@@ -322,6 +405,16 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
       ...base,
       type: 'lay-low',
       description: `${crew.name} is regrouping after losing too many members.`,
+      reason: 'roster-critical',
+    };
+  }
+
+  if ((ctx.crewHeat ?? 0) >= 4 && p.caution >= 70) {
+    return {
+      ...base,
+      type: 'lay-low',
+      description: `${crew.name} is cooling off while pressure is high.`,
+      reason: 'heat-caution',
     };
   }
 
@@ -331,7 +424,15 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
     ctx.playerBlocks.length > 0 &&
     roll * 100 < p.grudgeWeight;
   if (wantsRevenge) {
-    const target = ctx.playerBlocks[Math.floor(seeded(ctx.tickIndex, 99) * ctx.playerBlocks.length)];
+    if (crew.treasury < GHOST_ATTACK_COST) {
+      return {
+        ...base,
+        type: 'lay-low',
+        description: `${crew.name} cannot afford to move on its grudge yet.`,
+        reason: 'insufficient-resources',
+      };
+    }
+    const target = ctx.playerBlocks[Math.floor(trace.targetRoll * ctx.playerBlocks.length)];
     return {
       ...base,
       type: 'attack',
@@ -339,6 +440,7 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
       targetBlockName: target.address,
       threatensPlayer: true,
       description: `${crew.name} is coming for ${target.address} — payback for the last hit.`,
+      reason: 'grudge-retaliation',
     };
   }
 
@@ -354,6 +456,7 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
         targetBlockId: `ghost-${target.id}`,
         targetBlockName: target.name,
         description: `${crew.name} claimed ${target.name}.`,
+        reason: 'territory-expansion',
       };
     }
   }
@@ -361,9 +464,10 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
   // 4. Aggressive crews raid the player even without a grudge.
   const wantsRaid =
     ctx.playerBlocks.length > 0 &&
+    crew.treasury >= GHOST_ATTACK_COST &&
     roll * 100 < p.aggression * (1 - p.caution / 200);
   if (wantsRaid) {
-    const target = ctx.playerBlocks[Math.floor(seeded(ctx.tickIndex, 7) * ctx.playerBlocks.length)];
+    const target = ctx.playerBlocks[Math.floor(trace.targetRoll * ctx.playerBlocks.length)];
     return {
       ...base,
       type: 'attack',
@@ -371,26 +475,43 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
       targetBlockName: target.address,
       threatensPlayer: true,
       description: `${crew.name} is probing ${target.address}.`,
+      reason: 'opportunistic-pressure',
     };
   }
 
-  // 5. Default: reinforce / bank income.
+  // 5. Hold existing turf. A crew with no valid territory and no legal move
+  // lays low instead of minting treasury from an unverified income counter.
+  if (crew.ownedBlockIds.length === 0) {
+    return {
+      ...base,
+      type: 'lay-low',
+      description: `${crew.name} found no legal move and is staying quiet.`,
+      reason: 'no-legal-action',
+    };
+  }
   return {
     ...base,
     type: 'reinforce',
     description: `${crew.name} is reinforcing its turf and stacking cash.`,
+    reason: 'hold-and-earn',
   };
 }
+
+export const GHOST_ATTACK_COST = 150;
 
 /**
  * Apply a decided action to a crew, returning the updated crew.
  * Claim spends treasury and adds the block; reinforce banks income;
  * attack spends a little on the hit; lay-low heals and cools the grudge.
  */
-export function applyGhostAction(crew: GhostCrew, action: GhostAction): GhostCrew {
+export function applyGhostAction(
+  crew: GhostCrew,
+  action: GhostAction,
+  occurredAt: number | string = Date.now(),
+): GhostCrew {
   const updated: GhostCrew = {
     ...crew,
-    lastTickAt: new Date().toISOString(),
+    lastTickAt: new Date(occurredAt).toISOString(),
     lastMove: action.description,
   };
 
@@ -412,7 +533,7 @@ export function applyGhostAction(crew: GhostCrew, action: GhostAction): GhostCre
     case 'attack':
       return {
         ...updated,
-        treasury: Math.max(0, crew.treasury - 150),
+        treasury: Math.max(0, crew.treasury - GHOST_ATTACK_COST),
         grudge: { ...crew.grudge, score: Math.max(0, crew.grudge.score - 10) },
       };
     case 'lay-low':
@@ -422,7 +543,7 @@ export function applyGhostAction(crew: GhostCrew, action: GhostAction): GhostCre
         grudge: { ...crew.grudge, score: Math.max(0, crew.grudge.score - 5) },
         roster: crew.roster.map((m, i) =>
           !m.alive && i === crew.roster.findIndex((x) => !x.alive)
-            ? { ...m, alive: true, name: pickName(action.crewId.length, Date.now() % 97) }
+            ? { ...m, alive: true }
             : m,
         ),
       };
@@ -431,14 +552,145 @@ export function applyGhostAction(crew: GhostCrew, action: GhostAction): GhostCre
   }
 }
 
+/**
+ * Validate the durable rival record before a trusted boundary applies a tick.
+ * The type is intentionally accepted at runtime: localStorage and remote JSON
+ * can be damaged even when TypeScript callers are correct.
+ */
+export function validateGhostCrewState(crew: GhostCrew): GhostActionFailure | null {
+  const personalityTypes: PersonalityType[] = [
+    'territory-hungry', 'revenge-driven', 'money-crew', 'chaotic',
+  ];
+  if (!crew || typeof crew !== 'object') return 'malformed-state';
+  if (typeof crew.id !== 'string' || !crew.id || typeof crew.name !== 'string' || !crew.name) {
+    return 'malformed-state';
+  }
+  if (!Number.isFinite(crew.treasury) || crew.treasury < 0) return 'malformed-state';
+  if (!crew.personality || !personalityTypes.includes(crew.personality.type)) return 'malformed-state';
+  const scores = [
+    crew.personality.aggression,
+    crew.personality.expansionDrive,
+    crew.personality.grudgeWeight,
+    crew.personality.caution,
+  ];
+  if (scores.some((score) => !Number.isFinite(score) || score < 0 || score > 100)) {
+    return 'malformed-state';
+  }
+  if (!Array.isArray(crew.roster) || crew.roster.length === 0) return 'malformed-state';
+  const memberIds = new Set<string>();
+  for (const member of crew.roster) {
+    if (
+      !member || typeof member.id !== 'string' || !member.id || memberIds.has(member.id)
+      || typeof member.name !== 'string' || !member.name
+      || !['shooter', 'dealer', 'enforcer'].includes(member.role)
+      || !Number.isInteger(member.level) || member.level < 1 || member.level > 10
+      || typeof member.alive !== 'boolean'
+    ) return 'malformed-state';
+    memberIds.add(member.id);
+  }
+  if (!Array.isArray(crew.ownedBlockIds) || !Array.isArray(crew.claimedDnaIds)) {
+    return 'malformed-state';
+  }
+  if ([...crew.ownedBlockIds, ...crew.claimedDnaIds].some((id) => typeof id !== 'string' || !id)) {
+    return 'malformed-state';
+  }
+  if (new Set(crew.ownedBlockIds).size !== crew.ownedBlockIds.length) return 'malformed-state';
+  if (new Set(crew.claimedDnaIds).size !== crew.claimedDnaIds.length) return 'malformed-state';
+  if (!crew.grudge || !Number.isFinite(crew.grudge.score) || crew.grudge.score < 0 || crew.grudge.score > 100) {
+    return 'malformed-state';
+  }
+  if (!Number.isFinite(crew.incomePerTick) || crew.incomePerTick < 0) return 'malformed-state';
+  if (typeof crew.lastTickAt !== 'string' || !Number.isFinite(Date.parse(crew.lastTickAt))) {
+    return 'malformed-state';
+  }
+  return null;
+}
+
+/**
+ * Economy/ownership guard for the offline authoritative adapter. Policy stays
+ * pure in decideGhostAction; this boundary checks the shared Block Store just
+ * before returning a state projection.
+ */
+export function applyGhostActionChecked(
+  crew: GhostCrew,
+  action: GhostAction,
+  ctx: GhostActionApplyContext,
+): GhostActionApplication {
+  if (validateGhostCrewState(crew)) return { applied: false, reason: 'malformed-state', crew };
+  if (action.crewId !== crew.id || action.crewName !== crew.name) {
+    return { applied: false, reason: 'crew-mismatch', crew };
+  }
+
+  const blocks = Object.values(ctx.blocks);
+  switch (action.type) {
+    case 'claim': {
+      const dna = BLOCK_DNA_LIBRARY.find((candidate) => candidate.id === action.claimedDnaId);
+      const expectedBlockId = dna ? `ghost-${dna.id}` : null;
+      if (!dna || action.targetBlockId !== expectedBlockId) {
+        return { applied: false, reason: 'missing-target', crew };
+      }
+      const existingTerritory = blocks.find(
+        (block) => block.id === expectedBlockId || block.dnaId === dna.id,
+      );
+      if (
+        existingTerritory
+        || crew.ownedBlockIds.includes(expectedBlockId)
+        || crew.claimedDnaIds.includes(dna.id)
+      ) {
+        return { applied: false, reason: 'invalid-ownership', crew };
+      }
+      if (crew.treasury < ghostClaimCost(dna)) {
+        return { applied: false, reason: 'insufficient-treasury', crew };
+      }
+      const updated = applyGhostAction(crew, action, ctx.occurredAt);
+      return { applied: true, crew: updated, blockUpsert: buildGhostBlock(updated, dna) };
+    }
+    case 'attack': {
+      if (!action.targetBlockId || !ctx.blocks[action.targetBlockId]) {
+        return { applied: false, reason: 'missing-target', crew };
+      }
+      if (ctx.blocks[action.targetBlockId].owner !== 'player') {
+        return { applied: false, reason: 'invalid-ownership', crew };
+      }
+      if (crew.treasury < GHOST_ATTACK_COST) {
+        return { applied: false, reason: 'insufficient-treasury', crew };
+      }
+      return { applied: true, crew: applyGhostAction(crew, action, ctx.occurredAt) };
+    }
+    case 'reinforce': {
+      const owned = crew.ownedBlockIds.map((blockId) => ctx.blocks[blockId]);
+      if (owned.some((block) => !block)) {
+        return { applied: false, reason: 'missing-target', crew };
+      }
+      if (owned.some((block) => block.owner !== 'npc' || block.ownerGangName !== crew.name)) {
+        return { applied: false, reason: 'invalid-ownership', crew };
+      }
+      const authoritativeIncome = owned.reduce((total, block) => total + block.incomePerTick, 0);
+      return {
+        applied: true,
+        crew: applyGhostAction({ ...crew, incomePerTick: authoritativeIncome }, action, ctx.occurredAt),
+      };
+    }
+    case 'lay-low':
+      return { applied: true, crew: applyGhostAction(crew, action, ctx.occurredAt) };
+    default:
+      return { applied: false, reason: 'missing-target', crew };
+  }
+}
+
 /** Raise a crew's grudge after the player attacks one of its blocks. */
-export function addGrudge(crew: GhostCrew, blockId: string, amount: number): GhostCrew {
+export function addGrudge(
+  crew: GhostCrew,
+  blockId: string,
+  amount: number,
+  occurredAt: number | string = Date.now(),
+): GhostCrew {
   return {
     ...crew,
     grudge: {
       score: Math.min(100, crew.grudge.score + amount),
       lastIncidentBlockId: blockId,
-      lastIncidentAt: new Date().toISOString(),
+      lastIncidentAt: new Date(occurredAt).toISOString(),
     },
   };
 }

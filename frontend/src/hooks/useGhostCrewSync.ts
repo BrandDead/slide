@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useGhostStore } from '../stores/ghostCrewStore';
 import { useNotificationStore } from '../stores/gameStore';
-import { toCityBriefNotification } from '../components/layout/cityBriefing';
+import { toCityBriefNotification } from '../components/layout/cityBriefingModel';
 import { loadAuthoritativeWorld } from '../services/worldPersistence.service';
 import { IS_DEMO_MODE } from '../utils/demoSeed';
 

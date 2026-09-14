@@ -5,22 +5,48 @@ import {
   DEFAULT_GHOST_CREWS,
   decideGhostAction,
   applyGhostAction,
+  applyGhostActionChecked,
   buildGhostBlock,
   pickClaimTarget,
   addGrudge,
   ghostClaimCost,
   ghostBlockIncome,
+  validateGhostCrewState,
+  GHOST_ATTACK_COST,
+  type GhostAction,
   type GhostCrew,
   type GhostTickContext,
 } from '../ghostCrewEngine';
 import { BLOCK_DNA_LIBRARY, getDNAById } from '../../config/blockDNA';
 import type { BlockData } from '../../types/block.types';
+import { buildZoneLayout } from '../blockDNAResolver';
+import { generateGridForZoneLayout } from '../../stores/blockStore';
 
 function makeCtx(overrides: Partial<GhostTickContext> = {}): GhostTickContext {
   return {
     playerBlocks: [],
     ghostOwnedBlockIds: new Set<string>(),
     tickIndex: 1,
+    tickKey: 'test-tick-1',
+    seed: 1,
+    ...overrides,
+  };
+}
+
+function makeAction(overrides: Partial<GhostAction>): GhostAction {
+  return {
+    type: 'reinforce',
+    crewId: DEFAULT_GHOST_CREWS[0].id,
+    crewName: DEFAULT_GHOST_CREWS[0].name,
+    description: 'Test action.',
+    threatensPlayer: false,
+    reason: 'hold-and-earn',
+    trace: {
+      tickKey: 'test-tick-1',
+      seed: 1,
+      decisionRoll: 0.25,
+      targetRoll: 0.5,
+    },
     ...overrides,
   };
 }
@@ -90,6 +116,21 @@ describe('pickClaimTarget', () => {
     expect(a?.id).toBe(b?.id);
   });
 
+  it('uses the explicit seed to vary a claim target when variation is intended', () => {
+    const rich: GhostCrew = {
+      ...crew,
+      treasury: 99999,
+      personality: { ...crew.personality, expansionDrive: 100 },
+    };
+    const targets = new Set(
+      Array.from({ length: 24 }, (_, index) => pickClaimTarget(
+        rich,
+        makeCtx({ tickIndex: index + 1, seed: index + 1 }),
+      )?.id),
+    );
+    expect(targets.size).toBeGreaterThan(1);
+  });
+
   it('returns null when the crew cannot afford any card', () => {
     const broke: GhostCrew = { ...crew, treasury: 0 };
     expect(pickClaimTarget(broke, makeCtx())).toBeNull();
@@ -123,6 +164,57 @@ describe('decideGhostAction', () => {
     expect(action.type).toBe('attack');
     expect(action.threatensPlayer).toBe(true);
     expect(action.targetBlockId).toBe('pb-1');
+    expect(action.reason).toBe('grudge-retaliation');
+    expect(action.trace).toMatchObject({ tickKey: 'test-tick-1', seed: 1 });
+  });
+
+  it('returns the exact same action and seed trace for the same input', () => {
+    const crew: GhostCrew = {
+      ...DEFAULT_GHOST_CREWS[0],
+      personality: { ...DEFAULT_GHOST_CREWS[0].personality, expansionDrive: 100 },
+    };
+    const ctx = makeCtx({ tickIndex: 9, tickKey: 'world:9', seed: 9123 });
+    expect(decideGhostAction(crew, ctx)).toEqual(decideGhostAction(crew, ctx));
+  });
+
+  it('lays low when a cautious crew has high territory heat', () => {
+    const crew: GhostCrew = {
+      ...DEFAULT_GHOST_CREWS[2],
+      personality: { ...DEFAULT_GHOST_CREWS[2].personality, caution: 100 },
+    };
+    const action = decideGhostAction(crew, makeCtx({ crewHeat: 4 }));
+    expect(action).toMatchObject({ type: 'lay-low', reason: 'heat-caution' });
+  });
+
+  it('fails closed to lay-low when retaliation is unaffordable', () => {
+    const crew: GhostCrew = {
+      ...DEFAULT_GHOST_CREWS[1],
+      treasury: GHOST_ATTACK_COST - 1,
+      grudge: { score: 100 },
+      personality: { ...DEFAULT_GHOST_CREWS[1].personality, grudgeWeight: 100 },
+    };
+    const action = decideGhostAction(crew, makeCtx({ playerBlocks: [playerBlock('pb-1')] }));
+    expect(action).toMatchObject({ type: 'lay-low', reason: 'insufficient-resources' });
+  });
+
+  it('returns an explicit no-legal-action fallback', () => {
+    const crew: GhostCrew = {
+      ...DEFAULT_GHOST_CREWS[2],
+      treasury: 0,
+      ownedBlockIds: [],
+      claimedDnaIds: [],
+      incomePerTick: 0,
+      grudge: { score: 0 },
+      personality: {
+        ...DEFAULT_GHOST_CREWS[2].personality,
+        aggression: 0,
+        expansionDrive: 0,
+      },
+    };
+    expect(decideGhostAction(crew, makeCtx())).toMatchObject({
+      type: 'lay-low',
+      reason: 'no-legal-action',
+    });
   });
 
   it('expansion-driven crews claim new turf', () => {
@@ -154,16 +246,16 @@ describe('applyGhostAction', () => {
   it('claim spends treasury and records the block + DNA', () => {
     const crew = DEFAULT_GHOST_CREWS[2]; // treasury 3000
     const target = pickClaimTarget(crew, makeCtx({ tickIndex: 3 }))!;
-    const action = {
-      type: 'claim' as const,
+    const action = makeAction({
+      type: 'claim',
       crewId: crew.id,
       crewName: crew.name,
       description: '',
       claimedDnaId: target.id,
       targetBlockId: `ghost-${target.id}`,
-      threatensPlayer: false,
-    };
-    const updated = applyGhostAction(crew, action);
+      reason: 'territory-expansion',
+    });
+    const updated = applyGhostAction(crew, action, 1_700_000_000_000);
     expect(updated.treasury).toBe(crew.treasury - ghostClaimCost(target));
     expect(updated.ownedBlockIds).toContain(`ghost-${target.id}`);
     expect(updated.claimedDnaIds).toContain(target.id);
@@ -172,26 +264,26 @@ describe('applyGhostAction', () => {
 
   it('reinforce banks income into the treasury', () => {
     const crew: GhostCrew = { ...DEFAULT_GHOST_CREWS[0], incomePerTick: 300 };
-    const action = {
-      type: 'reinforce' as const,
+    const action = makeAction({
+      type: 'reinforce',
       crewId: crew.id,
       crewName: crew.name,
       description: '',
-      threatensPlayer: false,
-    };
+    });
     const updated = applyGhostAction(crew, action);
     expect(updated.treasury).toBe(crew.treasury + 300);
   });
 
   it('attack cools the grudge and costs the crew', () => {
     const crew: GhostCrew = { ...DEFAULT_GHOST_CREWS[1], grudge: { score: 60 } };
-    const action = {
-      type: 'attack' as const,
+    const action = makeAction({
+      type: 'attack',
       crewId: crew.id,
       crewName: crew.name,
       description: '',
       threatensPlayer: true,
-    };
+      reason: 'grudge-retaliation',
+    });
     const updated = applyGhostAction(crew, action);
     expect(updated.grudge.score).toBeLessThan(crew.grudge.score);
     expect(updated.treasury).toBeLessThan(crew.treasury);
@@ -202,13 +294,13 @@ describe('applyGhostAction', () => {
       ...DEFAULT_GHOST_CREWS[0],
       roster: DEFAULT_GHOST_CREWS[0].roster.map((m, i) => ({ ...m, alive: i !== 1 })),
     };
-    const action = {
-      type: 'lay-low' as const,
+    const action = makeAction({
+      type: 'lay-low',
       crewId: crew.id,
       crewName: crew.name,
       description: '',
-      threatensPlayer: false,
-    };
+      reason: 'roster-critical',
+    });
     const updated = applyGhostAction(crew, action);
     expect(updated.roster.filter((m) => m.alive).length).toBe(crew.roster.length);
   });
@@ -243,5 +335,90 @@ describe('buildGhostBlock', () => {
     expect(block.incomeMultiplier).toBe(dna.incomeMultiplier);
     expect(block.maxMembers).toBe(dna.maxMembers);
     expect(block.grid).toHaveLength(8);
+    expect(block.gridSource).toBe('dna-fallback');
+    const canonical = generateGridForZoneLayout(buildZoneLayout(dna));
+    expect(block.grid[0][0]).toMatchObject({
+      zoneType: canonical[0][0].zoneType,
+      incomeModifier: canonical[0][0].incomeModifier,
+      exposureRisk: canonical[0][0].exposureRisk,
+      passable: canonical[0][0].passable,
+    });
+    expect(block.grid[0][0].coverScore).toBe(
+      Math.max(0, Math.min(1, Number((canonical[0][0].coverScore + dna.globalCoverBonus).toFixed(2)))),
+    );
+  });
+});
+
+describe('applyGhostActionChecked', () => {
+  const occurredAt = 1_700_000_000_000;
+
+  it('rejects malformed crew state without applying a projection', () => {
+    const malformed = { ...DEFAULT_GHOST_CREWS[0], treasury: Number.NaN } as GhostCrew;
+    expect(validateGhostCrewState(malformed)).toBe('malformed-state');
+    const result = applyGhostActionChecked(malformed, makeAction({
+      crewId: malformed.id,
+      crewName: malformed.name,
+      type: 'lay-low',
+    }), { blocks: {}, occurredAt });
+    expect(result).toMatchObject({ applied: false, reason: 'malformed-state', crew: malformed });
+  });
+
+  it('rejects a missing attack target, invalid ownership, and insufficient treasury', () => {
+    const crew = DEFAULT_GHOST_CREWS[0];
+    const attack = makeAction({
+      crewId: crew.id,
+      crewName: crew.name,
+      type: 'attack',
+      targetBlockId: 'target',
+      threatensPlayer: true,
+      reason: 'opportunistic-pressure',
+    });
+    expect(applyGhostActionChecked(crew, attack, { blocks: {}, occurredAt }).reason).toBe('missing-target');
+
+    const npcTarget = { ...playerBlock('target'), owner: 'npc' as const };
+    expect(applyGhostActionChecked(crew, attack, {
+      blocks: { target: npcTarget }, occurredAt,
+    }).reason).toBe('invalid-ownership');
+
+    const broke = { ...crew, treasury: GHOST_ATTACK_COST - 1 };
+    expect(applyGhostActionChecked(broke, attack, {
+      blocks: { target: playerBlock('target') }, occurredAt,
+    }).reason).toBe('insufficient-treasury');
+  });
+
+  it('rejects a claim when its DNA is already present in shared territory', () => {
+    const crew = { ...DEFAULT_GHOST_CREWS[0], treasury: 99999 };
+    const dna = BLOCK_DNA_LIBRARY[0];
+    const action = makeAction({
+      crewId: crew.id,
+      crewName: crew.name,
+      type: 'claim',
+      claimedDnaId: dna.id,
+      targetBlockId: `ghost-${dna.id}`,
+      reason: 'territory-expansion',
+    });
+    expect(applyGhostActionChecked(crew, action, {
+      blocks: { player: playerBlock('player', dna.id) },
+      occurredAt,
+    }).reason).toBe('invalid-ownership');
+  });
+
+  it('recomputes reinforcement income from owned shared blocks', () => {
+    const dna = BLOCK_DNA_LIBRARY[0];
+    const block = buildGhostBlock(DEFAULT_GHOST_CREWS[0], dna);
+    const crew: GhostCrew = {
+      ...DEFAULT_GHOST_CREWS[0],
+      ownedBlockIds: [block.id],
+      claimedDnaIds: [dna.id],
+      incomePerTick: 999999,
+    };
+    const action = makeAction({ crewId: crew.id, crewName: crew.name });
+    const result = applyGhostActionChecked(crew, action, {
+      blocks: { [block.id]: block },
+      occurredAt,
+    });
+    expect(result.applied).toBe(true);
+    expect(result.crew.incomePerTick).toBe(block.incomePerTick);
+    expect(result.crew.treasury).toBe(crew.treasury + block.incomePerTick);
   });
 });
