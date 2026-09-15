@@ -4,7 +4,7 @@ import {
   formatCityBriefTime,
   toCityBriefItems,
   type CityBriefTone,
-} from './cityBriefing';
+} from './cityBriefingModel';
 import './CityBriefing.css';
 
 interface CityBriefingProps {

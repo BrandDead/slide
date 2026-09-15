@@ -8,6 +8,7 @@
 import React, { lazy, Suspense, useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
+import { useGhostStore } from '../../stores/ghostCrewStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode, MemberRole } from '../../types/block.types';
 import type { CombatResult } from '../../game/combat/types';
@@ -110,11 +111,16 @@ interface BlockModeViewProps {
   /** Pre-selected block address (from hood view search) */
   initialAddress?: string;
   initialBlockId?: string;
+  /** Open the existing deterministic encounter after a rival-map response. */
+  autoStartEncounter?: boolean;
+  onAutoEncounterStarted?: () => void;
 }
 
 const BlockModeView: React.FC<BlockModeViewProps> = ({
   initialAddress,
   initialBlockId,
+  autoStartEncounter = false,
+  onAutoEncounterStarted,
 }) => {
   const {
     blocks,
@@ -159,6 +165,15 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     }
     selectBlock(targetId);
   }, [initialBlockId, initialAddress, blocks, upsertBlock, selectBlock]);
+
+  useEffect(() => {
+    if (!autoStartEncounter) return;
+    setShowDriveBy(false);
+    setShowModernOps(false);
+    setShowRaid(false);
+    setShowEncounter(true);
+    onAutoEncounterStarted?.();
+  }, [autoStartEncounter, onAutoEncounterStarted]);
 
   // Income ticking is handled centrally by gameLoopEngine (App.tsx)
   // BlockModeView only reads pendingIncome and allows manual collection
@@ -235,6 +250,9 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const handleEncounterResolved = useCallback((result: CombatResult) => {
     if (!selectedBlockId) return;
     const activeBlock = blocks[selectedBlockId];
+    const rivalCrew = activeBlock?.owner === 'npc'
+      ? useGhostStore.getState().crewForBlock(selectedBlockId)
+      : undefined;
     applyEncounterResult(selectedBlockId, result);
     // Keep the encounter UI responsive. The server receipt uses the same
     // deterministic key and rejects duplicate/replayed results; local block
@@ -242,6 +260,16 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
     void commitEncounterResult(selectedBlockId, result).catch((error: unknown) => {
       console.warn('[BlockModeView] Encounter receipt was not persisted:', error);
     });
+    if (rivalCrew && result.outcome === 'secured') {
+      // The deterministic encounter key is also the rival-response receipt.
+      // Replaying the UI result cannot raise the same grudge or feed event
+      // twice, while the Block Store independently protects its consequences.
+      useGhostStore.getState().recordPlayerAttack(
+        rivalCrew.id,
+        selectedBlockId,
+        result.idempotencyKey,
+      );
+    }
     updatePlayer({ heat: Math.max(0, Math.min(5, (player.heat ?? 0) + result.heatDelta)) });
     setShowEncounter(false);
     setShowModernOps(false);

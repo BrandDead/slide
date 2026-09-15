@@ -26,8 +26,6 @@ import { LAS_OLAS_CENTER } from '../../config/mapboxToken';
 import { attackableNearby, buildNearbyRecon, rankThreats, recommendHit, type ReconBlock } from '../../utils/nearbyBlocks';
 import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
-import { useCombatIntentStore } from '../../stores/combatIntentStore';
-import { useGhostStore } from '../../stores/ghostCrewStore';
 import type { BlockZone, MemberRole } from '../../types/block.types';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
@@ -70,7 +68,7 @@ function toOverlay(block: {
 }
 
 const TerritoryMap: React.FC = () => {
-  const { goBack, navigateTo } = useNavigationStore();
+  const { goBack } = useNavigationStore();
   const { player, updatePlayer } = usePlayerStore();
   const { members } = useGangStore();
   const { blocks, selectedBlockId, selectBlock, upsertBlock, placeMember, collectIncome, setPlacementMode } = useBlockStore();
@@ -93,6 +91,7 @@ const TerritoryMap: React.FC = () => {
     role: MemberRole;
     level: number;
   } | null>(null);
+  const [responseBlockId, setResponseBlockId] = useState<string | null>(null);
 
   const liveList = useMemo(() => Object.values(blocks), [blocks]);
   const origin = useMemo(() => {
@@ -248,18 +247,13 @@ const TerritoryMap: React.FC = () => {
     selectBlock(block.id);
     setSelectedMapBlock(null);
     setShowRecon(false);
-    // Tag the owning ghost crew so a successful hit raises their grudge (#81).
-    const targetCrewId = useGhostStore.getState().crewForBlock(block.id)?.id ?? null;
-    useCombatIntentStore.getState().setPendingTarget({
-      address: block.address,
-      lat: block.lat,
-      lng: block.lng,
-      placeId: block.id,
-      seedMode: 'geocoded',
-    }, targetCrewId);
-    navigateTo('driveby');
-    notify(`Sliding on ${block.address}`);
-  }, [navigateTo, selectBlock, notify]);
+    setResponseBlockId(block.id);
+    // Rival responses use the canonical Block DNA encounter preparation and
+    // result receipt boundary rather than the legacy standalone drive-by
+    // stats path.
+    setView('block');
+    notify(`Preparing a response on ${block.address}`);
+  }, [selectBlock, notify]);
 
   const handleHold = useCallback((block: ReconBlock | MapBlockData) => {
     selectBlock(block.id);
@@ -470,7 +464,12 @@ const TerritoryMap: React.FC = () => {
               </motion.button>
             )}
           </div>
-          <BlockModeView initialBlockId={activeBlockId} initialAddress={activeBlockAddress} />
+          <BlockModeView
+            initialBlockId={activeBlockId}
+            initialAddress={activeBlockAddress}
+            autoStartEncounter={responseBlockId === activeBlockId}
+            onAutoEncounterStarted={() => setResponseBlockId(null)}
+          />
         </div>
       )}
 
