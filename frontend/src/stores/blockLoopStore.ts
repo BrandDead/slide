@@ -4,7 +4,7 @@ import { useGangStore, usePlayerStore } from './gameStore';
 import { useDrugInventory } from './useDrugInventory';
 import { createLoopState } from '../game/loop/blockLoopFixture';
 import { reduceLoop, seededLoopEncounter } from '../game/loop/blockLoopEngine';
-import { toLoopLedger, writeLoopLedger } from '../game/loop/blockLoopPersist';
+import { toLoopLedger, writeLoopLedger, readLoopLedger } from '../game/loop/blockLoopPersist';
 import { BLOCK_LOOP_IDS, type LoopCommand, type LoopLedgerV1, type LoopState } from '../game/loop/blockLoopTypes';
 import type { CombatResult } from '../game/combat/types';
 
@@ -63,8 +63,13 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
   started: false,
 
   startLoop: (forceReset = false) => {
-    if (!forceReset && get().started && get().loop.phase !== 'crew' && get().loop.phase !== 'returned') {
-      return;
+    if (!forceReset) {
+      if (get().started) return;
+      const existing = readLoopLedger();
+      if (existing && (existing.dealKey || existing.encounterKey || existing.appliedEncounterKeys.length)) {
+        get().hydrateFromLedger(existing);
+        return;
+      }
     }
     const fresh = createLoopState();
     const gang = useGangStore.getState().members;
@@ -80,9 +85,7 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
           }
         : member;
     });
-    const loop = forceReset
-      ? { ...fresh, members, rejection: null }
-      : { ...fresh, members, rejection: null };
+    const loop = { ...fresh, members, rejection: null };
     projectToStores(loop);
     set({ loop, started: true });
   },

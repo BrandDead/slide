@@ -83,7 +83,10 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
   deterministic (`+18%` demand / heat `+4` / exposure `+7` on curb 80).
 - Encounter still uses UnifiedEncounter + `applyEncounterResult`. Duplicate
   tickets are no-ops. A failed health write retries injury only. Insufficient
-  hospital cash has a rest path.
+  hospital cash has a rest path. The demo wound CTA portals above the
+  existing fullscreen encounter so the canvas cannot swallow the booking.
+- The loop ledger now restores deal/encounter tickets, so a second demo
+  seed (persist rehydration) cannot wipe money, heat, or Dre's wound.
 - No Supabase migration, RLS, Edge Function, scheduler, secret, payment,
   renderer rewrite, or production data change.
 

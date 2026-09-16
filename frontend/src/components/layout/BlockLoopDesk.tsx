@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
@@ -17,6 +18,16 @@ const PHASES: { id: LoopPhase; label: string }[] = [
   { id: 'consequence', label: 'Hit' },
   { id: 'returned', label: 'Return' },
 ];
+
+const ZONE_SHORT: Record<string, string> = {
+  street: 'STREET',
+  curb: 'CURB',
+  sidewalk: 'WALK',
+  storefront: 'SHOP',
+  alley: 'ALLEY',
+  rooftop: 'ROOF',
+  building: 'BLDG',
+};
 
 const BlockLoopDesk: React.FC = () => {
   const { goHome, navigateTo } = useNavigationStore();
@@ -62,8 +73,8 @@ const BlockLoopDesk: React.FC = () => {
       </header>
 
       <section className="bld-strip" aria-label="Empire state">
-        <div><span>Dealer</span><strong>{dealer?.name ?? '—'}</strong></div>
-        <div><span>Shooter</span><strong>{shooter?.name ?? '—'}</strong></div>
+        <div><span>Dealer</span><strong>{dealer ? `${dealer.name} · ${dealer.health} hp` : '—'}</strong></div>
+        <div><span>Shooter</span><strong>{shooter ? `${shooter.name} · ${shooter.health} hp` : '—'}</strong></div>
         <div><span>Product</span><strong>{product ? `${product.name} ×${product.quantity}` : 'None'}</strong></div>
         <div><span>Cash</span><strong>${loop.money.toLocaleString()}</strong></div>
         <div><span>Heat</span><strong>{loop.playerHeat}</strong></div>
@@ -131,7 +142,7 @@ const BlockLoopDesk: React.FC = () => {
                       aria-label={`${cell.zoneType} ${cell.x},${cell.y}${occupant ? ` held by ${occupant.memberName}` : ''}`}
                       onClick={() => place(placingId, cell.x, cell.y)}
                     >
-                      <span>{occupant ? occupant.role[0]!.toUpperCase() : cell.zoneType.slice(0, 3)}</span>
+                      <span>{occupant ? (occupant.memberName.split(' ').pop() ?? occupant.role) : (ZONE_SHORT[cell.zoneType] ?? cell.zoneType)}</span>
                       <small>{cell.exposureRisk}</small>
                     </button>
                   );
@@ -180,14 +191,24 @@ const BlockLoopDesk: React.FC = () => {
       {loop.phase === 'encounter' && (
         <section className="bld-panel bld-encounter">
           <h2>{loop.threat?.route === 'raid' ? 'Raid' : 'SLIDE'} on this DNA board</h2>
+          <p>UnifiedEncounter is running on {loop.dnaId} with the placed crew and loadout. Map tiles are optional.</p>
           <UnifiedEncounter
               block={loop.block}
               onResolved={(result) => resolveEncounter(result)}
               onClose={() => resolveSeededEncounter()}
             />
-          <button type="button" className="bld-cta" onClick={resolveSeededEncounter}>
-            Book the wound (deterministic demo)
-          </button>
+          {typeof document !== 'undefined' && createPortal(
+            <div className="bld-wound-dock" role="region" aria-label="Deterministic consequence">
+              <div>
+                <p className="bld-wound-kicker">Exact-once demo hit</p>
+                <p>Books Dre's wound on this DNA board. Replaying the same ticket does nothing.</p>
+              </div>
+              <button type="button" className="bld-cta" onClick={resolveSeededEncounter}>
+                Book the wound
+              </button>
+            </div>,
+            document.body,
+          )}
         </section>
       )}
 

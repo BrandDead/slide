@@ -4,8 +4,8 @@ import { useGangStore, usePlayerStore } from '../gameStore';
 import { useDrugInventory } from '../useDrugInventory';
 import { useBlockLoopStore } from '../blockLoopStore';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
-import { applyDemoSeed } from '../../utils/demoSeed';
-import { toLoopLedger } from '../../game/loop/blockLoopPersist';
+import { applyDemoSeed, restoreLoopLedgerIfPresent } from '../../utils/demoSeed';
+import { toLoopLedger, clearLoopLedger } from '../../game/loop/blockLoopPersist';
 import { seededLoopEncounter } from '../../game/loop/blockLoopEngine';
 
 function reset() {
@@ -19,6 +19,7 @@ function reset() {
   });
   useDrugInventory.setState({ inventory: {}, assignments: {} });
   useBlockLoopStore.setState({ started: false });
+  clearLoopLedger();
 }
 
 describe('blockLoopStore adapter', () => {
@@ -70,5 +71,30 @@ describe('blockLoopStore adapter', () => {
     expect(usePlayerStore.getState().player.money).toBe(done.money);
     expect(useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId].heat).toBe(done.block.heat);
     expect(useGangStore.getState().members.find((member) => member.id === BLOCK_LOOP_IDS.dealerId)?.health).toBe(0);
+  });
+
+  it('keeps the booked wound after a second demo seed, as persist hydration would', () => {
+    applyDemoSeed();
+    const store = useBlockLoopStore.getState();
+    store.startLoop(true);
+    store.selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId);
+    store.place(BLOCK_LOOP_IDS.dealerId, 3, 1);
+    store.place(BLOCK_LOOP_IDS.shooterId, 5, 3);
+    store.assignProduct();
+    store.runDeal();
+    store.beginEncounter();
+    store.resolveSeededEncounter();
+    store.returnToDesktop();
+    const money = usePlayerStore.getState().player.money;
+    const heat = usePlayerStore.getState().player.heat;
+    applyDemoSeed();
+    expect(restoreLoopLedgerIfPresent()).toBe(true);
+    applyDemoSeed();
+    expect(restoreLoopLedgerIfPresent()).toBe(true);
+    expect(usePlayerStore.getState().player.money).toBe(money);
+    expect(usePlayerStore.getState().player.heat).toBe(heat);
+    expect(useGangStore.getState().members.find((member) => member.id === BLOCK_LOOP_IDS.dealerId)?.health).toBe(0);
+    expect(useBlockLoopStore.getState().loop.lastEncounter?.idempotencyKey).toMatch(/^loop:/);
+    expect(useBlockLoopStore.getState().loop.phase).toBe('returned');
   });
 });

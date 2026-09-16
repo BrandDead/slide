@@ -7,6 +7,7 @@ import { useDrugInventory } from '../../stores/useDrugInventory';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
 import { applyDemoSeed } from '../../utils/demoSeed';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
+import { clearLoopLedger } from '../../game/loop/blockLoopPersist';
 
 vi.mock('../encounter/UnifiedEncounter', () => ({
   default: () => <div>Encounter board</div>,
@@ -24,6 +25,7 @@ describe('BlockLoopDesk', () => {
     });
     useDrugInventory.setState({ inventory: {}, assignments: {} });
     useBlockLoopStore.setState({ started: false });
+    clearLoopLedger();
     applyDemoSeed();
   });
 

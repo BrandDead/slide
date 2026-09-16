@@ -137,6 +137,10 @@ export interface LoopLedgerV1 {
   economyKeys: string[];
   dealKey: string | null;
   encounterKey: string | null;
+  lastDeal?: DealReceipt | null;
+  lastEncounter?: CombatResult | null;
+  selectedDealerId?: string | null;
+  selectedShooterId?: string | null;
   briefing: string[];
   threatRoute: ThreatRoute | null;
   pendingHealthIds: string[];

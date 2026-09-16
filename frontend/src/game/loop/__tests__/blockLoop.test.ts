@@ -171,6 +171,10 @@ describe('threat, encounter, and reload', () => {
     const replay = reduceLoop(reloaded, { type: 'apply-encounter', result });
     expect(replay.money).toBe(done.money);
     expect(replay.block.heat).toBe(done.block.heat);
+    const rewritten = toLoopLedger(reloaded);
+    expect(rewritten.dealKey).toBe(ledger.dealKey);
+    expect(rewritten.encounterKey).toBe(ledger.encounterKey);
+    expect(rewritten.lastEncounter?.idempotencyKey).toBe(ledger.encounterKey);
   });
 
   it('offers a rest path when hospital cash is short', () => {

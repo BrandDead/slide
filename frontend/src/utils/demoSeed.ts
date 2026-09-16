@@ -315,11 +315,24 @@ export function applyDemoSeed(): void {
   useNavigationStore.getState().navigateTo('home');
 }
 
+export function restoreLoopLedgerIfPresent(): boolean {
+  const ledger = readLoopLedger();
+  if (!ledger) return false;
+  const hasConsequence = Boolean(
+    ledger.dealKey
+    || ledger.encounterKey
+    || ledger.lastDeal
+    || ledger.lastEncounter
+    || ledger.appliedEncounterKeys.length
+    || (ledger.phase !== 'crew' && ledger.phase !== 'placement'),
+  );
+  if (!hasConsequence) return false;
+  useBlockLoopStore.getState().hydrateFromLedger(ledger);
+  return true;
+}
+
 export function seedDemoState(): void {
   if (!IS_DEMO_MODE) return;
   applyDemoSeed();
-  const ledger = readLoopLedger();
-  if (ledger?.dealKey || ledger?.encounterKey) {
-    useBlockLoopStore.getState().hydrateFromLedger(ledger);
-  }
+  restoreLoopLedgerIfPresent();
 }

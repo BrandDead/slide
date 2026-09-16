@@ -28,6 +28,45 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
       assignment: downed.has(member.id) ? 'wounded' : `${placement.zoneType} ${placement.x},${placement.y}`,
     };
   });
+  const dealerPlacement = ledger.placements.find((item) => item.role === 'dealer') ?? ledger.placements[0];
+  const shooterPlacement = ledger.placements.find((item) => item.role === 'shooter');
+  const lastDeal = ledger.lastDeal
+    ?? (ledger.dealKey ? {
+      key: ledger.dealKey,
+      dealerId: dealerPlacement?.memberId ?? BLOCK_LOOP_IDS.dealerId,
+      productId: BLOCK_LOOP_IDS.productId,
+      productName: 'River Cut',
+      productTier: 'street' as const,
+      cell: {
+        x: dealerPlacement?.x ?? 0,
+        y: dealerPlacement?.y ?? 1,
+        zoneType: dealerPlacement?.zoneType ?? 'curb',
+        exposureRisk: dealerPlacement?.exposureRisk ?? 80,
+      },
+      moneyDelta: 0,
+      productDelta: 0,
+      heatDelta: 0,
+      exposureDelta: 0,
+      reputationDelta: 0,
+      demandBonusPct: 18,
+      leftoverQuantity: ledger.productQuantity,
+      explanation: ledger.briefing.find((line) => /street exposure/i.test(line)) ?? 'Deal already booked.',
+    } : null);
+  const lastEncounter = ledger.lastEncounter
+    ?? (ledger.encounterKey ? {
+      idempotencyKey: ledger.encounterKey,
+      outcome: 'overrun' as const,
+      crewDown: [BLOCK_LOOP_IDS.dealerId],
+      oppositionDown: [],
+      objectiveProgress: 0,
+      heatDelta: 0,
+      moraleDelta: 0,
+      pendingIncomeDelta: 0,
+      summary: ledger.briefing[0] ?? 'Consequence already booked.',
+    } : null);
+  const threat = ledger.threatRoute
+    ? { route: ledger.threatRoute, reason: `Restored ${ledger.threatRoute} handoff on ${state.block.dnaId}.` }
+    : null;
   return {
     ...state,
     phase: ledger.phase,
@@ -37,6 +76,11 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
     assignments: { ...ledger.assignments },
     inventory,
     members,
+    selectedDealerId: ledger.selectedDealerId ?? dealerPlacement?.memberId ?? BLOCK_LOOP_IDS.dealerId,
+    selectedShooterId: ledger.selectedShooterId ?? shooterPlacement?.memberId ?? BLOCK_LOOP_IDS.shooterId,
+    lastDeal,
+    lastEncounter,
+    threat,
     appliedEncounterKeys: [...ledger.appliedEncounterKeys],
     economyKeys: [...ledger.economyKeys],
     pendingHealthIds: [...ledger.pendingHealthIds],
