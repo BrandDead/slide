@@ -75,7 +75,7 @@ const TerritoryMap: React.FC = () => {
   const vault = useShoeboxStore((s) => s.bankBalance);
   const ledger = useShoeboxStore((s) => s.ledger);
 
-  const [view, setView] = useState<MapView>('hood');
+  const [view, setView] = useState<MapView>('block');
   const { completeStep: completeTutorialStep } = useTutorialProgressStore();
   const [notification, setNotification] = useState<string | null>(null);
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);

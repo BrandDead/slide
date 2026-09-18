@@ -133,4 +133,16 @@ describe('PlayableMap recovery', () => {
     expect(screen.queryByText('Loading streets and buildings…')).not.toBeInTheDocument();
     expect(onStatusChange).toHaveBeenLastCalledWith('ready');
   });
+
+  it('recovers when MapLibre cannot create a WebGL map', async () => {
+    mapHarness.Map.mockImplementationOnce(() => ({}));
+    const onStatusChange = vi.fn();
+    const onUseTacticalBoard = vi.fn();
+    render(<PlayableMap {...props} onStatusChange={onStatusChange} onUseTacticalBoard={onUseTacticalBoard} />);
+
+    await waitFor(() => expect(onStatusChange).toHaveBeenCalledWith('error'));
+    expect(screen.getByRole('alert')).toHaveTextContent(/street view unavailable/i);
+    fireEvent.click(screen.getByRole('button', { name: 'Use tactical board' }));
+    expect(onUseTacticalBoard).toHaveBeenCalledTimes(1);
+  });
 });

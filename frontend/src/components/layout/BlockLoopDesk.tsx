@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import TacticalDiorama from '../map/TacticalDiorama';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
+import { useBlockStore } from '../../stores/blockStore';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
 import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
@@ -23,6 +24,7 @@ const PHASES: { id: LoopPhase; label: string }[] = [
 const BlockLoopDesk: React.FC = () => {
   const { goHome, navigateTo } = useNavigationStore();
   const { members } = useGangStore();
+  const selectBlock = useBlockStore((state) => state.selectBlock);
   const {
     loop,
     started,
@@ -127,7 +129,7 @@ const BlockLoopDesk: React.FC = () => {
             onPlace={(col, row) => place(placingId, col, row)}
           />
           <div className="bld-routes">
-            <button type="button" data-testid="open-map-diorama" onClick={() => navigateTo('map')}>Open MAP diorama</button>
+            <button type="button" data-testid="open-map-diorama" onClick={() => { selectBlock(loop.block.id); navigateTo('map'); }}>Open MAP diorama</button>
             <button type="button" data-testid="place-street-dre" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.street.x, preview.street.y)}>Street-near Dre</button>
             <button type="button" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.safety.x, preview.safety.y)}>Safer Dre</button>
           </div>
