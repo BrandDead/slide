@@ -368,3 +368,23 @@ export function effectAnchor(
   const lift = part === 'feet' ? 0 : part === 'torso' ? point.actorHeight * 0.55 : point.actorHeight * 0.88;
   return { x: point.x, y: point.y - lift, scale: point.scale };
 }
+
+/**
+ * Four ground-plane corners of one tactical cell, in painter order:
+ * far-left, far-right, near-right, near-left. Renderers draw this trapezoid
+ * instead of inventing pixel sizes per zone.
+ */
+export function projectCellQuad(
+  coord: GridCoordinate,
+  view: SceneViewport,
+  p: ProjectionProfile = DEFAULT_PROFILE,
+): { center: ScenePoint; corners: Array<{ x: number; y: number }> } {
+  const center = project(coord, view, p);
+  const corners = [
+    project({ col: coord.col - 0.5, row: coord.row + 0.5 }, view, p),
+    project({ col: coord.col + 0.5, row: coord.row + 0.5 }, view, p),
+    project({ col: coord.col + 0.5, row: coord.row - 0.5 }, view, p),
+    project({ col: coord.col - 0.5, row: coord.row - 0.5 }, view, p),
+  ].map((point) => ({ x: point.x, y: point.y }));
+  return { center, corners };
+}

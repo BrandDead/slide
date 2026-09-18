@@ -109,7 +109,14 @@
   flex: 1;
   overflow: auto;
   display: flex;
-  justify-content: center;
+  justify-content: stretch;
+  min-height: 0;
+}
+
+.bmv-content > .tactical-diorama {
+  flex: 1;
+  width: 100%;
+  max-width: none;
 }
 
 /* ── Action bar ── */

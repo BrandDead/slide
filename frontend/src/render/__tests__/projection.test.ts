@@ -10,7 +10,7 @@ import {
 } from '../../config/gridConfig';
 import {
   project, unproject, getProjectionTable, clearProjectionCache,
-  effectAnchor, DEFAULT_PROFILE, makeProfile,
+  effectAnchor, DEFAULT_PROFILE, makeProfile, projectCellQuad,
   type SceneViewport,
 } from '../projection';
 
@@ -207,6 +207,17 @@ describe('draw order', () => {
     const table = getProjectionTable(VIEW);
     const ordered = table.drawOrder([{ col: 5, row: 2 }, { col: 1, row: 2 }]);
     expect(ordered.map((o) => o.col)).toEqual([1, 5]);
+  });
+
+  it('emits a perspective trapezoid whose centre matches project()', () => {
+    const quad = projectCellQuad({ col: 3, row: 1 }, VIEW);
+    const center = project({ col: 3, row: 1 }, VIEW);
+    expect(quad.center.x).toBeCloseTo(center.x, 12);
+    expect(quad.center.y).toBeCloseTo(center.y, 12);
+    expect(quad.corners).toHaveLength(4);
+    const xs = quad.corners.map((corner) => corner.x);
+    expect(Math.min(...xs)).toBeLessThan(center.x);
+    expect(Math.max(...xs)).toBeGreaterThan(center.x);
   });
 });
 

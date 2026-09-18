@@ -9,6 +9,7 @@
 import {
   characterAssets,
   environmentAssets,
+  vehicleAssets,
   type CharacterAsset,
 } from '../assets/assetManifest';
 import { getWorldActor } from '../render/worldActorResolver';
@@ -66,6 +67,42 @@ export function getDefaultTopdownBgUrl(): string {
 export function getDefaultStreetBackdropUrl(timeOfDay: 'day' | 'night' = 'night'): string {
   const env = environmentAssets[DEFAULT_ENVIRONMENT_ID];
   return (timeOfDay === 'night' ? env.streetBackdropNight : env.streetBackdropDay) ?? '';
+}
+
+const HERO_ENVIRONMENT_ID = 'block_lasolas_miami_001';
+
+export function getHeroStreetBackdropUrl(): string {
+  return environmentAssets[HERO_ENVIRONMENT_ID].streetBackdropNight
+    ?? environmentAssets[HERO_ENVIRONMENT_ID].streetBackdropDay
+    ?? getDefaultStreetBackdropUrl();
+}
+
+export function getHeroTopdownBgUrl(): string {
+  return environmentAssets[HERO_ENVIRONMENT_ID].topdownBg ?? getDefaultTopdownBgUrl();
+}
+
+export function getStreetVehicleUrl(): string {
+  return vehicleAssets.luxury_sedan_black_001.streetSide;
+}
+
+function registeredBackdropUrls(): Set<string> {
+  const urls = new Set<string>();
+  for (const env of Object.values(environmentAssets)) {
+    if (env.topdownBg) urls.add(env.topdownBg);
+    if (env.streetBackdropDay) urls.add(env.streetBackdropDay);
+    if (env.streetBackdropNight) urls.add(env.streetBackdropNight);
+  }
+  return urls;
+}
+
+/** Manifest-only plate lookup. Unknown paths degrade to a registered fallback. */
+export function resolveBlockBackdropUrl(block: { dnaId?: string; streetBackdropUrl?: string }): string {
+  const registered = registeredBackdropUrls();
+  if (block.streetBackdropUrl && registered.has(block.streetBackdropUrl)) {
+    return block.streetBackdropUrl;
+  }
+  if (block.dnaId === 'las-olas-1208') return getHeroStreetBackdropUrl();
+  return getDefaultStreetBackdropUrl();
 }
 
 // ─── Preload ─────────────────────────────────────────────────

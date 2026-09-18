@@ -68,6 +68,27 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Cinematic 2.5D Las Olas diorama camera contract (#77)
+
+- The Strip hero block now opens as a cinematic 2.5D oblique street scene
+  composed from existing Block DNA, the canonical 8×8 board, shared
+  `project()` helpers, and manifest-registered Las Olas runtime art.
+- Camera positions, cell trapezoids, and painter's depth order are
+  deterministic for the same DNA card, viewport, and seed. Cover, street,
+  passable, façade/setback, objective, and extraction markers read from the
+  DNA grid; they do not invent a second geometry system.
+- Crew selection projects to the occupied cell without writing strategy
+  state. Placement still uses the existing blockStore writers. Encounter
+  handoff continues to receive the original DNA board and does not book
+  rewards, damage, cash, heat, morale, or inventory from the renderer.
+- Optional MapLibre/Mapbox failure leaves the Strip diorama playable. The
+  previous 8×8 TopDown board remains as a legal/debug fallback.
+- Recovered `feature/77-diorama-camera-contract`: that branch had zero unique
+  commits versus `main-tL2525` and was discarded. Compatible main work
+  (`projection.ts`, DNA `projectionOverrides`, runtime manifest) is reused.
+- No Supabase migration, RLS, Edge Function, scheduler, secret, payment,
+  Vercel config, or production data change.
+
 ### 2026-09-15 — Authoritative block gameplay loop from claim to consequence (#142)
 
 - Connected the existing DNA board, contacts roster, placement rules,
