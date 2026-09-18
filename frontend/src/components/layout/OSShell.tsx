@@ -20,6 +20,8 @@ import { getRaidProbability } from '../../utils/heatSystem';
 import { getMoraleDescription } from '../../utils/moraleSystem';
 import { GameSprite } from '../common/GameSprite';
 import CityBriefing from './CityBriefing';
+import { useBlockLoopStore } from '../../stores/blockLoopStore';
+import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import '../common/GameSprite.css';
 import './OSShell.css';
 
@@ -77,12 +79,23 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
   // Badge the bounty board with how many contracts are live, including any
   // posted against this player's own crew.
   const bountyPosters = useMostWantedStore((s) => s.posters);
+  const loop = useBlockLoopStore((s) => s.loop);
+  const startLoop = useBlockLoopStore((s) => s.startLoop);
   const openBountyCount = useMemo(
     () => bountyPosters.filter((p) => p.status === 'open').length,
     [bountyPosters],
   );
 
   const appIcons: AppIcon[] = [
+    {
+      id: 'block_loop',
+      label: 'STRIP',
+      icon: 'STRIP',
+      spriteIcon: 'map',
+      colorClass: 'app-red',
+      available: true,
+      description: 'Claim-to-consequence loop',
+    },
     {
       id: 'map',
       label: 'MAP',
@@ -418,6 +431,32 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
       <CityBriefing onNavigate={handleCityBriefNavigate} />
 
+      <section className="strip-run-card" aria-label="Authoritative block loop">
+        <div>
+          <p className="strip-run-kicker">One connected strip</p>
+          <h2>Run 1208 Las Olas</h2>
+          <p>
+            {loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {player.heat}
+            {loop.threat ? ` · ${loop.threat.route}` : ''}
+          </p>
+          {loop.phase === 'returned' || loop.lastEncounter ? (
+            <p className="strip-run-return">{loop.briefing[0]}</p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="strip-run-cta"
+          onClick={() => {
+            if (!loop.lastEncounter && loop.phase === 'crew') {
+              startLoop();
+            }
+            navigateTo('block_loop');
+          }}
+        >
+          {loop.lastEncounter ? 'Review the strip' : 'Run the block'}
+        </button>
+      </section>
+
       {/* Heat Detail Popup */}
       <AnimatePresence>
         {showHeatDetail && (
@@ -537,6 +576,9 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
 
       {/* Quick Actions Dock */}
       <div className="dock">
+        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('block_loop')}>
+          <GameSprite icon="map" size={40} fallback="STRIP" />
+        </motion.div>
         <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt_v2')}>
           <GameSprite icon="dealt" size={40} fallback="DEALT" />
         </motion.div>

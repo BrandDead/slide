@@ -27,20 +27,23 @@ import { useBlockStore } from '../stores/blockStore';
 import { useNavigationStore } from '../stores/gameStore';
 import { useShoeboxStore } from '../stores/useShoeboxStore';
 import { useGhostStore, type GhostFeedEvent } from '../stores/ghostCrewStore';
+import { useDrugInventory } from '../stores/useDrugInventory';
 import type { GangMember } from '../types/game.types';
+import { BLOCK_LOOP_IDS } from '../game/loop/blockLoopTypes';
+import { BLOCK_LOOP_PRODUCT, createAuthoritativeLoopBlock } from '../game/loop/blockLoopFixture';
+import { applyPlacement, toPlacement } from '../game/loop/placementRules';
+import { readLoopLedger } from '../game/loop/blockLoopPersist';
+import { useBlockLoopStore } from '../stores/blockLoopStore';
 
 /** True only when the build was started with VITE_DEMO_MODE=1 */
 export const IS_DEMO_MODE = import.meta.env.VITE_DEMO_MODE === '1';
 
 // ─── Demo constants ──────────────────────────────────────────
-const DEMO_BLOCK_ID = 'demo-block-las-olas';
-const DEMO_DEALER_ID = 'demo-dealer-1';
-const DEMO_SHOOTER_ID = 'demo-shooter-1';
-const DEMO_LOOKOUT_ID = 'demo-lookout-1';
-const DEMO_ENFORCER_ID = 'demo-enforcer-1';
-
-// sidewalk (incomeModifier=60) × level-2 bonus (1.12) = round(67.2) = 67
-const DEALER_INCOME_PER_TICK = 67;
+const DEMO_BLOCK_ID = BLOCK_LOOP_IDS.blockId;
+const DEMO_DEALER_ID = BLOCK_LOOP_IDS.dealerId;
+const DEMO_SHOOTER_ID = BLOCK_LOOP_IDS.shooterId;
+const DEMO_LOOKOUT_ID = BLOCK_LOOP_IDS.lookoutId;
+const DEMO_ENFORCER_ID = BLOCK_LOOP_IDS.enforcerId;
 
 /**
  * A bounded local preview of the server-shaped City Briefing. It is demo-only
@@ -247,56 +250,45 @@ export function applyDemoSeed(): void {
   });
   demoMembers.forEach((m) => gangStore.addMember(m));
 
-  // ── 4. Pre-claimed block ──────────────────────────────────
-  const grid = blockStore.generateDefaultGrid();
-
-  // Pre-place the dealer and enforcer on sidewalk (row 2)
-  grid[2][2].occupantId = DEMO_DEALER_ID;
-  grid[2][4].occupantId = DEMO_ENFORCER_ID;
-
-  const demoBlock = {
-    id: DEMO_BLOCK_ID,
-    address: '1208 W Las Olas Blvd, Fort Lauderdale, FL 33312',
-    lat: 26.1186239,
-    lng: -80.1574818,
-    owner: 'player' as const,
-    ownerGangName: 'The Demo Crew',
-    grid,
-    placements: [
-      {
-        memberId: DEMO_DEALER_ID,
-        memberName: 'Lil Dre',
-        role: 'dealer' as const,
-        x: 2,
-        y: 2,
-        zoneType: 'sidewalk' as const,
-        incomePerTick: DEALER_INCOME_PER_TICK,
-        exposureRisk: 50,
-        level: 2,
-        health: 100,
-      },
-      {
-        memberId: DEMO_ENFORCER_ID,
-        memberName: 'Kilo',
-        role: 'enforcer' as const,
-        x: 4,
-        y: 2,
-        zoneType: 'sidewalk' as const,
-        incomePerTick: 0,
-        exposureRisk: 40,
-        level: 3,
-        health: 100,
-      },
-    ],
-    incomePerTick: DEALER_INCOME_PER_TICK,
-    heat: 1,
+  // ── 4. Pre-claimed DNA board ────────────────────────────────
+  const dealerCard = {
+    id: DEMO_DEALER_ID,
+    name: 'Lil Dre',
+    nickname: 'Dre',
+    role: 'dealer' as const,
+    level: 2,
     morale: 85,
-    members: 2,
-    viewMode: 'topdown' as const,
+    health: 100,
+    maxHealth: 100,
+    equipment: 'none',
+    assignment: 'unassigned',
+  };
+  const enforcerCard = {
+    id: DEMO_ENFORCER_ID,
+    name: 'Kilo',
+    nickname: 'Kilo',
+    role: 'enforcer' as const,
+    level: 3,
+    morale: 82,
+    health: 100,
+    maxHealth: 100,
+    equipment: 'none',
+    assignment: 'unassigned',
+  };
+  let demoBlock = createAuthoritativeLoopBlock();
+  const sidewalk = demoBlock.grid[2][2];
+  const enforcerCell = demoBlock.grid[2][4];
+  demoBlock = applyPlacement(
+    demoBlock,
+    toPlacement(dealerCard, sidewalk, demoBlock.grid, demoBlock.incomeMultiplier ?? 1),
+  );
+  demoBlock = applyPlacement(
+    demoBlock,
+    toPlacement(enforcerCard, enforcerCell, demoBlock.grid, demoBlock.incomeMultiplier ?? 1),
+  );
+  demoBlock = {
+    ...demoBlock,
     pendingIncome: 840,
-// Las Olas hero block replaces the strip-plaza placeholder using processed runtime assets.
-    topdownBgUrl: '/assets/runtime/generated/environments/topdown/block_lasolas_topdown_v001.webp',
-    streetBackdropUrl: '/assets/runtime/generated/environments/street/block_lasolas_driveby_street_v001.webp',
   };
 
   blockStore.upsertBlock(demoBlock);
@@ -314,11 +306,33 @@ export function applyDemoSeed(): void {
   shoebox.withdraw(840, 'salary', 'Payroll: Big Rome (shooter)', { memberId: DEMO_SHOOTER_ID, blockId: demoBlock.id });
   shoebox.withdraw(630, 'salary', 'Payroll: Kilo (enforcer)', { memberId: DEMO_ENFORCER_ID, blockId: demoBlock.id });
 
-  // ── 5. Navigate to MAP so the player lands on the block ───
-  useNavigationStore.getState().navigateTo('map');
+  const drugs = useDrugInventory.getState();
+  useDrugInventory.setState({
+    inventory: { ...drugs.inventory, [BLOCK_LOOP_IDS.productId]: { ...BLOCK_LOOP_PRODUCT } },
+  });
+
+  // ── 5. Land on the desktop so the strip-run route is visible ──
+  useNavigationStore.getState().navigateTo('home');
+}
+
+export function restoreLoopLedgerIfPresent(): boolean {
+  const ledger = readLoopLedger();
+  if (!ledger) return false;
+  const hasConsequence = Boolean(
+    ledger.dealKey
+    || ledger.encounterKey
+    || ledger.lastDeal
+    || ledger.lastEncounter
+    || ledger.appliedEncounterKeys.length
+    || (ledger.phase !== 'crew' && ledger.phase !== 'placement'),
+  );
+  if (!hasConsequence) return false;
+  useBlockLoopStore.getState().hydrateFromLedger(ledger);
+  return true;
 }
 
 export function seedDemoState(): void {
   if (!IS_DEMO_MODE) return;
   applyDemoSeed();
+  restoreLoopLedgerIfPresent();
 }
