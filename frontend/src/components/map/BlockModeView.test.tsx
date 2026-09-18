@@ -40,7 +40,7 @@ describe('BlockModeView beta chrome', () => {
     applyDemoSeed();
   });
 
-  it('keeps diorama, board, and encounter as the only Strip tabs and forwards map failure', () => {
+  it('keeps diorama, board, and encounter as the only Strip tabs and forwards map failure', async () => {
     render(
       <BlockModeView
         initialBlockId={BLOCK_LOOP_IDS.blockId}
@@ -56,5 +56,7 @@ describe('BlockModeView beta chrome', () => {
     expect(screen.getByText(/diorama scene failed/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Board' }));
     expect(screen.getByText(/legal board fallback/i)).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Encounter' })[0]);
+    expect(await screen.findByText(/encounter board/i)).toBeInTheDocument();
   });
 });

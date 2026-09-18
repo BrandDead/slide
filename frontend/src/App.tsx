@@ -6,7 +6,7 @@
 //   claim → place → earn → combat loop is playable without creds.
 // ============================================================
 
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
@@ -40,17 +40,18 @@ import TutorialOverlay from './components/tutorial/TutorialOverlay';
 import NPCThreatBanner from './components/map/NPCThreatBanner';
 import GhostThreatBanner from './components/map/GhostThreatBanner';
 
-// Always-loaded core screens
+// Always-loaded core screens (gate, desktop shell, light hubs)
 import DealtMode from './components/dealt/DealtMode';
 import Contacts from './components/contacts/Contacts';
-import TerritoryMap from './components/map/TerritoryMap';
 import Onboarding from './components/onboarding/Onboarding';
 import SettingsPage from './components/settings/SettingsPage';
 import AuthScreen from './components/auth/AuthScreen';
 import AgeGate, { initialAgeAffirmed } from './components/compliance/AgeGate';
 import SplashScreen from './components/layout/SplashScreen';
+import { LazyRoute } from './components/system/RouteLoadBoundary';
 
 // Lazy-loaded mini-games and heavy screens
+const TerritoryMap      = React.lazy(() => import('./components/map/TerritoryMap'));
 const SlideGame         = React.lazy(() => import('./components/slide/SlideGame'));
 const DriveByGame       = React.lazy(() => import('./components/driveby/DriveByGame'));
 const AlchemyLab        = React.lazy(() => import('./components/alchemy/AlchemyLab'));
@@ -74,16 +75,6 @@ const MostWantedApp     = React.lazy(() => import('./components/economy/MostWant
 const BlockLoopDesk     = React.lazy(() => import('./components/layout/BlockLoopDesk'));
 
 import './App.css';
-
-// ─── Lazy fallback ────────────────────────────────────────────
-const LazyFallback: React.FC = () => (
-  <div className="loading-screen">
-    <div className="loading-content">
-      <div className="loading-spinner" />
-      <div className="loading-text">INITIALIZING SYSTEMS...</div>
-    </div>
-  </div>
-);
 
 const pageVariants = {
   initial: { opacity: 0, x: 20 },
@@ -218,31 +209,35 @@ const App: React.FC = () => {
           />
         );
       case 'dealt':       return <DealtMode key="dealt" />;
-      case 'dealt_v2':    return <Suspense fallback={<LazyFallback />}><DealtModeSelector key="dealt_v2" /></Suspense>;
+      case 'dealt_v2':    return <LazyRoute label="DEALT"><DealtModeSelector key="dealt_v2" /></LazyRoute>;
       case 'contacts':    return <Contacts key="contacts" />;
-      case 'map':         return <TerritoryMap key="map" />;
+      case 'map':         return <LazyRoute label="MAP" testId="route-map"><TerritoryMap key="map" /></LazyRoute>;
       case 'settings':    return <SettingsPage key="settings" />;
-      // Lazy-loaded screens wrapped in Suspense
-      case 'slide':       return <Suspense fallback={<LazyFallback />}><SlideGame key="slide" /></Suspense>;
-      case 'driveby':     return <Suspense fallback={<LazyFallback />}><DriveByGame key="driveby" /></Suspense>;
-      case 'topdown':     return <Suspense fallback={<LazyFallback />}><TopDownShooter key="topdown" /></Suspense>;
-      case 'bipndip':     return <Suspense fallback={<LazyFallback />}><BipNDipGame key="bipndip" /></Suspense>;
-      case 'raid':        return <Suspense fallback={<LazyFallback />}><PoliceRaidGame key="raid" /></Suspense>;
-      case 'gang_hq':     return <Suspense fallback={<LazyFallback />}><GangManagement key="gang_hq" /></Suspense>;
-      case 'alchemy':     return <Suspense fallback={<LazyFallback />}><AlchemyLab key="alchemy" /></Suspense>;
-      case 'shoebox':     return <Suspense fallback={<LazyFallback />}><Shoebox key="shoebox" /></Suspense>;
-      case 'market':      return <Suspense fallback={<LazyFallback />}><Market key="market" /></Suspense>;
-      case 'missions':    return <Suspense fallback={<LazyFallback />}><Missions key="missions" /></Suspense>;
-      case 'planner':     return <Suspense fallback={<LazyFallback />}><AttackPlanner key="planner" /></Suspense>;
-      case 'casino':      return <Suspense fallback={<LazyFallback />}><Casino key="casino" /></Suspense>;
-      case 'graffiti':    return <Suspense fallback={<LazyFallback />}><GraffitiGame key="graffiti" /></Suspense>;
-      case 'cocaine_crush': return <Suspense fallback={<LazyFallback />}><CocaineCrush key="cocaine_crush" /></Suspense>;
-      case 'leaderboard': return <Suspense fallback={<LazyFallback />}><Leaderboard key="leaderboard" /></Suspense>;
-      case 'news':        return <Suspense fallback={<LazyFallback />}><WeeklyUpdateRoute key="news" /></Suspense>;
-      case 'phone':       return <Suspense fallback={<LazyFallback />}><PhoneApp key="phone" /></Suspense>;
-      case 'trap':        return <Suspense fallback={<LazyFallback />}><TrapApp key="trap" /></Suspense>;
-      case 'most_wanted': return <Suspense fallback={<LazyFallback />}><MostWantedApp key="most_wanted" /></Suspense>;
-      case 'block_loop':  return <Suspense fallback={<LazyFallback />}><BlockLoopDesk key="block_loop" /></Suspense>;
+      // Lazy-loaded screens wrapped in Suspense + recovery
+      case 'slide':       return <LazyRoute label="SLIDE"><SlideGame key="slide" /></LazyRoute>;
+      case 'driveby':     return <LazyRoute label="Drive-by"><DriveByGame key="driveby" /></LazyRoute>;
+      case 'topdown':     return <LazyRoute label="Top-down"><TopDownShooter key="topdown" /></LazyRoute>;
+      case 'bipndip':     return <LazyRoute label="Bip N Dip"><BipNDipGame key="bipndip" /></LazyRoute>;
+      case 'raid':        return <LazyRoute label="Raid"><PoliceRaidGame key="raid" /></LazyRoute>;
+      case 'gang_hq':     return <LazyRoute label="Crew"><GangManagement key="gang_hq" /></LazyRoute>;
+      case 'alchemy':     return <LazyRoute label="Cook"><AlchemyLab key="alchemy" /></LazyRoute>;
+      case 'shoebox':     return <LazyRoute label="Shoebox"><Shoebox key="shoebox" /></LazyRoute>;
+      case 'market':      return <LazyRoute label="Market"><Market key="market" /></LazyRoute>;
+      case 'missions':    return <LazyRoute label="Missions"><Missions key="missions" /></LazyRoute>;
+      case 'planner':     return <LazyRoute label="Planner"><AttackPlanner key="planner" /></LazyRoute>;
+      case 'casino':      return <LazyRoute label="Casino"><Casino key="casino" /></LazyRoute>;
+      case 'graffiti':    return <LazyRoute label="Graffiti"><GraffitiGame key="graffiti" /></LazyRoute>;
+      case 'cocaine_crush': return <LazyRoute label="Crush"><CocaineCrush key="cocaine_crush" /></LazyRoute>;
+      case 'leaderboard': return <LazyRoute label="Leaderboard"><Leaderboard key="leaderboard" /></LazyRoute>;
+      case 'news':        return <LazyRoute label="News"><WeeklyUpdateRoute key="news" /></LazyRoute>;
+      case 'phone':       return <LazyRoute label="Phone"><PhoneApp key="phone" /></LazyRoute>;
+      case 'trap':        return <LazyRoute label="Trap"><TrapApp key="trap" /></LazyRoute>;
+      case 'most_wanted': return <LazyRoute label="Most Wanted"><MostWantedApp key="most_wanted" /></LazyRoute>;
+      case 'block_loop':  return (
+        <LazyRoute label="Las Olas STRIP" testId="route-block-loop">
+          <BlockLoopDesk key="block_loop" />
+        </LazyRoute>
+      );
       default:
         return (
           <OSShell
@@ -281,7 +276,7 @@ const App: React.FC = () => {
       <NPCThreatBanner />
       {/* Ghost crew activity banner — surfaces rival claims/attacks (#81) */}
       <GhostThreatBanner />
-      <TutorialOverlay />
+      <TutorialOverlay hidden={currentApp === 'block_loop'} />
 
       {/* Get Back shot clock — global HUD. Hides itself when no debt is open. */}
       <GetBackClock />

@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { lazy, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import UnifiedEncounter from '../encounter/UnifiedEncounter';
 import TacticalDiorama from '../map/TacticalDiorama';
+import TopDownBlock from '../map/TopDownBlock';
+import { LazyRoute, RouteLoadBoundary } from '../system/RouteLoadBoundary';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
@@ -9,6 +10,8 @@ import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import type { LoopPhase } from '../../game/loop/blockLoopTypes';
 import './BlockLoopDesk.css';
+
+const UnifiedEncounter = lazy(() => import('../encounter/UnifiedEncounter'));
 
 const PHASES: { id: LoopPhase; label: string }[] = [
   { id: 'crew', label: 'Crew' },
@@ -121,13 +124,19 @@ const BlockLoopDesk: React.FC = () => {
             </div>
           </div>
           <p className="bld-compare">{preview.explanation}</p>
-          <TacticalDiorama
-            block={loop.block}
-            mapContext={{ status: 'missing', reason: 'STRIP desk does not load street tiles' }}
-            placingMemberId={placingId}
-            placingMemberName={placingId === BLOCK_LOOP_IDS.dealerId ? dealer?.name : shooter?.name}
-            onPlace={(col, row) => place(placingId, col, row)}
-          />
+          <RouteLoadBoundary
+            label="Diorama"
+            testId="route-diorama"
+            fallback={<TopDownBlock block={loop.block} />}
+          >
+            <TacticalDiorama
+              block={loop.block}
+              mapContext={{ status: 'missing', reason: 'STRIP desk does not load street tiles' }}
+              placingMemberId={placingId}
+              placingMemberName={placingId === BLOCK_LOOP_IDS.dealerId ? dealer?.name : shooter?.name}
+              onPlace={(col, row) => place(placingId, col, row)}
+            />
+          </RouteLoadBoundary>
           <div className="bld-routes">
             <button type="button" data-testid="open-map-diorama" onClick={() => { selectBlock(loop.block.id); navigateTo('map'); }}>Open MAP diorama</button>
             <button type="button" data-testid="place-street-dre" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.street.x, preview.street.y)}>Street-near Dre</button>
@@ -170,11 +179,17 @@ const BlockLoopDesk: React.FC = () => {
         <section className="bld-panel bld-encounter">
           <h2>{loop.threat?.route === 'raid' ? 'Raid' : 'SLIDE'} on this DNA board</h2>
           <p>UnifiedEncounter is running on {loop.dnaId} with the placed crew and loadout. Map tiles are optional.</p>
-          <UnifiedEncounter
+          <LazyRoute
+            label="Encounter"
+            testId="route-encounter"
+            fallback={<TopDownBlock block={loop.block} />}
+          >
+            <UnifiedEncounter
               block={loop.block}
               onResolved={(result) => resolveEncounter(result)}
               onClose={() => resolveSeededEncounter()}
             />
+          </LazyRoute>
           {typeof document !== 'undefined' && createPortal(
             <div className="bld-wound-dock" role="region" aria-label="Hospital and wound booking">
               <div>

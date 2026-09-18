@@ -96,6 +96,37 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - No production project, data, Auth/Vercel setting, Edge Function, scheduler,
   payment activation, secret, or real-address workflow changed.
 
+### 2026-09-18 — Closed-beta route performance / lazy engines (#45)
+
+- Deferred MapLibre (MAP), Phaser (Encounter / SLIDE), and Babylon (Modern Ops)
+  off the initial demo shell. Age gate, command desktop, and Block Loop crew
+  phase stay eager; STRIP diorama stays on the Block Loop chunk with 8×8
+  recovery if the scene fails.
+- Added `RouteLoadBoundary` / `LazyRoute` loading + failure recovery. Vite
+  `manualChunks` now isolate `vendor-maplibre` / phaser / babylon; Mapbox is
+  no longer in `optimizeDeps.include`.
+- Preserved PR #147 tutorial-hint suppression on `block_loop` while App.tsx
+  was edited (PR #147 still open at branch time).
+- Rebased onto `main-tL2525` after PR #149; demo-ledger account isolation is
+  retained unchanged.
+- No gameplay, payout, heat, seed, persistence, Supabase, or Vercel changes.
+
+### 2026-09-18 — Mobile Strip action clearance repair (#45)
+
+- At a 375px viewport, the persistent global tutorial hint could cover the
+  primary **Lock Dre and Rome** control on the Las Olas STRIP desk. The
+  command dock is not rendered on that route; the tutorial hint was the
+  overlapping fixed layer.
+- `TutorialOverlay` now accepts an explicit `hidden` state. The app passes it
+  only while `block_loop` is active, because that route already presents its
+  own current action and guidance. The tutorial hint remains visible on all
+  other routes.
+- Added a focused regression proving both states. Browser verification at
+  375×812 confirms the hint is absent and the 44px crew-lock action remains
+  fully visible. No gameplay, state, persistence, Supabase, Vercel, or
+  production-data change is included.
+- Absorbed into PR #148 (route performance); PR #147 closed as superseded.
+
 ### 2026-09-18 — Closed-beta demo ledger account isolation (#45)
 
 - The local Las Olas Block Loop ledger is now explicitly an evaluation-build
