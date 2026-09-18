@@ -65,7 +65,7 @@
 /* ── Street member ── */
 .street-member {
   position: absolute;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -158,6 +158,12 @@
 .car-body {
   font-size: 36px;
   filter: drop-shadow(0 0 8px rgba(239,68,68,0.5));
+}
+
+.car-body img {
+  display: block;
+  height: 52px;
+  width: auto;
 }
 
 .car-gang-tag {

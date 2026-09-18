@@ -17,28 +17,11 @@ import { useBlockStore } from '../../stores/blockStore';
 import {
   getStreetSpriteUrl,
   getPortraitUrl,
-  getDefaultStreetBackdropUrl,
+  getStreetVehicleUrl,
 } from '../../services/assetResolver';
+import { composeDioramaScene, toPercent } from '../../render/dioramaAdapter';
+import { project } from '../../render/projection';
 import './StreetBlock.css';
-
-// ─── Zone lane positions (% from top of backdrop) ────────────
-const ZONE_Y_POSITIONS: Record<string, number> = {
-  street:     88,
-  curb:       78,
-  sidewalk:   65,
-  storefront: 48,
-  alley:      32,
-  parking:    55,
-  rooftop:    15,
-};
-
-const ZONE_X_STEP = 100 / 9; // 8 columns → 9 divisions
-
-function placementToScreenPos(p: BlockPlacement) {
-  const x = ZONE_X_STEP * (p.x + 1); // 1-indexed
-  const y = ZONE_Y_POSITIONS[p.zoneType] ?? 60;
-  return { x, y };
-}
 
 // ─── Role display ─────────────────────────────────────────────
 const ROLE_COLORS: Record<string, string> = {
@@ -62,6 +45,7 @@ const DriveBycar: React.FC<DriveByCarProps> = ({ event, onShoot: _onShoot }) => 
   const isActive = event.phase === 'active';
   const isIncoming = event.phase === 'incoming';
   const isRetreating = event.phase === 'retreating';
+  const vehicleUrl = getStreetVehicleUrl();
 
   return (
     <motion.div
@@ -83,7 +67,7 @@ const DriveBycar: React.FC<DriveByCarProps> = ({ event, onShoot: _onShoot }) => 
     >
       {/* Car body */}
       <div className="car-body">
-        {event.vehicleType === 'sedan' ? '🚗' : event.vehicleType === 'suv' ? '🚙' : '🚐'}
+        <img src={vehicleUrl} alt="" draggable={false} />
       </div>
       {/* Gang name tag */}
       {isActive && (
@@ -111,6 +95,7 @@ interface StreetMemberProps {
   isSelected: boolean;
   isUnderFire: boolean;
   onClick: () => void;
+  pos: { x: number; y: number };
 }
 
 const StreetMember: React.FC<StreetMemberProps> = ({
@@ -118,8 +103,8 @@ const StreetMember: React.FC<StreetMemberProps> = ({
   isSelected,
   isUnderFire,
   onClick,
+  pos,
 }) => {
-  const pos = placementToScreenPos(placement);
   const roleColor = ROLE_COLORS[placement.role] ?? '#fff';
   const isDead = placement.health <= 0;
 
@@ -201,6 +186,32 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [shotEffects, setShotEffects] = useState<{ id: string; x: number; y: number }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState({ width: 480, height: 270 });
+
+  useEffect(() => {
+    const node = containerRef.current?.querySelector('.street-backdrop') as HTMLElement | null;
+    if (!node || typeof ResizeObserver === 'undefined') return undefined;
+    const apply = () => {
+      const rect = node.getBoundingClientRect();
+      if (rect.width < 8 || rect.height < 8) return;
+      setView({ width: rect.width, height: rect.height });
+    };
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const scene = React.useMemo(
+    () => composeDioramaScene({ block, view }),
+    [block, view],
+  );
+
+  const placementPos = useCallback((placement: BlockPlacement) => {
+    const actor = scene.actors.find((item) => item.memberId === placement.memberId);
+    const point = actor?.point ?? project({ col: placement.x, row: placement.y }, view, scene.profile);
+    return toPercent(point, view);
+  }, [scene, view]);
 
   // Auto-clear shot effects
   useEffect(() => {
@@ -219,7 +230,7 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
 
     const interval = setInterval(() => {
       const target = shooters[Math.floor(Math.random() * shooters.length)];
-      const pos = placementToScreenPos(target);
+      const pos = placementPos(target);
       setShotEffects((prev) => [
         ...prev,
         { id: `${Date.now()}`, x: pos.x, y: pos.y },
@@ -227,7 +238,7 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
     }, 800);
 
     return () => clearInterval(interval);
-  }, [activeDriveBy, block.placements]);
+  }, [activeDriveBy, block.placements, placementPos]);
 
   const handleMemberClick = useCallback(
     (placement: BlockPlacement) => {
@@ -269,21 +280,25 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
       <div
         className="street-backdrop"
         style={{
-          backgroundImage: `url(${block.streetBackdropUrl ?? getDefaultStreetBackdropUrl()})`,
+          backgroundImage: `url(${scene.backdropUrl})`,
         }}
       >
 
-        {/* Zone labels */}
+        {/* Zone labels follow projected row centres */}
         <div className="street-zone-labels">
-          {Object.entries(ZONE_Y_POSITIONS).map(([zone, y]) => (
-            <span
-              key={zone}
-              className="sz-label"
-              style={{ top: `${y}%` }}
-            >
-              {zone.toUpperCase()}
-            </span>
-          ))}
+          {Array.from(new Set(scene.cells.map((cell) => cell.zoneType))).map((zone) => {
+            const sample = scene.cells.find((cell) => cell.zoneType === zone);
+            if (!sample) return null;
+            return (
+              <span
+                key={zone}
+                className="sz-label"
+                style={{ top: `${toPercent(sample.point, view).y}%` }}
+              >
+                {zone.toUpperCase()}
+              </span>
+            );
+          })}
         </div>
 
         {/* Members */}
@@ -291,6 +306,7 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
           <StreetMember
             key={p.memberId}
             placement={p}
+            pos={placementPos(p)}
             isSelected={selectedMemberId === p.memberId}
             isUnderFire={isUnderFire(p.memberId)}
             onClick={() => handleMemberClick(p)}
@@ -341,7 +357,7 @@ const StreetBlock: React.FC<StreetBlockProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <span>🚗 SLIDE IN PROGRESS — TAP TO RETURN FIRE</span>
+              <span>SLIDE IN PROGRESS — TAP TO RETURN FIRE</span>
             </motion.div>
           )}
         </AnimatePresence>

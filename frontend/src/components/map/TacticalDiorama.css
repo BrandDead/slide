@@ -1,0 +1,236 @@
+.tactical-diorama {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-height: 100%;
+  color: #f4ece4;
+  font-family: 'Rajdhani', 'SF Pro Display', sans-serif;
+}
+
+.td-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.td-kicker {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #ffb38a;
+}
+
+.td-board-toggle,
+.td-actor,
+.td-hit {
+  appearance: none;
+  border: 1px solid rgba(255, 209, 138, 0.35);
+  background: rgba(8, 6, 8, 0.55);
+  color: #f4ece4;
+  min-height: 44px;
+  padding: 0 12px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.td-board-toggle.is-on {
+  background: #9a1d1d;
+  border-color: #ff6a6a;
+}
+
+.td-board-toggle:focus-visible,
+.td-actor:focus-visible,
+.td-hit:focus-visible,
+.td-stage:focus-visible {
+  outline: 2px solid #ffd18a;
+  outline-offset: 2px;
+}
+
+.td-map-fallback {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 209, 138, 0.28);
+  background: rgba(20, 12, 8, 0.72);
+  font-size: 13px;
+}
+
+.td-stage {
+  position: relative;
+  width: 100%;
+  min-height: 360px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #07060a;
+  border: 1px solid rgba(255, 68, 68, 0.22);
+}
+
+.td-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.td-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.td-cell {
+  stroke: rgba(244, 236, 228, 0.08);
+  stroke-width: 1;
+}
+
+.td-cell.is-street {
+  stroke: rgba(255, 180, 120, 0.22);
+}
+
+.td-cell.is-facade {
+  stroke: rgba(180, 220, 255, 0.38);
+  stroke-width: 1.5;
+}
+
+.td-cell.is-setback {
+  stroke-dasharray: 4 5;
+}
+
+.td-cell.is-legal {
+  stroke: #ffd18a;
+  stroke-width: 2;
+}
+
+.td-cell.is-focus,
+.td-cell.is-objective,
+.td-cell.is-extract {
+  stroke-width: 2.2;
+}
+
+.td-objective {
+  fill: none;
+  stroke: #7dd3fc;
+  stroke-width: 2;
+}
+
+.td-extract {
+  fill: none;
+  stroke: #86efac;
+  stroke-width: 2;
+}
+
+.td-mark-label {
+  fill: #f4ece4;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+}
+
+.td-hit-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.td-hit {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border-color: transparent;
+}
+
+.td-hit.is-legal {
+  box-shadow: 0 0 0 1px rgba(255, 209, 138, 0.45);
+}
+
+.td-actor {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+}
+
+.td-actor img,
+.td-actor-fallback {
+  display: block;
+  width: 100%;
+  height: calc(100% - 14px);
+  object-fit: contain;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+}
+
+.td-actor-fallback {
+  background: linear-gradient(180deg, rgba(244, 236, 228, 0.2), rgba(0, 0, 0, 0.4));
+}
+
+.td-actor-name {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px #000;
+}
+
+.td-actor.is-selected {
+  filter: drop-shadow(0 0 8px #ffd18a);
+}
+
+.td-legal-hint,
+.td-context {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(244, 236, 228, 0.78);
+}
+
+.td-context {
+  padding: 10px 12px;
+  background: rgba(8, 6, 8, 0.82);
+  border-left: 2px solid #ff6a6a;
+}
+
+.td-context h2,
+.td-context-kicker {
+  margin: 0 0 4px;
+}
+
+.td-context-kicker {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: #ffb38a;
+}
+
+.td-sr-marks {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (max-width: 720px) {
+  .td-stage {
+    min-height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tactical-diorama * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

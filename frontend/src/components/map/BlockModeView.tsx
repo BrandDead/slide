@@ -22,7 +22,7 @@ import { useMoraleEffects } from '../../hooks/useMoraleEffects';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
-import StreetBlock from './StreetBlock';
+import TacticalDiorama from './TacticalDiorama';
 import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
@@ -125,7 +125,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const {
     blocks,
     selectedBlockId,
-    activeDriveBys,
     selectBlock,
     upsertBlock,
     setBlockViewMode,
@@ -140,6 +139,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const [showEncounter, setShowEncounter] = useState(false);
   const [showModernOps, setShowModernOps] = useState(false);
   const [showRaid, setShowRaid] = useState(false);
+  const [showLegalBoard, setShowLegalBoard] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
   const [showBailModal, setShowBailModal] = useState(false);
@@ -179,7 +179,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   // BlockModeView only reads pendingIncome and allows manual collection
 
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
-  const activeEvent = selectedBlockId ? activeDriveBys[selectedBlockId] : undefined;
 
   const handleCollect = useCallback(async () => {
     if (!selectedBlockId || !block) return;
@@ -344,16 +343,30 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       {/* View mode toggle */}
       <div className="bmv-view-tabs">
         <button
-          className={`bmv-tab ${viewMode === 'topdown' ? 'active' : ''}`}
-          onClick={() => setBlockViewMode(block.id, 'topdown')}
+          className={`bmv-tab ${!showLegalBoard && viewMode !== 'drugs' && !showEncounter && !showRaid && !showDriveBy && !showModernOps ? 'active' : ''}`}
+          onClick={() => {
+            setShowLegalBoard(false);
+            setShowDriveBy(false);
+            setShowEncounter(false);
+            setShowModernOps(false);
+            setShowRaid(false);
+            setBlockViewMode(block.id, 'street');
+          }}
         >
-          🗺️ Top-Down
+          Diorama
         </button>
         <button
-          className={`bmv-tab ${viewMode === 'street' ? 'active' : ''}`}
-          onClick={() => setBlockViewMode(block.id, 'street')}
+          className={`bmv-tab ${showLegalBoard ? 'active' : ''}`}
+          onClick={() => {
+            setShowLegalBoard(true);
+            setShowDriveBy(false);
+            setShowEncounter(false);
+            setShowModernOps(false);
+            setShowRaid(false);
+            setBlockViewMode(block.id, 'topdown');
+          }}
         >
-          🏙️ Street
+          Board
         </button>
         <button
           className={`bmv-tab ${showEncounter ? 'active danger' : ''}`}
@@ -416,13 +429,10 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           />
         ) : viewMode === 'drugs' ? (
           <DrugAssignmentPanel block={block} />
-        ) : viewMode === 'topdown' ? (
+        ) : showLegalBoard ? (
           <TopDownBlock block={block} />
         ) : (
-          <StreetBlock
-            block={block}
-            activeDriveBy={activeEvent}
-          />
+          <TacticalDiorama block={block} />
         )}
       </div>
 
