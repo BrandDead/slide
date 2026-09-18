@@ -14,28 +14,34 @@ function read(rel: string): string {
 }
 
 describe('route performance contracts', () => {
-  it('keeps TerritoryMap (MapLibre / Strip stack) behind React.lazy in App', () => {
+  it('keeps TerritoryMap (MapLibre / Strip stack) behind createRetryableLazy in App', () => {
     const app = read('App.tsx');
-    expect(app).toMatch(/React\.lazy\(\(\)\s*=>\s*import\('\.\/components\/map\/TerritoryMap'\)\)/);
+    expect(app).toMatch(/createRetryableLazy\(\(\)\s*=>\s*import\('\.\/components\/map\/TerritoryMap'\)\)/);
     expect(app).not.toMatch(/import TerritoryMap from '\.\/components\/map\/TerritoryMap'/);
   });
 
-  it('keeps BlockLoopDesk behind React.lazy and preserves #147 tutorial clearance', () => {
+  it('keeps BlockLoopDesk behind createRetryableLazy and preserves #147 tutorial clearance', () => {
     const app = read('App.tsx');
-    expect(app).toMatch(/React\.lazy\(\(\)\s*=>\s*import\('\.\/components\/layout\/BlockLoopDesk'\)\)/);
+    expect(app).toMatch(/createRetryableLazy\(\(\)\s*=>\s*import\('\.\/components\/layout\/BlockLoopDesk'\)\)/);
     expect(app).toMatch(/TutorialOverlay\s+hidden=\{currentApp === 'block_loop'\}/);
   });
 
   it('does not eagerly import Phaser engines from the Block Loop desk', () => {
     const desk = read('components/layout/BlockLoopDesk.tsx');
-    expect(desk).toMatch(/lazy\(\(\)\s*=>\s*import\('\.\.\/encounter\/UnifiedEncounter'\)\)/);
+    expect(desk).toMatch(/createRetryableLazy\(\(\)\s*=>\s*import\('\.\.\/encounter\/UnifiedEncounter'\)\)/);
     expect(desk).not.toMatch(/import UnifiedEncounter from '\.\.\/encounter\/UnifiedEncounter'/);
   });
 
   it('does not eagerly import Phaser from BlockModeView (MAP Strip)', () => {
     const view = read('components/map/BlockModeView.tsx');
-    expect(view).toMatch(/lazy\(\(\)\s*=>\s*import\('\.\.\/encounter\/UnifiedEncounter'\)\)/);
+    expect(view).toMatch(/createRetryableLazy\(\(\)\s*=>\s*import\('\.\.\/encounter\/UnifiedEncounter'\)\)/);
     expect(view).not.toMatch(/import UnifiedEncounter from '\.\.\/encounter\/UnifiedEncounter'/);
+  });
+
+  it('keeps App route surfaces on createRetryableLazy (not bare React.lazy)', () => {
+    const app = read('App.tsx');
+    expect(app).toMatch(/createRetryableLazy\(\(\)\s*=>\s*import\('\.\/components\/map\/TerritoryMap'\)\)/);
+    expect(app).not.toMatch(/React\.lazy\(\(\)\s*=>\s*import\('/);
   });
 
   it('splits MapLibre into an intentional vendor chunk and leaves Mapbox out of optimizeDeps', () => {

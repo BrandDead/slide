@@ -1,8 +1,8 @@
-import React, { lazy, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import TacticalDiorama from '../map/TacticalDiorama';
 import TopDownBlock from '../map/TopDownBlock';
-import { LazyRoute, RouteLoadBoundary } from '../system/RouteLoadBoundary';
+import { LazyRoute, RouteLoadBoundary, createRetryableLazy } from '../system/RouteLoadBoundary';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
@@ -11,7 +11,25 @@ import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import type { LoopPhase } from '../../game/loop/blockLoopTypes';
 import './BlockLoopDesk.css';
 
-const UnifiedEncounter = lazy(() => import('../encounter/UnifiedEncounter'));
+const UnifiedEncounter = createRetryableLazy(() => import('../encounter/UnifiedEncounter'));
+
+function LoopAwareBoard({
+  block,
+  placingId,
+  onPlace,
+}: {
+  block: React.ComponentProps<typeof TopDownBlock>['block'];
+  placingId: string;
+  onPlace: (col: number, row: number) => void;
+}) {
+  return (
+    <TopDownBlock
+      block={block}
+      placingMemberId={placingId}
+      onPlace={onPlace}
+    />
+  );
+}
 
 const PHASES: { id: LoopPhase; label: string }[] = [
   { id: 'crew', label: 'Crew' },
@@ -127,7 +145,13 @@ const BlockLoopDesk: React.FC = () => {
           <RouteLoadBoundary
             label="Diorama"
             testId="route-diorama"
-            fallback={<TopDownBlock block={loop.block} />}
+            fallback={
+              <LoopAwareBoard
+                block={loop.block}
+                placingId={placingId}
+                onPlace={(col, row) => place(placingId, col, row)}
+              />
+            }
           >
             <TacticalDiorama
               block={loop.block}
@@ -182,7 +206,9 @@ const BlockLoopDesk: React.FC = () => {
           <LazyRoute
             label="Encounter"
             testId="route-encounter"
-            fallback={<TopDownBlock block={loop.block} />}
+            fallback={
+              <TopDownBlock block={loop.block} readOnly />
+            }
           >
             <UnifiedEncounter
               block={loop.block}

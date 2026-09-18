@@ -48,31 +48,31 @@ import SettingsPage from './components/settings/SettingsPage';
 import AuthScreen from './components/auth/AuthScreen';
 import AgeGate, { initialAgeAffirmed } from './components/compliance/AgeGate';
 import SplashScreen from './components/layout/SplashScreen';
-import { LazyRoute } from './components/system/RouteLoadBoundary';
+import { LazyRoute, createRetryableLazy } from './components/system/RouteLoadBoundary';
 
-// Lazy-loaded mini-games and heavy screens
-const TerritoryMap      = React.lazy(() => import('./components/map/TerritoryMap'));
-const SlideGame         = React.lazy(() => import('./components/slide/SlideGame'));
-const DriveByGame       = React.lazy(() => import('./components/driveby/DriveByGame'));
-const AlchemyLab        = React.lazy(() => import('./components/alchemy/AlchemyLab'));
-const GraffitiGame      = React.lazy(() => import('./components/graffiti/GraffitiGame'));
-const Casino            = React.lazy(() => import('./components/casino/Casino'));
-const Shoebox           = React.lazy(() => import('./components/economy/Shoebox'));
-const Market            = React.lazy(() => import('./components/economy/Market'));
-const Missions          = React.lazy(() => import('./components/missions/Missions'));
-const Leaderboard       = React.lazy(() => import('./components/hub/Leaderboard'));
-const TopDownShooter    = React.lazy(() => import('./components/topdown/TopDownShooter'));
-const BipNDipGame       = React.lazy(() => import('./components/topdown/BipNDipGame'));
-const PoliceRaidGame    = React.lazy(() => import('./components/raid/PoliceRaidGame'));
-const GangManagement    = React.lazy(() => import('./components/gang/GangManagement'));
-const DealtModeSelector = React.lazy(() => import('./components/dealt-v2/DealtModeSelector'));
-const CocaineCrush      = React.lazy(() => import('./components/cocaine-crush/CocaineCrush'));
-const WeeklyUpdateRoute = React.lazy(() => import('./components/news/WeeklyUpdateRoute'));
-const PhoneApp          = React.lazy(() => import('./components/phone/PhoneApp'));
-const AttackPlanner     = React.lazy(() => import('./components/missions/AttackPlanner'));
-const TrapApp           = React.lazy(() => import('./components/trap/TrapApp'));
-const MostWantedApp     = React.lazy(() => import('./components/economy/MostWantedApp'));
-const BlockLoopDesk     = React.lazy(() => import('./components/layout/BlockLoopDesk'));
+// Lazy-loaded mini-games and heavy screens (retryable: rejected imports remount fresh)
+const TerritoryMap      = createRetryableLazy(() => import('./components/map/TerritoryMap'));
+const SlideGame         = createRetryableLazy(() => import('./components/slide/SlideGame'));
+const DriveByGame       = createRetryableLazy(() => import('./components/driveby/DriveByGame'));
+const AlchemyLab        = createRetryableLazy(() => import('./components/alchemy/AlchemyLab'));
+const GraffitiGame      = createRetryableLazy(() => import('./components/graffiti/GraffitiGame'));
+const Casino            = createRetryableLazy(() => import('./components/casino/Casino'));
+const Shoebox           = createRetryableLazy(() => import('./components/economy/Shoebox'));
+const Market            = createRetryableLazy(() => import('./components/economy/Market'));
+const Missions          = createRetryableLazy(() => import('./components/missions/Missions'));
+const Leaderboard       = createRetryableLazy(() => import('./components/hub/Leaderboard'));
+const TopDownShooter    = createRetryableLazy(() => import('./components/topdown/TopDownShooter'));
+const BipNDipGame       = createRetryableLazy(() => import('./components/topdown/BipNDipGame'));
+const PoliceRaidGame    = createRetryableLazy(() => import('./components/raid/PoliceRaidGame'));
+const GangManagement    = createRetryableLazy(() => import('./components/gang/GangManagement'));
+const DealtModeSelector = createRetryableLazy(() => import('./components/dealt-v2/DealtModeSelector'));
+const CocaineCrush      = createRetryableLazy(() => import('./components/cocaine-crush/CocaineCrush'));
+const WeeklyUpdateRoute = createRetryableLazy(() => import('./components/news/WeeklyUpdateRoute'));
+const PhoneApp          = createRetryableLazy(() => import('./components/phone/PhoneApp'));
+const AttackPlanner     = createRetryableLazy(() => import('./components/missions/AttackPlanner'));
+const TrapApp           = createRetryableLazy(() => import('./components/trap/TrapApp'));
+const MostWantedApp     = createRetryableLazy(() => import('./components/economy/MostWantedApp'));
+const BlockLoopDesk     = createRetryableLazy(() => import('./components/layout/BlockLoopDesk'));
 
 import './App.css';
 
