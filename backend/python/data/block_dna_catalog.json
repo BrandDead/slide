@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "currentVersion": "v2",
+  "currentVersion": "v3",
   "versions": {
     "v1": [
       "las-olas-1208",
@@ -63,6 +63,48 @@
       "civic-arcade",
       "ridge-estates",
       "vernon-court"
+    ],
+    "v3": [
+      "las-olas-1208",
+      "overtown-nw3",
+      "liberty-city-alley",
+      "wynwood-warehouse",
+      "south-beach-ocean",
+      "opalocka-parking",
+      "little-havana-8th",
+      "carol-city-183rd",
+      "brownsville-court",
+      "pompano-strip",
+      "coral-gables-estate",
+      "hialeah-warehouse-row",
+      "hollywood-broadwalk",
+      "liberty-square-projects",
+      "plantation-acres",
+      "brickell-highrise",
+      "dania-jai-alai",
+      "harbor-spur",
+      "rail-market",
+      "canal-court",
+      "stadium-service",
+      "night-market",
+      "courtyard-walkups",
+      "floodgate-repair",
+      "ring-road-underpass",
+      "signal-yard",
+      "marina-cut",
+      "sable-plaza",
+      "orchard-row",
+      "switchback-garage",
+      "civic-arcade",
+      "ridge-estates",
+      "vernon-court",
+      "foundry-steps",
+      "solstice-terminal",
+      "ferry-exchange",
+      "glasshouse-court",
+      "quarry-terrace",
+      "atlas-arcade",
+      "meridian-works"
     ]
   },
   "keywordRules": [
@@ -1027,6 +1069,188 @@
       "maxMembers": 7,
       "hotBlock": false,
       "startingHeat": 0
+    },
+    {
+      "id": "foundry-steps",
+      "lat": 26.5264,
+      "lng": -80.3597,
+      "tags": [
+        "warehouse",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "building",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.52,
+      "heatDecayMultiplier": 0.69,
+      "globalCoverBonus": 0.17,
+      "startingMorale": 65,
+      "maxMembers": 10,
+      "hotBlock": true,
+      "startingHeat": 2
+    },
+    {
+      "id": "solstice-terminal",
+      "lat": 25.4891,
+      "lng": -80.4186,
+      "tags": [
+        "parking-lot",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "sidewalk",
+        "4": "storefront",
+        "5": "parking",
+        "6": "alley",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.84,
+      "heatDecayMultiplier": 1.46,
+      "globalCoverBonus": 0.1,
+      "startingMorale": 81,
+      "maxMembers": 6,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "ferry-exchange",
+      "lat": 26.3718,
+      "lng": -80.0472,
+      "tags": [
+        "beachfront",
+        "open-air"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "sidewalk",
+        "5": "parking",
+        "6": "curb",
+        "7": "street"
+      },
+      "incomeMultiplier": 2.26,
+      "heatDecayMultiplier": 0.46,
+      "globalCoverBonus": -0.08,
+      "startingMorale": 56,
+      "maxMembers": 9,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "glasshouse-court",
+      "lat": 25.7226,
+      "lng": -80.3738,
+      "tags": [
+        "alley-heavy",
+        "corner-store"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "alley",
+        "4": "alley",
+        "5": "storefront",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 0.91,
+      "heatDecayMultiplier": 1.31,
+      "globalCoverBonus": 0.22,
+      "startingMorale": 87,
+      "maxMembers": 7,
+      "hotBlock": false,
+      "startingHeat": 0
+    },
+    {
+      "id": "quarry-terrace",
+      "lat": 26.4547,
+      "lng": -80.4015,
+      "tags": [
+        "rooftop-access",
+        "warehouse"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "storefront",
+        "4": "building",
+        "5": "building",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 2.38,
+      "heatDecayMultiplier": 0.43,
+      "globalCoverBonus": 0.06,
+      "startingMorale": 58,
+      "maxMembers": 11,
+      "hotBlock": true,
+      "startingHeat": 3
+    },
+    {
+      "id": "atlas-arcade",
+      "lat": 25.6129,
+      "lng": -80.3384,
+      "tags": [
+        "corner-store",
+        "rooftop-access"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "sidewalk",
+        "3": "storefront",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.29,
+      "heatDecayMultiplier": 0.9,
+      "globalCoverBonus": 0.15,
+      "startingMorale": 72,
+      "maxMembers": 9,
+      "hotBlock": false,
+      "startingHeat": 1
+    },
+    {
+      "id": "meridian-works",
+      "lat": 26.2875,
+      "lng": -80.2867,
+      "tags": [
+        "warehouse",
+        "parking-lot"
+      ],
+      "zoneOverrides": {
+        "0": "street",
+        "1": "curb",
+        "2": "parking",
+        "3": "parking",
+        "4": "storefront",
+        "5": "alley",
+        "6": "building",
+        "7": "rooftop"
+      },
+      "incomeMultiplier": 1.63,
+      "heatDecayMultiplier": 0.66,
+      "globalCoverBonus": 0.11,
+      "startingMorale": 64,
+      "maxMembers": 11,
+      "hotBlock": true,
+      "startingHeat": 2
     }
   ]
 }

@@ -112,7 +112,7 @@ describe('resolveBlockDNA', () => {
     expect(signatures.size).toBe(batch.length);
   });
 
-  it('adds eight distinct batch-two archetypes with deterministic eight-row profiles', () => {
+  it('preserves eight distinct batch-two archetypes after final catalog expansion', () => {
     const batch: Array<{ id: string; lat: number; lng: number; address: string }> = [
       { id: 'signal-yard', lat: 25.6942, lng: -80.3486, address: 'Signal Yard & Copper Spur' },
       { id: 'marina-cut', lat: 26.2215, lng: -80.0783, address: 'Marina Cut & Breakwater Drive' },
@@ -124,7 +124,42 @@ describe('resolveBlockDNA', () => {
       { id: 'vernon-court', lat: 25.5733, lng: -80.3918, address: 'Vernon Court & Service Lane' },
     ];
 
-    expect(BLOCK_DNA_LIBRARY).toHaveLength(33);
+    expect(BLOCK_DNA_LIBRARY).toHaveLength(40);
+    const signatures = new Set<string>();
+
+    for (const spot of batch) {
+      const first = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      const second = resolveBlockDNA(spot.lat, spot.lng, spot.address);
+      expect(first.dna.id).toBe(spot.id);
+      expect(second).toEqual(first);
+      expect(first.zoneLayout).toHaveLength(8);
+      signatures.add([
+        first.dna.tier,
+        first.zoneLayout.join(','),
+        first.incomeMultiplier,
+        first.dna.heatDecayMultiplier,
+        first.dna.globalCoverBonus,
+        first.startingMorale,
+        first.maxMembers,
+        first.startingHeat,
+      ].join('|'));
+    }
+
+    expect(signatures.size).toBe(batch.length);
+  });
+
+  it('adds seven distinct batch-three archetypes with deterministic eight-row profiles', () => {
+    const batch: Array<{ id: string; lat: number; lng: number; address: string }> = [
+      { id: 'foundry-steps', lat: 26.5264, lng: -80.3597, address: 'Foundry Steps & Cinder Avenue' },
+      { id: 'solstice-terminal', lat: 25.4891, lng: -80.4186, address: 'Solstice Terminal & Gate Road' },
+      { id: 'ferry-exchange', lat: 26.3718, lng: -80.0472, address: 'Ferry Exchange & Tide Street' },
+      { id: 'glasshouse-court', lat: 25.7226, lng: -80.3738, address: 'Glasshouse Court & Lumen Lane' },
+      { id: 'quarry-terrace', lat: 26.4547, lng: -80.4015, address: 'Quarry Terrace & Switchyard Way' },
+      { id: 'atlas-arcade', lat: 25.6129, lng: -80.3384, address: 'Atlas Arcade & Union Plaza' },
+      { id: 'meridian-works', lat: 26.2875, lng: -80.2867, address: 'Meridian Works & Concourse Drive' },
+    ];
+
+    expect(BLOCK_DNA_LIBRARY).toHaveLength(40);
     const signatures = new Set<string>();
 
     for (const spot of batch) {

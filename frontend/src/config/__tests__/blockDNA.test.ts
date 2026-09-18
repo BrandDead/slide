@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   BLOCK_DNA_LIBRARY,
+  getResolverCatalog,
   getDNAById,
   getNearestDNA,
   resolveProjectionProfile,
@@ -13,8 +14,15 @@ import {
 import { DEFAULT_PROFILE } from '../../render/projection';
 
 describe('BLOCK_DNA_LIBRARY', () => {
-  it('has at least 33 premade blocks across all tiers after batch two', () => {
-    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThanOrEqual(33);
+  it('has the planned 40 premade fictional blocks across all tiers', () => {
+    expect(BLOCK_DNA_LIBRARY).toHaveLength(40);
+  });
+
+  it('freezes the current 33-card v2 pool before newer cards are appended', () => {
+    const v2 = getResolverCatalog('v2');
+
+    expect(v2).toHaveLength(33);
+    expect(v2).not.toBe(BLOCK_DNA_LIBRARY);
   });
 
   it('every tier has at least 2 cards', () => {
