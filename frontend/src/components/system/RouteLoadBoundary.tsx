@@ -1,9 +1,13 @@
 // ============================================================
 // RouteLoadBoundary — loading + failure recovery for lazy routes
 // Keeps the player on a usable surface when a heavy chunk fails.
+//
+// Retry must recreate React.lazy() factories: a rejected lazy
+// import promise is cached by React, so clearing error state alone
+// immediately rethrows the same rejection.
 // ============================================================
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useContext } from 'react';
 
 type RouteLoadBoundaryProps = {
   children: React.ReactNode;
@@ -17,7 +21,12 @@ type RouteLoadBoundaryProps = {
 
 type RouteLoadBoundaryState = {
   error: Error | null;
+  /** Bumped on Retry so lazy factories and children remount fresh. */
+  attempt: number;
 };
+
+/** Attempt counter for createRetryableLazy — fresh React.lazy per retry. */
+export const RetryAttemptContext = React.createContext(0);
 
 function RouteLoading({ label, testId }: { label: string; testId?: string }) {
   return (
@@ -30,6 +39,66 @@ function RouteLoading({ label, testId }: { label: string; testId?: string }) {
   );
 }
 
+type ImportFactory<T extends React.ComponentType<any>> = () => Promise<{ default: T }>;
+
+type LazyLoadCache<T> = {
+  wake: Promise<void>;
+  Comp: T | null;
+  error: Error | null;
+};
+
+/**
+ * Like React.lazy, but each RouteLoadBoundary retry starts a fresh import.
+ *
+ * React caches rejected `React.lazy()` thenables, so a Retry that only clears
+ * error state rethrows the same rejection. This helper:
+ * 1. keys the in-flight load to RetryAttemptContext (bumped on Retry)
+ * 2. stores load state in a module map (survives Suspense remounts)
+ * 3. converts import failures into a render-time throw the boundary catches
+ * 4. uses an always-fulfilling wake thenable so Suspense does not hang on reject
+ */
+export function createRetryableLazy<T extends React.ComponentType<any>>(
+  factory: ImportFactory<T>,
+): React.ComponentType<React.ComponentPropsWithoutRef<T>> {
+  const loads = new Map<number, LazyLoadCache<T>>();
+
+  function RetryableLazy(props: React.ComponentPropsWithoutRef<T>) {
+    const attempt = useContext(RetryAttemptContext);
+
+    let cache = loads.get(attempt);
+    if (!cache) {
+      const entry: LazyLoadCache<T> = {
+        Comp: null,
+        error: null,
+        wake: Promise.resolve(),
+      };
+      entry.wake = new Promise<void>((resolve) => {
+        queueMicrotask(() => {
+          factory().then(
+            (mod) => {
+              entry.Comp = mod.default;
+              resolve();
+            },
+            (cause) => {
+              entry.error =
+                cause instanceof Error ? cause : new Error(String(cause ?? 'Import failed'));
+              resolve();
+            },
+          );
+        });
+      });
+      loads.set(attempt, entry);
+      cache = entry;
+    }
+
+    if (cache.error) throw cache.error;
+    if (!cache.Comp) throw cache.wake;
+    return React.createElement(cache.Comp, props);
+  }
+  RetryableLazy.displayName = 'RetryableLazy';
+  return RetryableLazy;
+}
+
 /**
  * Catches lazy-import and render failures for a single route/surface.
  * Prefer this over a blank Suspense frame so recovery stays visible.
@@ -38,19 +107,19 @@ export class RouteLoadBoundary extends React.Component<
   RouteLoadBoundaryProps,
   RouteLoadBoundaryState
 > {
-  state: RouteLoadBoundaryState = { error: null };
+  state: RouteLoadBoundaryState = { error: null, attempt: 0 };
 
-  static getDerivedStateFromError(error: Error): RouteLoadBoundaryState {
+  static getDerivedStateFromError(error: Error): Partial<RouteLoadBoundaryState> {
     return { error };
   }
 
   private retry = () => {
-    this.setState({ error: null });
+    this.setState((prev) => ({ error: null, attempt: prev.attempt + 1 }));
   };
 
   render() {
     const { children, label, fallback, testId } = this.props;
-    const { error } = this.state;
+    const { error, attempt } = this.state;
 
     if (error) {
       return (
@@ -76,7 +145,11 @@ export class RouteLoadBoundary extends React.Component<
       );
     }
 
-    return children;
+    return (
+      <RetryAttemptContext.Provider value={attempt}>
+        <React.Fragment key={attempt}>{children}</React.Fragment>
+      </RetryAttemptContext.Provider>
+    );
   }
 }
 

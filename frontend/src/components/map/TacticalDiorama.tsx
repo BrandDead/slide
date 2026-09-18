@@ -238,7 +238,11 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({
       )}
 
       {boardForced || !scene ? (
-        <TopDownBlock block={block} />
+        <TopDownBlock
+          block={block}
+          placingMemberId={placingMemberId}
+          onPlace={onPlace}
+        />
       ) : (
         <div
           ref={stageRef}

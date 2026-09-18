@@ -5,7 +5,7 @@
 // Sprint: block-mode-combat-assets
 // ============================================================
 
-import React, { lazy, useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
@@ -28,14 +28,14 @@ import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
 import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
-import { LazyRoute } from '../system/RouteLoadBoundary';
+import { LazyRoute, createRetryableLazy } from '../system/RouteLoadBoundary';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { commitEncounterResult } from '../../services/worldPersistence.service';
 import { blocksApi } from '../../services/api.service';
 import './BlockModeView.css';
 
-const ModernOpsEncounter = lazy(() => import('../ops/ModernOpsEncounter'));
-const UnifiedEncounter = lazy(() => import('../encounter/UnifiedEncounter'));
+const ModernOpsEncounter = createRetryableLazy(() => import('../ops/ModernOpsEncounter'));
+const UnifiedEncounter = createRetryableLazy(() => import('../encounter/UnifiedEncounter'));
 
 // ─── Seed helper ─────────────────────────────────────────────
 function buildDefaultBlock(id: string, address: string): BlockData {
