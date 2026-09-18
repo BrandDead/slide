@@ -32,7 +32,7 @@ import type { GangMember } from '../types/game.types';
 import { BLOCK_LOOP_IDS } from '../game/loop/blockLoopTypes';
 import { BLOCK_LOOP_PRODUCT, createAuthoritativeLoopBlock } from '../game/loop/blockLoopFixture';
 import { applyPlacement, toPlacement } from '../game/loop/placementRules';
-import { readLoopLedger } from '../game/loop/blockLoopPersist';
+import { readDemoLoopLedger } from '../game/loop/blockLoopPersist';
 import { useBlockLoopStore } from '../stores/blockLoopStore';
 
 /** True only when the build was started with VITE_DEMO_MODE=1 */
@@ -316,7 +316,7 @@ export function applyDemoSeed(): void {
 }
 
 export function restoreLoopLedgerIfPresent(): boolean {
-  const ledger = readLoopLedger();
+  const ledger = readDemoLoopLedger(usePlayerStore.getState().player.id);
   if (!ledger) return false;
   const hasConsequence = Boolean(
     ledger.dealKey
