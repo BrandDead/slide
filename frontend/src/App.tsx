@@ -281,7 +281,7 @@ const App: React.FC = () => {
       <NPCThreatBanner />
       {/* Ghost crew activity banner — surfaces rival claims/attacks (#81) */}
       <GhostThreatBanner />
-      <TutorialOverlay />
+      <TutorialOverlay hidden={currentApp === 'block_loop'} />
 
       {/* Get Back shot clock — global HUD. Hides itself when no debt is open. */}
       <GetBackClock />
