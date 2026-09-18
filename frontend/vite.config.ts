@@ -1,7 +1,9 @@
 // ============================================================
 // vite.config.ts — Closed-beta route performance
 //   - Route-level lazy chunks for MAP / Strip / mini-games
-//   - Intentional vendor splits for MapLibre / Phaser / Babylon
+//   - Intentional vendor splits for MapLibre / Phaser
+//   - Babylon stays with the Modern Ops lazy route (do not force
+//     a vendor-babylon mega-chunk — that made App modulepreload it)
 //   - Mapbox kept out of optimizeDeps (unused on the beta path)
 // ============================================================
 
@@ -24,10 +26,27 @@ export default defineConfig({
     cssCodeSplit: true,
     assetsInlineLimit: 4096,
 
+    // Avoid preloading engine chunks that are only needed on deep routes.
+    modulePreload: {
+      resolveDependencies: (_filename, deps) =>
+        deps.filter(
+          (dep) =>
+            !dep.includes('vendor-maplibre') &&
+            !dep.includes('vendor-phaser') &&
+            !dep.includes('vendor-babylon') &&
+            !dep.includes('@babylonjs') &&
+            !dep.includes('maplibre-gl') &&
+            !dep.includes('phaser'),
+        ),
+    },
+
     rollupOptions: {
       output: {
         // Prefer route-owned app chunks from React.lazy; only force
-        // heavy third-party engines into named vendor boundaries.
+        // MapLibre / Phaser into named vendor boundaries.
+        // Babylon is intentionally NOT forced here — a vendor-babylon
+        // manual chunk previously caused App to statically import it
+        // and Vite to modulepreload ~3 MB on the demo shell.
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('maplibre-gl')) {
@@ -38,9 +57,6 @@ export default defineConfig({
             }
             if (id.includes('phaser')) {
               return 'vendor-phaser';
-            }
-            if (id.includes('@babylonjs')) {
-              return 'vendor-babylon';
             }
             if (id.includes('framer-motion')) {
               return 'vendor-framer';

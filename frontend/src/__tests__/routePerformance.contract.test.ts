@@ -41,7 +41,8 @@ describe('route performance contracts', () => {
   it('splits MapLibre into an intentional vendor chunk and leaves Mapbox out of optimizeDeps', () => {
     const vite = readFileSync(resolve(root, '../vite.config.ts'), 'utf8');
     expect(vite).toMatch(/maplibre-gl/);
-    expect(vite).toMatch(/vendor-maplibre|route-map/);
+    expect(vite).toMatch(/vendor-maplibre/);
+    expect(vite).toMatch(/modulePreload/);
     expect(vite).not.toMatch(/optimizeDeps:\s*\{[^}]*include:\s*\[[^\]]*mapbox-gl/s);
   });
 });
