@@ -68,6 +68,21 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Mobile Strip action clearance repair (#45)
+
+- At a 375px viewport, the persistent global tutorial hint could cover the
+  primary **Lock Dre and Rome** control on the Las Olas STRIP desk. The
+  command dock is not rendered on that route; the tutorial hint was the
+  overlapping fixed layer.
+- `TutorialOverlay` now accepts an explicit `hidden` state. The app passes it
+  only while `block_loop` is active, because that route already presents its
+  own current action and guidance. The tutorial hint remains visible on all
+  other routes.
+- Added a focused regression proving both states. Browser verification at
+  375×812 confirms the hint is absent and the 44px crew-lock action remains
+  fully visible. No gameplay, state, persistence, Supabase, Vercel, or
+  production-data change is included.
+
 ### 2026-09-18 — Closed-beta preview repair: branch-scoped demo build + viewport (#45 / PR #146)
 
 - PR #146 preview was shipping without `VITE_DEMO_MODE=1`, so the 18+ gate

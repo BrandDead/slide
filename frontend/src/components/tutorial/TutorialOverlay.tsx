@@ -9,7 +9,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import './TutorialOverlay.css';
 
-const TutorialOverlay: React.FC = () => {
+interface TutorialOverlayProps {
+  /** Hide the persistent hint when the active route owns the primary action. */
+  hidden?: boolean;
+}
+
+const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ hidden = false }) => {
   const {
     showTutorialOverlay,
     overlayMessage,
@@ -48,7 +53,7 @@ const TutorialOverlay: React.FC = () => {
 
       {/* Next step hint bar (persistent, bottom of screen) */}
       <AnimatePresence>
-        {!showTutorialOverlay && nextStep && (
+        {!hidden && !showTutorialOverlay && nextStep && (
           <motion.div
             className="tutorial-hint"
             initial={{ opacity: 0, y: 20 }}
