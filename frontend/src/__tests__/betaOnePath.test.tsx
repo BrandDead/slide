@@ -84,4 +84,16 @@ describe('Las Olas closed-beta one path', () => {
     expect(scene.mapNotice).toMatch(/optional/i);
     expect(scene.cells).toHaveLength(64);
   });
+
+  it('puts the Las Olas run CTA above city briefing on the command desktop', async () => {
+    const { default: OSShell } = await import('../components/layout/OSShell');
+    const { useNavigationStore } = await import('../stores/gameStore');
+    useNavigationStore.setState({ currentApp: 'home' });
+    render(<OSShell gangMorale={75} incomePerMinute={12} />);
+    const cta = screen.getByTestId('run-las-olas');
+    const briefing = screen.getByRole('heading', { name: /city briefing/i });
+    expect(cta.compareDocumentPosition(briefing) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(cta);
+    expect(useNavigationStore.getState().currentApp).toBe('block_loop');
+  });
 });

@@ -51,6 +51,7 @@ body {
   left: 0;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: 900px) {

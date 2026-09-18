@@ -64,6 +64,9 @@
 }
 
 .city-briefing__list {
+  max-height: min(240px, 32vh);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   gap: 8px;
   margin: 12px 0 0;

@@ -442,8 +442,6 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         </div>
       </div>
 
-      <CityBriefing onNavigate={handleCityBriefNavigate} />
-
       <section className="strip-run-card" aria-label="Las Olas closed-beta path">
         <div>
           <p className="strip-run-kicker">Closed-beta Las Olas path</p>
@@ -460,6 +458,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         <button
           type="button"
           className="strip-run-cta"
+          data-testid="run-las-olas"
           onClick={() => {
             if (!loop.lastEncounter && loop.phase === 'crew') {
               startLoop();
@@ -470,6 +469,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           {loop.lastEncounter ? 'Review the strip' : 'Run the block'}
         </button>
       </section>
+
+      <CityBriefing onNavigate={handleCityBriefNavigate} />
 
       {/* Heat Detail Popup */}
       <AnimatePresence>

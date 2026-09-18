@@ -237,6 +237,13 @@
   50% { opacity: 1; text-shadow: 0 0 6px rgba(0, 255, 136, 0.4); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .income-ticker {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* Heat Bar */
 .heat-bar {
   width: 100%;
@@ -738,8 +745,10 @@
   justify-content: space-between;
   gap: 16px;
   align-items: center;
-  background: rgba(8, 6, 8, 0.78);
+  background: rgba(8, 6, 8, 0.92);
   border: 1px solid rgba(255, 50, 50, 0.28);
+  position: relative;
+  z-index: 120;
 }
 
 .strip-run-card h2 {
@@ -770,6 +779,8 @@
 
 .strip-run-cta {
   min-height: 44px;
+  min-width: 44px;
+  flex: 0 0 auto;
   padding: 0 18px;
   background: #9a1d1d;
   color: #fff;
@@ -777,6 +788,8 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   cursor: pointer;
+  position: relative;
+  z-index: 121;
 }
 
 @media (max-width: 720px) {
