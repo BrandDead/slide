@@ -135,7 +135,7 @@ describe('PlayableMap recovery', () => {
   });
 
   it('recovers when MapLibre cannot create a WebGL map', async () => {
-    mapHarness.Map.mockImplementationOnce(() => ({}));
+    mapHarness.Map.mockImplementationOnce(() => ({}) as never);
     const onStatusChange = vi.fn();
     const onUseTacticalBoard = vi.fn();
     render(<PlayableMap {...props} onStatusChange={onStatusChange} onUseTacticalBoard={onUseTacticalBoard} />);
