@@ -68,6 +68,21 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Closed-beta route performance / lazy engines (#45)
+
+- Deferred MapLibre (MAP), Phaser (Encounter / SLIDE), and Babylon (Modern Ops)
+  off the initial demo shell. Age gate, command desktop, and Block Loop crew
+  phase stay eager; STRIP diorama stays on the Block Loop chunk with 8×8
+  recovery if the scene fails.
+- Added `RouteLoadBoundary` / `LazyRoute` loading + failure recovery. Vite
+  `manualChunks` now isolate `vendor-maplibre` / phaser / babylon; Mapbox is
+  no longer in `optimizeDeps.include`.
+- Preserved PR #147 tutorial-hint suppression on `block_loop` while App.tsx
+  was edited (PR #147 still open at branch time).
+- Rebased onto `main-tL2525` after PR #149; demo-ledger account isolation is
+  retained unchanged.
+- No gameplay, payout, heat, seed, persistence, Supabase, or Vercel changes.
+
 ### 2026-09-18 — Closed-beta demo ledger account isolation (#45)
 
 - The local Las Olas Block Loop ledger is now explicitly an evaluation-build

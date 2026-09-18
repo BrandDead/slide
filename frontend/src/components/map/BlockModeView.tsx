@@ -5,7 +5,7 @@
 // Sprint: block-mode-combat-assets
 // ============================================================
 
-import React, { lazy, Suspense, useEffect, useCallback, useState } from 'react';
+import React, { lazy, useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
@@ -28,12 +28,14 @@ import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
 import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
-import UnifiedEncounter from '../encounter/UnifiedEncounter';
+import { LazyRoute } from '../system/RouteLoadBoundary';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { commitEncounterResult } from '../../services/worldPersistence.service';
+import { blocksApi } from '../../services/api.service';
 import './BlockModeView.css';
 
 const ModernOpsEncounter = lazy(() => import('../ops/ModernOpsEncounter'));
+const UnifiedEncounter = lazy(() => import('../encounter/UnifiedEncounter'));
 
 // ─── Seed helper ─────────────────────────────────────────────
 function buildDefaultBlock(id: string, address: string): BlockData {
@@ -186,7 +188,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const handleCollect = useCallback(async () => {
     if (!selectedBlockId || !block) return;
     try {
-      const { blocksApi } = await import('../../services/api.service');
       const result = await blocksApi.collect(selectedBlockId);
       if (result.collected > 0) {
         updatePlayer({
@@ -383,19 +384,24 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       {/* Main view */}
       <div className="bmv-content">
         {showModernOps ? (
-          <Suspense fallback={<div className="bmv-spinner">Loading Modern Ops…</div>}>
+          <LazyRoute label="Modern Ops">
             <ModernOpsEncounter
               block={block}
               onResolved={handleEncounterResolved}
               onClose={() => setShowModernOps(false)}
             />
-          </Suspense>
+          </LazyRoute>
         ) : showEncounter ? (
-          <UnifiedEncounter
-            block={block}
-            onResolved={handleEncounterResolved}
-            onClose={() => setShowEncounter(false)}
-          />
+          <LazyRoute
+            label="Encounter"
+            fallback={<TopDownBlock block={block} />}
+          >
+            <UnifiedEncounter
+              block={block}
+              onResolved={handleEncounterResolved}
+              onClose={() => setShowEncounter(false)}
+            />
+          </LazyRoute>
         ) : showRaid ? (
           <PoliceRaidGame
             blockId={block.id}
