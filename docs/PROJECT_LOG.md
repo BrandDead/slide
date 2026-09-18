@@ -89,7 +89,30 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - No Supabase migration, RLS, Edge Function, scheduler, secret, payment,
   Vercel config, or production data change.
 
+### 2026-09-15 — Authoritative block gameplay loop from claim to consequence (#142)
+
+- Connected the existing DNA board, contacts roster, placement rules,
+  alchemy stash, deal receipt, heat/threat handoff, UnifiedEncounter, and
+  return briefing into one player-facing strip run on the command desktop.
+- Demo Las Olas now carries `dnaId` `las-olas-1208`, a starter River Cut
+  stash, and lands on the desktop instead of skipping it. A versioned loop
+  ledger survives persist rehydration so money, product, heat, and wounds
+  are not wiped or doubled on reload.
+- Placement validates passable/deployable/occupancy/capacity before writing
+  through `blockStore.placeMember`. Street-near vs deep cells use
+  `calculatePlacementIncome` and existing zone stats. Deal receipts are
+  deterministic (`+18%` demand / heat `+4` / exposure `+7` on curb 80).
+- Encounter still uses UnifiedEncounter + `applyEncounterResult`. Duplicate
+  tickets are no-ops. A failed health write retries injury only. Insufficient
+  hospital cash has a rest path. The demo wound CTA portals above the
+  existing fullscreen encounter so the canvas cannot swallow the booking.
+- The loop ledger now restores deal/encounter tickets, so a second demo
+  seed (persist rehydration) cannot wipe money, heat, or Dre's wound.
+- No Supabase migration, RLS, Edge Function, scheduler, secret, payment,
+  renderer rewrite, or production data change.
+
 ### 2026-09-14 — Ghost Crew authoritative gameplay slice (#81)
+
 
 - Ghost Crew ticks now expose deterministic seed/reason traces and pass through
   a checked mutation boundary before changing treasury, roster, grudges, or the

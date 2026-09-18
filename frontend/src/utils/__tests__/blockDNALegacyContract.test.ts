@@ -23,6 +23,7 @@ import {
   BLOCK_DNA_LIBRARY,
   CURRENT_RESOLVER_CATALOG_VERSION,
   RESOLVER_CATALOG_V1_IDS,
+  RESOLVER_CATALOG_V2_IDS,
   getResolverCatalog,
 } from '../../config/blockDNA';
 import { resolveBlockDNA, resolveLegacyBlockDNA } from '../blockDNAResolver';
@@ -48,6 +49,16 @@ const BATCH_TWO_IDS = [
   'civic-arcade',
   'ridge-estates',
   'vernon-court',
+];
+
+const BATCH_THREE_IDS = [
+  'foundry-steps',
+  'solstice-terminal',
+  'ferry-exchange',
+  'glasshouse-court',
+  'quarry-terrace',
+  'atlas-arcade',
+  'meridian-works',
 ];
 
 /** Generic (non-curated) locations that exercise every keyword rule plus the
@@ -263,15 +274,28 @@ describe('frozen v1 resolver catalog', () => {
     for (const id of BATCH_TWO_IDS) expect(v1Ids.has(id)).toBe(false);
   });
 
-  it('keeps batch-two cards reachable in the current catalog', () => {
-    expect(CURRENT_RESOLVER_CATALOG_VERSION).toBe('v2');
-    const liveIds = new Set(getResolverCatalog().map((dna) => dna.id));
-    for (const id of BATCH_TWO_IDS) expect(liveIds.has(id)).toBe(true);
+  it('freezes v2 at the 33 cards that shipped before batch three', () => {
+    expect(RESOLVER_CATALOG_V2_IDS).toHaveLength(33);
+    expect(new Set(RESOLVER_CATALOG_V2_IDS).size).toBe(33);
+    expect(getResolverCatalog('v2')).toHaveLength(33);
+    for (const id of BATCH_TWO_IDS) expect(RESOLVER_CATALOG_V2_IDS).toContain(id);
+    for (const id of BATCH_THREE_IDS) expect(RESOLVER_CATALOG_V2_IDS).not.toContain(id);
+  });
+
+  it('keeps every older card reachable while exposing batch three in the current catalog', () => {
+    expect(CURRENT_RESOLVER_CATALOG_VERSION).toBe('v3');
+    const currentIds = new Set(getResolverCatalog().map((dna) => dna.id));
+    for (const id of BATCH_TWO_IDS) expect(currentIds.has(id)).toBe(true);
+    for (const id of BATCH_THREE_IDS) expect(currentIds.has(id)).toBe(true);
     expect(getResolverCatalog()).toHaveLength(BLOCK_DNA_LIBRARY.length);
   });
 
   it('does not shrink the v1 pool when the library grows', () => {
     expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThan(getResolverCatalog('v1').length);
+  });
+
+  it('does not grow the frozen v2 pool when the library grows', () => {
+    expect(BLOCK_DNA_LIBRARY.length).toBeGreaterThan(getResolverCatalog('v2').length);
   });
 });
 
@@ -294,7 +318,8 @@ describe('legacy resolution contract', () => {
   it('reports the catalog version it resolved under', () => {
     const c = LEGACY_CASES[0];
     expect(resolveBlockDNA(c.lat, c.lng, c.address, 'v1').catalogVersion).toBe('v1');
-    expect(resolveBlockDNA(c.lat, c.lng, c.address).catalogVersion).toBe('v2');
+    expect(resolveBlockDNA(c.lat, c.lng, c.address, 'v2').catalogVersion).toBe('v2');
+    expect(resolveBlockDNA(c.lat, c.lng, c.address).catalogVersion).toBe('v3');
   });
 
   /**

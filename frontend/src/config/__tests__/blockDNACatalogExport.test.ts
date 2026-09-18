@@ -34,13 +34,24 @@ describe('generated block DNA catalog artifact', () => {
   it('exports the frozen version pools the backend relies on', () => {
     const exported = buildCatalogExport();
     expect(exported.versions.v1).toHaveLength(25);
-    expect(exported.versions.v2).toHaveLength(exported.cards.length);
-    expect(new Set(exported.versions.v2)).toEqual(
+    expect(exported.versions.v2).toHaveLength(33);
+    expect(exported.versions.v3).toHaveLength(exported.cards.length);
+    expect(new Set(exported.versions.v3)).toEqual(
       new Set(exported.cards.map((card) => card.id)),
     );
     for (const id of exported.versions.v1) {
       expect(exported.versions.v2).toContain(id);
     }
+    for (const id of exported.versions.v2) {
+      expect(exported.versions.v3).toContain(id);
+    }
+  });
+
+  it('exports v3 as the final 40-card current pool while retaining v2', () => {
+    const exported = buildCatalogExport();
+
+    expect(Object.keys(exported.versions)).toEqual(['v1', 'v2', 'v3']);
+    expect(exported.currentVersion).toBe('v3');
   });
 
   it('exports every field a snapshot needs to rebuild a block', () => {

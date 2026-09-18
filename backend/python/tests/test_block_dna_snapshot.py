@@ -47,18 +47,28 @@ def test_catalog_versions_are_frozen_and_nested():
     catalog = load_catalog()
     v1 = catalog['versions']['v1']
     v2 = catalog['versions']['v2']
+    v3 = catalog['versions']['v3']
     assert len(v1) == 25
     assert len(v2) == 33
+    assert len(v3) == 40
     assert len(set(v1)) == len(v1)
+    assert len(set(v2)) == len(v2)
     assert set(v1).issubset(set(v2)), 'a frozen version may never lose ids'
+    assert set(v2).issubset(set(v3)), 'a frozen version may never lose ids'
     assert BATCH_TWO_IDS.isdisjoint(set(v1))
     assert BATCH_TWO_IDS.issubset(set(v2))
-    assert current_catalog_version() == 'v2'
+    assert current_catalog_version() == 'v3'
+
+
+def test_batch_three_freezes_v2_and_promotes_a_40_card_v3_pool():
+    assert current_catalog_version() == 'v3'
+    assert len(get_catalog_cards('v2')) == 33
+    assert len(get_catalog_cards('v3')) == 40
 
 
 def test_catalog_cards_resolve_in_client_order():
     catalog = load_catalog()
-    for version in ('v1', 'v2'):
+    for version in ('v1', 'v2', 'v3'):
         ids = [card['id'] for card in get_catalog_cards(version)]
         assert ids == catalog['versions'][version]
 
@@ -69,7 +79,7 @@ def test_unknown_catalog_version_is_rejected():
 
 
 def test_every_card_builds_an_eight_row_layout():
-    for card in get_catalog_cards('v2'):
+    for card in get_catalog_cards('v3'):
         layout = build_zone_layout(card)
         assert len(layout) == 8, card['id']
         assert all(isinstance(zone, str) and zone for zone in layout), card['id']
@@ -99,7 +109,7 @@ def test_python_resolver_matches_typescript_fixture():
     payload = json.loads(PARITY_FIXTURE.read_text(encoding='utf-8'))
     assert payload['schema'] == DNA_SNAPSHOT_SCHEMA
     cases = payload['cases']
-    assert len(cases) >= 400
+    assert len(cases) >= 1200
 
     mismatches = []
     for case in cases:
@@ -125,7 +135,7 @@ def test_expanded_catalog_would_move_generic_blocks():
     v1_cases = [c for c in payload['cases'] if c['catalogVersion'] == 'v1']
     moved = 0
     for case in v1_cases:
-        live = resolve_block_dna(case['lat'], case['lng'], case['address'], 'v2')
+        live = resolve_block_dna(case['lat'], case['lng'], case['address'], 'v3')
         if live['card']['id'] != case['expected']['dnaId']:
             moved += 1
     assert moved > 0
@@ -150,7 +160,10 @@ def test_snapshot_is_deterministic():
 def test_snapshot_is_by_value_not_a_catalog_reference():
     """Later balance edits to a card must not reach through a stored snapshot."""
     snapshot = build_dna_snapshot(30.2672, -97.7431, '19 Kestrel Court, Austin, TX')
-    card = next(c for c in get_catalog_cards('v2') if c['id'] == snapshot['dnaId'])
+    card = next(
+        c for c in get_catalog_cards(snapshot['catalogVersion'])
+        if c['id'] == snapshot['dnaId']
+    )
     assert snapshot['zoneLayout'] is not card.get('zoneOverrides')
     snapshot['zoneLayout'][0] = 'rooftop'
     assert build_zone_layout(card)[0] != 'rooftop'

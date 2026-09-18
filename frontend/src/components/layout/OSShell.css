@@ -696,3 +696,58 @@
   pointer-events: none;
   z-index: 999;
 }
+
+.strip-run-card {
+  margin: 8px 12px 16px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  background: rgba(8, 6, 8, 0.78);
+  border: 1px solid rgba(255, 50, 50, 0.28);
+}
+
+.strip-run-card h2 {
+  margin: 4px 0;
+  font-family: 'Bebas Neue', 'Oswald', sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 28px;
+}
+
+.strip-run-kicker {
+  margin: 0;
+  color: #ff6a6a;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.strip-run-card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  max-width: 42rem;
+}
+
+.strip-run-return {
+  margin-top: 8px !important;
+  color: #ffd18a !important;
+}
+
+.strip-run-cta {
+  min-height: 44px;
+  padding: 0 18px;
+  background: #9a1d1d;
+  color: #fff;
+  border: 1px solid #ff4d4d;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .strip-run-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

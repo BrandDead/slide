@@ -71,6 +71,7 @@ const PhoneApp          = React.lazy(() => import('./components/phone/PhoneApp')
 const AttackPlanner     = React.lazy(() => import('./components/missions/AttackPlanner'));
 const TrapApp           = React.lazy(() => import('./components/trap/TrapApp'));
 const MostWantedApp     = React.lazy(() => import('./components/economy/MostWantedApp'));
+const BlockLoopDesk     = React.lazy(() => import('./components/layout/BlockLoopDesk'));
 
 import './App.css';
 
@@ -98,7 +99,7 @@ const DEMO_APP_IDS = new Set([
   'home', 'map', 'dealt', 'dealt_v2', 'contacts', 'settings', 'slide',
   'driveby', 'topdown', 'bipndip', 'raid', 'gang_hq', 'alchemy', 'shoebox',
   'market', 'missions', 'planner', 'casino', 'graffiti', 'cocaine_crush',
-  'leaderboard', 'news', 'phone', 'trap', 'most_wanted',
+  'leaderboard', 'news', 'phone', 'trap', 'most_wanted', 'block_loop',
 ]);
 
 function demoAppFromLocation(): string | null {
@@ -240,6 +241,7 @@ const App: React.FC = () => {
       case 'phone':       return <Suspense fallback={<LazyFallback />}><PhoneApp key="phone" /></Suspense>;
       case 'trap':        return <Suspense fallback={<LazyFallback />}><TrapApp key="trap" /></Suspense>;
       case 'most_wanted': return <Suspense fallback={<LazyFallback />}><MostWantedApp key="most_wanted" /></Suspense>;
+      case 'block_loop':  return <Suspense fallback={<LazyFallback />}><BlockLoopDesk key="block_loop" /></Suspense>;
       default:
         return (
           <OSShell

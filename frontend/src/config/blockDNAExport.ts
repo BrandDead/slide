@@ -11,6 +11,7 @@ import {
   BLOCK_DNA_LIBRARY,
   CURRENT_RESOLVER_CATALOG_VERSION,
   RESOLVER_CATALOG_V1_IDS,
+  RESOLVER_CATALOG_V2_IDS,
   type BlockDNA,
 } from './blockDNA';
 import { KEYWORD_RULE_SOURCE, resolveBlockDNA } from '../utils/blockDNAResolver';
@@ -45,7 +46,8 @@ export function buildCatalogExport() {
     currentVersion: CURRENT_RESOLVER_CATALOG_VERSION,
     versions: {
       v1: [...RESOLVER_CATALOG_V1_IDS],
-      v2: BLOCK_DNA_LIBRARY.map((dna) => dna.id),
+      v2: [...RESOLVER_CATALOG_V2_IDS],
+      v3: BLOCK_DNA_LIBRARY.map((dna) => dna.id),
     },
     keywordRules: KEYWORD_RULE_SOURCE,
     cards: BLOCK_DNA_LIBRARY.map(exportCard),
@@ -70,7 +72,7 @@ export function buildParityFixture() {
     const lat = Number((25 + rnd() * 24).toFixed(6));
     const lng = Number((-125 + rnd() * 55).toFixed(6));
     const address = `${100 + i} Sample ${words[Math.floor(rnd() * words.length)]}, City, ST`;
-    for (const version of ['v1', 'v2'] as const) {
+    for (const version of ['v1', 'v2', 'v3'] as const) {
       const r = resolveBlockDNA(lat, lng, address, version);
       cases.push({
         lat,
