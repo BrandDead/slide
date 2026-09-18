@@ -1073,6 +1073,167 @@ export const BLOCK_DNA_LIBRARY: BlockDNA[] = [
     hotBlock: false,
     startingHeat: 0,
   },
+
+  // ── 34. Foundry Steps (industrial high-pressure frontage) ─────
+  {
+    id: 'foundry-steps',
+    name: 'Foundry Steps',
+    address: 'Foundry Steps & Cinder Avenue',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.5264,
+    lng: -80.3597,
+    tier: 'high',
+    tags: ['warehouse', 'rooftop-access'],
+    flavour: 'Brick work bays climb from a busy frontage. Layered cover rewards a prepared crew, but attention sticks.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'building', 5: 'alley', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.95, horizonYRatio: 0.23, actorHeightRatio: 0.28, rowDepth: 0.61 },
+    incomeMultiplier: 1.52,
+    heatDecayMultiplier: 0.69,
+    globalCoverBonus: 0.17,
+    startingMorale: 65,
+    maxMembers: 10,
+    hotBlock: true,
+    startingHeat: 2,
+  },
+
+  // ── 35. Solstice Terminal (quiet starter transit edge) ────────
+  {
+    id: 'solstice-terminal',
+    name: 'Solstice Terminal',
+    address: 'Solstice Terminal & Gate Road',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.4891,
+    lng: -80.4186,
+    tier: 'starter',
+    tags: ['parking-lot', 'open-air'],
+    flavour: 'A low-key terminal edge with long quiet lanes. It gives a new crew space to recover before it grows.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'sidewalk', 4: 'storefront', 5: 'parking', 6: 'alley', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.91, horizonYRatio: 0.31, actorHeightRatio: 0.23, cellWidthRatio: 0.102 },
+    incomeMultiplier: 0.84,
+    heatDecayMultiplier: 1.46,
+    globalCoverBonus: 0.10,
+    startingMorale: 81,
+    maxMembers: 6,
+    hotBlock: false,
+    startingHeat: 0,
+  },
+
+  // ── 36. Ferry Exchange (elite waterfront exposure) ────────────
+  {
+    id: 'ferry-exchange',
+    name: 'Ferry Exchange',
+    address: 'Ferry Exchange & Tide Street',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.3718,
+    lng: -80.0472,
+    tier: 'elite',
+    tags: ['beachfront', 'open-air'],
+    flavour: 'Open water, bright forecourt, constant turnover. The money moves quickly, and there is nowhere to disappear.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'sidewalk', 5: 'parking', 6: 'curb', 7: 'street' },
+    projectionOverrides: { groundYRatio: 0.90, horizonYRatio: 0.19, actorHeightRatio: 0.30, cellWidthRatio: 0.125, shadowLengthRatio: 0.60 },
+    incomeMultiplier: 2.26,
+    heatDecayMultiplier: 0.46,
+    globalCoverBonus: -0.08,
+    startingMorale: 56,
+    maxMembers: 9,
+    hotBlock: true,
+    startingHeat: 3,
+  },
+
+  // ── 37. Glasshouse Court (defensive residential starter) ──────
+  {
+    id: 'glasshouse-court',
+    name: 'Glasshouse Court',
+    address: 'Glasshouse Court & Lumen Lane',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.7226,
+    lng: -80.3738,
+    tier: 'starter',
+    tags: ['alley-heavy', 'corner-store'],
+    flavour: 'A tight courtyard behind lit storefronts. A smaller crew can hold its ground while learning the routes.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'alley', 4: 'alley', 5: 'storefront', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.93, horizonYRatio: 0.30, actorHeightRatio: 0.24, rowDepth: 0.66 },
+    incomeMultiplier: 0.91,
+    heatDecayMultiplier: 1.31,
+    globalCoverBonus: 0.22,
+    startingMorale: 87,
+    maxMembers: 7,
+    hotBlock: false,
+    startingHeat: 0,
+  },
+
+  // ── 38. Quarry Terrace (elite elevated service block) ─────────
+  {
+    id: 'quarry-terrace',
+    name: 'Quarry Terrace',
+    address: 'Quarry Terrace & Switchyard Way',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.4547,
+    lng: -80.4015,
+    tier: 'elite',
+    tags: ['rooftop-access', 'warehouse'],
+    flavour: 'An elevated service terrace controls the approach. The ceiling is high, but the pressure never really leaves.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'storefront', 4: 'building', 5: 'building', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.96, horizonYRatio: 0.18, actorHeightRatio: 0.30, rowDepth: 0.58, zNear: 3.38 },
+    incomeMultiplier: 2.38,
+    heatDecayMultiplier: 0.43,
+    globalCoverBonus: 0.06,
+    startingMorale: 58,
+    maxMembers: 11,
+    hotBlock: true,
+    startingHeat: 3,
+  },
+
+  // ── 39. Atlas Arcade (balanced covered commerce) ──────────────
+  {
+    id: 'atlas-arcade',
+    name: 'Atlas Arcade',
+    address: 'Atlas Arcade & Union Plaza',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 25.6129,
+    lng: -80.3384,
+    tier: 'mid',
+    tags: ['corner-store', 'rooftop-access'],
+    flavour: 'Covered shops face a steady plaza with one rear lane. It rewards a balanced crew over a single all-in angle.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'sidewalk', 3: 'storefront', 4: 'storefront', 5: 'alley', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.93, horizonYRatio: 0.25, actorHeightRatio: 0.27, rowDepth: 0.63 },
+    incomeMultiplier: 1.29,
+    heatDecayMultiplier: 0.90,
+    globalCoverBonus: 0.15,
+    startingMorale: 72,
+    maxMembers: 9,
+    hotBlock: false,
+    startingHeat: 1,
+  },
+
+  // ── 40. Meridian Works (high-capacity service yard) ───────────
+  {
+    id: 'meridian-works',
+    name: 'Meridian Works',
+    address: 'Meridian Works & Concourse Drive',
+    city: 'South Coast',
+    state: 'FL',
+    lat: 26.2875,
+    lng: -80.2867,
+    tier: 'high',
+    tags: ['warehouse', 'parking-lot'],
+    flavour: 'Broad loading approaches and a deep service yard. Big crews can work here, but the frontage stays exposed.',
+    zoneOverrides: { 0: 'street', 1: 'curb', 2: 'parking', 3: 'parking', 4: 'storefront', 5: 'alley', 6: 'building', 7: 'rooftop' },
+    projectionOverrides: { groundYRatio: 0.96, horizonYRatio: 0.27, actorHeightRatio: 0.28, cellWidthRatio: 0.121 },
+    incomeMultiplier: 1.63,
+    heatDecayMultiplier: 0.66,
+    globalCoverBonus: 0.11,
+    startingMorale: 64,
+    maxMembers: 11,
+    hotBlock: true,
+    startingHeat: 2,
+  },
 ];
 
 // ─── Lookup helpers ───────────────────────────────────────────
@@ -1138,8 +1299,8 @@ export function getNearestDNAFrom(
 // reload.
 //
 // The fix is to freeze catalog membership per version. A block claimed while
-// catalog v1 was live is always re-resolved against v1, forever. New claims
-// use the current version. Growing the library is therefore always safe.
+// a version was live is always re-resolved against that same version, forever.
+// New claims use the current version. Growing the library is therefore safe.
 //
 // RULES FOR FUTURE BATCHES
 //   1. APPEND new cards to BLOCK_DNA_LIBRARY. Never remove or rename an id
@@ -1148,10 +1309,10 @@ export function getNearestDNAFrom(
 //      point, and bump CURRENT_RESOLVER_CATALOG_VERSION.
 //   3. Never edit an existing version's id list.
 
-export type ResolverCatalogVersion = 'v1' | 'v2';
+export type ResolverCatalogVersion = 'v1' | 'v2' | 'v3';
 
 /** Catalog version applied to blocks claimed from now on. */
-export const CURRENT_RESOLVER_CATALOG_VERSION: ResolverCatalogVersion = 'v2';
+export const CURRENT_RESOLVER_CATALOG_VERSION: ResolverCatalogVersion = 'v3';
 
 /**
  * Frozen membership of the pre-batch-two (25 card) catalog.
@@ -1186,12 +1347,33 @@ export const RESOLVER_CATALOG_V1_IDS: readonly string[] = Object.freeze([
   'ring-road-underpass',
 ]);
 
-let cachedCatalogV1: readonly BlockDNA[] | null = null;
+/**
+ * Frozen membership of the batch-two (33 card) catalog.
+ * Any snapshot-less block claimed after batch two but before batch three must
+ * keep this exact pool; the seven cards appended below belong to v3 only.
+ */
+export const RESOLVER_CATALOG_V2_IDS: readonly string[] = Object.freeze([
+  ...RESOLVER_CATALOG_V1_IDS,
+  'signal-yard',
+  'marina-cut',
+  'sable-plaza',
+  'orchard-row',
+  'switchback-garage',
+  'civic-arcade',
+  'ridge-estates',
+  'vernon-court',
+]);
 
-function buildCatalogV1(): readonly BlockDNA[] {
+let cachedCatalogV1: readonly BlockDNA[] | null = null;
+let cachedCatalogV2: readonly BlockDNA[] | null = null;
+
+function buildFrozenCatalog(
+  version: ResolverCatalogVersion,
+  ids: readonly string[],
+): readonly BlockDNA[] {
   const missing: string[] = [];
   const records: BlockDNA[] = [];
-  for (const id of RESOLVER_CATALOG_V1_IDS) {
+  for (const id of ids) {
     const dna = BLOCK_DNA_LIBRARY.find((entry) => entry.id === id);
     if (!dna) {
       missing.push(id);
@@ -1200,10 +1382,10 @@ function buildCatalogV1(): readonly BlockDNA[] {
     records.push(dna);
   }
   if (missing.length > 0) {
-    // A removed or renamed v1 card would silently change the pool length and
-    // re-resolve existing player blocks. Fail loudly instead — CI covers this.
+    // A removed or renamed frozen card would silently change the pool length
+    // and re-resolve existing player blocks. Fail loudly instead — CI covers it.
     throw new Error(
-      `Resolver catalog v1 is incomplete. Missing ids: ${missing.join(', ')}. ` +
+      `Resolver catalog ${version} is incomplete. Missing ids: ${missing.join(', ')}. ` +
         'Frozen catalog versions must never lose entries; append new cards instead.',
     );
   }
@@ -1213,16 +1395,22 @@ function buildCatalogV1(): readonly BlockDNA[] {
 /**
  * Resolve the frozen DNA pool for a catalog version.
  * v1 = the 25 cards that shipped before batch two.
- * v2 = the live library (currently 33 cards).
+ * v2 = the 33 cards that shipped before batch three.
+ * v3 = the live library (currently 40 cards).
  */
 export function getResolverCatalog(
   version: ResolverCatalogVersion = CURRENT_RESOLVER_CATALOG_VERSION,
 ): readonly BlockDNA[] {
   if (version === 'v1') {
-    if (!cachedCatalogV1) cachedCatalogV1 = buildCatalogV1();
+    if (!cachedCatalogV1) cachedCatalogV1 = buildFrozenCatalog('v1', RESOLVER_CATALOG_V1_IDS);
     return cachedCatalogV1;
   }
-  return BLOCK_DNA_LIBRARY;
+  if (version === 'v2') {
+    if (!cachedCatalogV2) cachedCatalogV2 = buildFrozenCatalog('v2', RESOLVER_CATALOG_V2_IDS);
+    return cachedCatalogV2;
+  }
+  if (version === 'v3') return BLOCK_DNA_LIBRARY;
+  throw new Error(`Unknown resolver catalog version: ${version}`);
 }
 
 /**
