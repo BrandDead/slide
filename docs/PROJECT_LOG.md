@@ -68,6 +68,22 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Closed-beta preview repair: branch-scoped demo build + viewport (#45 / PR #146)
+
+- PR #146 preview was shipping without `VITE_DEMO_MODE=1`, so the 18+ gate
+  omitted the evaluation banner and Continue opened Auth. Dashboard
+  `vercel env add … preview --git-branch` was unavailable from this agent
+  (no `VERCEL_TOKEN`; Vercel MCP has no env-write tool). Production and
+  unrelated Preview variables were not changed.
+- `vercel.json` now injects `VITE_DEMO_MODE=1` only when
+  `VERCEL_GIT_COMMIT_REF=chore/45-beta-gate-one-path`. Production
+  (`main-tL2525`) and other preview branches still run a normal build.
+- Viewport is `width=device-width, initial-scale=1.0, viewport-fit=cover`
+  (`maximum-scale` / `user-scalable=no` removed). Focused smoke coverage
+  lives in `frontend/src/__tests__/betaGate.smoke.test.ts`.
+- Do not merge. Production persistence, Supabase, and production Vercel
+  env remain untouched.
+
 ### 2026-09-18 — Las Olas closed-beta one-path demo artifact (#45)
 
 - Demo evaluation builds now keep the versioned 18+ gate. Acknowledgement is

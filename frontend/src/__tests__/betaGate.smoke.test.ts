@@ -5,7 +5,12 @@
 // coverage lives in each system's own test file — so a regression in any
 // pillar fails fast here before a beta build ships.
 // ============================================================
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
+
+const frontendRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 describe('beta gate — core pillars smoke', () => {
   it('territory: Block DNA library loads with all tiers represented', async () => {
@@ -80,6 +85,25 @@ describe('beta gate — core pillars smoke', () => {
       expect(actor, `no street art for ${role}`).toBeTruthy();
       expect(actor!.url).toMatch(/\.webp$/);
     }
+  });
+
+  it('compliance: index.html viewport allows pinch-zoom and cover inset', () => {
+    const html = readFileSync(resolve(frontendRoot, 'index.html'), 'utf8');
+    expect(html).toMatch(
+      /<meta name="viewport" content="width=device-width, initial-scale=1\.0, viewport-fit=cover" \/>/,
+    );
+    expect(html).not.toMatch(/maximum-scale=/);
+    expect(html).not.toMatch(/user-scalable=no/);
+  });
+
+  it('deployment: VITE_DEMO_MODE is baked only for the closed-beta branch preview', () => {
+    const config = JSON.parse(readFileSync(resolve(frontendRoot, '../vercel.json'), 'utf8')) as {
+      buildCommand: string;
+    };
+    expect(config.buildCommand).toContain('VERCEL_GIT_COMMIT_REF');
+    expect(config.buildCommand).toContain('chore/45-beta-gate-one-path');
+    expect(config.buildCommand).toMatch(/then VITE_DEMO_MODE=1 npm run build/);
+    expect(config.buildCommand).toMatch(/else npm run build/);
   });
 
   it('compliance: demo evaluation still requires the versioned 18+ storage key', async () => {

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "cd frontend && npm install && if [ \"$VERCEL_GIT_COMMIT_REF\" = \"chore/45-beta-gate-one-path\" ]; then VITE_DEMO_MODE=1 npm run build; else npm run build; fi",
   "outputDirectory": "frontend/dist",
   "installCommand": "echo 'install handled in buildCommand'",
   "framework": null,
