@@ -44,6 +44,7 @@ export default function SplashScreen({ label = 'LOADING' }: SplashScreenProps) {
         SLIDE
       </div>
       <div
+        className="splash-label"
         style={{
           marginTop: 14,
           color: '#9aa0ad',
@@ -56,7 +57,12 @@ export default function SplashScreen({ label = 'LOADING' }: SplashScreenProps) {
       >
         {label}
       </div>
-      <style>{`@keyframes splash-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }`}</style>
+      <style>{`
+        @keyframes splash-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) {
+          .splash-label { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

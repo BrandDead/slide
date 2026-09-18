@@ -7,7 +7,7 @@
 // ============================================================
 
 import React, { Suspense, useState, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useNavigationStore, usePlayerStore } from './stores/gameStore';
 import { useGameLoop } from './utils/gameLoopEngine';
 import { useHeatDecay } from './hooks/useHeatDecay';
@@ -47,7 +47,7 @@ import TerritoryMap from './components/map/TerritoryMap';
 import Onboarding from './components/onboarding/Onboarding';
 import SettingsPage from './components/settings/SettingsPage';
 import AuthScreen from './components/auth/AuthScreen';
-import AgeGate, { hasAgeAffirmation } from './components/compliance/AgeGate';
+import AgeGate, { initialAgeAffirmed } from './components/compliance/AgeGate';
 import SplashScreen from './components/layout/SplashScreen';
 
 // Lazy-loaded mini-games and heavy screens
@@ -114,7 +114,8 @@ const App: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(!player?.gangProfile);
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [ageAffirmed, setAgeAffirmed] = useState(() => IS_DEMO_MODE || hasAgeAffirmation());
+  const reduceMotion = useReducedMotion();
+  const [ageAffirmed, setAgeAffirmed] = useState(() => initialAgeAffirmed());
 
   const hydrateAuthenticatedPlayer = useCallback((user: User | null) => {
     setAuthUser(user);
@@ -254,9 +255,9 @@ const App: React.FC = () => {
   };
 
   // Mature-content notice must be accepted before account creation or gameplay.
-  // (Skipped in demo mode — IS_DEMO_MODE sets ageAffirmed true in useState initializer.)
+  // Demo evaluation builds keep this gate; acknowledgement is local-only.
   if (!ageAffirmed) {
-    return <AgeGate onConfirm={() => setAgeAffirmed(true)} />;
+    return <AgeGate evaluationBuild={IS_DEMO_MODE} onConfirm={() => setAgeAffirmed(true)} />;
   }
 
   // Show loading while checking auth — cinematic splash (Sprint 16, P0)
@@ -303,11 +304,11 @@ const App: React.FC = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentApp}
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          variants={reduceMotion ? undefined : pageVariants}
+          initial={reduceMotion ? false : 'initial'}
+          animate={reduceMotion ? undefined : 'animate'}
+          exit={reduceMotion ? undefined : 'exit'}
+          transition={{ duration: reduceMotion ? 0 : 0.2, ease: 'easeInOut' }}
           className="page-container"
         >
           {renderCurrentApp()}

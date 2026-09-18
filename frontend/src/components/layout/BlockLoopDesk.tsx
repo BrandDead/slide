@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import UnifiedEncounter from '../encounter/UnifiedEncounter';
+import TacticalDiorama from '../map/TacticalDiorama';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
+import { useBlockStore } from '../../stores/blockStore';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
 import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
@@ -19,19 +21,10 @@ const PHASES: { id: LoopPhase; label: string }[] = [
   { id: 'returned', label: 'Return' },
 ];
 
-const ZONE_SHORT: Record<string, string> = {
-  street: 'STREET',
-  curb: 'CURB',
-  sidewalk: 'WALK',
-  storefront: 'SHOP',
-  alley: 'ALLEY',
-  rooftop: 'ROOF',
-  building: 'BLDG',
-};
-
 const BlockLoopDesk: React.FC = () => {
   const { goHome, navigateTo } = useNavigationStore();
   const { members } = useGangStore();
+  const selectBlock = useBlockStore((state) => state.selectBlock);
   const {
     loop,
     started,
@@ -66,7 +59,7 @@ const BlockLoopDesk: React.FC = () => {
       <header className="bld-top">
         <button type="button" className="bld-back" onClick={goHome}>Desktop</button>
         <div>
-          <p className="bld-kicker">Authoritative strip run</p>
+          <p className="bld-kicker">Las Olas closed-beta path</p>
           <h1>1208 Las Olas</h1>
         </div>
         <p className="bld-dna">DNA {loop.dnaId}</p>
@@ -108,7 +101,7 @@ const BlockLoopDesk: React.FC = () => {
               </article>
             ))}
           </div>
-          <button type="button" className="bld-cta" onClick={() => selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId)}>
+          <button type="button" className="bld-cta" data-testid="lock-las-olas-crew" onClick={() => selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId)}>
             Lock Dre and Rome
           </button>
           <div className="bld-routes">
@@ -121,38 +114,23 @@ const BlockLoopDesk: React.FC = () => {
       {(loop.phase === 'placement' || loop.phase === 'product' || loop.phase === 'deal') && (
         <section className="bld-panel">
           <div className="bld-place-head">
-            <h2>Canonical 8×8 board</h2>
+            <h2>1208 Las Olas diorama</h2>
             <div className="bld-place-switch" role="group" aria-label="Member to place">
               <button type="button" className={placingId === BLOCK_LOOP_IDS.dealerId ? 'is-on' : ''} onClick={() => setPlacingId(BLOCK_LOOP_IDS.dealerId)}>Dealer</button>
               <button type="button" className={placingId === BLOCK_LOOP_IDS.shooterId ? 'is-on' : ''} onClick={() => setPlacingId(BLOCK_LOOP_IDS.shooterId)}>Shooter</button>
             </div>
           </div>
           <p className="bld-compare">{preview.explanation}</p>
-          <div className="bld-grid" role="grid" aria-label="Block DNA grid">
-            {loop.block.grid.map((row, y) => (
-              <div key={y} className="bld-row" role="row">
-                {row.map((cell) => {
-                  const occupant = loop.block.placements.find((item) => item.x === cell.x && item.y === cell.y);
-                  return (
-                    <button
-                      key={`${cell.x}-${cell.y}`}
-                      type="button"
-                      role="gridcell"
-                      className={`bld-cell bld-${cell.zoneType}${occupant ? ' is-held' : ''}${!cell.passable ? ' is-blocked' : ''}`}
-                      aria-label={`${cell.zoneType} ${cell.x},${cell.y}${occupant ? ` held by ${occupant.memberName}` : ''}`}
-                      onClick={() => place(placingId, cell.x, cell.y)}
-                    >
-                      <span>{occupant ? (occupant.memberName.split(' ').pop() ?? occupant.role) : (ZONE_SHORT[cell.zoneType] ?? cell.zoneType)}</span>
-                      <small>{cell.exposureRisk}</small>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <TacticalDiorama
+            block={loop.block}
+            mapContext={{ status: 'missing', reason: 'STRIP desk does not load street tiles' }}
+            placingMemberId={placingId}
+            placingMemberName={placingId === BLOCK_LOOP_IDS.dealerId ? dealer?.name : shooter?.name}
+            onPlace={(col, row) => place(placingId, col, row)}
+          />
           <div className="bld-routes">
-            <button type="button" onClick={() => navigateTo('map')}>Open MAP</button>
-            <button type="button" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.street.x, preview.street.y)}>Street-near Dre</button>
+            <button type="button" data-testid="open-map-diorama" onClick={() => { selectBlock(loop.block.id); navigateTo('map'); }}>Open MAP diorama</button>
+            <button type="button" data-testid="place-street-dre" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.street.x, preview.street.y)}>Street-near Dre</button>
             <button type="button" onClick={() => place(BLOCK_LOOP_IDS.dealerId, preview.safety.x, preview.safety.y)}>Safer Dre</button>
           </div>
         </section>
@@ -163,7 +141,7 @@ const BlockLoopDesk: React.FC = () => {
           <h2>Equip product</h2>
           <p>{product.name} · {product.tier} · potency {product.quality} · qty {product.quantity}</p>
           <p>Expected demand follows street exposure. Heat risk uses the street-tier table. Nothing here is a real-world recipe.</p>
-          <button type="button" className="bld-cta" onClick={assignProduct}>Put River Cut on Dre</button>
+          <button type="button" className="bld-cta" data-testid="assign-river-cut" onClick={assignProduct}>Put River Cut on Dre</button>
           <button type="button" onClick={() => navigateTo('alchemy')}>Open Cook</button>
         </section>
       )}
@@ -172,7 +150,7 @@ const BlockLoopDesk: React.FC = () => {
         <section className="bld-panel">
           <h2>Run the deal</h2>
           <p>The receipt writes cash, product, reputation, and heat through the shared empire books.</p>
-          <button type="button" className="bld-cta" onClick={runDeal}>Close the deal</button>
+          <button type="button" className="bld-cta" data-testid="close-the-deal" onClick={runDeal}>Close the deal</button>
           <button type="button" onClick={() => navigateTo('dealt_v2')}>Open DEALT</button>
         </section>
       )}
@@ -182,7 +160,7 @@ const BlockLoopDesk: React.FC = () => {
           <h2>Threat handoff</h2>
           <p className="bld-receipt">{loop.lastDeal.explanation}</p>
           <p>{loop.threat?.reason}</p>
-          <button type="button" className="bld-cta" onClick={beginEncounter}>
+          <button type="button" className="bld-cta" data-testid="enter-slide" onClick={beginEncounter}>
             Enter {loop.threat?.route === 'raid' ? 'raid' : 'SLIDE'}
           </button>
         </section>
@@ -198,12 +176,12 @@ const BlockLoopDesk: React.FC = () => {
               onClose={() => resolveSeededEncounter()}
             />
           {typeof document !== 'undefined' && createPortal(
-            <div className="bld-wound-dock" role="region" aria-label="Deterministic consequence">
+            <div className="bld-wound-dock" role="region" aria-label="Hospital and wound booking">
               <div>
                 <p className="bld-wound-kicker">Exact-once demo hit</p>
                 <p>Books Dre's wound on this DNA board. Replaying the same ticket does nothing.</p>
               </div>
-              <button type="button" className="bld-cta" onClick={resolveSeededEncounter}>
+              <button type="button" className="bld-cta" data-testid="book-the-wound" onClick={resolveSeededEncounter}>
                 Book the wound
               </button>
             </div>,

@@ -98,7 +98,7 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
       cooperativeGestures: false,
     };
 
-    let map: MapLibreMap;
+    let map: MapLibreMap | undefined;
     let disposed = false;
     let hasLoaded = false;
     let loadTimer: number | undefined;
@@ -112,23 +112,38 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
 
     try {
       map = new MapLibreMap(options);
+      if (!map?.dragRotate?.disable || !map.touchZoomRotate?.disableRotation) {
+        throw new Error('MapLibre did not initialize a WebGL map');
+      }
+      mapRef.current = map;
+      map.dragRotate.disable();
+      map.touchZoomRotate.disableRotation();
+      map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
+      map.addControl(new ScaleControl({ maxWidth: 90, unit: 'imperial' }), 'bottom-left');
     } catch {
+      try {
+        map?.remove();
+      } catch {
+        // WebGL-less environments can leave a partial MapLibre instance.
+      }
+      mapRef.current = null;
       updateStatus('error', 'connection');
       return;
     }
 
-    mapRef.current = map;
-    map.dragRotate.disable();
-    map.touchZoomRotate.disableRotation();
-    map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
-    map.addControl(new ScaleControl({ maxWidth: 90, unit: 'imperial' }), 'bottom-left');
+    if (!map) {
+      updateStatus('error', 'connection');
+      return;
+    }
+
+    const liveMap = map;
 
     const controller: PlayableMapController = {
       flyTo: ({ center: nextCenter, zoom: nextZoom, duration = 700 }) => {
         const reduced = prefersReducedMotion();
-        map.easeTo({
+        liveMap.easeTo({
           center: nextCenter,
-          zoom: nextZoom ?? map.getZoom(),
+          zoom: nextZoom ?? liveMap.getZoom(),
           duration: reduced ? 0 : duration,
           essential: false,
           pitch: 0,
@@ -149,20 +164,20 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
       hasLoaded = true;
       clearLoadTimer();
       updateStatus('ready');
-      callbacksRef.current.onMapLoad?.(map);
+      callbacksRef.current.onMapLoad?.(liveMap);
       callbacksRef.current.onControllerReady?.(controller);
     };
 
     const onError = (event: MapLibreErrorEvent) => {
       if (!event.error || disposed || hasLoaded) return;
-      if (mapRef.current === map) updateStatus('error', 'connection');
+      if (mapRef.current === liveMap) updateStatus('error', 'connection');
     };
 
-    const onZoomEnd = () => callbacksRef.current.onZoomChange?.(map.getZoom());
+    const onZoomEnd = () => callbacksRef.current.onZoomChange?.(liveMap.getZoom());
 
-    map.once('load', onLoad);
-    map.on('error', onError);
-    map.on('zoomend', onZoomEnd);
+    liveMap.once('load', onLoad);
+    liveMap.on('error', onError);
+    liveMap.on('zoomend', onZoomEnd);
     loadTimer = window.setTimeout(() => {
       // A queued timeout can still run after an initial load or effect cleanup.
       // Never let it overwrite a usable map or a newer failure outcome.
@@ -172,12 +187,12 @@ const PlayableMap: React.FC<PlayableMapProps> = ({
     return () => {
       disposed = true;
       clearLoadTimer();
-      map.off('error', onError);
-      map.off('zoomend', onZoomEnd);
+      liveMap.off('error', onError);
+      liveMap.off('zoomend', onZoomEnd);
       try {
-        map.remove();
+        liveMap.remove();
       } finally {
-        if (mapRef.current === map) mapRef.current = null;
+        if (mapRef.current === liveMap) mapRef.current = null;
       }
     };
   }, [attempt]);

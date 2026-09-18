@@ -75,7 +75,7 @@ const TerritoryMap: React.FC = () => {
   const vault = useShoeboxStore((s) => s.bankBalance);
   const ledger = useShoeboxStore((s) => s.ledger);
 
-  const [view, setView] = useState<MapView>('hood');
+  const [view, setView] = useState<MapView>('block');
   const { completeStep: completeTutorialStep } = useTutorialProgressStore();
   const [notification, setNotification] = useState<string | null>(null);
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
@@ -469,6 +469,10 @@ const TerritoryMap: React.FC = () => {
             initialAddress={activeBlockAddress}
             autoStartEncounter={responseBlockId === activeBlockId}
             onAutoEncounterStarted={() => setResponseBlockId(null)}
+            mapContext={{
+              status: mapStatus === 'error' ? 'failed' : mapStatus === 'ready' ? 'ready' : 'loading',
+              reason: mapStatus === 'error' ? 'street tiles unavailable' : undefined,
+            }}
           />
         </div>
       )}

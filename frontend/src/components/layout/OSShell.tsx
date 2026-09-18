@@ -5,7 +5,7 @@
 // ============================================================
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   useNavigationStore,
   usePlayerStore,
@@ -22,6 +22,8 @@ import { GameSprite } from '../common/GameSprite';
 import CityBriefing from './CityBriefing';
 import { useBlockLoopStore } from '../../stores/blockLoopStore';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
+import { IS_DEMO_MODE } from '../../utils/demoSeed';
+import { DemoEvaluationBanner } from '../compliance/AgeGate';
 import '../common/GameSprite.css';
 import './OSShell.css';
 
@@ -49,6 +51,7 @@ const formatMoney = (amount: number): string => {
 
 const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 }) => {
   const { navigateTo } = useNavigationStore();
+  const reduceMotion = useReducedMotion();
   const { player } = usePlayerStore();
   const vault = useShoeboxStore((s) => s.bankBalance);
   const { members } = useGangStore();
@@ -349,16 +352,18 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <span className="gang-name">{player.gangName}</span>
         </div>
         <div className="status-right">
-          <motion.div
+          <button
+            type="button"
             className="notification-icon"
+            aria-label={showNotifications ? 'Hide notifications' : 'Show notifications'}
+            aria-expanded={showNotifications}
             onClick={() => setShowNotifications(!showNotifications)}
-            whileTap={{ scale: 0.9 }}
           >
             <span className="notif-bell-icon">NOTIF</span>
             {getUnreadCount() > 0 && (
               <span className="notification-badge">{getUnreadCount()}</span>
             )}
-          </motion.div>
+          </button>
         </div>
       </div>
 
@@ -366,13 +371,15 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       <div className="home-header">
         <motion.h1
           className="home-title"
-          initial={{ opacity: 0, y: -20 }}
+          initial={reduceMotion ? false : { opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
           DEALT/SLIDE
         </motion.h1>
         <p className="home-subtitle">STREET EMPIRE</p>
       </div>
+
+      {IS_DEMO_MODE && <DemoEvaluationBanner compact />}
 
       {/* Live Stats Dashboard */}
       <div className="stats-dashboard">
@@ -384,8 +391,11 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         </div>
 
         {/* Heat Meter */}
-        <div
+        <button
+          type="button"
           className="stat-card stat-heat"
+          aria-expanded={showHeatDetail}
+          aria-label="Heat details"
           onClick={() => setShowHeatDetail(!showHeatDetail)}
         >
           <div
@@ -406,11 +416,14 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
               {Math.round(raidProb * 100)}% RAID RISK
             </div>
           )}
-        </div>
+        </button>
 
         {/* Morale */}
-        <div
+        <button
+          type="button"
           className="stat-card stat-morale"
+          aria-expanded={showMoraleDetail}
+          aria-label="Morale details"
           onClick={() => setShowMoraleDetail(!showMoraleDetail)}
         >
           <div className="stat-value" style={{ color: moraleDesc.color }}>
@@ -420,7 +433,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <div className="morale-label" style={{ color: moraleDesc.color }}>
             {moraleDesc.label}
           </div>
-        </div>
+        </button>
 
         {/* Level */}
         <div className="stat-card stat-level">
@@ -429,14 +442,13 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         </div>
       </div>
 
-      <CityBriefing onNavigate={handleCityBriefNavigate} />
-
-      <section className="strip-run-card" aria-label="Authoritative block loop">
+      <section className="strip-run-card" aria-label="Las Olas closed-beta path">
         <div>
-          <p className="strip-run-kicker">One connected strip</p>
+          <p className="strip-run-kicker">Closed-beta Las Olas path</p>
           <h2>Run 1208 Las Olas</h2>
           <p>
-            {loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {player.heat}
+            STRIP desk → MAP diorama → place crew → deal → SLIDE → return. Street tiles are optional.
+            {' '}{loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {player.heat}
             {loop.threat ? ` · ${loop.threat.route}` : ''}
           </p>
           {loop.phase === 'returned' || loop.lastEncounter ? (
@@ -446,6 +458,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         <button
           type="button"
           className="strip-run-cta"
+          data-testid="run-las-olas"
           onClick={() => {
             if (!loop.lastEncounter && loop.phase === 'crew') {
               startLoop();
@@ -456,6 +469,8 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           {loop.lastEncounter ? 'Review the strip' : 'Run the block'}
         </button>
       </section>
+
+      <CityBriefing onNavigate={handleCityBriefNavigate} />
 
       {/* Heat Detail Popup */}
       <AnimatePresence>
@@ -545,16 +560,16 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             aria-disabled={!app.available}
             onClick={() => handleAppClick(app)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleAppClick(app); } }}
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{
+            transition={reduceMotion ? { duration: 0 } : {
               delay: index * 0.05,
               type: 'spring',
               stiffness: 260,
               damping: 20,
             }}
-            whileHover={app.available ? { scale: 1.1 } : {}}
-            whileTap={app.available ? { scale: 0.9 } : {}}
+            whileHover={!reduceMotion && app.available ? { scale: 1.1 } : undefined}
+            whileTap={!reduceMotion && app.available ? { scale: 0.9 } : undefined}
           >
             <div className={`icon-container ${app.colorClass}`}>
               {app.spriteIcon ? (
@@ -575,23 +590,23 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
       </div>
 
       {/* Quick Actions Dock */}
-      <div className="dock">
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('block_loop')}>
+      <nav className="dock" aria-label="Quick actions">
+        <button type="button" className="dock-item" aria-label="STRIP" onClick={() => navigateTo('block_loop')}>
           <GameSprite icon="map" size={40} fallback="STRIP" />
-        </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('dealt_v2')}>
-          <GameSprite icon="dealt" size={40} fallback="DEALT" />
-        </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('slide')}>
+        </button>
+        <button type="button" className="dock-item" aria-label="MAP" onClick={() => navigateTo('map')}>
+          <GameSprite icon="map" size={40} fallback="MAP" />
+        </button>
+        <button type="button" className="dock-item" aria-label="SLIDE" onClick={() => navigateTo('slide')}>
           <GameSprite icon="slide" size={40} fallback="SLIDE" />
-        </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('gang_hq')}>
+        </button>
+        <button type="button" className="dock-item" aria-label="CREW" onClick={() => navigateTo('gang_hq')}>
           <GameSprite icon="crew" size={40} fallback="CREW" />
-        </motion.div>
-        <motion.div className="dock-item" whileTap={{ scale: 0.9 }} onClick={() => navigateTo('trap')}>
+        </button>
+        <button type="button" className="dock-item" aria-label="TRAP" onClick={() => navigateTo('trap')}>
           <GameSprite icon="trap" size={40} fallback="TRAP" />
-        </motion.div>
-      </div>
+        </button>
+      </nav>
 
       {/* Notification Panel */}
       <AnimatePresence>

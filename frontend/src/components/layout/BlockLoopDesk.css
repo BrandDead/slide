@@ -1,6 +1,9 @@
 .block-loop-desk {
   min-height: 100vh;
-  padding: 16px 16px 96px;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px calc(96px + env(safe-area-inset-bottom, 0px));
   background:
     radial-gradient(1200px 480px at 10% -10%, rgba(180, 40, 40, 0.18), transparent 55%),
     linear-gradient(180deg, #07070a 0%, #11080c 48%, #050505 100%);
@@ -220,8 +223,8 @@
 .bld-wound-dock {
   position: fixed;
   z-index: 4000;
-  right: 16px;
-  bottom: 24px;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 12px));
   display: flex;
   gap: 12px;
   align-items: center;
@@ -264,7 +267,13 @@
     grid-template-columns: 1fr;
   }
   .block-loop-desk {
-    padding-bottom: 120px;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+  .bld-wound-dock {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    flex-wrap: wrap;
   }
 }
 

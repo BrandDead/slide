@@ -2,9 +2,16 @@ import React, { useState } from 'react';
 
 interface AgeGateProps {
   onConfirm: () => void;
+  /** Demo/local evaluation builds still require the 18+ acknowledgement. */
+  evaluationBuild?: boolean;
 }
 
 export const AGE_GATE_STORAGE_KEY = 'slide.age-affirmation.v1';
+
+export const DEMO_EVALUATION_COPY = {
+  kicker: 'Non-production evaluation build',
+  body: 'Playable without a real account. Progress stays on this device only and is not signed-in persistence.',
+};
 
 export function hasAgeAffirmation(storage: Pick<Storage, 'getItem'> = window.localStorage): boolean {
   try {
@@ -14,8 +21,26 @@ export function hasAgeAffirmation(storage: Pick<Storage, 'getItem'> = window.loc
   }
 }
 
+/** Local 18+ acknowledgement is required in every client, including demo builds. */
+export function initialAgeAffirmed(storage: Pick<Storage, 'getItem'> = window.localStorage): boolean {
+  return hasAgeAffirmation(storage);
+}
+
 export function saveAgeAffirmation(storage: Pick<Storage, 'setItem'> = window.localStorage): void {
   storage.setItem(AGE_GATE_STORAGE_KEY, 'confirmed');
+}
+
+export function DemoEvaluationBanner({ compact = false }: { compact?: boolean }) {
+  return (
+    <p
+      className={`demo-eval-banner${compact ? ' is-compact' : ''}`}
+      role="status"
+      data-testid="demo-evaluation-banner"
+    >
+      <strong>{DEMO_EVALUATION_COPY.kicker}.</strong>{' '}
+      {DEMO_EVALUATION_COPY.body}
+    </p>
+  );
 }
 
 const panelStyle: React.CSSProperties = {
@@ -32,6 +57,7 @@ const panelStyle: React.CSSProperties = {
 const buttonStyle: React.CSSProperties = {
   flex: 1,
   minHeight: 48,
+  minWidth: 44,
   borderRadius: 10,
   border: '1px solid transparent',
   cursor: 'pointer',
@@ -39,7 +65,7 @@ const buttonStyle: React.CSSProperties = {
   letterSpacing: '0.04em',
 };
 
-export default function AgeGate({ onConfirm }: AgeGateProps) {
+export default function AgeGate({ onConfirm, evaluationBuild = false }: AgeGateProps) {
   const [storageError, setStorageError] = useState(false);
 
   const confirm = () => {
@@ -54,11 +80,12 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
 
   return (
     <main
+      className="age-gate"
       style={{
         minHeight: '100vh',
         display: 'grid',
         placeItems: 'center',
-        padding: 16,
+        padding: 'max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left))',
         backgroundColor: '#070910',
         backgroundImage:
           'radial-gradient(circle at 50% 18%, rgba(103, 55, 42, 0.34), transparent 38%), ' +
@@ -70,6 +97,7 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
       }}
     >
       <section style={panelStyle} aria-labelledby="age-gate-title">
+        {evaluationBuild && <DemoEvaluationBanner />}
         <div
           style={{
             color: '#d9a56c',
@@ -100,10 +128,14 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
         >
           By continuing, you affirm that you are <strong>18 years of age or older</strong> and
           permitted to view mature content where you live.
+          {evaluationBuild && (
+            <> This acknowledgement is stored only on this device. It is not account verification.</>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button
             type="button"
+            className="age-gate-btn"
             onClick={() => window.location.replace('about:blank')}
             style={{
               ...buttonStyle,
@@ -116,6 +148,7 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
           </button>
           <button
             type="button"
+            className="age-gate-btn"
             onClick={confirm}
             style={{
               ...buttonStyle,
@@ -133,7 +166,7 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
             Your browser could not remember this choice, so you may be asked again next time.
           </p>
         )}
-        <p style={{ margin: '18px 0 0', color: '#747985', fontSize: 11, lineHeight: 1.5 }}>
+        <p style={{ margin: '18px 0 0', color: '#c7c1b8', fontSize: 12, lineHeight: 1.5 }}>
           This confirmation is an audience notice, not a substitute for parental controls or local law.
         </p>
       </section>

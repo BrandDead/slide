@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { getDNAById } from '../../config/blockDNA';
 import { buildZoneLayout } from '../../utils/blockDNAResolver';
@@ -86,5 +86,26 @@ describe('TacticalDiorama player path', () => {
     );
     expect(screen.getByRole('button', { name: /legal board/i })).toBeInTheDocument();
     expect(screen.getByText(/street map/i)).toBeInTheDocument();
+  });
+
+  it('exposes one keyboard tab stop and writes loop placement through onPlace', () => {
+    const onPlace = vi.fn();
+    render(
+      <TacticalDiorama
+        block={heroBlock()}
+        placingMemberId="demo-shooter-1"
+        placingMemberName="Big Rome"
+        onPlace={onPlace}
+      />,
+    );
+    const stage = screen.getByRole('application', { name: /1208 las olas/i });
+    expect(stage.tabIndex).toBe(0);
+    expect(screen.getByRole('button', { name: /street 0,0/i }).tabIndex).toBe(-1);
+    fireEvent.click(screen.getByRole('button', { name: /street 0,0/i }));
+    expect(onPlace).toHaveBeenCalledWith(0, 0);
+    expect(useBlockStore.getState().blocks).toEqual({});
+    stage.focus();
+    fireEvent.keyDown(stage, { key: 'ArrowRight' });
+    expect(screen.getByText(/focus 1,0/i)).toBeInTheDocument();
   });
 });

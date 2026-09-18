@@ -1,6 +1,7 @@
 // ============================================================
 // TacticalDiorama — cinematic 2.5D Strip presentation (#77)
-// Presentation adapter only. Placement still writes through blockStore.
+// Presentation adapter. Default placement writes through blockStore;
+// Block Loop desk can pass onPlace to keep the loop ledger authoritative.
 // ============================================================
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -32,18 +33,29 @@ const ZONE_FILL: Record<string, string> = {
 interface TacticalDioramaProps {
   block: BlockData;
   mapContext?: DioramaMapContext | null;
+  /** When set, cell activation writes through this callback instead of blockStore. */
+  onPlace?: (col: number, row: number) => void;
+  placingMemberId?: string | null;
+  placingMemberName?: string;
 }
 
 function polygonPoints(cell: DioramaCell): string {
   return cell.corners.map((corner) => `${corner.x},${corner.y}`).join(' ');
 }
 
-const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = null }) => {
+const TacticalDiorama: React.FC<TacticalDioramaProps> = ({
+  block,
+  mapContext = null,
+  onPlace,
+  placingMemberId = null,
+  placingMemberName,
+}) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ width: 1280, height: 720 });
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [focusCell, setFocusCell] = useState<{ col: number; row: number } | null>(null);
   const [showLegalBoard, setShowLegalBoard] = useState(false);
+  const [plateFailed, setPlateFailed] = useState(false);
   const {
     placeMember,
     moveMember,
@@ -52,6 +64,8 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
     pendingPlacementMember,
     setPlacementMode,
   } = useBlockStore();
+
+  const placing = Boolean(placingMemberId) || isPlacementMode;
 
   useEffect(() => {
     const node = stageRef.current;
@@ -67,10 +81,28 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
     return () => observer.disconnect();
   }, []);
 
-  const scene = useMemo(
-    () => composeDioramaScene({ block, view, seed: `${block.dnaId ?? 'hero'}:${view.width}x${view.height}`, mapContext }),
-    [block, mapContext, view],
-  );
+  const composed = useMemo(() => {
+    try {
+      return {
+        scene: composeDioramaScene({
+          block,
+          view,
+          seed: `${block.dnaId ?? 'hero'}:${view.width}x${view.height}`,
+          mapContext,
+        }),
+        error: null as string | null,
+      };
+    } catch {
+      return {
+        scene: null,
+        error: 'The street scene could not load. The 8×8 legal board stays playable.',
+      };
+    }
+  }, [block, mapContext, view]);
+  const scene = composed.scene;
+  const composeError = composed.error;
+
+  const boardForced = showLegalBoard || !scene;
 
   const selected = selectedMemberId
     ? projectCrewSelection(block, selectedMemberId, view)
@@ -79,6 +111,10 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
   const handleCellActivate = useCallback((cell: DioramaCell) => {
     setFocusCell({ col: cell.col, row: cell.row });
     const occupant = block.placements.find((item) => item.x === cell.col && item.y === cell.row);
+    if (onPlace && placingMemberId) {
+      onPlace(cell.col, cell.row);
+      return;
+    }
     if (isPlacementMode && pendingPlacementMemberId) {
       if (!cell.passable || occupant) return;
       const role = (pendingPlacementMember?.role ?? 'dealer') as MemberRole;
@@ -113,15 +149,19 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
     block,
     isPlacementMode,
     moveMember,
+    onPlace,
     pendingPlacementMember,
     pendingPlacementMemberId,
     placeMember,
+    placingMemberId,
     selectedMemberId,
     setPlacementMode,
   ]);
 
   const handleStageKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!focusCell) return;
+    if (!scene) return;
+    const origin = focusCell ?? scene.cells[0];
+    if (!origin) return;
     const delta = {
       ArrowLeft: { col: -1, row: 0 },
       ArrowRight: { col: 1, row: 0 },
@@ -130,15 +170,16 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
     }[event.key];
     if (delta) {
       event.preventDefault();
-      const next = scene.cells.find((cell) => cell.col === focusCell.col + delta.col && cell.row === focusCell.row + delta.row);
+      const current = focusCell ?? origin;
+      const next = scene.cells.find((cell) => cell.col === current.col + delta.col && cell.row === current.row + delta.row)
+        ?? scene.cells.find((cell) => cell.col === origin.col && cell.row === origin.row);
       if (next) {
         setFocusCell({ col: next.col, row: next.row });
-        document.getElementById(`diorama-cell-${next.col}-${next.row}`)?.focus();
       }
       return;
     }
     if (event.key === 'Enter' || event.key === ' ') {
-      const cell = scene.cells.find((item) => item.col === focusCell.col && item.row === focusCell.row);
+      const cell = scene.cells.find((item) => item.col === (focusCell ?? origin).col && item.row === (focusCell ?? origin).row);
       if (cell) {
         event.preventDefault();
         handleCellActivate(cell);
@@ -148,42 +189,55 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
       setSelectedMemberId(null);
       setFocusCell(null);
     }
-  }, [focusCell, handleCellActivate, scene.cells]);
+  }, [focusCell, handleCellActivate, scene]);
 
   const handleStagePointer = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
+    if (!scene || event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const coord = unproject(event.clientX - rect.left, event.clientY - rect.top, view, scene.profile);
     if (!isTapOnBlock(coord)) return;
     const snapped = snapToCell(coord);
     const cell = scene.cells.find((item) => item.col === snapped.col && item.row === snapped.row);
     if (cell) handleCellActivate(cell);
-  }, [handleCellActivate, scene.cells, scene.profile, view]);
+  }, [handleCellActivate, scene, view]);
 
-  const legalHint = isPlacementMode
-    ? `Place ${pendingPlacementMember?.memberName ?? 'crew'} on a passable curb, walk, shop, or cover cell.`
+  const legalHint = placing
+    ? `Place ${placingMemberName ?? pendingPlacementMember?.memberName ?? 'crew'} on a passable curb, walk, shop, or cover cell.`
     : 'Tap crew to read cover. The 8×8 board stays underneath this street.';
+
+  const recoveryNotice = composeError
+    ?? (plateFailed ? 'The street plate could not load. Use the 8×8 legal board, then retry the scene.' : null);
 
   return (
     <div className="tactical-diorama">
       <div className="td-toolbar">
-        <p className="td-kicker">{scene.dnaName}</p>
+        <p className="td-kicker">{scene?.dnaName ?? '1208 Las Olas'}</p>
         <button
           type="button"
-          className={`td-board-toggle${showLegalBoard ? ' is-on' : ''}`}
+          className={`td-board-toggle${boardForced ? ' is-on' : ''}`}
+          aria-pressed={boardForced}
           onClick={() => setShowLegalBoard((value) => !value)}
         >
-          {showLegalBoard ? 'Hide legal board' : 'Legal board'}
+          {boardForced ? 'Hide legal board' : 'Legal board'}
         </button>
       </div>
 
-      {(scene.mapNotice || mapContext?.status === 'failed') && (
+      {(scene?.mapNotice || mapContext?.status === 'failed' || mapContext?.status === 'missing') && (
         <p className="td-map-fallback">
-          {scene.mapNotice ?? 'Street map imagery is optional. The Strip board stays playable.'}
+          {scene?.mapNotice ?? 'Street map imagery is optional. The Strip board stays playable.'}
         </p>
       )}
 
-      {showLegalBoard ? (
+      {recoveryNotice && (
+        <div className="td-map-fallback td-recovery" role="status">
+          <p>{recoveryNotice}</p>
+          <button type="button" onClick={() => { setPlateFailed(false); setShowLegalBoard(true); }}>
+            Use 8×8 legal board
+          </button>
+        </div>
+      )}
+
+      {boardForced || !scene ? (
         <TopDownBlock block={block} />
       ) : (
         <div
@@ -192,6 +246,11 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
           role="application"
           aria-label={`${scene.dnaName} tactical diorama`}
           tabIndex={0}
+          onFocus={() => {
+            if (!focusCell && scene.cells[0]) {
+              setFocusCell({ col: scene.cells[0].col, row: scene.cells[0].row });
+            }
+          }}
           onKeyDown={handleStageKeyDown}
           onPointerDown={handleStagePointer}
         >
@@ -200,12 +259,15 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
             src={scene.backdropUrl}
             alt={scene.dnaName}
             draggable={false}
+            onError={() => {
+              setPlateFailed((failed) => failed || true);
+            }}
           />
-          <svg className="td-grid" viewBox={`0 0 ${view.width} ${view.height}`} aria-hidden="true">
+          <svg className="td-scene-grid" viewBox={`0 0 ${view.width} ${view.height}`} aria-hidden="true">
             {scene.drawOrder.map((cell) => {
               const held = block.placements.find((item) => item.x === cell.col && item.y === cell.row);
               const classes = [
-                'td-cell',
+                'td-poly',
                 cell.isStreet ? 'is-street' : '',
                 cell.isCover ? 'is-cover' : '',
                 cell.isFacade ? 'is-facade' : '',
@@ -213,7 +275,7 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
                 cell.isObjective ? 'is-objective' : '',
                 cell.isExtraction ? 'is-extract' : '',
                 !cell.passable ? 'is-blocked' : '',
-                isPlacementMode && cell.passable && !held ? 'is-legal' : '',
+                placing && cell.passable && !held ? 'is-legal' : '',
                 focusCell?.col === cell.col && focusCell?.row === cell.row ? 'is-focus' : '',
               ].filter(Boolean).join(' ');
               return (
@@ -249,12 +311,15 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
           <div className="td-hit-layer">
             {scene.cells.map((cell) => {
               const held = block.placements.find((item) => item.x === cell.col && item.y === cell.row);
+              const focused = focusCell?.col === cell.col && focusCell?.row === cell.row;
               return (
                 <button
                   key={`hit-${cell.col}-${cell.row}`}
                   id={`diorama-cell-${cell.col}-${cell.row}`}
                   type="button"
-                  className={`td-hit${isPlacementMode && cell.passable && !held ? ' is-legal' : ''}`}
+                  tabIndex={-1}
+                  aria-current={focused ? 'true' : undefined}
+                  className={`td-hit${placing && cell.passable && !held ? ' is-legal' : ''}${focused ? ' is-focus' : ''}`}
                   style={{ left: cell.point.x, top: cell.point.y }}
                   aria-label={`${cell.zoneType} ${cell.col},${cell.row}${held ? ` held by ${held.memberName}` : ''}`}
                   onClick={(event) => {
@@ -269,14 +334,21 @@ const TacticalDiorama: React.FC<TacticalDioramaProps> = ({ block, mapContext = n
             <span aria-label="Objective">Objective</span>
             <span aria-label="Extraction">Extraction</span>
           </div>
+          {focusCell && (
+            <p className="td-sr-status" role="status">
+              Focus {focusCell.col},{focusCell.row}
+            </p>
+          )}
 
           {scene.actors.map((actor) => {
-            const height = actor.point.actorHeight;
-            const width = height * 0.48;
+            const height = Math.max(44, actor.point.actorHeight);
+            const width = Math.max(44, height * 0.48);
             return (
               <button
                 key={actor.memberId}
                 type="button"
+                tabIndex={-1}
+                aria-label={actor.memberName}
                 className={`td-actor${selectedMemberId === actor.memberId ? ' is-selected' : ''}`}
                 style={{
                   left: actor.point.x,
