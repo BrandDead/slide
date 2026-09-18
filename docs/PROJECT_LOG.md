@@ -68,6 +68,21 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Closed-beta demo ledger account isolation (#45)
+
+- The local Las Olas Block Loop ledger is now explicitly an evaluation-build
+  convenience owned only by seeded `demo-player`. Signed-in or unrecognized
+  player identities never read or write that browser ledger, and the demo loop
+  cannot project fixture cash, product, wounds, or encounter tickets into their
+  shared player, crew, inventory, or block stores.
+- Demo reload behavior remains intact: the seeded `demo-player` can still
+  recover its own deal and encounter receipts after local persist hydration.
+- This is not server persistence. Authenticated saved state remains on the
+  existing Supabase/Flask hydration boundaries pending the separate
+  authoritative player-save milestone.
+- No Supabase migration, RLS, Edge Function, secret, payment, Vercel
+  environment, production data, economy value, or encounter calculation changed.
+
 ### 2026-09-18 — Closed-beta preview repair: branch-scoped demo build + viewport (#45 / PR #146)
 
 - PR #146 preview was shipping without `VITE_DEMO_MODE=1`, so the 18+ gate

@@ -4,11 +4,19 @@ import { useGangStore, usePlayerStore } from './gameStore';
 import { useDrugInventory } from './useDrugInventory';
 import { createLoopState } from '../game/loop/blockLoopFixture';
 import { reduceLoop, seededLoopEncounter } from '../game/loop/blockLoopEngine';
-import { toLoopLedger, writeLoopLedger, readLoopLedger } from '../game/loop/blockLoopPersist';
+import {
+  canUseDemoLoopLedger,
+  toLoopLedger,
+  writeDemoLoopLedger,
+  readDemoLoopLedger,
+} from '../game/loop/blockLoopPersist';
 import { BLOCK_LOOP_IDS, type LoopCommand, type LoopLedgerV1, type LoopState } from '../game/loop/blockLoopTypes';
 import type { CombatResult } from '../game/combat/types';
 
 function projectToStores(loop: LoopState) {
+  const playerId = usePlayerStore.getState().player.id;
+  if (!canUseDemoLoopLedger(playerId)) return;
+
   useBlockStore.getState().upsertBlock({
     ...loop.block,
     appliedEncounterResultKeys: loop.appliedEncounterKeys,
@@ -37,7 +45,7 @@ function projectToStores(loop: LoopState) {
       currentAssignment: member.assignment,
     });
   }
-  writeLoopLedger(toLoopLedger(loop));
+  writeDemoLoopLedger(playerId, toLoopLedger(loop));
 }
 
 interface BlockLoopStore {
@@ -65,7 +73,7 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
   startLoop: (forceReset = false) => {
     if (!forceReset) {
       if (get().started) return;
-      const existing = readLoopLedger();
+      const existing = readDemoLoopLedger(usePlayerStore.getState().player.id);
       if (existing && (existing.dealKey || existing.encounterKey || existing.appliedEncounterKeys.length)) {
         get().hydrateFromLedger(existing);
         return;

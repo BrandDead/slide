@@ -1,5 +1,17 @@
 import { BLOCK_LOOP_LEDGER_KEY, type LoopLedgerV1, type LoopState } from './blockLoopTypes';
 
+/**
+ * The Block Loop ledger is a closed-beta demo convenience, not an
+ * authenticated save format. Keep it unavailable to real accounts so a
+ * previous browser demo cannot restore its cash, injuries, or receipts over a
+ * server-backed session.
+ */
+export const DEMO_LOOP_LEDGER_OWNER_ID = 'demo-player';
+
+export function canUseDemoLoopLedger(playerId: string | null | undefined): boolean {
+  return playerId === DEMO_LOOP_LEDGER_OWNER_ID;
+}
+
 export function toLoopLedger(state: LoopState): LoopLedgerV1 {
   const product = state.inventory[0];
   return {
@@ -48,6 +60,23 @@ export function writeLoopLedger(
 ): void {
   if (!storage) return;
   storage.setItem(BLOCK_LOOP_LEDGER_KEY, JSON.stringify(ledger));
+}
+
+export function readDemoLoopLedger(
+  playerId: string | null | undefined,
+  storage: Pick<Storage, 'getItem'> | null = typeof localStorage === 'undefined' ? null : localStorage,
+): LoopLedgerV1 | null {
+  return canUseDemoLoopLedger(playerId) ? readLoopLedger(storage) : null;
+}
+
+export function writeDemoLoopLedger(
+  playerId: string | null | undefined,
+  ledger: LoopLedgerV1,
+  storage: Pick<Storage, 'setItem'> | null = typeof localStorage === 'undefined' ? null : localStorage,
+): boolean {
+  if (!canUseDemoLoopLedger(playerId)) return false;
+  writeLoopLedger(ledger, storage);
+  return true;
 }
 
 export function clearLoopLedger(
