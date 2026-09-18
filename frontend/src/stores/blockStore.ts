@@ -14,6 +14,11 @@ import type {
   BlockData,
   DriveByEvent,
 } from '../types/block.types';
+import { blocksApi } from '../services/api.service';
+import {
+  apiPlacementsToBlockPlacements,
+  placementsToApiPayload,
+} from '../utils/blockMappers';
 
 // ─── Zone layout template (8×8) ─────────────────────────────
 // Row 0: street (drive-by lane — top)
@@ -253,11 +258,6 @@ function enqueuePlacementSnapshot(
 
   const syncPlacement = async () => {
     try {
-      const { blocksApi } = await import('../services/api.service');
-      const {
-        apiPlacementsToBlockPlacements,
-        placementsToApiPayload,
-      } = await import('../utils/blockMappers');
       const result = await blocksApi.placeMembers(
         blockId,
         placementsToApiPayload(requestedPlacements),

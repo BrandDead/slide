@@ -40,7 +40,7 @@ describe('Las Olas closed-beta one path', () => {
     expect(window.localStorage.getItem(AGE_GATE_STORAGE_KEY)).toBeNull();
   });
 
-  it('walks the seeded Las Olas desk from lock through deal, wound, and reload-safe books', () => {
+  it('walks the seeded Las Olas desk from lock through deal, wound, and reload-safe books', async () => {
     render(<BlockLoopDesk />);
     fireEvent.click(screen.getByRole('button', { name: /lock dre and rome/i }));
     expect(screen.getByRole('application', { name: /1208 las olas/i })).toBeInTheDocument();
@@ -53,6 +53,7 @@ describe('Las Olas closed-beta one path', () => {
     fireEvent.click(screen.getByRole('button', { name: /close the deal/i }));
     expect(usePlayerStore.getState().player.money).toBeGreaterThan(moneyAfterProduct);
     fireEvent.click(screen.getByRole('button', { name: /enter slide/i }));
+    expect(await screen.findByText(/encounter board/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /book the wound/i }));
     fireEvent.click(screen.getByRole('button', { name: /return to desktop/i }));
 
