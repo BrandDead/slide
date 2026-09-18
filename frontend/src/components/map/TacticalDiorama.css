@@ -76,7 +76,7 @@
   pointer-events: none;
 }
 
-.td-grid {
+.td-scene-grid {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -84,32 +84,32 @@
   pointer-events: none;
 }
 
-.td-cell {
+.td-poly {
   stroke: rgba(244, 236, 228, 0.08);
   stroke-width: 1;
 }
 
-.td-cell.is-street {
+.td-poly.is-street {
   stroke: rgba(255, 180, 120, 0.22);
 }
 
-.td-cell.is-facade {
+.td-poly.is-facade {
   stroke: rgba(180, 220, 255, 0.38);
   stroke-width: 1.5;
 }
 
-.td-cell.is-setback {
+.td-poly.is-setback {
   stroke-dasharray: 4 5;
 }
 
-.td-cell.is-legal {
+.td-poly.is-legal {
   stroke: #ffd18a;
   stroke-width: 2;
 }
 
-.td-cell.is-focus,
-.td-cell.is-objective,
-.td-cell.is-extract {
+.td-poly.is-focus,
+.td-poly.is-objective,
+.td-poly.is-extract {
   stroke-width: 2.2;
 }
 
@@ -138,9 +138,10 @@
 
 .td-hit {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  min-height: 28px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border-radius: 999px;
   transform: translate(-50%, -50%);
@@ -152,6 +153,10 @@
   box-shadow: 0 0 0 1px rgba(255, 209, 138, 0.45);
 }
 
+.td-hit.is-focus {
+  box-shadow: 0 0 0 2px #ffd18a;
+}
+
 .td-actor {
   position: absolute;
   transform: translate(-50%, -100%);
@@ -161,7 +166,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 0;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .td-actor img,
@@ -214,7 +220,8 @@
   color: #ffb38a;
 }
 
-.td-sr-marks {
+.td-sr-marks,
+.td-sr-status {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -222,9 +229,29 @@
   clip: rect(0 0 0 0);
 }
 
+.td-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.td-recovery p {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.td-recovery button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
 @media (max-width: 720px) {
   .td-stage {
     min-height: 280px;
+  }
+  .td-actor-name {
+    font-size: 11px;
   }
 }
 

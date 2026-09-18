@@ -49,6 +49,39 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 900px) {
+  .app-container {
+    max-width: min(1200px, 100%);
+    box-shadow: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #ffd18a;
+  outline-offset: 2px;
+}
+
+.demo-eval-banner {
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 165, 108, 0.45);
+  background: rgba(20, 14, 10, 0.92);
+  color: #f0e4d5;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.demo-eval-banner.is-compact {
+  margin: 0 12px 8px;
+}
+
+.age-gate-btn:focus-visible {
+  outline: 2px solid #ffd18a;
+  outline-offset: 3px;
 }
 
 /* Placeholder Screen */
@@ -282,6 +315,17 @@ body {
   outline: none;
   background: rgba(222, 44, 44, 0.35);
   box-shadow: 0 0 0 3px rgba(255, 111, 111, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 360px) {

@@ -8,13 +8,15 @@
 .os-shell {
   width: 100%;
   min-height: 100vh;
+  height: 100%;
   background: #050505;
   display: flex;
   flex-direction: column;
   font-family: 'Rajdhani', 'SF Pro Display', -apple-system, sans-serif;
   position: relative;
   overflow-x: hidden;
-  padding-bottom: 100px;
+  overflow-y: auto;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Cinematic background with urban scene */
@@ -52,7 +54,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: max(10px, env(safe-area-inset-top, 0px)) 20px 10px;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
@@ -532,7 +534,7 @@
 /* ============ DOCK ============ */
 .dock {
   position: fixed;
-  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -552,6 +554,8 @@
 .dock-item {
   width: 48px;
   height: 48px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.05);
   display: flex;
@@ -561,12 +565,42 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 0;
 }
 
-.dock-item:hover {
+.dock-item:hover,
+.dock-item:focus-visible {
   background: rgba(255, 50, 50, 0.12);
   border-color: rgba(255, 50, 50, 0.2);
   transform: translateY(-2px);
+}
+
+.app-icon:focus-visible,
+.notification-icon:focus-visible,
+.stat-card:focus-visible,
+.strip-run-cta:focus-visible {
+  outline: 2px solid #ffd18a;
+  outline-offset: 3px;
+}
+
+.notification-icon {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.stat-card.stat-heat,
+.stat-card.stat-morale {
+  appearance: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
 
 /* ============ NOTIFICATION PANEL ============ */

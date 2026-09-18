@@ -469,6 +469,10 @@ const TerritoryMap: React.FC = () => {
             initialAddress={activeBlockAddress}
             autoStartEncounter={responseBlockId === activeBlockId}
             onAutoEncounterStarted={() => setResponseBlockId(null)}
+            mapContext={{
+              status: mapStatus === 'error' ? 'failed' : mapStatus === 'ready' ? 'ready' : 'loading',
+              reason: mapStatus === 'error' ? 'street tiles unavailable' : undefined,
+            }}
           />
         </div>
       )}

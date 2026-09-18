@@ -68,6 +68,22 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Las Olas closed-beta one-path demo artifact (#45)
+
+- Demo evaluation builds now keep the versioned 18+ gate. Acknowledgement is
+  local-only (`slide.age-affirmation.v1`); signed-in persistence stays out of
+  scope. The command desktop and gate identify the build as non-production.
+- STRIP / Block Loop desk uses the existing 1208 Las Olas 2.5D diorama for
+  placement instead of a second color grid. Placement still writes through
+  `blockLoopStore` → `blockStore`. MAP forwards hood `mapStatus` into the
+  Strip as `mapContext`. Extra OPS 3D / Raid / Drugs tabs are hidden on the
+  beta path; Encounter remains the recommended fight.
+- Touch, keyboard, contrast, safe-area, and `prefers-reduced-motion` coverage
+  on the gate, desktop dock, desk, and diorama. 8×8 legal board stays the
+  recovery path if the street plate or scene cannot load.
+- No Supabase migration, RLS, Edge Function, scheduler, secret, payment,
+  Vercel config, or production data change.
+
 ### 2026-09-18 — Cinematic 2.5D Las Olas diorama camera contract (#77)
 
 - The Strip hero block now opens as a cinematic 2.5D oblique street scene

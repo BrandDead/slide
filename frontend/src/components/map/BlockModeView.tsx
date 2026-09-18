@@ -23,6 +23,7 @@ import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import { soundManager } from '../../utils/SoundManager';
 import TopDownBlock from './TopDownBlock';
 import TacticalDiorama from './TacticalDiorama';
+import type { DioramaMapContext } from '../../render/dioramaAdapter';
 import DriveByEngine from '../slide/BlockDriveByEngine';
 import BailModal from '../gang/BailModal';
 import DrugAssignmentPanel from './DrugAssignmentPanel';
@@ -114,6 +115,7 @@ interface BlockModeViewProps {
   /** Open the existing deterministic encounter after a rival-map response. */
   autoStartEncounter?: boolean;
   onAutoEncounterStarted?: () => void;
+  mapContext?: DioramaMapContext | null;
 }
 
 const BlockModeView: React.FC<BlockModeViewProps> = ({
@@ -121,6 +123,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   initialBlockId,
   autoStartEncounter = false,
   onAutoEncounterStarted,
+  mapContext = null,
 }) => {
   const {
     blocks,
@@ -239,7 +242,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         level,
       });
       setShowDeployPanel(false);
-      showToast(`📍 Tap a zone to place ${memberName}`);
+      showToast(`Tap a zone to place ${memberName}`);
       // Tutorial: first member deployed (fires on first successful placement intent)
       completeStep('first_member_deployed');
     },
@@ -325,8 +328,6 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   }
 
   const viewMode: BlockViewMode = block.viewMode ?? 'topdown';
-  // Auto-trigger raid when heat maxes out
-  const isMaxHeat = (block.heat ?? 0) >= 5;
 
   return (
     <div className="block-mode-view">
@@ -334,15 +335,16 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       <div className="bmv-topbar">
         <div className="bmv-address">{block.address}</div>
         <div className="bmv-quick-stats">
-          <span className="bmv-stat income">💰 ${block.pendingIncome}</span>
-          <span className="bmv-stat heat">🔥 {block.heat}/5</span>
-          <span className="bmv-stat morale">❤️ {block.morale}%</span>
+            <span className="bmv-stat income">${block.pendingIncome}</span>
+            <span className="bmv-stat heat">Heat {block.heat}/5</span>
+            <span className="bmv-stat morale">Morale {block.morale}%</span>
         </div>
       </div>
 
       {/* View mode toggle */}
       <div className="bmv-view-tabs">
         <button
+          type="button"
           className={`bmv-tab ${!showLegalBoard && viewMode !== 'drugs' && !showEncounter && !showRaid && !showDriveBy && !showModernOps ? 'active' : ''}`}
           onClick={() => {
             setShowLegalBoard(false);
@@ -356,6 +358,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           Diorama
         </button>
         <button
+          type="button"
           className={`bmv-tab ${showLegalBoard ? 'active' : ''}`}
           onClick={() => {
             setShowLegalBoard(true);
@@ -369,28 +372,11 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           Board
         </button>
         <button
+          type="button"
           className={`bmv-tab ${showEncounter ? 'active danger' : ''}`}
           onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter((v) => !v); }}
         >
-          🎯 Encounter
-        </button>
-        <button
-          className={`bmv-tab ${showModernOps ? 'active danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid(false); setShowModernOps((value) => !value); }}
-        >
-          OPS 3D
-        </button>
-        <button
-          className={`bmv-tab ${showRaid ? 'active danger' : ''} ${isMaxHeat ? 'pulse-danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowModernOps(false); setShowRaid((v) => !v); }}
-        >
-          🚔 Raid{isMaxHeat ? ' !' : ''}
-        </button>
-        <button
-          className={`bmv-tab ${!showDriveBy && viewMode === 'drugs' ? 'active' : ''}`}
-          onClick={() => { setShowDriveBy(false); setBlockViewMode(block.id, 'drugs'); }}
-        >
-          💊 Drugs
+          Encounter
         </button>
       </div>
 
@@ -432,40 +418,36 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         ) : showLegalBoard ? (
           <TopDownBlock block={block} />
         ) : (
-          <TacticalDiorama block={block} />
+          <TacticalDiorama block={block} mapContext={mapContext} />
         )}
       </div>
 
       {/* Action bar */}
       <div className="bmv-action-bar">
         <motion.button
+          type="button"
           className="bmv-btn deploy"
           onClick={() => setShowDeployPanel(true)}
           whileTap={{ scale: 0.95 }}
         >
-          👥 Deploy
+          Deploy
         </motion.button>
         <motion.button
+          type="button"
           className="bmv-btn collect"
           onClick={handleCollect}
           disabled={block.pendingIncome === 0}
           whileTap={{ scale: 0.95 }}
         >
-          💰 Collect ${block.pendingIncome}
+          Collect ${block.pendingIncome}
         </motion.button>
         <motion.button
+          type="button"
           className="bmv-btn slide"
           onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter(true); }}
           whileTap={{ scale: 0.95 }}
         >
-          🎯 Encounter
-        </motion.button>
-        <motion.button
-          className="bmv-btn slide modern-ops-launch"
-          onClick={() => { setShowDriveBy(false); setShowEncounter(false); setShowRaid(false); setShowModernOps(true); }}
-          whileTap={{ scale: 0.95 }}
-        >
-          OPS 3D
+          Encounter
         </motion.button>
       </div>
 

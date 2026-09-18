@@ -43,11 +43,12 @@ describe('BlockLoopDesk', () => {
   it('rejects a street cell and places a curb dealer with a visible income/exposure split', () => {
     render(<BlockLoopDesk />);
     fireEvent.click(screen.getByRole('button', { name: /lock dre and rome/i }));
-    fireEvent.click(screen.getByRole('gridcell', { name: /street 0,0/i }));
+    fireEvent.click(screen.getByRole('button', { name: /street 0,0/i }));
     expect(screen.getByRole('alert').textContent).toMatch(/not deployable|Street and building/i);
     fireEvent.click(screen.getByRole('button', { name: /street-near dre/i }));
     expect(screen.getByText(/Income \$/)).toBeInTheDocument();
     expect(screen.getByText(/exposure 80/i)).toBeInTheDocument();
+    expect(screen.getByRole('application', { name: /1208 las olas/i })).toBeInTheDocument();
   });
 
   it('runs a deal receipt then books a deterministic wound', async () => {
@@ -55,7 +56,7 @@ describe('BlockLoopDesk', () => {
     fireEvent.click(screen.getByRole('button', { name: /lock dre and rome/i }));
     fireEvent.click(screen.getByRole('button', { name: /street-near dre/i }));
     fireEvent.click(screen.getByRole('button', { name: /^shooter$/i }));
-    fireEvent.click(screen.getByRole('gridcell', { name: /storefront 5,3/i }));
+    fireEvent.click(screen.getByRole('button', { name: /storefront 5,3/i }));
     fireEvent.click(screen.getByRole('button', { name: /put river cut on dre/i }));
     fireEvent.click(screen.getByRole('button', { name: /close the deal/i }));
     expect(screen.getAllByText(/Street exposure \+18%/).length).toBeGreaterThan(0);

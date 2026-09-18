@@ -81,4 +81,27 @@ describe('beta gate — core pillars smoke', () => {
       expect(actor!.url).toMatch(/\.webp$/);
     }
   });
+
+  it('compliance: demo evaluation still requires the versioned 18+ storage key', async () => {
+    const { AGE_GATE_STORAGE_KEY, initialAgeAffirmed } = await import('../components/compliance/AgeGate');
+    expect(AGE_GATE_STORAGE_KEY).toBe('slide.age-affirmation.v1');
+    expect(initialAgeAffirmed({ getItem: () => null })).toBe(false);
+  });
+
+  it('loop: demo Las Olas fixture keeps dnaId las-olas-1208', async () => {
+    const { createAuthoritativeLoopBlock } = await import('../game/loop/blockLoopFixture');
+    expect(createAuthoritativeLoopBlock().dnaId).toBe('las-olas-1208');
+  });
+
+  it('diorama: compose stays playable when street tiles failed', async () => {
+    const { composeDioramaScene } = await import('../render/dioramaAdapter');
+    const { createAuthoritativeLoopBlock } = await import('../game/loop/blockLoopFixture');
+    const scene = composeDioramaScene({
+      block: createAuthoritativeLoopBlock(),
+      view: { width: 640, height: 360 },
+      mapContext: { status: 'failed' },
+    });
+    expect(scene.playable).toBe(true);
+    expect(scene.mapNotice).toMatch(/optional/i);
+  });
 });
