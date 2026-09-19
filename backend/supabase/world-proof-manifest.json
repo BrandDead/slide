@@ -26,6 +26,11 @@
       "source": "migrations/006_authoritative_world_integrity_hardening.sql",
       "target": "20260905000400_authoritative_world_integrity_hardening.sql",
       "reason": "Adds bounded encounter deltas and stale-projection protection required by the proof."
+    },
+    {
+      "source": "migrations/007_staging_saved_game_security_hardening.sql",
+      "target": "20260905000500_staging_saved_game_security_hardening.sql",
+      "reason": "Closes public-schema RLS, client-grant, policy-role, and security-definer search-path findings before authenticated saved-game work uses the isolated staging target."
     }
   ],
   "excluded_legacy_migrations": [

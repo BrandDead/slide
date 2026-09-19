@@ -68,6 +68,34 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-18 — Staging saved-game security hardening prepared
+
+- The confirmed isolated target `dealt-world-proof-staging` (`zfgclgnyqlabttymxwuw`)
+  completed a **read-only** reconciliation after the original authoritative-world
+  proof. It found RLS/grant hygiene issues on optional Block-mode support tables;
+  `world_ticks` and `payment_events` had
+  implicit service-only behavior; several player/world policies were scoped to
+  `public`; and security-definer helpers had mutable search paths or broad grants.
+- The additive source migration `007_staging_saved_game_security_hardening.sql` and
+  offline contract test are prepared on `fix/45-staging-rls-grant-hardening`. The
+  migration is listed in the non-production proof manifest but has **not** been
+  applied remotely. It makes game-owned optional map tables and operational ledgers
+  service-only, moves player/world browser reads to explicit authenticated role
+  policies, removes broad direct durable writes, and fixes intended function
+  grants/search paths. The PostGIS `spatial_ref_sys` advisor warning is retained for
+  a separate extension-schema compatibility plan; this migration does not risk
+  breaking spatial functions by changing extension-owned table access. The Auth-owned
+  `handle_new_user()` trigger gets a fixed search path, but its grant remains unchanged
+  until the staging signup smoke test confirms that narrowing it cannot break profile
+  creation.
+- Before any authenticated saved-game connection, a reviewer must approve the PR.
+  The Supabase operator must then apply it only to staging and perform the documented
+  two-user RLS smoke test plus advisor rerun. The legacy public-profile and
+  leaderboard helpers are not a live saved-game contract; a separate safe public
+  projection is required before opponent discovery relies on remote data.
+- No production project, data, Auth/Vercel setting, Edge Function, scheduler,
+  payment activation, secret, or real-address workflow changed.
+
 ### 2026-09-18 — Closed-beta demo ledger account isolation (#45)
 
 - The local Las Olas Block Loop ledger is now explicitly an evaluation-build
