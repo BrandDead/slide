@@ -288,8 +288,8 @@ $$;
 -- Auth smoke test proves the trigger execution context under the target stack.
 REVOKE ALL ON FUNCTION public.get_economy_summary(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_economy_summary(UUID) TO authenticated, service_role;
-REVOKE ALL ON FUNCTION public.get_leaderboard(INT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_leaderboard(INT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO service_role;
 
 -- The canonical entitlement names are billing_products and entitlements.
 -- No billing products are activated and no payment path is enabled here.

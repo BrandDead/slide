@@ -129,8 +129,8 @@ class StagingSecurityHardeningContracts(unittest.TestCase):
         self.assertIn("COALESCE(auth.role(), '') <> 'service_role'", self.sql)
         self.assertIn("REVOKE ALL ON FUNCTION public.get_economy_summary(UUID) FROM PUBLIC, anon;", self.sql)
         self.assertIn("GRANT EXECUTE ON FUNCTION public.get_economy_summary(UUID) TO authenticated, service_role;", self.sql)
-        self.assertIn("REVOKE ALL ON FUNCTION public.get_leaderboard(INT) FROM PUBLIC, anon;", self.sql)
-        self.assertIn("GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO authenticated, service_role;", self.sql)
+        self.assertIn("REVOKE ALL ON FUNCTION public.get_leaderboard(INT) FROM PUBLIC, anon, authenticated;", self.sql)
+        self.assertIn("GRANT EXECUTE ON FUNCTION public.get_leaderboard(INT) TO service_role;", self.sql)
 
     def test_entitlement_tables_use_the_canonical_repository_names(self) -> None:
         self.assertIn("public.billing_products", self.sql)
