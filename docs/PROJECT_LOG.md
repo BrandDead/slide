@@ -108,10 +108,10 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - `createRetryableLazy` remounts a fresh import on Retry (React caches rejected
   `React.lazy` thenables). Diorama fallback is loop-aware: `TopDownBlock`
   calls `useBlockLoopStore.place` so Dre/Rome can be placed when the scene fails.
-- Preserved PR #147 tutorial-hint suppression on `block_loop` while App.tsx
-  was edited (PR #147 still open at branch time).
-- Rebased onto `main-tL2525` after PR #149; demo-ledger account isolation is
-  retained unchanged.
+- Preserved PR #147 tutorial-hint suppression on `block_loop` (absorbed into
+  this branch; #147 closed as superseded during Phase 0 reconcile).
+- Phase 0 rebase onto `main-tL2525` @ `ab61e2d` (includes #149 ledger guard
+  and #150 staging hardening entry). Demo-ledger account isolation unchanged.
 - No gameplay, payout, heat, seed, persistence, Supabase, or Vercel changes.
 
 ### 2026-09-18 — Mobile Strip action clearance repair (#45)
