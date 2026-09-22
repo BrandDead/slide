@@ -100,6 +100,11 @@ export function applyDemoSeed(): void {
   const DEMO_IDS = new Set([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
 
   // ── 2. Player ─────────────────────────────────────────────
+  // Preserve earned progress (level/XP) if the demo player has advanced beyond seed defaults
+  const currentPlayer = playerStore.player;
+  const hasProgress = currentPlayer.id === 'demo-player' && 
+    (currentPlayer.level > 3 || currentPlayer.xp !== 240);
+
   playerStore.updatePlayer({
     id: 'demo-player',
     username: 'Demo Boss',
@@ -107,8 +112,9 @@ export function applyDemoSeed(): void {
     money: 12000,
     bankBalance: 5000,
     heat: 5,
-    level: 3,
-    xp: 240,
+    level: hasProgress ? currentPlayer.level : 3,
+    xp: hasProgress ? currentPlayer.xp : 240,
+    xpToNextLevel: hasProgress ? currentPlayer.xpToNextLevel : undefined,
     gangName: 'The Demo Crew',
     gangColor: '#dc2626',
     gangProfile: {
