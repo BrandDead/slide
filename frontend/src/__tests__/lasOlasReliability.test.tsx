@@ -130,10 +130,10 @@ describe('Las Olas reliability — Map Failures & Fallback Placement', () => {
   it('accepts placement without WebGL context (canvas 2D fallback)', () => {
     // Simulate no WebGL
     const originalGetContext = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = vi.fn((type) => {
+    HTMLCanvasElement.prototype.getContext = vi.fn((type: string, ...args: any[]) => {
       if (type === 'webgl' || type === 'webgl2') return null;
-      return originalGetContext.call(this, type);
-    });
+      return originalGetContext.call(this as any, type, ...args);
+    }) as typeof originalGetContext;
 
     const loop = runLoopCommands([
       { type: 'select-crew', dealerId: BLOCK_LOOP_IDS.dealerId, shooterId: BLOCK_LOOP_IDS.shooterId },
