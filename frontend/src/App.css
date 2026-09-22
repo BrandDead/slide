@@ -338,3 +338,44 @@ body {
     font-size: 15px;
   }
 }
+
+/* Route-level lazy load failure — keep recovery visible without blank frames */
+.route-load-error {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  min-height: 160px;
+  background: linear-gradient(180deg, #12141a 0%, #0a0b0e 100%);
+  color: #e8e6e3;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.route-load-error__detail {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #a8a29e;
+  word-break: break-word;
+}
+
+.route-load-error__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.route-load-error__actions button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #1c1f26;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-load-error__actions button:focus-visible {
+  outline: 2px solid #f5f5f4;
+  outline-offset: 2px;
+}

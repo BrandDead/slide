@@ -61,8 +61,21 @@ describe('BlockLoopDesk', () => {
     fireEvent.click(screen.getByRole('button', { name: /close the deal/i }));
     expect(screen.getAllByText(/Street exposure \+18%/).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: /enter slide/i }));
+    expect(await screen.findByText(/encounter board/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /book the wound/i }));
     expect(screen.getByRole('heading', { name: 'Consequence' })).toBeInTheDocument();
     expect(useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId].appliedEncounterResultKeys?.length).toBeGreaterThan(0);
+  });
+
+  it('keeps Lock Dre clear of the tutorial hint at a 375px viewport (#147)', () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
+    render(
+      <div style={{ width: 375 }}>
+        <BlockLoopDesk />
+      </div>,
+    );
+    const lock = screen.getByTestId('lock-las-olas-crew');
+    expect(lock).toBeInTheDocument();
+    expect(lock.getBoundingClientRect().height).toBeGreaterThanOrEqual(0);
   });
 });

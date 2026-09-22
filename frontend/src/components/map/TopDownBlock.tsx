@@ -83,6 +83,9 @@ const ZoneCell: React.FC<ZoneCellProps> = ({
   onClick,
 }) => {
   const roleColor = placement ? ROLE_COLORS[placement.role] ?? '#fff' : undefined;
+  const cellLabel = `${zone.zoneType} ${zone.x},${zone.y}${
+    placement ? ` held by ${placement.memberName}` : ''
+  }`;
 
   return (
     <motion.div
@@ -96,6 +99,9 @@ const ZoneCell: React.FC<ZoneCellProps> = ({
         .filter(Boolean)
         .join(' ')}
       style={{ backgroundColor: ZONE_COLORS[zone.zoneType] }}
+      role={zone.passable ? 'button' : undefined}
+      aria-label={zone.passable ? cellLabel : undefined}
+      aria-disabled={!zone.passable}
       onClick={() => zone.passable && onClick(zone)}
       whileHover={zone.passable ? { scale: 1.05, zIndex: 10 } : {}}
       whileTap={zone.passable ? { scale: 0.97 } : {}}
@@ -166,6 +172,12 @@ interface TopDownBlockProps {
   onMemberClick?: (placement: BlockPlacement) => void;
   onZoneClick?: (zone: BlockZone) => void;
   readOnly?: boolean;
+  /**
+   * Closed-beta / loop-controlled placement. When set with placingMemberId,
+   * cell clicks call onPlace instead of mutating the global blockStore.
+   */
+  onPlace?: (col: number, row: number) => void;
+  placingMemberId?: string | null;
 }
 
 const TopDownBlock: React.FC<TopDownBlockProps> = ({
@@ -173,6 +185,8 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
   onMemberClick,
   onZoneClick,
   readOnly = false,
+  onPlace,
+  placingMemberId = null,
 }) => {
   React.useEffect(() => {
     preloadActors(
@@ -195,6 +209,7 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
 
   const [selectedZone, setSelectedZone] = useState<BlockZone | null>(null);
   const [tooltip, setTooltip] = useState<string | null>(null);
+  const loopControlled = Boolean(onPlace && placingMemberId);
 
   const getPlacementAt = useCallback(
     (x: number, y: number) => block.placements.find((p) => p.x === x && p.y === y),
@@ -206,6 +221,14 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
       if (readOnly) return;
 
       const existing = getPlacementAt(zone.x, zone.y);
+
+      // Loop desk / diorama recovery: placement ownership stays on the caller.
+      if (onPlace && placingMemberId) {
+        if (zone.passable) {
+          onPlace(zone.x, zone.y);
+        }
+        return;
+      }
 
       // If we have a member pending placement
       if (isPlacementMode && pendingPlacementMemberId) {
@@ -254,6 +277,8 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
     },
     [
       readOnly,
+      onPlace,
+      placingMemberId,
       isPlacementMode,
       pendingPlacementMemberId,
       pendingPlacementMember,
@@ -306,7 +331,8 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
             const placement = getPlacementAt(x, y);
             const isSelected =
               selectedZone?.x === x && selectedZone?.y === y;
-            const isPendingTarget = isPlacementMode && !!pendingPlacementMemberId;
+            const isPendingTarget =
+              (isPlacementMode && !!pendingPlacementMemberId) || loopControlled;
             return (
               <ZoneCell
                 key={`${x}-${y}`}
@@ -390,7 +416,7 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
 
       {/* Placement mode banner */}
       <AnimatePresence>
-        {isPlacementMode && (
+        {(isPlacementMode || loopControlled) && (
           <motion.div
             className="td-placement-banner"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -398,7 +424,9 @@ const TopDownBlock: React.FC<TopDownBlockProps> = ({
             exit={{ opacity: 0, scale: 0.95 }}
           >
             <span>📍 Tap a zone to place member</span>
-            <button onClick={() => setPlacementMode(false)}>Cancel</button>
+            {isPlacementMode && !loopControlled && (
+              <button onClick={() => setPlacementMode(false)}>Cancel</button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -27,6 +27,8 @@ import { attackableNearby, buildNearbyRecon, rankThreats, recommendHit, type Rec
 import { computeEmpirePnl } from '../../utils/shoeboxAnalytics';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import type { BlockZone, MemberRole } from '../../types/block.types';
+import { blocksApi } from '../../services/api.service';
+import { apiBlockToBlockData, withClaimBackdrop } from '../../utils/blockMappers';
 import './TerritoryMap.css';
 import './EmpireCommandBar.css';
 import './MapsChrome.css';
@@ -157,8 +159,6 @@ const TerritoryMap: React.FC = () => {
     }
 
     try {
-      const { blocksApi } = await import('../../services/api.service');
-      const { apiBlockToBlockData, withClaimBackdrop } = await import('../../utils/blockMappers');
       const result = await blocksApi.claim({
         address,
         coordinates: { lat, lng },
