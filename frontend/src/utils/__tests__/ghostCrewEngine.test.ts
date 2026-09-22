@@ -11,6 +11,7 @@ import {
   addGrudge,
   ghostClaimCost,
   ghostBlockIncome,
+  fictionalBlockLabel,
   validateGhostCrewState,
   GHOST_ATTACK_COST,
   type GhostAction,
@@ -346,6 +347,17 @@ describe('buildGhostBlock', () => {
     expect(block.grid[0][0].coverScore).toBe(
       Math.max(0, Math.min(1, Number((canonical[0][0].coverScore + dna.globalCoverBonus).toFixed(2)))),
     );
+  });
+});
+
+describe('fictional player-facing block labels', () => {
+  it('uses the DNA display name instead of exposing the raw address', () => {
+    const target = playerBlock('demo-block-las-olas', 'las-olas-1208');
+    target.address = '1208 W Las Olas Blvd, Fort Lauderdale';
+
+    expect(fictionalBlockLabel(target)).toBe('1208 Las Olas');
+    expect(fictionalBlockLabel(target)).not.toContain('Fort Lauderdale');
+    expect(fictionalBlockLabel(target)).not.toContain('W Las Olas Blvd');
   });
 });
 

@@ -364,6 +364,14 @@ export function buildGhostBlock(crew: GhostCrew, dna: BlockDNA): BlockData {
   };
 }
 
+/** Return a player-facing block identity without exposing raw geocoded addresses. */
+export function fictionalBlockLabel(block: BlockData): string {
+  const dnaName = block.dnaId
+    ? BLOCK_DNA_LIBRARY.find((dna) => dna.id === block.dnaId)?.name
+    : undefined;
+  return dnaName ?? 'the player block';
+}
+
 // ─── Decision loop ───────────────────────────────────────────
 
 /**
@@ -433,13 +441,14 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
       };
     }
     const target = ctx.playerBlocks[Math.floor(trace.targetRoll * ctx.playerBlocks.length)];
+    const targetLabel = fictionalBlockLabel(target);
     return {
       ...base,
       type: 'attack',
       targetBlockId: target.id,
-      targetBlockName: target.address,
+      targetBlockName: targetLabel,
       threatensPlayer: true,
-      description: `${crew.name} is coming for ${target.address} — payback for the last hit.`,
+      description: `${crew.name} is coming for ${targetLabel} — payback for the last hit.`,
       reason: 'grudge-retaliation',
     };
   }
@@ -468,13 +477,14 @@ export function decideGhostAction(crew: GhostCrew, ctx: GhostTickContext): Ghost
     roll * 100 < p.aggression * (1 - p.caution / 200);
   if (wantsRaid) {
     const target = ctx.playerBlocks[Math.floor(trace.targetRoll * ctx.playerBlocks.length)];
+    const targetLabel = fictionalBlockLabel(target);
     return {
       ...base,
       type: 'attack',
       targetBlockId: target.id,
-      targetBlockName: target.address,
+      targetBlockName: targetLabel,
       threatensPlayer: true,
-      description: `${crew.name} is probing ${target.address}.`,
+      description: `${crew.name} is probing ${targetLabel}.`,
       reason: 'opportunistic-pressure',
     };
   }
