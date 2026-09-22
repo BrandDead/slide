@@ -102,7 +102,7 @@ export function applyDemoSeed(): void {
   // ── 2. Player ─────────────────────────────────────────────
   // Preserve earned progress (level/XP) if the demo player has advanced beyond seed defaults
   const currentPlayer = playerStore.player;
-  const hasProgress = currentPlayer.id === 'demo-player' && 
+  const hasProgress = currentPlayer.id === 'demo-player' &&
     (currentPlayer.level > 3 || currentPlayer.xp !== 240);
 
   playerStore.updatePlayer({

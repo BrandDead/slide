@@ -217,7 +217,7 @@ describe('Idempotency — Hospital & Recovery', () => {
 
     // Ensure player has enough money and there's a wounded member
     const wealthy = { ...loop, money: 5000 };
-    
+
     if (!wealthy.recovery) {
       // If no recovery needed, skip this test
       expect(wealthy.recovery).toBeDefined();
@@ -259,7 +259,7 @@ describe('Idempotency — Hospital & Recovery', () => {
 
   it('rest option does not duplicate morale penalty on repeated calls', () => {
     const loop = setupLoopToPhase('consequence');
-    
+
     if (!loop.recovery) {
       expect(loop.recovery).toBeDefined();
       return;
@@ -273,7 +273,7 @@ describe('Idempotency — Hospital & Recovery', () => {
     expect(moneyAfterFirst).toBe(loop.money); // No cost
 
     const second = reduceLoop(first, { type: 'recover', pay: false });
-    
+
     // Money and morale should remain unchanged
     expect(second.money).toBe(moneyAfterFirst);
     expect(second.block.morale).toBe(moraleAfterFirst);
@@ -379,7 +379,7 @@ describe('Idempotency — Failed Operation Retry Safety', () => {
     expect(retried.money).toBe(moneyAfterFail);
     expect(retried.block.heat).toBe(heatAfterFail);
     expect(retried.economyKeys).toEqual(failed.economyKeys);
-    
+
     const dealer = retried.members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId);
     expect(dealer?.health).toBe(0);
   });
@@ -389,7 +389,7 @@ describe('Idempotency — Failed Operation Retry Safety', () => {
     const result = seededLoopEncounter(loop);
 
     const failed = reduceLoop(loop, { type: 'apply-encounter', result, healthWrite: 'failed' });
-    
+
     // Try to apply the same result again (should reject because economy key exists)
     const duplicate = reduceLoop(failed, { type: 'apply-encounter', result });
 
@@ -463,7 +463,7 @@ describe('Idempotency — Placement and Assignment', () => {
 
   it('duplicate product assignment replaces previous assignment', () => {
     const loop = setupLoopToPhase('placement');
-    
+
     const first = reduceLoop(loop, {
       type: 'assign-product',
       dealerId: BLOCK_LOOP_IDS.dealerId,
