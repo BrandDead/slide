@@ -138,18 +138,54 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
     if (!generatedAsset) return;
     try {
       const approved = await avatarGenerationService.approve(generatedAsset.id);
-      // Add to gang roster
-      addMember({
+      
+      // Build MemberVisualProfile from generated assets
+      const visualProfile: import('../../types/game.types').MemberVisualProfile = {
+        visualProfileId: approved.id,
+        version: Date.now(),
+        portrait: approved.portraitUrl,
+        fullBody: approved.fullbodyUrl,
+        topDown: approved.topdownUrl,
+        fallbackSilhouetteRole: selectedRole,
+      };
+      
+      // Add to gang roster with properly typed member
+      const newMember: Partial<import('../../types/game.types').GangMember> & Required<Pick<import('../../types/game.types').GangMember, 'id' | 'gangId' | 'name' | 'nickname' | 'avatarUrl' | 'backstory' | 'age' | 'region' | 'stats' | 'level' | 'experience' | 'skillPoints' | 'skills' | 'loyalty' | 'morale' | 'respect' | 'kills' | 'arrests' | 'dealsCompleted' | 'moneyEarned' | 'status' | 'currentAssignment' | 'joinedAt'>> = {
         id: approved.id,
+        gangId: 'player-gang', // TODO: get from context
         name: `${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} (Custom)`,
-        role: selectedRole,
+        nickname: approved.id.slice(0, 8),
+        avatarUrl: approved.portraitUrl ?? '/assets/fallback-avatar.png',
+        backstory: 'Custom member created from photo',
+        age: 25,
+        region: 'miami',
+        stats: {
+          strength: 50,
+          agility: 50,
+          intelligence: 50,
+          charisma: 50,
+          luck: 50,
+          intimidation: 50,
+        },
         level: 1,
-        status: 'active',
+        experience: 0,
+        skillPoints: 0,
+        skills: [],
         loyalty: 80,
-        portraitUrl: approved.portraitUrl,
-        fullbodyUrl: approved.fullbodyUrl,
-        topdownUrl: approved.topdownUrl,
-      } as any);
+        morale: 80,
+        respect: 50,
+        kills: 0,
+        arrests: 0,
+        dealsCompleted: 0,
+        moneyEarned: 0,
+        status: 'active',
+        currentAssignment: null,
+        joinedAt: new Date().toISOString(),
+        role: selectedRole,
+        visualProfile,
+      };
+      
+      addMember(newMember);
       onApproved?.(approved.id);
       onClose();
     } catch (err: any) {
