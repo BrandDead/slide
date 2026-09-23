@@ -86,6 +86,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
   source-only service-role leaderboard restriction after the browser compatibility fix.
   Applying it still requires a named non-production target, dry run, two-user RLS/advisor
   verification, and separate production approval.
+- The default-branch rule now requires the repository's `Frontend (lint + build)` and
+  `Backend (pytest)` checks and requires review conversations to be resolved. Strict
+  up-to-date checks and admin enforcement remain enabled; force pushes and branch deletion
+  remain disabled. No approval-count rule was added, so the solo-maintainer workflow is
+  not locked behind a second human account.
 
 ### 2026-09-23 — Legacy leaderboard browser path deferred safely (#156)
 
