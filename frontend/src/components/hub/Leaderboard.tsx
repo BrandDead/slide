@@ -13,7 +13,7 @@ import './Leaderboard.css';
 // ─── Types ───────────────────────────────────────────────────
 
 interface LeaderboardEntry {
-  rank: number;
+  rank: number | null;
   owner_id: string;
   username: string | null;
   gang_name: string | null;
@@ -56,18 +56,17 @@ const Leaderboard: React.FC = () => {
 
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('total_income');
-  const [playerRank, setPlayerRank] = useState<number | null>(null);
 
   const fetchLeaderboard = useCallback(() => {
     setIsLoading(true);
-    setError(null);
+    setNotice('Global rankings are temporarily unavailable while a secure public leaderboard is being built.');
 
     const playerBlocks = Object.values(blocks).filter(b => b.owner === 'player');
     if (playerBlocks.length > 0) {
       const localEntry: LeaderboardEntry = {
-        rank:         1,
+        rank:         null,
         owner_id:     player?.id ?? 'local',
         username:     player?.username ?? 'You',
         gang_name:    player?.gangName ?? 'Your Gang',
@@ -77,11 +76,8 @@ const Leaderboard: React.FC = () => {
         avg_morale:   Math.round(playerBlocks.reduce((s, b) => s + (b.morale ?? 80), 0) / playerBlocks.length),
       };
       setEntries([localEntry]);
-      setPlayerRank(1);
     } else {
       setEntries([]);
-      setPlayerRank(null);
-      setError('Global rankings are unavailable until a secure public leaderboard service is available.');
     }
 
     setIsLoading(false);
@@ -108,17 +104,27 @@ const Leaderboard: React.FC = () => {
           <span className="lb-title-icon">🏆</span>
           <span className="lb-title-text">LEADERBOARD</span>
         </div>
-        <motion.button className="lb-refresh" onClick={fetchLeaderboard} whileTap={{ scale: 0.9 }}>
+        <motion.button
+          className="lb-refresh"
+          onClick={fetchLeaderboard}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Refresh local snapshot"
+        >
           🔄
         </motion.button>
       </div>
 
-      {/* Player rank banner */}
-      {playerRank !== null && (
+      {/* Local snapshot banner — this is not a global ordinal ranking. */}
+      {entries.length > 0 && (
         <div className="lb-player-rank">
-          <span className="lb-pr-label">Your Rank</span>
-          <span className="lb-pr-rank">#{playerRank}</span>
+          <span className="lb-pr-label">Local Snapshot</span>
           <span className="lb-pr-gang">{player?.gangName ?? 'Your Gang'}</span>
+        </div>
+      )}
+
+      {notice && !isLoading && (
+        <div className="lb-error" role="status">
+          <span>ⓘ {notice}</span>
         </div>
       )}
 
@@ -148,14 +154,7 @@ const Leaderboard: React.FC = () => {
           </div>
         )}
 
-        {error && !isLoading && (
-          <div className="lb-error">
-            <span>⚠️ {error}</span>
-            <button onClick={fetchLeaderboard}>Retry</button>
-          </div>
-        )}
-
-        {!isLoading && !error && sorted.length === 0 && (
+        {!isLoading && sorted.length === 0 && (
           <div className="lb-empty">
             <span className="lb-empty-icon">🏜️</span>
             <span>No empires yet. Be the first to claim a block.</span>
@@ -165,7 +164,9 @@ const Leaderboard: React.FC = () => {
         <AnimatePresence>
           {!isLoading && sorted.map((entry, i) => {
             const isMe = entry.owner_id === player?.id;
-            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+            const medal = entry.rank === null
+              ? null
+              : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
 
             return (
               <motion.div
@@ -177,7 +178,9 @@ const Leaderboard: React.FC = () => {
               >
                 {/* Rank */}
                 <div className="lb-rank">
-                  {medal ?? <span className="lb-rank-num">#{entry.rank}</span>}
+                  {entry.rank === null
+                    ? <span className="lb-rank-num">LOCAL</span>
+                    : medal ?? <span className="lb-rank-num">#{entry.rank}</span>}
                 </div>
 
                 {/* Gang info */}
