@@ -68,6 +68,22 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-23 — Legacy leaderboard browser path deferred safely (#156)
+
+- The browser no longer calls the legacy `public.get_leaderboard(INT)` security-
+  definer RPC. Until a separately reviewed public projection or trusted server endpoint
+  exists, the Hub shows only an explicit **Local Snapshot** built from the current
+  block store; it never labels that single-player snapshot as a global `#1` rank.
+- Rendered regressions cover both the local-row and empty states, while a source-boundary
+  contract prevents the privileged RPC call from returning to frontend code. No service-
+  role secret, remote SQL, RLS, Edge Function, Auth setting, Vercel setting, or production
+  data changed.
+- Rollout order is client compatibility first, then rebase/revalidate PR #151's source-
+  only service-role grant patch, then an explicitly approved staging-only migration and
+  role smoke test. Before migration 007 is applied, either PR can be reverted alone. After
+  application, restoring the browser caller without also restoring a safe grant or trusted
+  endpoint is forbidden because it would knowingly ship a broken path.
+
 ### 2026-09-23 — Fresh demo XP threshold stabilization (#158)
 
 - The merged Phase 1 proof preserved earned demo level and XP across reloads, but its

@@ -84,9 +84,12 @@ Use `requestAnimationFrame` for the render loop. Handle click events on the canv
 
 ---
 
-## Task 2: Global Leaderboard
+## Task 2: Global Leaderboard (future safe projection)
 
-We need a global leaderboard to show the top criminal empires.
+We may later add a global leaderboard to show the top criminal empires. The legacy
+`public.get_leaderboard(INT)` RPC is service-role only and must not be called from
+browser code. Phase 1 therefore uses local block-store data until a separately
+reviewed authenticated backend or restricted public projection exists.
 
 ### Context: Database Schema
 
@@ -102,17 +105,19 @@ CREATE TABLE blocks (
 );
 ```
 
-### What you need to write:
+### Future implementation requirements:
 
-1. **Supabase RPC (SQL):** Write a Supabase PostgreSQL function `get_leaderboard()` that aggregates data from the `blocks` table grouped by `owner_id`. It should return:
+1. **Safe backend projection:** If a global leaderboard is approved, expose it through a reviewed read-only backend or restricted public projection. Never put a service-role key in frontend code, and do not restore browser execution for the legacy RPC.
+
+2. **Supabase RPC (SQL):** If a new projection is required, write a separately named and security-reviewed Supabase PostgreSQL function that aggregates data from the `blocks` table grouped by `owner_id`. It should return only approved public fields:
    - `owner_id`
    - `total_blocks` (count of blocks owned)
    - `total_income` (sum of base_income)
    - `max_heat` (max of block_heat)
    Order the results descending by `total_income`.
 
-2. **React Component:** Write `frontend/src/components/hub/Leaderboard.tsx`.
-   - It should fetch data using `supabase.rpc('get_leaderboard')`.
+3. **React Component:** Update `frontend/src/components/hub/Leaderboard.tsx` only after the backend projection is approved.
+   - Until then, keep the Phase 1 local-only implementation.
    - Display the data in a clean, dark-themed, luxury-noir styled table using TailwindCSS.
    - Include a loading state and handle empty results.
 

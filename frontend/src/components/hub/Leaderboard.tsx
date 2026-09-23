@@ -1,7 +1,6 @@
 // ============================================================
 // Leaderboard — Global rankings by income, blocks, heat
-// Fetches from Supabase get_leaderboard() RPC.
-// Falls back to local block store data when offline.
+// Phase 1 uses local block-store data until a safe public projection exists.
 // Sprint: mobile-leaderboard-onboarding-batch4
 // ============================================================
 
@@ -14,7 +13,7 @@ import './Leaderboard.css';
 // ─── Types ───────────────────────────────────────────────────
 
 interface LeaderboardEntry {
-  rank: number;
+  rank: number | null;
   owner_id: string;
   username: string | null;
   gang_name: string | null;
@@ -57,59 +56,31 @@ const Leaderboard: React.FC = () => {
 
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('total_income');
-  const [playerRank, setPlayerRank] = useState<number | null>(null);
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(() => {
     setIsLoading(true);
-    setError(null);
+    setNotice('Global rankings are temporarily unavailable while a secure public leaderboard is being built.');
 
-    try {
-      // Dynamic import to avoid crashing when Supabase is not configured
-      const { supabase } = await import('../../services/supabase');
-      const { data, error: rpcError } = await (supabase as any).rpc('get_leaderboard', { limit_count: 50 });
-
-      if (rpcError) throw rpcError;
-
-      const rows: LeaderboardEntry[] = (data ?? []).map((row: any) => ({
-        rank:          Number(row.rank),
-        owner_id:      row.owner_id,
-        username:      row.username ?? 'Unknown',
-        gang_name:     row.gang_name ?? 'No Gang',
-        total_blocks:  Number(row.total_blocks),
-        total_income:  Number(row.total_income),
-        max_heat:      Number(row.max_heat),
-        avg_morale:    Number(row.avg_morale),
-      }));
-
-      setEntries(rows);
-
-      // Find current player's rank
-      const myEntry = rows.find(r => r.owner_id === player?.id);
-      setPlayerRank(myEntry?.rank ?? null);
-    } catch {
-      // Fallback: build leaderboard from local block store
-      const playerBlocks = Object.values(blocks).filter(b => b.owner === 'player');
-      if (playerBlocks.length > 0) {
-        const localEntry: LeaderboardEntry = {
-          rank:         1,
-          owner_id:     player?.id ?? 'local',
-          username:     player?.username ?? 'You',
-          gang_name:    player?.gangName ?? 'Your Gang',
-          total_blocks: playerBlocks.length,
-          total_income: playerBlocks.reduce((s, b) => s + b.incomePerTick, 0),
-          max_heat:     Math.max(...playerBlocks.map(b => b.heat * 20)),
-          avg_morale:   Math.round(playerBlocks.reduce((s, b) => s + (b.morale ?? 80), 0) / playerBlocks.length),
-        };
-        setEntries([localEntry]);
-        setPlayerRank(1);
-      } else {
-        setError('Connect to the internet to load the global leaderboard.');
-      }
-    } finally {
-      setIsLoading(false);
+    const playerBlocks = Object.values(blocks).filter(b => b.owner === 'player');
+    if (playerBlocks.length > 0) {
+      const localEntry: LeaderboardEntry = {
+        rank:         null,
+        owner_id:     player?.id ?? 'local',
+        username:     player?.username ?? 'You',
+        gang_name:    player?.gangName ?? 'Your Gang',
+        total_blocks: playerBlocks.length,
+        total_income: playerBlocks.reduce((s, b) => s + b.incomePerTick, 0),
+        max_heat:     Math.max(...playerBlocks.map(b => b.heat * 20)),
+        avg_morale:   Math.round(playerBlocks.reduce((s, b) => s + (b.morale ?? 80), 0) / playerBlocks.length),
+      };
+      setEntries([localEntry]);
+    } else {
+      setEntries([]);
     }
+
+    setIsLoading(false);
   }, [player, blocks]);
 
   useEffect(() => {
@@ -133,17 +104,27 @@ const Leaderboard: React.FC = () => {
           <span className="lb-title-icon">🏆</span>
           <span className="lb-title-text">LEADERBOARD</span>
         </div>
-        <motion.button className="lb-refresh" onClick={fetchLeaderboard} whileTap={{ scale: 0.9 }}>
+        <motion.button
+          className="lb-refresh"
+          onClick={fetchLeaderboard}
+          whileTap={{ scale: 0.9 }}
+          aria-label="Refresh local snapshot"
+        >
           🔄
         </motion.button>
       </div>
 
-      {/* Player rank banner */}
-      {playerRank !== null && (
+      {/* Local snapshot banner — this is not a global ordinal ranking. */}
+      {entries.length > 0 && (
         <div className="lb-player-rank">
-          <span className="lb-pr-label">Your Rank</span>
-          <span className="lb-pr-rank">#{playerRank}</span>
+          <span className="lb-pr-label">Local Snapshot</span>
           <span className="lb-pr-gang">{player?.gangName ?? 'Your Gang'}</span>
+        </div>
+      )}
+
+      {notice && !isLoading && (
+        <div className="lb-error" role="status">
+          <span>ⓘ {notice}</span>
         </div>
       )}
 
@@ -173,14 +154,7 @@ const Leaderboard: React.FC = () => {
           </div>
         )}
 
-        {error && !isLoading && (
-          <div className="lb-error">
-            <span>⚠️ {error}</span>
-            <button onClick={fetchLeaderboard}>Retry</button>
-          </div>
-        )}
-
-        {!isLoading && !error && sorted.length === 0 && (
+        {!isLoading && sorted.length === 0 && (
           <div className="lb-empty">
             <span className="lb-empty-icon">🏜️</span>
             <span>No empires yet. Be the first to claim a block.</span>
@@ -190,7 +164,9 @@ const Leaderboard: React.FC = () => {
         <AnimatePresence>
           {!isLoading && sorted.map((entry, i) => {
             const isMe = entry.owner_id === player?.id;
-            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+            const medal = entry.rank === null
+              ? null
+              : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
 
             return (
               <motion.div
@@ -202,7 +178,9 @@ const Leaderboard: React.FC = () => {
               >
                 {/* Rank */}
                 <div className="lb-rank">
-                  {medal ?? <span className="lb-rank-num">#{entry.rank}</span>}
+                  {entry.rank === null
+                    ? <span className="lb-rank-num">LOCAL</span>
+                    : medal ?? <span className="lb-rank-num">#{entry.rank}</span>}
                 </div>
 
                 {/* Gang info */}
