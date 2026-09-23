@@ -33,11 +33,13 @@ Gate for shipping a build to outside testers. Check every box; a "no" blocks rel
 
 ## Known deferrals (explicitly NOT in this beta)
 - Multiplayer / real PvP (ghost crews stand in — #81)
-- Full Block DNA library at 30–40 cards (currently 17 — #80)
 - Lookout/driver street-aim/fire art (idle + fullbody shipped — #78)
 - Mapbox as the combat foundation (selection/recon only — #80)
 - Payments/monetization P0s — see `docs/MVP_STATUS_AND_DEV_PLAN_2026-07-16.md`
 
+The planned Block DNA catalog is no longer deferred: PR #144 completed the 40-card fictional library. This does not by itself prove every card's production art or external-beta balance.
+
 ## Rollback
-- [ ] `backup/pre-pr76` branch intact as the rollback anchor
-- [ ] Release tag created and logged in `docs/PROJECT_LOG.md`
+- [ ] Exact release-candidate commit recorded before deployment
+- [ ] Annotated release tag created, pushed, and logged in `docs/PROJECT_LOG.md`
+- [ ] Previous known-good deployment and database backup/restore procedure verified

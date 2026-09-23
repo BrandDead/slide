@@ -113,7 +113,7 @@ The standalone project is still useful for the proof evidence and regression che
 - [AI Contributor Start Here](AI_CONTRIBUTOR_START_HERE.md)
 - [Supabase Preview Bootstrap](SUPABASE_PREVIEW_BOOTSTRAP.md)
 - [AI Manus Authoritative World Design](AI_MANUS_AUTHORITATIVE_WORLD_DESIGN.md)
-- [Prepared Non-production Authoritative World Proof Runbook](https://github.com/BrandDead/slide/blob/ops/closed-alpha-world-proof/docs/NONPRODUCTION_AUTHORITATIVE_WORLD_PROOF.md)
+- [Authoritative-world proof manifest](../backend/supabase/world-proof-manifest.json)
 - [Project Log](PROJECT_LOG.md)
 
 ## External references
