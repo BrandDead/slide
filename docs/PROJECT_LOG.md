@@ -69,6 +69,17 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-23 — Required CI gates made complete and forward-compatible (#167)
+
+- The required frontend check now runs the repository's full `npm run validate` contract
+  before the production build, and the required backend check runs the complete `tests`
+  suite instead of only `tests/test_api.py`. Existing check names remain unchanged so the
+  protected-branch contexts continue to match.
+- Both jobs are pinned to `ubuntu-24.04`; checkout moves to v5 and setup-python to v6 to
+  remove the Node 20 action-runtime and imminent `ubuntu-latest` migration annotations.
+  Application runtimes remain Node 24 and Python 3.11. No application, dependency, secret,
+  database, deployment, or scheduler behavior changed.
+
 ### 2026-09-23 — Current status and runbook documentation reconciled (#162)
 
 - Current-facing contributor and beta documents now report the completed 40-card
