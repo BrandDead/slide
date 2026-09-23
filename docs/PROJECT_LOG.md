@@ -68,6 +68,20 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-23 — Fresh demo XP threshold stabilization (#158)
+
+- The merged Phase 1 proof preserved earned demo level and XP across reloads, but its
+  fresh/default reseed path explicitly replaced the required numeric `xpToNextLevel`
+  value with `undefined`. That produced an invalid desktop XP ratio and prevented
+  `usePlayerStore.addXP()` from evaluating the level-up threshold.
+- The default demo threshold is restored to `100`, matching the player-store default
+  and the behavior before the persistence repair. Advanced demo players continue to
+  preserve their current level, XP, and next threshold on reseed.
+- A focused regression proves the fresh threshold is finite, XP can advance after a
+  fresh seed, and an advanced player's threshold remains unchanged. No economy values,
+  persistent-server state, Supabase migration/RLS, deployment setting, or production
+  data changed. Rollback is a single revert of the focused fix commit.
+
 ### 2026-09-18 — Staging saved-game security hardening prepared
 
 - The confirmed isolated target `dealt-world-proof-staging` (`zfgclgnyqlabttymxwuw`)

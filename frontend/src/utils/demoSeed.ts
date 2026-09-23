@@ -114,7 +114,7 @@ export function applyDemoSeed(): void {
     heat: 5,
     level: hasProgress ? currentPlayer.level : 3,
     xp: hasProgress ? currentPlayer.xp : 240,
-    xpToNextLevel: hasProgress ? currentPlayer.xpToNextLevel : undefined,
+    xpToNextLevel: hasProgress ? currentPlayer.xpToNextLevel : 100,
     gangName: 'The Demo Crew',
     gangColor: '#dc2626',
     gangProfile: {
