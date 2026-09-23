@@ -1,7 +1,6 @@
 // ============================================================
 // Leaderboard — Global rankings by income, blocks, heat
-// Fetches from Supabase get_leaderboard() RPC.
-// Falls back to local block store data when offline.
+// Phase 1 uses local block-store data until a safe public projection exists.
 // Sprint: mobile-leaderboard-onboarding-batch4
 // ============================================================
 
@@ -61,55 +60,31 @@ const Leaderboard: React.FC = () => {
   const [sortKey, setSortKey] = useState<SortKey>('total_income');
   const [playerRank, setPlayerRank] = useState<number | null>(null);
 
-  const fetchLeaderboard = useCallback(async () => {
+  const fetchLeaderboard = useCallback(() => {
     setIsLoading(true);
     setError(null);
 
-    try {
-      // Dynamic import to avoid crashing when Supabase is not configured
-      const { supabase } = await import('../../services/supabase');
-      const { data, error: rpcError } = await (supabase as any).rpc('get_leaderboard', { limit_count: 50 });
-
-      if (rpcError) throw rpcError;
-
-      const rows: LeaderboardEntry[] = (data ?? []).map((row: any) => ({
-        rank:          Number(row.rank),
-        owner_id:      row.owner_id,
-        username:      row.username ?? 'Unknown',
-        gang_name:     row.gang_name ?? 'No Gang',
-        total_blocks:  Number(row.total_blocks),
-        total_income:  Number(row.total_income),
-        max_heat:      Number(row.max_heat),
-        avg_morale:    Number(row.avg_morale),
-      }));
-
-      setEntries(rows);
-
-      // Find current player's rank
-      const myEntry = rows.find(r => r.owner_id === player?.id);
-      setPlayerRank(myEntry?.rank ?? null);
-    } catch {
-      // Fallback: build leaderboard from local block store
-      const playerBlocks = Object.values(blocks).filter(b => b.owner === 'player');
-      if (playerBlocks.length > 0) {
-        const localEntry: LeaderboardEntry = {
-          rank:         1,
-          owner_id:     player?.id ?? 'local',
-          username:     player?.username ?? 'You',
-          gang_name:    player?.gangName ?? 'Your Gang',
-          total_blocks: playerBlocks.length,
-          total_income: playerBlocks.reduce((s, b) => s + b.incomePerTick, 0),
-          max_heat:     Math.max(...playerBlocks.map(b => b.heat * 20)),
-          avg_morale:   Math.round(playerBlocks.reduce((s, b) => s + (b.morale ?? 80), 0) / playerBlocks.length),
-        };
-        setEntries([localEntry]);
-        setPlayerRank(1);
-      } else {
-        setError('Connect to the internet to load the global leaderboard.');
-      }
-    } finally {
-      setIsLoading(false);
+    const playerBlocks = Object.values(blocks).filter(b => b.owner === 'player');
+    if (playerBlocks.length > 0) {
+      const localEntry: LeaderboardEntry = {
+        rank:         1,
+        owner_id:     player?.id ?? 'local',
+        username:     player?.username ?? 'You',
+        gang_name:    player?.gangName ?? 'Your Gang',
+        total_blocks: playerBlocks.length,
+        total_income: playerBlocks.reduce((s, b) => s + b.incomePerTick, 0),
+        max_heat:     Math.max(...playerBlocks.map(b => b.heat * 20)),
+        avg_morale:   Math.round(playerBlocks.reduce((s, b) => s + (b.morale ?? 80), 0) / playerBlocks.length),
+      };
+      setEntries([localEntry]);
+      setPlayerRank(1);
+    } else {
+      setEntries([]);
+      setPlayerRank(null);
+      setError('Global rankings are unavailable until a secure public leaderboard service is available.');
     }
+
+    setIsLoading(false);
   }, [player, blocks]);
 
   useEffect(() => {
