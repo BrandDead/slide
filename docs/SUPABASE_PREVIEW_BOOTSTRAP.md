@@ -19,6 +19,7 @@ The source-controlled manifest at [`backend/supabase/world-proof-manifest.json`]
 | 3 | `004_paid_entitlements.sql` | Retains current additive billing tables without enabling products or processing payment data. |
 | 4 | `005_authoritative_world_foundation.sql` | Adds durable Ghost Crew state, world events, Block DNA projection, and encounter receipts. |
 | 5 | `006_authoritative_world_integrity_hardening.sql` | Adds bounded result deltas and stale-projection protection. |
+| 6 | `007_staging_saved_game_security_hardening.sql` | Closes public-schema RLS, client-grant, policy-role, and security-definer findings before authenticated saved-game proof. |
 
 The legacy `001` and `002` files are intentionally excluded from this proof workdir. They remain in the repository as historical material and must not be replayed until they are separately reconciled into a canonical, tested migration history.
 
@@ -43,7 +44,7 @@ The operator must verify that the dashboard shows the named target as **Preview*
 2. From the generated workdir, link **only** the confirmed preview project reference.
 3. Run `supabase db push --dry-run` and record the exact ordered migration list. Stop if the output includes an unexpected historical migration or any production reference.
 4. After a separate operator confirmation, run `supabase db push` once. Do not use the SQL Editor for remote schema changes because that bypasses migration history.
-5. Execute the object, privilege, RLS, tick-idempotency, encounter, and returning-player checks in the [non-production proof runbook](../backend/supabase/world-proof-manifest.json) and in the `ops/closed-alpha-world-proof` branch’s `docs/NONPRODUCTION_AUTHORITATIVE_WORLD_PROOF.md` file.
+5. Execute the object, privilege, RLS, tick-idempotency, encounter, and returning-player checks defined by the [proof manifest](../backend/supabase/world-proof-manifest.json), the migration contract tests, and the completed [staging proof record](AUTHORITATIVE_WORLD_STAGING_PROOF.md). A retired documentation-only proof branch is not an execution dependency.
 6. Deploy `world-tick-ghost` only to that same preview reference, then configure `WORLD_TICK_SECRET` only as a server-side function secret. The scheduler remains disabled during this proof.
 7. Capture non-secret evidence, then delete or reset the disposable preview target when the proof is complete.
 
@@ -54,14 +55,14 @@ The operator must verify that the dashboard shows the named target as **Preview*
 | Gate | Required evidence | Stop condition |
 |---|---|---|
 | Target identity | Dashboard label and project reference show Preview/Staging/Development/Sandbox. | Target is `main`, Production, unknown, or unlabeled. |
-| Bootstrap utility | `--validate-only` succeeds and the generated workdir contains exactly the five manifest migrations. | Missing source file, duplicate target version, or legacy `001`/`002` file appears. |
+| Bootstrap utility | `--validate-only` succeeds and the generated workdir contains exactly the six manifest migrations. | Missing source file, duplicate target version, or legacy `001`/`002` file appears. |
 | Remote dry run | `supabase db push --dry-run` lists only the manifest migrations in order. | Unexpected migration-history divergence or a failed base schema. |
 | Recovery | Preview branch can be deleted/reset without affecting the production branch. | No disposable reset path is known. |
 | Proof scope | The runbook’s test actor and synthetic event data are prepared. | Any real player, real address, or production state would be used. |
 
 ## Current operational status
 
-The initial `closed-alpha-world-proof` preview branch is **blocked** because Supabase reported it as unhealthy after a historical migration failed before `public.blocks` existed. Do not try to repair its migration-history table manually. Keep the production `main` branch untouched. Recreate a fresh preview after this repository repair is merged, materialize the canonical workdir, and run the dry-run gate before any proof write.
+The initial `closed-alpha-world-proof` preview branch was retired after a historical migration failed before `public.blocks` existed. A fresh isolated standalone staging project subsequently passed the authoritative-world proof recorded in [`AUTHORITATIVE_WORLD_STAGING_PROOF.md`](AUTHORITATIVE_WORLD_STAGING_PROOF.md). Migration 007 remains subject to its own source review, dry run, application to the explicitly named non-production target, and two-user RLS/advisor verification. Do not repair historical migration records manually or treat staging proof as production authorization.
 
 ## References
 

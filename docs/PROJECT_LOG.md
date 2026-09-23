@@ -58,15 +58,39 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Housekeeping
 
-- Stale branches to delete via GitHub UI (remote deletion is blocked from the agent
-  environment): `agent/las-olas-graphics-destruction`, `agent/mvp-readiness-2026-07-16`,
-  `copilot/research-audit-dealt-slide`, `docs/gameplay-bible`.
-  Keep: `backup/pre-pr76` (rollback anchor until #76 is proven stable in production).
+- The 2026-09-23 integration audit pruned reviewed merged, contained, or superseded
+  remote branches after recording their restoration hashes. Do not treat a long-lived
+  backup branch as a release rollback mechanism; record the exact release-candidate
+  commit, push an annotated release tag, and verify the previous deployment and database
+  restore path instead.
 - PR #75 closed as superseded by #76.
 
 ---
 
 ## Log
+
+### 2026-09-23 — Current status and runbook documentation reconciled (#162)
+
+- Current-facing contributor and beta documents now report the completed 40-card
+  fictional Block DNA library, current 946-passed/4-skipped frontend and 95-passed
+  backend validation baseline, and the actual remaining authenticated saved-game and
+  outside-tester gates. Historical planning files retain their dated counts only as
+  background.
+- The Phase 1 proof is explicitly revision-bound: its captured detailed output was
+  923 passed and 4 skipped, its transient 14-test-failure note is not a current blocker,
+  and later PR #159 repaired the fresh-demo XP threshold. The proof does not certify
+  strict 375×812 full-loop, authenticated cross-device persistence, production, external
+  beta, or payments.
+- Current runbooks no longer depend on deleted proof or rollback branches. The proof
+  manifest documents six compatible migrations, and PR #165 merged migration 007's
+  source-only service-role leaderboard restriction after the browser compatibility fix.
+  Applying it still requires a named non-production target, dry run, two-user RLS/advisor
+  verification, and separate production approval.
+- The default-branch rule now requires the repository's `Frontend (lint + build)` and
+  `Backend (pytest)` checks and requires review conversations to be resolved. Strict
+  up-to-date checks and admin enforcement remain enabled; force pushes and branch deletion
+  remain disabled. No approval-count rule was added, so the solo-maintainer workflow is
+  not locked behind a second human account.
 
 ### 2026-09-23 — Legacy leaderboard browser path deferred safely (#156)
 

@@ -3,7 +3,9 @@
 **Date:** Tuesday, September 22, 2026
 **Branch:** `cursor/phase1-proof-aac1`
 **Commits:** `1c545f4` (typecheck fix), `43debfe` (XP persistence fix), `8eeea42` (idempotency proof)
-**Status:** ✅ **READY** (with fixes applied)
+**Historical status at capture:** **READY FOR REVIEW** (with fixes applied)
+
+> **Current-status correction (2026-09-23):** This is revision-bound evidence from the Phase 1 branch, not the current release or production baseline. PR #155 later merged the proof work; PR #159 then repaired the fresh-demo `xpToNextLevel` regression. The detailed captured Phase 1 output below records **923 passed and 4 skipped** frontend tests, not 941. Current default-branch validation on 2026-09-23 records **946 passed and 4 skipped** frontend tests plus **95 passed** backend tests. The exact 375×812 full loop, authenticated server reload/second-device continuity, external tester access, production operation, and payment readiness remain unproven.
 
 ---
 
@@ -13,12 +15,12 @@ The Las Olas closed-beta loop has been **proven functional end-to-end** with com
 
 ### Final Verdict
 
-**STATUS: ✅ READY FOR MERGE**
+**HISTORICAL STATUS: READY FOR REVIEW / MERGE**
 
 - ✅ Full loop completed: 18+ gate → desktop → map/strip → place crew → product/deal → encounter → results → recovery
 - ✅ Critical bug found and fixed (XP not persisting)
 - ✅ Fix verified with reload tests
-- ✅ 941 frontend tests pass (including 18 explicit idempotency tests)
+- ✅ 923 frontend tests passed with 4 skipped in the captured detailed output, including the 18 explicit idempotency tests
 - ✅ 95 backend tests pass
 - ✅ TypeScript clean
 - ✅ Lint: 0 errors (199 pre-existing warnings)
@@ -77,6 +79,8 @@ playerStore.updatePlayer({
 **Verification:** Mobile test confirmed level 84.3 persisted after hard reload (F5).
 
 **Commit:** `43debfe` - "fix(demo): preserve player level/XP progress across reloads"
+
+**Follow-up:** PR #159 later set a finite `xpToNextLevel: 100` for a freshly seeded demo player while preserving advanced progress.
 
 ---
 
@@ -304,12 +308,12 @@ Per requirements, the following were explicitly NOT changed:
    - Touch target sizes and device-specific behavior were not formally measured
    - Action: Formal accessibility audit if needed
 
-### Pre-Existing
+### Corrected current status
 
-4. **14 failing tests in `blockStore.encounter.test.ts`**
-   - Status: Flaky tests, unrelated to proof changes
-   - Not introduced by this PR
-   - Main test suites (`lasOlasReliability`, `betaOnePath`) pass
+4. **Historical 14-test failure note is not a current blocker**
+   - An intermediate Phase 1 note reported 14 `blockStore.encounter.test.ts` failures while the same report also claimed all tests passed.
+   - Fresh full-suite validation on 2026-09-23 passed 946 frontend tests with 4 lazy-route skips, including the current encounter suites.
+   - Future reports must use the exact command output from the revision being certified rather than carrying this transient note forward.
 
 5. **199 ESLint warnings**
    - Status: Pre-existing `@typescript-eslint/no-unused-vars` mostly
@@ -321,7 +325,7 @@ Per requirements, the following were explicitly NOT changed:
 ## PR READINESS CHECKLIST
 
 - ✅ Code compiles (TypeScript clean)
-- ✅ All tests pass (941 frontend, 95 backend)
+- ✅ Captured detailed output passed 923 frontend tests with 4 skipped, plus 95 backend tests
 - ✅ Lint passes (0 errors)
 - ✅ Build succeeds
 - ✅ Manual desktop testing completed with screenshots
@@ -347,8 +351,8 @@ Per requirements, the following were explicitly NOT changed:
 
 4. 📱 **Strict viewport audit** — Repeat the loop at exactly 375×812 and on an actual iOS/Android device if available
 5. 🧪 **Accessibility audit** — Measure touch targets and reduced-motion behavior
-6. 📊 **Monitor Production** — Track XP persistence and player progress in closed beta
-7. 🔍 **Investigate Flaky Tests** — Fix 14 failing tests in `blockStore.encounter.test.ts`
+6. 📊 **Monitor only after authorization** — Track XP persistence in an approved closed-beta environment after authenticated saved-game proof
+7. 🧪 **Re-run current gates** — Use fresh full-suite output for every release candidate; do not reuse the transient 14-test note
 
 ---
 
@@ -386,9 +390,9 @@ The Las Olas closed-beta loop is **proven functional end-to-end** with comprehen
 ✅ **Combat System:** Tactical grid, turn-based combat, enemy AI operational
 ✅ **Recovery Paths:** Hospital and rest options functional
 ✅ **Critical Bug Found & Fixed:** XP persistence issue resolved and verified
-✅ **Test Coverage:** 941 frontend + 95 backend tests pass
+✅ **Historical Test Coverage:** 923 frontend passed with 4 skipped, plus 95 backend tests, in the captured Phase 1 output
 
-**Final Status:** ✅ **READY FOR HUMAN REVIEW / MERGE**
+**Historical Final Status:** **READY FOR HUMAN REVIEW / MERGE**; this is not an external-beta or production certification.
 
 ---
 
@@ -396,7 +400,7 @@ The Las Olas closed-beta loop is **proven functional end-to-end** with comprehen
 **Duration:** ~90 minutes (testing + bug fix + verification)
 **Branch:** `cursor/phase1-proof-aac1`
 **Commits:** 3 (typecheck fix + XP persistence fix + idempotency proof)
-**Next Step:** Human review and merge into `main-tL2525`
+**Current Next Step:** Use this scenario as a regression baseline, then prove strict 375×812 and authenticated server reload/second-device continuity before external-beta claims.
 
 ---
 

@@ -18,9 +18,9 @@ The deployable source of truth is the protected default branch: **`main-tL2525`*
 |---|---|---|
 | Command desktop and return-state briefing | Merged. Durable Ghost Crew events appear in the City Briefing and route to an existing response. | PR #125; `components/layout/CityBriefing.tsx` |
 | Territory strategy | Merged. Territory remains playable if the optional street map fails; the player can retry or use the Strip, recon, claims, and crew placement. | PR #128; `components/map/PlayableMap.tsx`, `TerritoryMap.tsx` |
-| Block DNA | Merged. The library currently has **25 fictional archetypes**, and the stored DNA assignment owns a claimed block's grid and encounter terrain. | PR #128; `config/blockDNA.ts`, `utils/blockDNAResolver.ts` |
-| Authoritative-world foundation | **Staging proof passed.** The manifest migrations, RLS boundaries, idempotent Ghost Crew tick, and guarded endpoint were proven in an isolated standalone project. Production remains intentionally unchanged pending a separate promotion decision. | `docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`; `backend/supabase/migrations/005_*`, `006_*`; `backend/supabase/functions/world-tick-ghost/` |
-| Default branch quality | Verified at the latest closed-alpha release: frontend tests, TypeScript, asset audit, production build, backend tests, GitHub CI, Vercel preview, and automated review passed. | `docs/CLOSED_ALPHA_SPRINT_INTEGRATION_REPORT.md`; PR #128 |
+| Block DNA | Merged. The library has **40 fictional archetypes** across the planned tiers, and the stored DNA assignment owns a claimed block's grid and encounter terrain. | PR #144; `config/blockDNA.ts`, `utils/blockDNAResolver.ts` |
+| Authoritative-world foundation | **Staging proof passed.** The manifest migrations, RLS boundaries, idempotent Ghost Crew tick, and guarded endpoint were proven in an isolated standalone project. Migration 007 security hardening is merged as source but unapplied. Production remains intentionally unchanged pending a separate promotion decision. | PR #165; `docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`; `backend/supabase/migrations/005_*`, `006_*`, `007_*`; `backend/supabase/functions/world-tick-ghost/` |
+| Default branch quality | Re-verified on 2026-09-23: 946 frontend tests passed with 4 lazy-route skips, 95 backend tests passed, TypeScript/lint/asset gates and production build passed, and PRs #161/#165 passed GitHub CI, Vercel preview, and automated review. | PRs #161 and #165; `docs/PROJECT_LOG.md` |
 
 ## 3. The living sources of truth
 
@@ -32,7 +32,7 @@ Read these **in this order** before changing code. If two documents disagree, th
 4. [`docs/AI_MANUS_AUTHORITATIVE_WORLD_DESIGN.md`](AI_MANUS_AUTHORITATIVE_WORLD_DESIGN.md): ownership and idempotency boundaries for durable world state.
 5. [`docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md`](AUTHORITATIVE_WORLD_STAGING_PROOF.md): the completed staging evidence, production boundary, and required promotion controls.
 6. [`docs/SUPABASE_PREVIEW_BOOTSTRAP.md`](SUPABASE_PREVIEW_BOOTSTRAP.md) and [`backend/supabase/world-proof-manifest.json`](../backend/supabase/world-proof-manifest.json): the manifest-driven bootstrap boundary for any new disposable proof target.
-7. The prepared non-production proof runbook on the [`ops/closed-alpha-world-proof` branch](https://github.com/BrandDead/slide/blob/ops/closed-alpha-world-proof/docs/NONPRODUCTION_AUTHORITATIVE_WORLD_PROOF.md): the proof scope and rollback checks. Treat the completed staging record as newer status where they differ.
+7. [`docs/RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md): the outside-tester gate and rollback evidence required for a release candidate.
 8. The relevant code, test, and existing component/store/service contract.
 
 The following documents are **background only**, not current execution instructions: `docs/AI_MODEL_ASSIGNMENTS.md`, `docs/AI_MODEL_PROMPTS.md`, `docs/AI_DEVELOPER_CODEBASE_PROMPT.md`, older files in `prompts/`, and old status sections in `README.md`. Do not blindly implement tasks described there.
@@ -55,7 +55,7 @@ Multiple models can work at the same time **when their file ownership does not o
 
 | Step | Required behavior |
 |---:|---|
-| 1 | Read the six source-of-truth items above, then inspect open PRs, issues, and recent commits. |
+| 1 | Read the source-of-truth items above, then inspect open PRs, issues, and recent commits. |
 | 2 | State the exact user outcome, in-scope files, out-of-scope files, and acceptance checks before coding. |
 | 3 | Reserve the file list on the assigned GitHub issue **before coding**. If no issue exists, stop and ask the integration owner to create or assign one; do not race another contributor. |
 | 4 | Create one branch such as `feature/80-block-dna-batch-two` or `fix/79-alpha-cleanup`. Do not use a generic branch. |
@@ -74,10 +74,10 @@ The active GitHub issues are the backlog. Do not assume that the oldest issue is
 
 | Priority | Work | Suggested branch | Parallel safety |
 |---:|---|---|---|
-| P0 | Decide whether to promote the **staging-proven** authoritative-world migrations and guarded tick endpoint to production. | `ops/authoritative-world-production-promotion` | Requires explicit production approval, backup/rollback evidence, a low-traffic rollout window, a newly generated production-only tick secret, post-deploy smoke tests, and a separate scheduler design review. Do not begin from the retired preview path. |
-| P1 | Finish the remaining 2.5D scene and camera contract work. Asset-manifest wiring and the initial asset cleanup are already merged; audit #78/#79 before proposing only genuinely unfinished follow-up work. | `feature/77-diorama-camera-contract` | Renderer and asset files are shared; reserve exact files before coding and avoid parallel changes without an explicit integration plan. |
-| P1 | Continue Block DNA toward the planned 30–40 fictional cards. | `feature/80-block-dna-batch-two` | Safe in parallel only if it limits changes to DNA config, its design brief, and resolver/encounter tests. Do not edit map resilience or persistence code. |
-| P1 | Strengthen Ghost Crew / NPC rival behavior after the non-production proof clarifies durable tick operations. | `feature/81-ghost-crew-alpha` | Begin with a design/test branch; do not introduce a scheduler or migration without the P0 proof. |
+| P0 | Complete the **authenticated saved-game proof** in the named non-production target before considering external testers: review migration 007, run the manifest/bootstrap flow, prove two-user RLS isolation, and verify one returning-player loop. | `feature/authenticated-saved-game-proof` | No production migration, secret, or scheduler action. Preserve demo-ledger isolation and idempotent receipts. |
+| P1 | Make one Ghost Crew attack visible and playable on the canonical Strip through the existing UnifiedEncounter, with one incident receipt and clear return-state consequences (#163). | `feature/163-visible-ghost-attack` | Do not create a second combat authority, board, state store, or live-PvP path. Reserve shared renderer/store files before coding. |
+| P1 | Finish the remaining 2.5D scene, actor-state, and real-alpha vehicle work. Asset-manifest wiring and the initial asset cleanup are merged; audit #77–#79 before proposing only genuinely unfinished follow-up work. | `feature/77-diorama-production-pass` | Renderer and asset files are shared; reserve exact files before coding and avoid parallel changes without an explicit integration plan. |
+| P1 | Strengthen Ghost Crew / NPC rival behavior after the visible one-block response loop is understandable and deterministic. | `feature/81-ghost-crew-alpha` | Begin with a design/test branch; do not introduce a scheduler or new migration without a separate proof assignment. |
 | P2 | Beta art, QA, performance, and release readiness. | `chore/45-beta-gate-*` | Split into non-overlapping audit, performance, accessibility, and release-checklist branches. |
 
 ## 7. Required validation
@@ -146,7 +146,7 @@ Rules:
 - Reuse current stores, services, types, and components. Do not create a duplicate system.
 - Do not merge, deploy, alter Supabase, change secrets, close issues, delete branches, or edit another contributor’s branch.
 - Before coding, reserve your allowed files in a comment on the assigned GitHub issue. If a conflicting reservation exists, stop and ask the integration owner to split or sequence the work.
-- Do not apply migrations, RLS changes, tick endpoints, or schedulers unless a confirmed non-production target, `docs/SUPABASE_PREVIEW_BOOTSTRAP.md`, the manifest dry-run, and the prepared `ops/closed-alpha-world-proof` runbook are explicitly part of the assignment.
+- Do not apply migrations, RLS changes, tick endpoints, or schedulers unless a confirmed non-production target, `docs/SUPABASE_PREVIEW_BOOTSTRAP.md`, the manifest dry-run, and `docs/AUTHORITATIVE_WORLD_STAGING_PROOF.md` controls are explicitly part of the assignment.
 - Add focused tests and run the full validation commands documented in AI_CONTRIBUTOR_START_HERE.md.
 - Open one PR using the required PR template. Include exact changed files, test evidence, known limits, and integration notes.
 
@@ -159,4 +159,4 @@ The integration owner, not the contributing model, combines compatible PRs. Befo
 
 ## 11. Known release gate
 
-The build is **closed-alpha ready for continued feature work**, and the authoritative-world foundation is now **proven in isolated standalone staging**. The remaining P0 requirement is a deliberate production-promotion decision with the controls recorded in [`AUTHORITATIVE_WORLD_STAGING_PROOF.md`](AUTHORITATIVE_WORLD_STAGING_PROOF.md). Treat production rollout and any recurring scheduler as blocked until that separate approval and runbook are complete.
+The build is **closed-alpha ready for continued feature work**, and the authoritative-world foundation is **proven in isolated standalone staging**. It is not yet an external or paid beta: a clean authenticated player has not been proven through account recovery, starter claim, the full server-authoritative loop, reload, and second-device return. Treat production rollout, recurring schedulers, and payment enablement as blocked until their separate approvals and runbooks are complete.
