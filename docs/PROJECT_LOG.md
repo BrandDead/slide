@@ -69,6 +69,17 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-25 — CI setup-node action moved to the Node 24 runtime (#176)
+
+- The successful default-branch verification after PR #174 still emitted GitHub's Node 20
+  action-runtime deprecation annotation for `actions/setup-node@v4`. CI now uses
+  `actions/setup-node@v5`, whose bundled action runtime is Node 24, while retaining the
+  repository's application Node 24 selection and explicit npm lockfile cache.
+- Required check names, Ubuntu 24.04 runners, validation commands, application dependencies,
+  deployment configuration, secrets, Supabase, production data, and branch protection are
+  unchanged. Rollback is a one-line revert to the prior action major if GitHub-hosted runner
+  compatibility fails.
+
 ### 2026-09-25 — Authenticated saved-game proof retains one Flask placement authority (#175)
 
 - The audit of Cursor PR #174 confirmed that runtime placement already has one
