@@ -69,6 +69,24 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-25 — Staging migration 007 reconciled; returning-player proof remains (#175)
+
+- Live read-only inspection confirmed isolated `dealt-world-proof-staging`
+  (`zfgclgnyqlabttymxwuw`) is healthy and already records
+  `20260925060458 / staging_saved_game_security_hardening_007`. The stored statement
+  matches the reviewed source after comment/whitespace normalization, and catalog checks
+  confirm the intended RLS, browser-grant, search-path, and service-only function effects.
+- The source manifest uses filename version identifiers that differ from the live application
+  history. Operators must not run `db push`, replay migration 007, use SQL Editor to recreate
+  it, or run migration-history repair by guesswork. The previous apply gate is complete and
+  superseded by the recorded reconciliation evidence.
+- The only remaining issue #175 P0 is the post-apply player proof: two synthetic users must
+  establish Auth/profile creation, own-row access, cross-user and anonymous denial, denied
+  direct placement writes, approved RPC ownership/idempotency, and the canonical Flask
+  claim/place/consequence loop across reload and a same-account second session on desktop
+  and 375×812. Production, Vercel, secrets, payments, schedulers, Edge Functions, and
+  external beta remain out of scope.
+
 ### 2026-09-25 — CI setup-node action moved to the Node 24 runtime (#176)
 
 - The successful default-branch verification after PR #174 still emitted GitHub's Node 20
