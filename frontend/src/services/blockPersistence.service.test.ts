@@ -10,7 +10,7 @@ vi.mock('./supabase', () => ({
   supabase: { rpc, from },
 }));
 
-import { loadPlayerBlocks, persistBlock } from './blockPersistence.service';
+import { loadPlayerBlocks, persistBlock, persistPlacements } from './blockPersistence.service';
 
 const block = {
   id: '11111111-1111-4111-8111-111111111111',
@@ -29,6 +29,23 @@ const block = {
   appliedEncounterResultKeys: ['result-1'],
   liveRevision: 4,
 };
+
+const placements = [
+  {
+    memberId: 'crew-1',
+    memberName: 'Lil Dre',
+    role: 'dealer',
+    x: 2,
+    y: 3,
+    zoneType: 'curb',
+    incomePerTick: 80,
+    exposureRisk: 7,
+    level: 1,
+    health: 100,
+    portraitUrl: '/assets/dre-portrait.webp',
+    topdownUrl: '/assets/dre-topdown.webp',
+  },
+];
 
 describe('blockPersistence.service authoritative projection', () => {
   beforeEach(() => {
@@ -116,5 +133,53 @@ describe('blockPersistence.service authoritative projection', () => {
         liveRevision: 4,
       }),
     }), { onConflict: 'id' });
+  });
+
+  it('uses the ownership-checked RPC for UUID-backed placement writes', async () => {
+    rpc.mockResolvedValue({ data: { success: true, blockId: block.id, placementCount: 1 }, error: null });
+
+    await persistPlacements(block.id, placements);
+
+    expect(rpc).toHaveBeenCalledWith('persist_block_placements', {
+      p_block_id: block.id,
+      p_placements: expect.arrayContaining([
+        expect.objectContaining({
+          memberId: 'crew-1',
+          memberName: 'Lil Dre',
+          role: 'dealer',
+          x: 2,
+          y: 3,
+          zoneType: 'curb',
+          incomePerTick: 80,
+        }),
+      ]),
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('retains the legacy placement path only when the RPC is absent', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Function not found' } });
+    const deleteMock = vi.fn().mockResolvedValue({ error: null });
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    const eq = vi.fn().mockReturnValue({ delete: deleteMock });
+    from.mockImplementation((table: string) => {
+      if (table === 'block_placements') {
+        return { eq, insert };
+      }
+      return { eq };
+    });
+
+    await persistPlacements(block.id, placements);
+
+    expect(from).toHaveBeenCalledWith('block_placements');
+    expect(deleteMock).toHaveBeenCalled();
+    expect(insert).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({
+        block_id: block.id,
+        member_id: 'crew-1',
+        grid_x: 2,
+        grid_y: 3,
+      }),
+    ]));
   });
 });

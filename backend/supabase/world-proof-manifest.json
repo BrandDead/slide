@@ -31,6 +31,11 @@
       "source": "migrations/007_staging_saved_game_security_hardening.sql",
       "target": "20260905000500_staging_saved_game_security_hardening.sql",
       "reason": "Closes public-schema RLS, client-grant, policy-role, and security-definer search-path findings before authenticated saved-game work uses the isolated staging target."
+    },
+    {
+      "source": "migrations/008_placement_persistence_rpc.sql",
+      "target": "20260905000600_placement_persistence_rpc.sql",
+      "reason": "Adds ownership-checked placement persistence RPC so authenticated clients can save crew assignments without requiring direct table write grants."
     }
   ],
   "excluded_legacy_migrations": [
@@ -46,7 +51,7 @@
   "required_objects": {
     "base_tables": ["profiles", "blocks"],
     "authoritative_tables": ["ghost_crews", "claimed_block_dna", "world_ticks", "world_events", "encounter_results"],
-    "authoritative_functions": ["apply_ghost_world_tick", "commit_encounter_result", "persist_player_block_projection"],
+    "authoritative_functions": ["apply_ghost_world_tick", "commit_encounter_result", "persist_player_block_projection", "persist_block_placements"],
     "edge_function": "world-tick-ghost"
   },
   "safety": {
