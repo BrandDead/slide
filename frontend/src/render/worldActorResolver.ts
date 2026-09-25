@@ -1,10 +1,16 @@
 // ============================================================
-// SLIDE — World Actor Resolver  (#78)
+// SLIDE — World Actor Resolver  (#78 + Phase A Member Visual Identity)
 // frontend/src/render/worldActorResolver.ts
 //
 // Resolves a crew member's ROLE + STATE + VIEW to a world sprite,
 // driven entirely by the generated runtimeManifest.json. One manifest →
 // one resolver → one preloader → every renderer.
+//
+// Phase A Evolution: member-specific visual profiles take priority.
+// Resolution order:
+//   1. memberId/visualProfile → member-specific asset for view/state
+//   2. role + state + view → role asset
+//   3. role silhouette fallback
 //
 // Rules this enforces, from the assignment:
 //   • a portrait is NEVER a world actor. Portraits are for cards, rosters,
@@ -21,6 +27,7 @@
 // ============================================================
 
 import runtimeManifest from '../assets/runtimeManifest.json';
+import type { MemberVisualProfile } from '../types/game.types';
 
 export type ActorView = 'street' | 'topdown' | 'fullbody';
 
@@ -55,6 +62,8 @@ export interface ResolvedActor {
   resolvedState: ActorState;
   /** True when we fell back rather than finding an exact match. */
   isFallback: boolean;
+  /** True when resolved from member-specific visual profile. */
+  isCustom?: boolean;
 }
 
 const ASSETS = (runtimeManifest.entries ?? []) as RuntimeAsset[];
@@ -154,15 +163,58 @@ export function resetWarnings(): void { warned.clear(); }
 // ─── Resolution ──────────────────────────────────────────────
 
 /**
+ * Resolve member-specific visual assets from their visual profile.
+ * Returns null if no custom asset exists for the requested view/state.
+ */
+function resolveMemberAsset(
+  visualProfile: MemberVisualProfile,
+  state: ActorState,
+  view: ActorView,
+): ResolvedActor | null {
+  // Phase A: check direct mappings for view
+  let url: string | undefined;
+  
+  if (view === 'topdown' && visualProfile.topDown) {
+    url = visualProfile.topDown;
+  } else if (view === 'fullbody' && visualProfile.fullBody) {
+    url = visualProfile.fullBody;
+  } else if (view === 'street' && visualProfile.streetStates?.[state]) {
+    url = visualProfile.streetStates[state];
+  }
+  
+  if (!url) return null;
+  
+  // Custom assets use default dimensions/pivot (will be refined in Phase B)
+  return {
+    url,
+    pivot: { x: 0.5, y: 1.0 }, // foot contact default
+    width: 256,
+    height: 256,
+    resolvedState: state,
+    isFallback: false,
+    isCustom: true,
+  };
+}
+
+/**
  * Best available world sprite. Returns null ONLY when the manifest has no
  * art at all for any role in any view — at which point the caller should
  * draw a silhouette placeholder, never an emoji or a coloured circle.
+ * 
+ * Phase A: Accepts optional visualProfile to prefer member-specific assets.
  */
 export function getWorldActor(
   role: string,
   state: ActorState = 'idle',
   view: ActorView = 'street',
+  visualProfile?: MemberVisualProfile,
 ): ResolvedActor | null {
+  // Phase A: Try member-specific assets first
+  if (visualProfile) {
+    const customAsset = resolveMemberAsset(visualProfile, state, view);
+    if (customAsset) return customAsset;
+  }
+  
   const roles = ROLE_CHAIN[role] ?? [role, 'dealer'];
   const views = VIEW_CHAIN[view];
   const states = STATE_CHAIN[state] ?? [state, 'idle'];
@@ -239,8 +291,15 @@ export function getWorldActor(
  * Portraits — cards, rosters, notifications, HUD chips ONLY.
  * Deliberately a separate function so a world renderer cannot reach a
  * portrait by accident. This is the misuse the assignment calls out.
+ * 
+ * Phase A: Supports member-specific portraits from visual profiles.
  */
-export function getPortrait(role: string): string | null {
+export function getPortrait(role: string, visualProfile?: MemberVisualProfile): string | null {
+  // Phase A: Prefer member-specific portrait
+  if (visualProfile?.portrait) {
+    return visualProfile.portrait;
+  }
+  
   const roles = ROLE_CHAIN[role] ?? [role];
   for (const r of roles) {
     const hit = ASSETS.find((a) => a.class === 'portrait' && a.role === r);

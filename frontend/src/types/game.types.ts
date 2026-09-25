@@ -252,6 +252,31 @@ export interface Unit {
   assignedTask: string | null;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MEMBER VISUAL IDENTITY (Phase A — custom member art system)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Member-specific visual identity. Generated from PhotoMemberCreator or imported.
+ * Members KEEP their identity; silhouettes are LOD/fallback only — never primary roster identity.
+ */
+export interface MemberVisualProfile {
+  /** Unique identifier for this visual profile (e.g., generation job ID). */
+  visualProfileId: string;
+  /** Version/timestamp for cache-busting and sync. */
+  version: number;
+  /** Portrait for cards, roster, notifications, HUD chips. */
+  portrait?: string;
+  /** Full-body cutout for roster display, drag actors. */
+  fullBody?: string;
+  /** Top-down token for tactical grid. */
+  topDown?: string;
+  /** Optional street-state URLs when they already exist in the pipeline. */
+  streetStates?: Partial<Record<string, string>>;
+  /** Fallback role when member-specific assets are unavailable. */
+  fallbackSilhouetteRole: string;
+}
+
 export interface GangMember {
   id: string;
   gangId: string;
@@ -302,7 +327,12 @@ export interface GangMember {
 
   // Inventory
   inventory?: InventoryItem[];
-  // Avatar
+  
+  // Visual Identity (Phase A)
+  visualProfile?: MemberVisualProfile;
+  
+  // Legacy avatar fields (deprecated — migrate to visualProfile)
+  /** @deprecated Use visualProfile.portrait instead */
   customAvatarUrl?: string;
 }
 

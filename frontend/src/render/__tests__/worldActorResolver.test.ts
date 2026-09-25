@@ -208,3 +208,110 @@ describe('street coverage added in batch 2', () => {
     expect(alert!.url).not.toBe(idle!.url);
   });
 });
+
+// ─────────────────────────────────────────────────────────────
+// Phase A: Member Visual Profile Resolution
+// 
+// Members with custom visual profiles (from PhotoMemberCreator or imported)
+// must be rendered with their identity, not generic silhouettes.
+// Resolution order: member asset → role asset → silhouette fallback.
+// ─────────────────────────────────────────────────────────────
+
+describe('member visual profile resolution (Phase A)', () => {
+  const mockProfile = {
+    visualProfileId: 'test-profile-123',
+    version: Date.now(),
+    portrait: '/custom/portraits/member-portrait.png',
+    fullBody: '/custom/fullbody/member-full.png',
+    topDown: '/custom/topdown/member-token.png',
+    fallbackSilhouetteRole: 'dealer',
+  };
+
+  it('prefers member-specific portrait over role portrait', () => {
+    const rolePortrait = getPortrait('dealer');
+    const memberPortrait = getPortrait('dealer', mockProfile);
+    expect(memberPortrait).toBe(mockProfile.portrait);
+    expect(memberPortrait).not.toBe(rolePortrait);
+  });
+
+  it('falls back to role portrait when member has no custom portrait', () => {
+    const profileNoPortrait = { ...mockProfile, portrait: undefined };
+    const portrait = getPortrait('dealer', profileNoPortrait);
+    expect(portrait).not.toBeNull();
+    expect(portrait).toMatch(/\/portraits\//);
+  });
+
+  it('prefers member fullBody for fullbody view', () => {
+    const actor = getWorldActor('dealer', 'idle', 'fullbody', mockProfile);
+    expect(actor).not.toBeNull();
+    expect(actor!.url).toBe(mockProfile.fullBody);
+    expect(actor!.isCustom).toBe(true);
+    expect(actor!.isFallback).toBe(false);
+  });
+
+  it('prefers member topDown for topdown view', () => {
+    const actor = getWorldActor('dealer', 'idle', 'topdown', mockProfile);
+    expect(actor).not.toBeNull();
+    expect(actor!.url).toBe(mockProfile.topDown);
+    expect(actor!.isCustom).toBe(true);
+  });
+
+  it('falls back to role asset when member has no custom asset for view', () => {
+    const profileNoFullBody = { ...mockProfile, fullBody: undefined };
+    const actor = getWorldActor('dealer', 'idle', 'fullbody', profileNoFullBody);
+    expect(actor).not.toBeNull();
+    expect(actor!.url).not.toBe(mockProfile.fullBody);
+    expect(actor!.isCustom).not.toBe(true);
+    expect(actor!.url).toMatch(/character_dealer_/);
+  });
+
+  it('uses member streetStates when available', () => {
+    const profileWithStreet = {
+      ...mockProfile,
+      streetStates: {
+        idle: '/custom/street/member-idle.png',
+        aim: '/custom/street/member-aim.png',
+      },
+    };
+    const idleActor = getWorldActor('dealer', 'idle', 'street', profileWithStreet);
+    expect(idleActor!.url).toBe('/custom/street/member-idle.png');
+    expect(idleActor!.isCustom).toBe(true);
+
+    const aimActor = getWorldActor('dealer', 'aim', 'street', profileWithStreet);
+    expect(aimActor!.url).toBe('/custom/street/member-aim.png');
+  });
+
+  it('falls back to role asset for missing street states', () => {
+    const profileWithLimitedStreet = {
+      ...mockProfile,
+      streetStates: { idle: '/custom/street/member-idle.png' },
+    };
+    const aimActor = getWorldActor('dealer', 'aim', 'street', profileWithLimitedStreet);
+    expect(aimActor).not.toBeNull();
+    expect(aimActor!.url).not.toBe('/custom/street/member-idle.png');
+    expect(aimActor!.isCustom).not.toBe(true);
+    expect(aimActor!.url).toMatch(/character_dealer_/);
+  });
+
+  it('handles members without visual profiles (null-safe)', () => {
+    const actor = getWorldActor('dealer', 'idle', 'street', undefined);
+    expect(actor).not.toBeNull();
+    expect(actor!.isCustom).not.toBe(true);
+  });
+
+  it('member-specific assets use default pivot and dimensions', () => {
+    const actor = getWorldActor('dealer', 'idle', 'fullbody', mockProfile);
+    expect(actor!.pivot).toEqual({ x: 0.5, y: 1.0 });
+    expect(actor!.width).toBe(256);
+    expect(actor!.height).toBe(256);
+  });
+
+  it('never returns portrait as world actor even with visual profile', () => {
+    const actor = getWorldActor('dealer', 'idle', 'street', mockProfile);
+    if (actor) {
+      expect(actor.url).not.toBe(mockProfile.portrait);
+      expect(actor.url).not.toMatch(/\/portraits\//);
+    }
+  });
+});
+
