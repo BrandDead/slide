@@ -1,16 +1,16 @@
 # Authenticated Saved-Game Readiness — 2026-09-25
 
-**Source revision audited:** `main-tL2525` at `390cc78`
+**Source revision audited:** `main-tL2525` at `7e55985`
 
 **Owning issue:** [#175 — Prove authenticated saved-game continuity on isolated staging](https://github.com/BrandDead/slide/issues/175)
 
 **Permitted remote target:** `dealt-world-proof-staging` (`zfgclgnyqlabttymxwuw`) only
 
-**Decision:** The source already has one authoritative placement command. Do not add a second placement RPC.
+**Decision:** The source already has one authoritative placement command. Do not add a second placement RPC. Migration 007 is already recorded on the permitted staging target; do not replay it or repair its history.
 
 ## Executive decision
 
-The authenticated saved-game foundation is **source-ready for a controlled staging proof**, but the proof itself is not complete. Authentication restoration, Flask empire hydration, the authoritative placement queue, Supabase receipt/block projection, encounter idempotency, and demo isolation are merged. Migration 007 is also merged as source but remains unapplied to the named staging target.
+The authenticated saved-game foundation is **ready for the remaining controlled staging proof**, but that player proof is not complete. Authentication restoration, Flask empire hydration, the authoritative placement queue, Supabase receipt/block projection, encounter idempotency, and demo isolation are merged. Live read-only reconciliation confirms migration 007 is already recorded on `dealt-world-proof-staging` as `20260925060458 / staging_saved_game_security_hardening_007`; its normalized stored statement matches the reviewed source and its expected grant/RLS effects are present. Production remains unchanged.
 
 Cursor PR #174 originally treated `persistPlacements()` in `frontend/src/services/blockPersistence.service.ts` as an active browser writer and proposed a new `SECURITY DEFINER` RPC. That diagnosis was incorrect. The live placement path is already singular:
 
@@ -18,7 +18,7 @@ Cursor PR #174 originally treated `persistPlacements()` in `frontend/src/service
 
 `useBlockSync` does not call `persistPlacements()`. Its regression suite explicitly requires destructive placement persistence to remain with Flask. A new browser-callable placement RPC would therefore create a parallel authority with weaker validation, not close an active runtime gap.
 
-The correct next step is operational: validate and dry-run the existing six-migration manifest, obtain a separate confirmation for the exact staging apply, apply migration 007 to the isolated target only, and prove two-user isolation plus reload/second-session continuity through the existing Flask command path.
+The correct next step is operational: preserve the reconciled apply evidence, capture the advisor baseline, and prove two-user isolation plus reload/second-session continuity through the existing Flask command path. Do **not** run `supabase db push`, replay migration 007, use SQL Editor for it, or run `migration repair`; the generated manifest filenames use different version identifiers from the live history and may misleadingly appear unapplied to the CLI.
 
 ## 1. Canonical ownership map
 
@@ -56,10 +56,10 @@ The presence of unused legacy helpers is not permission to design around them. A
 
 | Gate | Current evidence | Status |
 |---|---|---|
-| Repository validation | Protected main last recorded 946 frontend tests passed with 4 lazy-route skips, 95 backend tests passed, and required build/type/lint/assets gates passed | Re-run on PR #174 after the documentation repair |
+| Repository validation | Protected main at `7e55985` passed required frontend/backend CI after the documentation repair and setup-node maintenance | Passed |
 | Canonical placement behavior | Offline connected-slice tests cover owner checks, roster/status validation, grid rules, queue ordering, rejection rollback, reload, and idempotent consequences | Source-ready |
-| Manifest integrity | `world-proof-manifest.json` contains the approved six compatible migrations ending in 007 | Must re-run `--validate-only` |
-| Migration 007 target state | Source-only; not applied to `dealt-world-proof-staging` | Blocked pending dry-run and explicit apply confirmation |
+| Manifest integrity | `world-proof-manifest.json` contains the approved six compatible migrations ending in 007; source contract tests and manifest validation passed during reconciliation | Passed; do not use the generated version IDs to repair live history |
+| Migration 007 target state | Recorded as `20260925060458 / staging_saved_game_security_hardening_007`; source digest and intended catalog effects reconciled read-only | Applied; replay forbidden |
 | Two-user RLS and grants | Prior proof predates migration 007 | Not proven |
 | Returning-player continuity | Auth and hydration paths exist | Not proven on staging across reload and a second session |
 | Mobile player path | Strict 375×812 external-beta path is not certified | Not proven |
@@ -69,7 +69,7 @@ The presence of unused legacy helpers is not permission to design around them. A
 
 This section is a staged operator protocol, not authorization to mutate a remote database. Stop at every stated boundary.
 
-### Phase A — source-only validation
+### Phase A — source-only validation (completed baseline)
 
 From a clean checkout at the reviewed revision, run:
 
@@ -92,21 +92,21 @@ cd ../backend/python
 ./venv/bin/python -m pytest tests -q
 ```
 
-Any source, manifest, test, or build failure stops the proof.
+The reconciliation baseline passed the migration contract tests and manifest validator. Re-run these source gates only if the reviewed source changes before the player proof. Any source, manifest, test, or build failure stops the proof.
 
-### Phase B — target identity and remote dry-run
+### Phase B — target and apply-state reconciliation (completed)
 
-An authorized operator must verify in Supabase that the target is exactly `dealt-world-proof-staging` (`zfgclgnyqlabttymxwuw`) and is isolated from production. From the generated workdir, the operator may link only that target and run `supabase db push --dry-run`.
+Read-only Supabase inspection verified that the target is exactly `dealt-world-proof-staging` (`zfgclgnyqlabttymxwuw`), is isolated from production, and is `ACTIVE_HEALTHY`. The remote migration history already contains migration 007, and catalog checks confirm its intended security effects.
 
-The recorded dry-run must show only the expected manifest migrations, with migration 007 as the only unapplied source if migrations 000/003/004/005/006 remain present from the earlier proof. Any unexpected historical migration, target mismatch, schema divergence, or production reference is a stop condition.
+The generated CLI workdir uses source filename versions `20260905000000`–`20260905000500`, while live staging records later application versions. A CLI dry-run may therefore list already-applied schema as new. That mismatch is evidence to preserve, not permission to replay or repair history.
 
-A dry-run is not permission to apply.
+Do not run a new dry-run as an apply precursor for issue #175. Do not run `db push`, replay migration 007, use SQL Editor to recreate it, or run `migration repair` by guesswork.
 
-### Phase C — separately confirmed staging apply
+### Phase C — preserve the completed apply evidence
 
-Before `supabase db push`, present the exact target, migration list, rollback/reset path, and non-secret dry-run evidence to the operator. Migration 007 may be applied only after a new explicit confirmation for that payload. Do not use the SQL editor or repair remote migration history by guesswork.
+Record the exact target, migration-history row, source revision/digest comparison, read-only ACL/RLS checks, and pre-proof advisor baseline in the redacted issue #175 evidence. Treat the prior apply gate as completed and superseded by this reconciliation.
 
-No production target, Edge Function deployment, scheduler, environment variable, secret, payment setting, or Vercel deployment is part of this phase.
+No database mutation, production target, Edge Function deployment, scheduler, environment variable, secret, payment setting, or Vercel deployment is part of this phase.
 
 ### Phase D — post-apply security and player proof
 
@@ -141,7 +141,7 @@ Capture non-secret timestamps, revision/SHA, target reference, viewport, pass/fa
 | Stop condition | Required response |
 |---|---|
 | Target is production, unknown, or not isolated | Do not link or run any remote command |
-| Dry-run includes an unexpected migration | Stop and reconcile source/remote history without applying or repairing blindly |
+| Any tool proposes migration 007 as unapplied or offers to repair history | Stop; preserve the known version mismatch and do not apply, replay, use SQL Editor, or repair blindly |
 | Flask is not configured with a server-only service-role credential | Stop; do not restore browser table grants |
 | Direct browser placement writes appear necessary | Treat as an architecture regression; return to the canonical Flask command |
 | RLS exposes one user's private state to another | Stop, preserve evidence, and repair policies in a new source-reviewed migration |
@@ -151,7 +151,7 @@ Capture non-secret timestamps, revision/SHA, target reference, viewport, pass/fa
 
 ## 6. Definition of done
 
-Issue #175 may close only when the source gates pass, the exact staging target and dry-run are recorded, migration 007 has separately confirmed staging-only application, post-apply advisors and two-user RLS checks pass, and the canonical authenticated loop survives reload plus a same-account second session on desktop and 375×812.
+Issue #175 may close only when the reconciled staging target and migration-007 apply evidence are recorded, post-apply advisors and two-user RLS/direct-write checks pass, and the canonical authenticated loop survives reload plus a same-account second session on desktop and 375×812.
 
 Success proves an isolated staging boundary. It does **not** authorize production migration, Vercel promotion, external beta, payment enablement, a recurring scheduler, or broader client grants.
 
