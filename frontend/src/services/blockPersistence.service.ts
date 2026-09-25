@@ -212,8 +212,8 @@ export async function loadPlayerBlocks(userId: string): Promise<Partial<BlockDat
 // ─── Placement CRUD ──────────────────────────────────────────
 
 /**
- * Upsert all placements for a block using the ownership-checked RPC.
- * Falls back to direct table writes only when the RPC is unavailable.
+ * Upsert all placements for a block into `block_placements` table.
+ * Uses a custom table — see migration below.
  */
 export async function persistPlacements(
   blockId: string,
@@ -221,41 +221,7 @@ export async function persistPlacements(
 ): Promise<void> {
   if (!isSupabaseConfigured()) return;
 
-  // Prefer the atomic ownership-checked RPC for UUID-backed blocks
-  if (isUuid(blockId)) {
-    const payload = placements.map((p) => ({
-      memberId: p.memberId,
-      memberName: p.memberName,
-      role: p.role,
-      x: p.x,
-      y: p.y,
-      zoneType: p.zoneType,
-      incomePerTick: p.incomePerTick,
-      exposureRisk: p.exposureRisk,
-      level: p.level,
-      health: p.health,
-      portraitUrl: p.portraitUrl ?? null,
-      topdownUrl: p.topdownUrl ?? null,
-    }));
-
-    const { data, error: rpcError } = await (supabase as any).rpc('persist_block_placements', {
-      p_block_id: blockId,
-      p_placements: payload,
-    });
-
-    if (!rpcError) {
-      if (data?.success) return;
-      console.warn('[BlockPersistence] Placement RPC returned success=false:', data);
-      return;
-    }
-
-    if (!isMissingProjectionRpc(rpcError)) {
-      console.warn('[BlockPersistence] Failed to persist placements via RPC:', rpcError.message);
-      return;
-    }
-  }
-
-  // Legacy fallback: direct table writes (will fail after migration 007)
+  // Delete existing placements for this block then re-insert
   const { error: delError } = await (supabase as any)
     .from('block_placements')
     .delete()
