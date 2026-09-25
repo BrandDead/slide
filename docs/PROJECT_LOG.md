@@ -69,6 +69,29 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-25 — Authenticated saved-game proof retains one Flask placement authority (#175)
+
+- The audit of Cursor PR #174 confirmed that runtime placement already has one
+  authoritative writer: `blockStore` serializes replacement snapshots through
+  `blocksApi.placeMembers()` to the owner-checked Flask route, which validates roster
+  ownership/status and the stored Block DNA grid before its trusted service-role adapter
+  writes `block_placements`. `useBlockSync` never calls the legacy Supabase
+  `persistPlacements()` helper, and its regression coverage explicitly leaves destructive
+  placement persistence to Flask.
+- The proposed browser-callable `persist_block_placements` security-definer RPC and
+  migration 008 were rejected. They duplicated the canonical command while omitting its
+  roster, deployability, grid, derived-value, monotonic-health, and queue/concurrency
+  boundaries. Runtime, test, manifest, and migration files were restored to protected-main
+  behavior; PR #174 was narrowed to a documentation correction.
+- Migration 007 remains source-only and unapplied. The next P0 is issue #175: revalidate the
+  six-migration manifest, record an exact dry-run against isolated
+  `dealt-world-proof-staging`, obtain a separate confirmation for staging application, then
+  prove denied direct browser writes, two-user RLS isolation, and the existing authenticated
+  Flask loop across reload and a same-account second session on desktop and 375×812.
+- No Supabase target, migration history, RLS policy, service secret, production data, Vercel
+  deployment, scheduler, payment setting, release tag, or protected-branch control changed
+  during this repair. Staging proof will not authorize production or external beta.
+
 ### 2026-09-23 — Required CI gates made complete and forward-compatible (#167)
 
 - The required frontend check now runs the repository's full `npm run validate` contract
