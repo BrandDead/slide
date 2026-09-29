@@ -69,6 +69,14 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — Repo-scoped AI quality and visual-production skills (#186)
+
+- Added three OpenAI Agent Skills under `.agents/skills`: `$slide-release-safety`, `$slide-visual-art-direction`, and `$slide-asset-integration-qa`. `AGENTS.md` routes future ChatGPT/Codex work through them by task type.
+- The release guard converts verified #184 failures into reusable checks: regression-first proof, current React closure state, independent async cleanup, validation at mutation time, synchronous duplicate-action protection, complete typed domain records without `as any`, non-destructive fallback merging, one authoritative result boundary, and phone/desktop player-path evidence.
+- The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
+- The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
+- This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
 ### 2026-09-25 — Staging migration 007 reconciled; returning-player proof remains (#175)
 
 - Live read-only inspection confirmed isolated `dealt-world-proof-staging`
