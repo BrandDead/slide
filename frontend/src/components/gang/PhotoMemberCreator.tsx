@@ -4,7 +4,7 @@
 // Sprint: morale-heat-photo-batch2
 // ============================================================
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGangStore } from '../../stores/gameStore';
 import type { AvatarGenerationStatus, GeneratedMemberAsset } from '../../types/avatar.types';
@@ -55,6 +55,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
+  const [memberName, setMemberName] = useState('');
   const [selectedRole, setSelectedRole] = useState<RoleId>('dealer');
   const [selectedStyle, setSelectedStyle] = useState<StyleId>('south_florida_streetwear');
   const [selectedOutputs, setSelectedOutputs] = useState<OutputId[]>(['portrait', 'fullbody']);
@@ -74,8 +75,10 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
       return;
     }
     setUploadedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+    setPreviewUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
     setError(null);
   }, []);
 
@@ -97,9 +100,14 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
     );
   }, []);
 
+  useEffect(() => () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
   // ── Generate ──
   const handleGenerate = useCallback(async () => {
-    if (!uploadedFile || !consent || selectedOutputs.length === 0) return;
+    if (!uploadedFile || !consent || memberName.trim().length < 2 || selectedOutputs.length === 0) return;
     setStatus('uploading');
     setError(null);
 
@@ -138,24 +146,27 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
     if (!generatedAsset) return;
     try {
       const approved = await avatarGenerationService.approve(generatedAsset.id);
+      const finalAsset = { ...generatedAsset, ...approved };
       // Add to gang roster
       addMember({
-        id: approved.id,
-        name: `${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)} (Custom)`,
+        id: finalAsset.id,
+        name: memberName.trim(),
         role: selectedRole,
         level: 1,
         status: 'active',
         loyalty: 80,
-        portraitUrl: approved.portraitUrl,
-        fullbodyUrl: approved.fullbodyUrl,
-        topdownUrl: approved.topdownUrl,
+        avatarUrl: finalAsset.portraitUrl ?? finalAsset.fullbodyUrl ?? '',
+        customAvatarUrl: finalAsset.portraitUrl ?? finalAsset.fullbodyUrl,
+        portraitUrl: finalAsset.portraitUrl,
+        fullbodyUrl: finalAsset.fullbodyUrl,
+        topdownUrl: finalAsset.topdownUrl,
       } as any);
-      onApproved?.(approved.id);
+      onApproved?.(finalAsset.id);
       onClose();
     } catch (err: any) {
       setError(err.message ?? 'Approval failed.');
     }
-  }, [generatedAsset, selectedRole, addMember, onApproved, onClose]);
+  }, [generatedAsset, memberName, selectedRole, addMember, onApproved, onClose]);
 
   // ── Regenerate ──
   const handleRegenerate = useCallback(() => {
@@ -164,7 +175,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
     setError(null);
   }, []);
 
-  const canGenerate = uploadedFile && consent && selectedOutputs.length > 0 && status === 'idle';
+  const canGenerate = uploadedFile && consent && memberName.trim().length >= 2 && selectedOutputs.length > 0 && status === 'idle';
 
   return (
     <div className="pmc-container">
@@ -212,9 +223,21 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
           </label>
         </section>
 
-        {/* ── Step 2: Role ── */}
         <section className="pmc-section">
-          <h3 className="pmc-section-title">2. Choose Role</h3>
+          <h3 className="pmc-section-title">2. Name Your Member</h3>
+          <input
+            className="pmc-name-input"
+            value={memberName}
+            maxLength={24}
+            placeholder="Name or nickname"
+            onChange={e => setMemberName(e.target.value)}
+            aria-label="Member name"
+          />
+        </section>
+
+        {/* ── Step 3: Role ── */}
+        <section className="pmc-section">
+          <h3 className="pmc-section-title">3. Choose Role</h3>
           <div className="pmc-role-grid">
             {ROLES.map(r => (
               <motion.button
@@ -232,7 +255,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
 
         {/* ── Step 3: Style ── */}
         <section className="pmc-section">
-          <h3 className="pmc-section-title">3. Choose Style</h3>
+          <h3 className="pmc-section-title">4. Choose Style</h3>
           <div className="pmc-style-list">
             {STYLES.map(s => (
               <motion.button
@@ -249,7 +272,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
 
         {/* ── Step 4: Outputs ── */}
         <section className="pmc-section">
-          <h3 className="pmc-section-title">4. Asset Outputs</h3>
+          <h3 className="pmc-section-title">5. Asset Outputs</h3>
           <div className="pmc-output-list">
             {OUTPUTS.map(o => (
               <motion.button
