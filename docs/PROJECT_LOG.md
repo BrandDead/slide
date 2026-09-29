@@ -69,6 +69,32 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — Ghost Crew attacks become the Strip's named threat (#163)
+
+- A visible Ghost Crew `attack` on the canonical Strip block (`demo-block-las-olas`) is now
+  a playable incident instead of banner-only flavor. `blockLoopStore.runDeal()` reads the
+  newest unanswered attack from the existing Ghost Crew feed; `resolveThreatRoute()` names
+  the rival (police heat still outranks it and opens the raid route). The threat panel,
+  encounter opposition labels, tactical brief, consequence, and return briefing all name
+  the crew, e.g. "Nightfall Crew overran 1208 W Las Olas Blvd…".
+- One incident, one receipt. The attack's `actionKey` is the receipt: the loop's encounter
+  idempotency key carries it, `UnifiedEncounter` salts its session seed with it, and
+  `ghostCrewStore.resolveRivalAttack()` records it (plus every other open attack from the
+  same crew on that block) in the existing `appliedResponseKeys`. Replaying the ticket, a
+  reload, or a second call changes neither the player's books nor the rival's roster,
+  treasury, grudge, or feed. `applyRivalDefenseOutcome()` is pure: holding the block costs
+  the rival a shooter (never its last member) and raises its grudge; an overrun or retreat
+  pays the rival and cools its grudge.
+- The rival result is written to the Ghost Crew feed as a `DEFENSE RESULT` item; the City
+  Briefing leads with it, hides the answered attack, and routes Strip attacks/results to the
+  Strip (`DEFEND THE STRIP` / `REVIEW THE STRIP`). The fixed rival banner shows only open
+  threats, offers `Defend` for Strip attacks, and no longer covers the Strip desk's
+  Dealer/Shooter controls on phones.
+- Scope: no new engine, store, table, or migration. Rival mutation runs only for the
+  local demo/guest ledger (`canUseDemoLoopLedger`); signed-in rival state stays
+  server-owned. Ledger v1 gains optional `threatReason`, `rivalIncident`, and
+  `rivalResolution` fields; older ledgers hydrate unchanged. Rollback: revert the PR.
+
 ### 2026-09-25 — Staging migration 007 reconciled; returning-player proof remains (#175)
 
 - Live read-only inspection confirmed isolated `dealt-world-proof-staging`

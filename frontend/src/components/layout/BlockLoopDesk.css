@@ -283,3 +283,20 @@
     transition: none !important;
   }
 }
+
+.block-loop-desk .bld-rival {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  border-left-width: 4px;
+  border-radius: 6px;
+  background: rgba(127, 29, 29, 0.28);
+  color: #fecaca;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.block-loop-desk .bld-rival strong {
+  color: #fff;
+  letter-spacing: 0.04em;
+}

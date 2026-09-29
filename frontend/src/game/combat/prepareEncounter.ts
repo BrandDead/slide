@@ -92,7 +92,24 @@ function findOppositionStart(terrain: CombatTerrainCell[][], seed: number, index
   return cells[seededIndex(seed, index, Math.max(cells.length, 1))] ?? { x: 0, y: 0 };
 }
 
-export function prepareEncounter(block: BlockData): EncounterPreparation {
+export interface PrepareEncounterOptions {
+  /** Named rival crew behind this encounter (Ghost Crew attack). */
+  oppositionName?: string | null;
+  /**
+   * Distinguishes separate encounters on the same block at the same heat and
+   * morale (a new rival incident or a new shift) so their exactly-once
+   * result keys cannot collide. Omit to keep the legacy seed.
+   */
+  sessionSalt?: string | null;
+}
+
+function oppositionLabel(crewName: string | null | undefined, index: number): string {
+  const short = crewName?.trim().split(/\s+/)[0];
+  if (!short) return index === 0 ? 'Lookout' : `Rival ${index + 1}`;
+  return index === 0 ? `${short} lookout` : `${short} ${index + 1}`;
+}
+
+export function prepareEncounter(block: BlockData, options: PrepareEncounterOptions = {}): EncounterPreparation {
   // An owned block keeps the DNA chosen at claim time. Only unclaimed or
   // legacy blocks resolve from live inputs, preventing catalog growth from
   // rewriting an existing tactical identity.
@@ -100,7 +117,8 @@ export function prepareEncounter(block: BlockData): EncounterPreparation {
   const resolved = storedDNA
     ? { dna: storedDNA, zoneLayout: buildZoneLayout(storedDNA), seed: `stored:${storedDNA.id}` }
     : resolveBlockDNA(block.lat, block.lng, block.address);
-  const seed = hashString(`${block.id}:${resolved.seed}:${block.heat}:${block.morale}`);
+  const salt = options.sessionSalt?.trim();
+  const seed = hashString(`${block.id}:${resolved.seed}:${block.heat}:${block.morale}${salt ? `:${salt}` : ''}`);
   // API-mapped server and DNA-fallback grids both have the snapshotted bonus
   // baked into their cell cover. Only older locally constructed BlockData,
   // which has no gridSource marker, needs the compatibility adjustment here.
@@ -135,7 +153,7 @@ export function prepareEncounter(block: BlockData): EncounterPreparation {
   const oppositionCount = Math.min(4, Math.max(2, 1 + Math.ceil(block.heat / 2)));
   const opposition = Array.from({ length: oppositionCount }, (_, index) => ({
     id: `opposition-${index + 1}`,
-    name: index === 0 ? 'Lookout' : `Rival ${index + 1}`,
+    name: oppositionLabel(options.oppositionName, index),
     team: 'opposition' as const,
     role: 'opposition' as const,
     position: findOppositionStart(terrain, seed, index),
@@ -178,7 +196,9 @@ export function prepareEncounter(block: BlockData): EncounterPreparation {
       `${resolved.dna.name} is shaped by ${resolved.dna.tags.join(' · ')} terrain cues.`,
       `Secure exit has ${coverPercent}% cover and ${exposurePercent}% exposure.`,
       `Current pressure: heat ${block.heat}/5 · morale ${block.morale}%.`,
-      'Placement, cover, and crew condition carry directly into this encounter.',
+      options.oppositionName
+        ? `${options.oppositionName} is on the block. Placement, cover, and crew condition carry into this fight.`
+        : 'Placement, cover, and crew condition carry directly into this encounter.',
     ],
   };
 }

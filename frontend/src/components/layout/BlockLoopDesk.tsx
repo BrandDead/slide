@@ -5,7 +5,8 @@ import TopDownBlock from '../map/TopDownBlock';
 import { LazyRoute, RouteLoadBoundary, createRetryableLazy } from '../system/RouteLoadBoundary';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
-import { useBlockLoopStore } from '../../stores/blockLoopStore';
+import { findPendingRivalIncident, useBlockLoopStore } from '../../stores/blockLoopStore';
+import { useGhostStore } from '../../stores/ghostCrewStore';
 import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import type { LoopPhase } from '../../game/loop/blockLoopTypes';
@@ -62,6 +63,26 @@ const BlockLoopDesk: React.FC = () => {
     returnToDesktop,
   } = useBlockLoopStore();
   const [placingId, setPlacingId] = useState<string>(BLOCK_LOOP_IDS.dealerId);
+  const ghostFeed = useGhostStore((state) => state.feed);
+  const ghostReceipts = useGhostStore((state) => state.appliedResponseKeys);
+  const ghostCrews = useGhostStore((state) => state.crews);
+  const pendingRival = useMemo(
+    () => findPendingRivalIncident(loop.block.id, {
+      feed: ghostFeed,
+      appliedResponseKeys: ghostReceipts,
+      crews: ghostCrews,
+    }),
+    [ghostFeed, ghostReceipts, ghostCrews, loop.block.id],
+  );
+  const preDeal = loop.phase === 'crew' || loop.phase === 'placement' || loop.phase === 'product' || loop.phase === 'deal';
+  const rival = loop.rivalIncident ?? (preDeal ? pendingRival : null);
+  const threatLabel = loop.rivalIncident
+    ? loop.rivalIncident.crewName.toUpperCase()
+    : loop.threat
+      ? loop.threat.route.toUpperCase()
+      : rival
+        ? `${rival.crewName.toUpperCase()} · PROBING`
+        : 'QUIET';
 
   React.useEffect(() => {
     if (!started) startLoop();
@@ -92,7 +113,7 @@ const BlockLoopDesk: React.FC = () => {
         <div><span>Product</span><strong>{product ? `${product.name} ×${product.quantity}` : 'None'}</strong></div>
         <div><span>Cash</span><strong>${loop.money.toLocaleString()}</strong></div>
         <div><span>Heat</span><strong>{loop.playerHeat}</strong></div>
-        <div><span>Threat</span><strong>{loop.threat?.route?.toUpperCase() ?? 'QUIET'}</strong></div>
+        <div><span>Threat</span><strong data-testid="strip-threat">{threatLabel}</strong></div>
       </section>
 
       <ol className="bld-phases">
@@ -104,6 +125,13 @@ const BlockLoopDesk: React.FC = () => {
       <p className="bld-map-fallback">{loop.mapFallbackNotice}</p>
 
       {loop.rejection && <p className="bld-reject" role="alert">{loop.rejection}</p>}
+
+      {preDeal && rival && (
+        <p className="bld-rival" role="status" data-testid="rival-incident">
+          <strong>{rival.crewName}</strong> is probing {loop.block.address?.split(',')[0] ?? 'the block'}.
+          {' '}Close a deal and they slide on your crew — put your shooter where they can cover the dealer.
+        </p>
+      )}
 
       <div className="bld-briefing" aria-live="polite">
         {loop.briefing.map((line) => <p key={line}>{line}</p>)}
@@ -190,11 +218,11 @@ const BlockLoopDesk: React.FC = () => {
 
       {loop.phase === 'threat' && loop.lastDeal && (
         <section className="bld-panel">
-          <h2>Threat handoff</h2>
+          <h2>{loop.rivalIncident ? `${loop.rivalIncident.crewName} is sliding` : 'Threat handoff'}</h2>
           <p className="bld-receipt">{loop.lastDeal.explanation}</p>
           <p>{loop.threat?.reason}</p>
           <button type="button" className="bld-cta" data-testid="enter-slide" onClick={beginEncounter}>
-            Enter {loop.threat?.route === 'raid' ? 'raid' : 'SLIDE'}
+            {loop.rivalIncident ? 'Defend the block' : `Enter ${loop.threat?.route === 'raid' ? 'raid' : 'SLIDE'}`}
           </button>
         </section>
       )}
@@ -214,6 +242,8 @@ const BlockLoopDesk: React.FC = () => {
               block={loop.block}
               onResolved={(result) => resolveEncounter(result)}
               onClose={() => resolveSeededEncounter()}
+              oppositionName={loop.rivalIncident?.crewName ?? null}
+              sessionSalt={loop.rivalIncident?.receiptKey ?? loop.lastDeal?.key ?? null}
             />
           </LazyRoute>
           {typeof document !== 'undefined' && createPortal(

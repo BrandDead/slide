@@ -1,5 +1,7 @@
 import type { GhostFeedEvent } from '../../stores/ghostCrewStore';
 import type { Notification } from '../../types/game.types';
+import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
+import { isDefenseReason } from '../../utils/ghostCrewEngine';
 
 export const CITY_BRIEF_LIMIT = 3;
 
@@ -7,8 +9,17 @@ export type CityBriefTone = 'danger' | 'warning' | 'info' | 'success';
 
 export type CityBriefAction = {
   label: string;
-  destination: 'map' | 'gang_hq' | 'dealt_v2';
+  destination: CityBriefDestination;
 };
+
+export type CityBriefDestination = 'map' | 'gang_hq' | 'dealt_v2' | 'block_loop';
+
+type BriefEvent = Pick<GhostFeedEvent, 'action' | 'reason' | 'targetBlockId'>;
+
+/** Attacks on the Strip block (and their results) are answered on the Strip. */
+function isStripEvent(event: BriefEvent): boolean {
+  return event.targetBlockId === BLOCK_LOOP_IDS.blockId;
+}
 
 export type CityBriefItem = GhostFeedEvent & {
   tone: CityBriefTone;
@@ -16,7 +27,10 @@ export type CityBriefItem = GhostFeedEvent & {
   cta: CityBriefAction;
 };
 
-export function getCityBriefTone(action: GhostFeedEvent['action']): CityBriefTone {
+export function getCityBriefTone(action: GhostFeedEvent['action'], reason?: GhostFeedEvent['reason']): CityBriefTone {
+  if (reason === 'defense-held') return 'success';
+  if (reason === 'defense-overrun') return 'danger';
+  if (reason === 'defense-retreated') return 'warning';
   switch (action) {
     case 'attack':
       return 'danger';
@@ -29,7 +43,8 @@ export function getCityBriefTone(action: GhostFeedEvent['action']): CityBriefTon
   }
 }
 
-export function getCityBriefCategory(action: GhostFeedEvent['action']): string {
+export function getCityBriefCategory(action: GhostFeedEvent['action'], reason?: GhostFeedEvent['reason']): string {
+  if (isDefenseReason(reason)) return 'DEFENSE RESULT';
   switch (action) {
     case 'attack':
       return 'RIVAL PRESSURE';
@@ -44,7 +59,17 @@ export function getCityBriefCategory(action: GhostFeedEvent['action']): string {
   }
 }
 
-export function getCityBriefAction(action: GhostFeedEvent['action']): CityBriefAction {
+export function getCityBriefAction(
+  action: GhostFeedEvent['action'],
+  event: Partial<BriefEvent> = {},
+): CityBriefAction {
+  const full = { action, reason: event.reason, targetBlockId: event.targetBlockId };
+  if (isDefenseReason(full.reason)) {
+    return { label: 'REVIEW THE STRIP', destination: isStripEvent(full) ? 'block_loop' : 'map' };
+  }
+  if (action === 'attack' && isStripEvent(full)) {
+    return { label: 'DEFEND THE STRIP', destination: 'block_loop' };
+  }
   switch (action) {
     case 'attack':
       return { label: 'REVIEW DEFENSE', destination: 'map' };
@@ -58,7 +83,7 @@ export function getCityBriefAction(action: GhostFeedEvent['action']): CityBriefA
 }
 
 export function toCityBriefNotification(event: GhostFeedEvent): Omit<Notification, 'id' | 'read' | 'timestamp'> & { timestamp: number } {
-  const tone = getCityBriefTone(event.action);
+  const tone = getCityBriefTone(event.action, event.reason);
   const typeByTone: Record<CityBriefTone, Notification['type']> = {
     danger: 'danger',
     warning: 'warning',
@@ -74,7 +99,7 @@ export function toCityBriefNotification(event: GhostFeedEvent): Omit<Notificatio
 
   return {
     type: typeByTone[tone],
-    title: `${getCityBriefCategory(event.action)}: ${event.crewName}`,
+    title: `${getCityBriefCategory(event.action, event.reason)}: ${event.crewName}`,
     message: event.description,
     timestamp: event.timestamp,
     priority: priorityByTone[tone],
@@ -98,14 +123,21 @@ export function formatCityBriefTime(timestamp: number, now = Date.now()): string
  * The Ghost Crew store owns feed identity and de-duplication. This projection
  * is presentation-only: it keeps the command desktop bounded and newest first.
  */
-export function toCityBriefItems(feed: GhostFeedEvent[]): CityBriefItem[] {
-  return [...feed]
+export function toCityBriefItems(feed: GhostFeedEvent[], answeredKeys: string[] = []): CityBriefItem[] {
+  // An attack answered on the Strip is superseded by its defense result.
+  const answered = new Set(answeredKeys);
+  return feed
+    .filter((event) => !(
+      event.action === 'attack'
+      && !isDefenseReason(event.reason)
+      && answered.has(event.actionKey?.trim() || event.id)
+    ))
     .sort((left, right) => right.timestamp - left.timestamp)
     .slice(0, CITY_BRIEF_LIMIT)
     .map((event) => ({
       ...event,
-      tone: getCityBriefTone(event.action),
-      category: getCityBriefCategory(event.action),
-      cta: getCityBriefAction(event.action),
+      tone: getCityBriefTone(event.action, event.reason),
+      category: getCityBriefCategory(event.action, event.reason),
+      cta: getCityBriefAction(event.action, event),
     }));
 }

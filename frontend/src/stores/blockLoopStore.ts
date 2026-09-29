@@ -2,15 +2,27 @@ import { create } from 'zustand';
 import { useBlockStore } from './blockStore';
 import { useGangStore, usePlayerStore } from './gameStore';
 import { useDrugInventory } from './useDrugInventory';
+import {
+  pendingRivalAttacks,
+  rivalAttackReceiptKey,
+  useGhostStore,
+  type GhostStoreState,
+} from './ghostCrewStore';
 import { createLoopState } from '../game/loop/blockLoopFixture';
-import { reduceLoop, seededLoopEncounter } from '../game/loop/blockLoopEngine';
+import { loopBlockLabel, reduceLoop, seededLoopEncounter } from '../game/loop/blockLoopEngine';
 import {
   canUseDemoLoopLedger,
   toLoopLedger,
   writeDemoLoopLedger,
   readDemoLoopLedger,
 } from '../game/loop/blockLoopPersist';
-import { BLOCK_LOOP_IDS, type LoopCommand, type LoopLedgerV1, type LoopState } from '../game/loop/blockLoopTypes';
+import {
+  BLOCK_LOOP_IDS,
+  type LoopCommand,
+  type LoopLedgerV1,
+  type LoopState,
+  type RivalIncident,
+} from '../game/loop/blockLoopTypes';
 import type { CombatResult } from '../game/combat/types';
 
 function projectToStores(loop: LoopState) {
@@ -46,6 +58,42 @@ function projectToStores(loop: LoopState) {
     });
   }
   writeDemoLoopLedger(playerId, toLoopLedger(loop));
+}
+
+/**
+ * The newest unanswered Ghost Crew attack on the Strip block, if any. Read
+ * from the existing Ghost Crew feed; the store's response receipts decide
+ * whether it is still open.
+ */
+export function findPendingRivalIncident(
+  blockId: string = BLOCK_LOOP_IDS.blockId,
+  ghost: Pick<GhostStoreState, 'feed' | 'appliedResponseKeys' | 'crews'> = useGhostStore.getState(),
+): RivalIncident | null {
+  const [event] = pendingRivalAttacks(ghost.feed, blockId, ghost.appliedResponseKeys ?? []);
+  if (!event) return null;
+  return {
+    receiptKey: rivalAttackReceiptKey(event),
+    eventId: event.id,
+    crewId: event.crewId,
+    crewName: ghost.crews[event.crewId]?.name ?? event.crewName,
+    description: event.description,
+    occurredAt: event.timestamp,
+  };
+}
+
+/** Close the rival's attack once, after the Strip books the encounter. */
+function settleRivalAttack(previous: LoopState, next: LoopState) {
+  const resolution = next.rivalResolution;
+  if (!resolution || previous.rivalResolution || !next.rivalIncident) return;
+  if (!canUseDemoLoopLedger(usePlayerStore.getState().player.id)) return;
+  useGhostStore.getState().resolveRivalAttack({
+    crewId: resolution.crewId,
+    crewName: resolution.crewName,
+    blockId: next.block.id,
+    blockLabel: loopBlockLabel(next),
+    receiptKey: resolution.receiptKey,
+    outcome: resolution.outcome,
+  });
 }
 
 interface BlockLoopStore {
@@ -105,8 +153,10 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
   },
 
   dispatch: (command) => {
-    const loop = reduceLoop(get().loop, command);
+    const previous = get().loop;
+    const loop = reduceLoop(previous, command);
     if (!loop.rejection) {
+      settleRivalAttack(previous, loop);
       if (command.type === 'place') {
         const placement = loop.block.placements.find((item) => item.memberId === command.memberId);
         if (placement) {
@@ -140,7 +190,10 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
     dealerId: get().loop.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId,
     productId: BLOCK_LOOP_IDS.productId,
   }),
-  runDeal: () => get().dispatch({ type: 'run-deal' }),
+  runDeal: () => get().dispatch({
+    type: 'run-deal',
+    rivalIncident: findPendingRivalIncident(get().loop.block.id),
+  }),
   beginEncounter: () => get().dispatch({ type: 'begin-encounter' }),
   resolveEncounter: (result, healthWrite) => get().dispatch({ type: 'apply-encounter', result, healthWrite }),
   resolveSeededEncounter: () => {

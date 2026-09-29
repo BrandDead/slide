@@ -96,6 +96,8 @@ export function createLoopState(overrides: Partial<LoopState> = {}): LoopState {
     reputation: 12,
     lastDeal: null,
     threat: null,
+    rivalIncident: null,
+    rivalResolution: null,
     lastEncounter: null,
     appliedEncounterKeys: [],
     economyKeys: [],

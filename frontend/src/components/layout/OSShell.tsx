@@ -70,7 +70,11 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
   const raidProb = useMemo(() => getRaidProbability(player.heat), [player.heat]);
   const moraleDesc = useMemo(() => getMoraleDescription(gangMorale), [gangMorale]);
   const handleCityBriefNavigate = React.useCallback(
-    (destination: 'map' | 'gang_hq' | 'dealt_v2', targetBlockId?: string) => {
+    (destination: 'map' | 'gang_hq' | 'dealt_v2' | 'block_loop', targetBlockId?: string) => {
+      if (destination === 'block_loop') {
+        navigateTo('block_loop');
+        return;
+      }
       if (destination === 'map' && targetBlockId && blocks[targetBlockId]) {
         selectBlock(targetBlockId);
       }

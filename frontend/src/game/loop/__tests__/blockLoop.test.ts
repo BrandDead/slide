@@ -190,3 +190,62 @@ describe('threat, encounter, and reload', () => {
     expect(rested.members.find((member) => member.id === BLOCK_LOOP_IDS.dealerId)?.assignment).toBe('resting');
   });
 });
+
+describe('named rival threat (#163)', () => {
+  const incident = {
+    receiptKey: 'tick-9:ghost-nightfall:attack',
+    eventId: 'feed-tick-9:ghost-nightfall:attack',
+    crewId: 'ghost-nightfall',
+    crewName: 'Nightfall Crew',
+    description: 'Nightfall Crew is probing the block.',
+    occurredAt: 1_780_000_000_000,
+  };
+
+  it('names the rival on the threat, the encounter, and the consequence', () => {
+    const dealt = reduceLoop(placedLoop(), { type: 'run-deal', rivalIncident: incident });
+    expect(dealt.threat?.route).toBe('slide');
+    expect(dealt.rivalIncident?.crewId).toBe('ghost-nightfall');
+    expect(dealt.threat?.reason).toMatch(/Nightfall Crew is sliding on 1208 W Las Olas Blvd/);
+    const live = reduceLoop(dealt, { type: 'begin-encounter' });
+    expect(live.briefing[0]).toMatch(/Nightfall Crew rolls up/);
+    const result = seededLoopEncounter(live);
+    expect(result.idempotencyKey).toBe(`loop:${BLOCK_LOOP_IDS.blockId}:slide:overrun:${incident.receiptKey}`);
+    const once = reduceLoop(live, { type: 'apply-encounter', result });
+    expect(once.rivalResolution).toMatchObject({ outcome: 'overrun', crewName: 'Nightfall Crew' });
+    expect(once.briefing[0]).toMatch(/Nightfall Crew overran/);
+    const twice = reduceLoop(once, { type: 'apply-encounter', result });
+    expect(twice.rivalResolution).toEqual(once.rivalResolution);
+    const returned = reduceLoop(twice, { type: 'return-desktop' });
+    expect(returned.briefing[0]).toBe(once.rivalResolution?.line);
+  });
+
+  it('lets police heat outrank a rival probe', () => {
+    const hot = { ...placedLoop(), playerHeat: 45 };
+    const dealt = reduceLoop(hot, { type: 'run-deal', rivalIncident: incident });
+    expect(dealt.threat?.route).toBe('raid');
+    expect(dealt.rivalIncident).toBeNull();
+  });
+
+  it('restores the rival threat and result from the ledger', () => {
+    const live = reduceLoop(reduceLoop(placedLoop(), { type: 'run-deal', rivalIncident: incident }), { type: 'begin-encounter' });
+    const done = reduceLoop(live, { type: 'apply-encounter', result: seededLoopEncounter(live) });
+    const reloaded = reduceLoop(createLoopState(), { type: 'hydrate-ledger', ledger: toLoopLedger(done) });
+    expect(reloaded.rivalIncident).toEqual(done.rivalIncident);
+    expect(reloaded.rivalResolution).toEqual(done.rivalResolution);
+    expect(reloaded.threat?.reason).toBe(done.threat?.reason);
+    const replay = reduceLoop(reloaded, { type: 'apply-encounter', result: seededLoopEncounter(reloaded) });
+    expect(replay.money).toBe(done.money);
+  });
+
+  it('labels named opposition and salts the encounter session without changing legacy seeds', () => {
+    const block = createAuthoritativeLoopBlock();
+    const legacy = prepareEncounter(block);
+    expect(prepareEncounter(block, {}).sessionId).toBe(legacy.sessionId);
+    const named = prepareEncounter(block, { oppositionName: 'Nightfall Crew', sessionSalt: incident.receiptKey });
+    expect(named.sessionId).not.toBe(legacy.sessionId);
+    expect(named.opposition[0].name).toBe('Nightfall lookout');
+    expect(named.opposition[1].name).toBe('Nightfall 2');
+    expect(named.tacticalBrief.join(' ')).toMatch(/Nightfall Crew is on the block/);
+    expect(prepareEncounter(block, { sessionSalt: 'shift-2' }).sessionId).not.toBe(legacy.sessionId);
+  });
+});

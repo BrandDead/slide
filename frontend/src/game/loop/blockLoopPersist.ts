@@ -36,6 +36,9 @@ export function toLoopLedger(state: LoopState): LoopLedgerV1 {
     selectedShooterId: state.selectedShooterId,
     briefing: [...state.briefing],
     threatRoute: state.threat?.route ?? null,
+    threatReason: state.threat?.reason ?? null,
+    rivalIncident: state.rivalIncident ? { ...state.rivalIncident } : null,
+    rivalResolution: state.rivalResolution ? { ...state.rivalResolution } : null,
     pendingHealthIds: [...state.pendingHealthIds],
     recovery: state.recovery ? { ...state.recovery } : null,
   };

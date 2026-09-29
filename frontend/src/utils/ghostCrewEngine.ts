@@ -94,7 +94,24 @@ export type GhostActionReason =
   | 'hold-and-earn'
   | 'insufficient-resources'
   | 'no-legal-action'
-  | 'malformed-state';
+  | 'malformed-state'
+  // Player-defense receipts: the rival's attack on a player block was
+  // answered on the Strip. These close an attack; they never open one.
+  | 'defense-held'
+  | 'defense-overrun'
+  | 'defense-retreated';
+
+export type RivalDefenseOutcome = 'secured' | 'overrun' | 'retreated';
+
+export const RIVAL_DEFENSE_REASON: Record<RivalDefenseOutcome, GhostActionReason> = {
+  secured: 'defense-held',
+  overrun: 'defense-overrun',
+  retreated: 'defense-retreated',
+};
+
+export function isDefenseReason(reason: GhostActionReason | undefined): boolean {
+  return reason === 'defense-held' || reason === 'defense-overrun' || reason === 'defense-retreated';
+}
 
 export interface GhostDecisionTrace {
   /** Stable caller-owned identity used for exactly-once application. */
@@ -702,5 +719,52 @@ export function addGrudge(
       lastIncidentBlockId: blockId,
       lastIncidentAt: new Date(occurredAt).toISOString(),
     },
+  };
+}
+
+/**
+ * Rival-side consequence of the player answering a Ghost Crew attack on the
+ * Strip. Pure: the caller owns the exactly-once receipt.
+ *
+ *   secured   → the rival loses one fighter (never its last) and the grudge
+ *               climbs (+10): they got pushed off and will want it back.
+ *   overrun   → the rival got its payback: grudge −20, treasury +200.
+ *   retreated → the crew gave ground: grudge −5, treasury +50.
+ */
+export function applyRivalDefenseOutcome(
+  crew: GhostCrew,
+  outcome: RivalDefenseOutcome,
+  blockId: string,
+  occurredAt: number | string = Date.now(),
+): GhostCrew {
+  const at = new Date(occurredAt).toISOString();
+  const clamp = (score: number) => Math.max(0, Math.min(100, score));
+  if (outcome === 'secured') {
+    const alive = crew.roster.filter((member) => member.alive);
+    const casualty = alive.length > 1
+      ? (alive.find((member) => member.role === 'shooter') ?? alive[alive.length - 1])
+      : undefined;
+    return {
+      ...crew,
+      roster: casualty
+        ? crew.roster.map((member) => (member.id === casualty.id ? { ...member, alive: false } : member))
+        : crew.roster,
+      grudge: { score: clamp(crew.grudge.score + 10), lastIncidentBlockId: blockId, lastIncidentAt: at },
+      lastMove: `${crew.name} got pushed off the block and lost a shooter.`,
+    };
+  }
+  if (outcome === 'overrun') {
+    return {
+      ...crew,
+      treasury: crew.treasury + 200,
+      grudge: { score: clamp(crew.grudge.score - 20), lastIncidentBlockId: blockId, lastIncidentAt: at },
+      lastMove: `${crew.name} got its payback.`,
+    };
+  }
+  return {
+    ...crew,
+    treasury: crew.treasury + 50,
+    grudge: { score: clamp(crew.grudge.score - 5), lastIncidentBlockId: blockId, lastIncidentAt: at },
+    lastMove: `${crew.name} watched the crew back off the block.`,
   };
 }
