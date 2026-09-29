@@ -27,8 +27,127 @@
   padding: 15px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
   overflow-y: auto;
+}
+.contact-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.contact-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.contact-section-header h2 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
+.contact-eyebrow {
+  color: #73738a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.contact-section-copy {
+  margin: 0;
+  color: #9b9bab;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.add-custom-btn {
+  border: 1px solid rgba(74, 222, 128, 0.45);
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.crew-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.crew-contact-card,
+.crew-empty,
+.unavailable-crew {
+  background: #151520;
+  border: 1px solid #2c2c3b;
+  border-radius: 10px;
+}
+.crew-contact-card {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.crew-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #252536;
+  color: #4ade80;
+  font-weight: 900;
+}
+.crew-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.crew-contact-info {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.crew-contact-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-contact-info span {
+  color: #8e8e9e;
+  font-size: 0.72rem;
+  text-transform: capitalize;
+}
+.crew-status {
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.crew-status.active {
+  color: #4ade80;
+}
+.crew-empty {
+  padding: 16px;
+  color: #8e8e9e;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.unavailable-crew {
+  padding: 9px 11px;
+}
+.unavailable-crew summary {
+  cursor: pointer;
+  color: #b7b7c3;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.unavailable-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 8px;
+  color: #8e8e9e;
+  font-size: 0.72rem;
+  text-transform: capitalize;
 }
 .phone-contact-card {
   background: #1e1e2d;
@@ -38,23 +157,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 .contact-info h3 {
   margin: 0 0 5px 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 .contact-role {
   color: #888;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 .call-btn {
   background: #4ade80;
   color: #000;
   border: none;
-  padding: 8px 15px;
+  padding: 8px 12px;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
 }
 .call-btn:hover {
   background: #22c55e;
@@ -65,4 +186,40 @@
   padding: 10px;
   text-align: center;
   font-weight: bold;
+}
+.photo-creator-shell {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: #09090d;
+  overflow-y: auto;
+}
+.pmc-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  font: inherit;
+}
+.pmc-name-input:focus {
+  outline: 2px solid rgba(74, 222, 128, 0.35);
+  border-color: #4ade80;
+}
+@media (max-width: 520px) {
+  .contact-section-header {
+    flex-direction: column;
+  }
+  .add-custom-btn {
+    width: 100%;
+  }
+  .phone-contact-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .call-btn {
+    width: 100%;
+  }
 }
