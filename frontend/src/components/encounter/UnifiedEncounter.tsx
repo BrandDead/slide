@@ -151,7 +151,8 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
       </div>
 
       <div className="ue-event-log" aria-live="polite" aria-label="Combat status">
-        {snapshot.events.slice(-4).reverse().map((item) => <p key={item.id}>{item.message}</p>)}
+        {/* Two actors can emit the same event type on one tick, so ids are not unique. */}
+        {snapshot.events.slice(-4).reverse().map((item, index) => <p key={`${item.id}:${index}`}>{item.message}</p>)}
         {snapshot.events.length === 0 && <p>Choose a crew member, use cover, and reach the highlighted secure exit.</p>}
       </div>
 

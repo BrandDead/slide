@@ -252,11 +252,11 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         briefing: state.rivalIncident
           ? [
               `${state.rivalIncident.crewName} rolls up on ${loopBlockLabel(state)}. Reach the exit with your crew, or back off before they close in.`,
-              state.mapFallbackNotice,
             ]
           : [
-              `${state.threat.route === 'raid' ? 'Raid' : 'SLIDE'} opens on ${state.block.dnaId ?? 'this DNA board'}, not a default empty grid.`,
-              state.mapFallbackNotice,
+              state.threat.route === 'raid'
+                ? `Police hit ${loopBlockLabel(state)}. Get your crew out before they are cornered.`
+                : `A car slides down ${loopBlockLabel(state)}. Use cover and reach the exit with your crew.`,
             ],
       };
     }
@@ -311,10 +311,10 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         briefing: [
           ...(rivalResolution && rivalResolution !== state.rivalResolution ? [rivalResolution.line] : []),
           command.result.summary,
-          `Heat ${command.result.heatDelta >= 0 ? '+' : ''}${command.result.heatDelta}, morale ${command.result.moraleDelta}, pending cash ${command.result.pendingIncomeDelta}.`,
-          healthWrite === 'failed'
-            ? 'Health write failed. Economy already booked; retry only the wound, not the payout.'
-            : 'Consequence is on the strip ledger.',
+          `Heat ${signed(command.result.heatDelta)}, morale ${signed(command.result.moraleDelta)}, pending cash ${command.result.pendingIncomeDelta < 0 ? '-' : '+'}$${Math.abs(command.result.pendingIncomeDelta)}.`,
+          ...(healthWrite === 'failed'
+            ? ['Health write failed. Economy already booked; retry only the wound, not the payout.']
+            : []),
         ],
         block: {
           ...state.block,
@@ -533,4 +533,8 @@ function startNextShift(state: LoopState, stock?: LoopState['inventory']): LoopS
         : `Stash is empty. Re-up ${LOOP_RE_UP.units} River Cut for $${LOOP_RE_UP.cost} or cook something new.`,
     ],
   };
+}
+
+function signed(value: number): string {
+  return `${value >= 0 ? '+' : ''}${value}`;
 }

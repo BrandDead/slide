@@ -30,9 +30,12 @@ describe('BlockLoopDesk', () => {
   });
 
   it('shows the dealer, shooter, block, product, money, and heat on the strip', () => {
-    render(<BlockLoopDesk />);
+    const { container } = render(<BlockLoopDesk />);
     expect(screen.getByText('1208 Las Olas')).toBeInTheDocument();
-    expect(screen.getAllByText(/las-olas-1208/).length).toBeGreaterThan(0);
+    // Players see the street address; the canonical DNA id stays on the board for QA.
+    expect(screen.getAllByText(/1208 W Las Olas Blvd/).length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-dna-id="las-olas-1208"]')).not.toBeNull();
+    expect(screen.queryByText(/closed-beta|DNA board|owns this board/i)).not.toBeInTheDocument();
     expect(screen.getAllByText('Lil Dre').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Big Rome').length).toBeGreaterThan(0);
     expect(screen.getAllByText(/River Cut/).length).toBeGreaterThan(0);
@@ -77,5 +80,29 @@ describe('BlockLoopDesk', () => {
     const lock = screen.getByTestId('lock-las-olas-crew');
     expect(lock).toBeInTheDocument();
     expect(lock.getBoundingClientRect().height).toBeGreaterThanOrEqual(0);
+  });
+
+  it('keeps the skip-the-fight QA shortcut out of player builds', () => {
+    const store = useBlockLoopStore.getState();
+    store.startLoop(true);
+    store.selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId);
+    store.place(BLOCK_LOOP_IDS.dealerId, 3, 1);
+    store.place(BLOCK_LOOP_IDS.shooterId, 5, 3);
+    store.assignProduct();
+    store.runDeal();
+    store.beginEncounter();
+    vi.stubEnv('MODE', 'production');
+    try {
+      const { unmount } = render(<BlockLoopDesk />);
+      expect(screen.queryByTestId('book-the-wound')).not.toBeInTheDocument();
+      expect(screen.getByText(/back off the block/i)).toBeInTheDocument();
+      unmount();
+      window.history.replaceState(null, '', '/?qa=1');
+      render(<BlockLoopDesk />);
+      expect(screen.getByTestId('book-the-wound')).toBeInTheDocument();
+    } finally {
+      window.history.replaceState(null, '', '/');
+      vi.unstubAllEnvs();
+    }
   });
 });

@@ -69,6 +69,24 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — Strip speaks to players; the fight is played, not skipped
+
+- Player-facing Strip, encounter, and desktop-card copy no longer shows QA/closed-beta
+  language ("DNA card … owns this board", "UnifiedEncounter is running on …", "Consequence
+  is on the strip ledger", "Closed-beta Las Olas path", "seizure-risk hit"). The desk shows
+  the street address; the canonical DNA id remains as `data-dna-id` for QA and tests.
+- The Strip desk no longer passes a `missing` map context to the diorama (it never loads
+  street tiles by design), so the "Street map imagery is optional" warning appears only when
+  a real map load fails. The threat step no longer prints the receipt and reason twice.
+- The deterministic "Book the wound" dock skipped the fight and, on phones, covered the
+  encounter's Fire/Reload/Secure/Retreat controls. It is now a QA shortcut shown only in
+  test mode or with `?qa=1`. A scripted playtest wins the real encounter (move to the
+  secure exit, interact) on 1440×900 and 390×844 and books `You held … against Nightfall
+  Crew` with no shortcut.
+- Encounter event-log keys are unique (two actors can emit the same event on one tick,
+  which produced React duplicate-key warnings every turn). Consequence deltas are signed
+  (`morale +4, pending cash +$75`).
+
 ### 2026-09-29 — The Strip runs shift after shift (single-player loop)
 
 - The canonical Strip was one-shot: after the first SLIDE and return, the desktop card only

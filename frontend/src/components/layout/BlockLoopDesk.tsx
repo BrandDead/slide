@@ -10,6 +10,7 @@ import { useGhostStore } from '../../stores/ghostCrewStore';
 import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import { LOOP_RE_UP } from '../../game/loop/blockLoopFixture';
+import { loopBlockLabel } from '../../game/loop/blockLoopEngine';
 import type { LoopPhase } from '../../game/loop/blockLoopTypes';
 import './BlockLoopDesk.css';
 
@@ -43,6 +44,16 @@ const PHASES: { id: LoopPhase; label: string }[] = [
   { id: 'consequence', label: 'Hit' },
   { id: 'returned', label: 'Return' },
 ];
+
+/**
+ * The deterministic "book the wound" dock is a QA shortcut, not a player
+ * choice: it skips the fight. Keep it for tests and `?qa=1` review sessions.
+ */
+function qaShortcutsEnabled(): boolean {
+  if (import.meta.env.MODE === 'test') return true;
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).has('qa');
+}
 
 const BlockLoopDesk: React.FC = () => {
   const { goHome, navigateTo } = useNavigationStore();
@@ -99,6 +110,7 @@ const BlockLoopDesk: React.FC = () => {
   const dealer = loop.members.find((member) => member.id === (loop.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId));
   const shooter = loop.members.find((member) => member.id === (loop.selectedShooterId ?? BLOCK_LOOP_IDS.shooterId));
   const product = loop.inventory[0];
+  const qaShortcuts = qaShortcutsEnabled();
   const onHand = loop.inventory.filter((item) => item.quantity > 0);
   const equipped = loop.inventory.find((item) => item.id === loop.assignments[dealer?.id ?? '']);
   const canStartNextShift = !loop.recovery && loop.pendingHealthIds.length === 0;
@@ -108,14 +120,14 @@ const BlockLoopDesk: React.FC = () => {
     </button>
   );
   return (
-    <div className="block-loop-desk">
+    <div className="block-loop-desk" data-dna-id={loop.dnaId}>
       <header className="bld-top">
         <button type="button" className="bld-back" onClick={goHome}>Desktop</button>
         <div>
-          <p className="bld-kicker">Las Olas closed-beta path</p>
+          <p className="bld-kicker">Your block</p>
           <h1>1208 Las Olas</h1>
         </div>
-        <p className="bld-dna">DNA {loop.dnaId}</p>
+        <p className="bld-dna">{loop.block.address ?? '1208 W Las Olas Blvd'}</p>
       </header>
 
       <section className="bld-strip" aria-label="Empire state">
@@ -134,8 +146,6 @@ const BlockLoopDesk: React.FC = () => {
         ))}
       </ol>
 
-      <p className="bld-map-fallback">{loop.mapFallbackNotice}</p>
-
       {loop.rejection && <p className="bld-reject" role="alert">{loop.rejection}</p>}
 
       {preDeal && rival && (
@@ -145,9 +155,12 @@ const BlockLoopDesk: React.FC = () => {
         </p>
       )}
 
-      <div className="bld-briefing" aria-live="polite">
-        {loop.briefing.map((line) => <p key={line}>{line}</p>)}
-      </div>
+      {/* The threat panel restates the receipt and reason; don't print them twice. */}
+      {loop.phase !== 'threat' && (
+        <div className="bld-briefing" aria-live="polite">
+          {loop.briefing.map((line) => <p key={line}>{line}</p>)}
+        </div>
+      )}
 
       {loop.phase === 'crew' && (
         <section className="bld-panel">
@@ -195,7 +208,7 @@ const BlockLoopDesk: React.FC = () => {
           >
             <TacticalDiorama
               block={loop.block}
-              mapContext={{ status: 'missing', reason: 'STRIP desk does not load street tiles' }}
+              mapContext={null}
               placingMemberId={placingId}
               placingMemberName={placingId === BLOCK_LOOP_IDS.dealerId ? dealer?.name : shooter?.name}
               onPlace={(col, row) => place(placingId, col, row)}
@@ -246,7 +259,7 @@ const BlockLoopDesk: React.FC = () => {
       {loop.phase === 'deal' && (
         <section className="bld-panel">
           <h2>Run the deal</h2>
-          <p>The receipt writes cash, product, reputation, and heat through the shared empire books.</p>
+          <p>Closing moves product for cash and reputation — and every deal adds heat.</p>
           <button type="button" className="bld-cta" data-testid="close-the-deal" onClick={runDeal}>Close the deal</button>
           <button type="button" onClick={() => navigateTo('dealt_v2')}>Open DEALT</button>
         </section>
@@ -265,8 +278,8 @@ const BlockLoopDesk: React.FC = () => {
 
       {loop.phase === 'encounter' && (
         <section className="bld-panel bld-encounter">
-          <h2>{loop.threat?.route === 'raid' ? 'Raid' : 'SLIDE'} on this DNA board</h2>
-          <p>UnifiedEncounter is running on {loop.dnaId} with the placed crew and loadout. Map tiles are optional.</p>
+          <h2>{loop.threat?.route === 'raid' ? 'Police raid' : loop.rivalIncident ? `${loop.rivalIncident.crewName} slide` : 'SLIDE'} on {loopBlockLabel(loop)}</h2>
+          <p>Pick a crew member, use cover, and reach the secure exit — or back off the block.</p>
           <LazyRoute
             label="Encounter"
             testId="route-encounter"
@@ -283,11 +296,11 @@ const BlockLoopDesk: React.FC = () => {
               sessionSalt={[loop.lastDeal?.key, loop.rivalIncident?.receiptKey].filter(Boolean).join('|') || null}
             />
           </LazyRoute>
-          {typeof document !== 'undefined' && createPortal(
+          {qaShortcuts && typeof document !== 'undefined' && createPortal(
             <div className="bld-wound-dock" role="region" aria-label="Hospital and wound booking">
               <div>
-                <p className="bld-wound-kicker">Exact-once demo hit</p>
-                <p>Books Dre's wound on this DNA board. Replaying the same ticket does nothing.</p>
+                <p className="bld-wound-kicker">QA shortcut</p>
+                <p>Skip the fight and book Dre's wound. Replaying the same ticket does nothing.</p>
               </div>
               <button type="button" className="bld-cta" data-testid="book-the-wound" onClick={resolveSeededEncounter}>
                 Book the wound
