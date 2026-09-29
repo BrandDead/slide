@@ -69,6 +69,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — Personal crew recruiting wired into Contacts (#183)
+
+- The existing photo-to-member flow is now reachable from the player-facing Contacts app. Contacts shows the current gang roster, keeps service contacts available, and opens **Add Custom Member** for a permissioned photo.
+- Custom member creation now requires a player-provided name in addition to the existing image-permission consent, preserves generated portrait/full-body/top-down assets when approval falls back, and records those URLs on the existing gang member rather than creating a second roster system.
+- Uploaded source photos remain temporary; preview object URLs and generation polling are cleaned up on replacement/unmount. No Supabase migration, avatar-provider change, deployment, secret, multiplayer path, or production data change is part of this slice.
+- This establishes the replacement-recruit path required before the Strip raid system can safely use permanent/lifer consequences without dead-ending the two-member starting crew.
+
 ### 2026-09-29 — Strip speaks to players; the fight is played, not skipped
 
 - Player-facing Strip, encounter, and desktop-card copy no longer shows QA/closed-beta
