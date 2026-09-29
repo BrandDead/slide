@@ -16,6 +16,8 @@ interface UnifiedEncounterProps {
   oppositionName?: string | null;
   /** Keeps separate incidents on the same block from sharing a result key. */
   sessionSalt?: string | null;
+  /** Header exit label when leaving has consequences (e.g. the Strip books a retreat). */
+  closeLabel?: string | null;
 }
 
 function useReducedMotion(): boolean {
@@ -39,6 +41,7 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
   onClose,
   oppositionName,
   sessionSalt,
+  closeLabel,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -114,7 +117,7 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
           <h2>{preparation.sceneLabel}</h2>
           <p>{preparation.locationReference}</p>
         </div>
-        <button type="button" className="ue-close" onClick={onClose} aria-label="Return to block planning">Return to planning</button>
+        <button type="button" className="ue-close" onClick={onClose} aria-label={closeLabel ?? 'Return to block planning'}>{closeLabel ?? 'Return to planning'}</button>
       </header>
 
       <div className="ue-modifiers" aria-label="Encounter modifiers">

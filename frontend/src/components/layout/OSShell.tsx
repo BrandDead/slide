@@ -88,6 +88,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
   const bountyPosters = useMostWantedStore((s) => s.posters);
   const loop = useBlockLoopStore((s) => s.loop);
   const startLoop = useBlockLoopStore((s) => s.startLoop);
+  const nextShift = useBlockLoopStore((s) => s.nextShift);
   const openBountyCount = useMemo(
     () => bountyPosters.filter((p) => p.status === 'open').length,
     [bountyPosters],
@@ -452,7 +453,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <h2>Run 1208 Las Olas</h2>
           <p>
             STRIP desk → MAP diorama → place crew → deal → SLIDE → return. Street tiles are optional.
-            {' '}{loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {player.heat}
+            {' '}{loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {Math.round(player.heat)}
             {loop.threat ? ` · ${loop.threat.route}` : ''}
           </p>
           {loop.phase === 'returned' || loop.lastEncounter ? (
@@ -467,10 +468,15 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
             if (!loop.lastEncounter && loop.phase === 'crew') {
               startLoop();
             }
+            if (loop.phase === 'returned' && !loop.recovery && loop.pendingHealthIds.length === 0) {
+              nextShift();
+            }
             navigateTo('block_loop');
           }}
         >
-          {loop.lastEncounter ? 'Review the strip' : 'Run the block'}
+          {loop.phase === 'returned'
+            ? (loop.recovery ? 'Finish the shift' : `Run shift ${loop.shiftIndex + 1}`)
+            : loop.lastEncounter ? 'Review the strip' : 'Run the block'}
         </button>
       </section>
 

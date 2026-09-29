@@ -300,3 +300,24 @@
   color: #fff;
   letter-spacing: 0.04em;
 }
+
+.block-loop-desk .bld-products {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.block-loop-desk .bld-product {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+}
+
+.block-loop-desk .bld-product p {
+  margin: 0;
+}

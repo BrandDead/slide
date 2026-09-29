@@ -41,6 +41,9 @@ export function toLoopLedger(state: LoopState): LoopLedgerV1 {
     rivalResolution: state.rivalResolution ? { ...state.rivalResolution } : null,
     pendingHealthIds: [...state.pendingHealthIds],
     recovery: state.recovery ? { ...state.recovery } : null,
+    shiftIndex: state.shiftIndex,
+    stock: state.inventory.map((item) => ({ ...item, effects: [...(item.effects ?? [])] })),
+    crew: state.members.map(({ id, health, morale, assignment }) => ({ id, health, morale, assignment })),
   };
 }
 

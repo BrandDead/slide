@@ -9,6 +9,7 @@ import { findPendingRivalIncident, useBlockLoopStore } from '../../stores/blockL
 import { useGhostStore } from '../../stores/ghostCrewStore';
 import { streetVsSafetyPreview } from '../../game/loop/placementRules';
 import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
+import { LOOP_RE_UP } from '../../game/loop/blockLoopFixture';
 import type { LoopPhase } from '../../game/loop/blockLoopTypes';
 import './BlockLoopDesk.css';
 
@@ -58,6 +59,9 @@ const BlockLoopDesk: React.FC = () => {
     beginEncounter,
     resolveEncounter,
     resolveSeededEncounter,
+    retreatEncounter,
+    nextShift,
+    reUp,
     retryHealth,
     recover,
     returnToDesktop,
@@ -95,7 +99,14 @@ const BlockLoopDesk: React.FC = () => {
   const dealer = loop.members.find((member) => member.id === (loop.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId));
   const shooter = loop.members.find((member) => member.id === (loop.selectedShooterId ?? BLOCK_LOOP_IDS.shooterId));
   const product = loop.inventory[0];
-
+  const onHand = loop.inventory.filter((item) => item.quantity > 0);
+  const equipped = loop.inventory.find((item) => item.id === loop.assignments[dealer?.id ?? '']);
+  const canStartNextShift = !loop.recovery && loop.pendingHealthIds.length === 0;
+  const nextShiftButton = (
+    <button type="button" className="bld-cta" data-testid="next-shift" onClick={nextShift}>
+      Start shift {loop.shiftIndex + 1}
+    </button>
+  );
   return (
     <div className="block-loop-desk">
       <header className="bld-top">
@@ -110,7 +121,8 @@ const BlockLoopDesk: React.FC = () => {
       <section className="bld-strip" aria-label="Empire state">
         <div><span>Dealer</span><strong>{dealer ? `${dealer.name} · ${dealer.health} hp` : '—'}</strong></div>
         <div><span>Shooter</span><strong>{shooter ? `${shooter.name} · ${shooter.health} hp` : '—'}</strong></div>
-        <div><span>Product</span><strong>{product ? `${product.name} ×${product.quantity}` : 'None'}</strong></div>
+        <div><span>Shift</span><strong data-testid="strip-shift">{loop.shiftIndex}</strong></div>
+        <div><span>Product</span><strong>{(equipped ?? product) ? `${(equipped ?? product)!.name} ×${(equipped ?? product)!.quantity}` : 'None'}</strong></div>
         <div><span>Cash</span><strong>${loop.money.toLocaleString()}</strong></div>
         <div><span>Heat</span><strong>{loop.playerHeat}</strong></div>
         <div><span>Threat</span><strong data-testid="strip-threat">{threatLabel}</strong></div>
@@ -197,12 +209,36 @@ const BlockLoopDesk: React.FC = () => {
         </section>
       )}
 
-      {loop.phase === 'product' && product && (
+      {loop.phase === 'product' && (
         <section className="bld-panel">
           <h2>Equip product</h2>
-          <p>{product.name} · {product.tier} · potency {product.quality} · qty {product.quantity}</p>
-          <p>Expected demand follows street exposure. Heat risk uses the street-tier table. Nothing here is a real-world recipe.</p>
-          <button type="button" className="bld-cta" data-testid="assign-river-cut" onClick={assignProduct}>Put River Cut on Dre</button>
+          {onHand.length === 0 && (
+            <p data-testid="stash-empty">The stash is empty. Re-up River Cut from the connect or cook something in the lab.</p>
+          )}
+          <div className="bld-products">
+            {onHand.map((item) => (
+              <article key={item.id} className="bld-product">
+                <p>{item.name} · {item.tier} · potency {item.quality} · qty {item.quantity}</p>
+                <button
+                  type="button"
+                  className={item.id === BLOCK_LOOP_IDS.productId ? 'bld-cta' : undefined}
+                  data-testid={item.id === BLOCK_LOOP_IDS.productId ? 'assign-river-cut' : `assign-${item.id}`}
+                  onClick={() => assignProduct(item.id)}
+                >
+                  Put {item.name} on {dealer?.name.split(' ').pop() ?? 'the dealer'}
+                </button>
+              </article>
+            ))}
+          </div>
+          <p>Stronger product sells for more and pulls heat faster. Heat past 40 brings the police instead of a rival.</p>
+          <button
+            type="button"
+            data-testid="re-up"
+            onClick={reUp}
+            disabled={loop.money < LOOP_RE_UP.cost}
+          >
+            Re-up {LOOP_RE_UP.units} River Cut · ${LOOP_RE_UP.cost}
+          </button>
           <button type="button" onClick={() => navigateTo('alchemy')}>Open Cook</button>
         </section>
       )}
@@ -241,9 +277,10 @@ const BlockLoopDesk: React.FC = () => {
             <UnifiedEncounter
               block={loop.block}
               onResolved={(result) => resolveEncounter(result)}
-              onClose={() => resolveSeededEncounter()}
+              onClose={() => retreatEncounter()}
+              closeLabel="Back off the block"
               oppositionName={loop.rivalIncident?.crewName ?? null}
-              sessionSalt={loop.rivalIncident?.receiptKey ?? loop.lastDeal?.key ?? null}
+              sessionSalt={[loop.lastDeal?.key, loop.rivalIncident?.receiptKey].filter(Boolean).join('|') || null}
             />
           </LazyRoute>
           {typeof document !== 'undefined' && createPortal(
@@ -276,7 +313,8 @@ const BlockLoopDesk: React.FC = () => {
               <button type="button" onClick={() => recover(false)}>Rest it off</button>
             </div>
           )}
-          <button type="button" className="bld-cta" onClick={() => { returnToDesktop(); goHome(); }}>
+          {canStartNextShift && nextShiftButton}
+          <button type="button" className={canStartNextShift ? undefined : 'bld-cta'} onClick={() => { returnToDesktop(); goHome(); }}>
             Return to desktop
           </button>
         </section>
@@ -284,8 +322,18 @@ const BlockLoopDesk: React.FC = () => {
 
       {loop.phase === 'returned' && (
         <section className="bld-panel">
-          <h2>Return briefing</h2>
-          <button type="button" className="bld-cta" onClick={goHome}>Back to the command desk</button>
+          <h2>Shift {loop.shiftIndex} closed</h2>
+          {loop.recovery && (
+            <div className="bld-recovery">
+              <p>{loop.recovery.affordable ? `Hospital ${loop.recovery.memberName} for $${loop.recovery.cost}.` : loop.recovery.unpaidLabel}</p>
+              <button type="button" className="bld-cta" onClick={() => recover(true)} disabled={!loop.recovery.affordable}>
+                Pay hospital
+              </button>
+              <button type="button" onClick={() => recover(false)}>Rest it off</button>
+            </div>
+          )}
+          {canStartNextShift && nextShiftButton}
+          <button type="button" onClick={goHome}>Back to the command desk</button>
         </section>
       )}
 

@@ -119,6 +119,8 @@ export interface RivalResolution {
 
 export interface LoopState {
   phase: LoopPhase;
+  /** 1-based shift counter. Each shift is one deal → threat → consequence. */
+  shiftIndex: number;
   dnaId: string;
   catalogVersion: string;
   block: BlockData;
@@ -173,8 +175,13 @@ export interface LoopLedgerV1 {
   rivalResolution?: RivalResolution | null;
   pendingHealthIds: string[];
   recovery: RecoveryOffer | null;
+  /** Absent on ledgers written before repeatable shifts; treated as shift 1. */
+  shiftIndex?: number;
+  /** Full product stash (River Cut first). Absent on older ledgers. */
+  stock?: CraftedDrug[];
+  /** Crew condition between shifts (rest, hospital). Absent on older ledgers. */
+  crew?: Array<Pick<LoopMember, 'id' | 'health' | 'morale' | 'assignment'>>;
 }
-
 export type LoopCommand =
   | { type: 'select-crew'; dealerId: string; shooterId: string }
   | { type: 'place'; memberId: string; x: number; y: number }
@@ -185,6 +192,8 @@ export type LoopCommand =
   | { type: 'retry-health' }
   | { type: 'recover'; pay: boolean }
   | { type: 'return-desktop' }
+  | { type: 'next-shift'; stock?: CraftedDrug[] }
+  | { type: 're-up' }
   | { type: 'hydrate-ledger'; ledger: LoopLedgerV1 };
 
 export type { BlockData, BlockPlacement, BlockZone, CombatResult, CraftedDrug };

@@ -39,7 +39,7 @@ export function resolveLoopDeal(input: {
   );
   const moneyDelta = Math.round(unitsSold * (90 + product.quality) * (1 + demandBonusPct / 100) * incomeMultiplier);
   const leftoverQuantity = Math.max(0, product.quantity - unitsSold);
-  const explanation = `Street exposure +${demandBonusPct}% → higher demand, but heat +${heatDelta} and exposure +${exposureDelta}. ${unitsSold} River Cut moved for $${moneyDelta}.`;
+  const explanation = `Street exposure +${demandBonusPct}% → higher demand, but heat +${heatDelta} and exposure +${exposureDelta}. ${unitsSold} ${product.name} moved for $${moneyDelta}.`;
 
   return {
     key: `deal:${blockId}:${dealer.memberId}:${dealer.x}:${dealer.y}:${product.id}:${shiftIndex}`,

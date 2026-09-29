@@ -1,8 +1,9 @@
 import { RECOVERY_CONFIG } from '../../utils/bailHospitalSystem';
+import { HEAT_CONFIG } from '../../utils/heatSystem';
 import { applyPlacement, streetVsSafetyPreview, toPlacement, validatePlacement } from './placementRules';
 import { canAssignProductToDealer, resolveLoopDeal } from './dealResolver';
 import { createDeterministicLoopResult, resolveThreatRoute, rivalResolutionFor } from './threatHandoff';
-import { createLoopState } from './blockLoopFixture';
+import { LOOP_RE_UP, REST_RETURN_HEALTH, createLoopState } from './blockLoopFixture';
 import type { LoopCommand, LoopLedgerV1, LoopState } from './blockLoopTypes';
 import { BLOCK_LOOP_IDS } from './blockLoopTypes';
 
@@ -20,11 +21,16 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
     ...zone,
     occupantId: ledger.placements.find((placement) => placement.x === zone.x && placement.y === zone.y)?.memberId ?? null,
   })));
-  const inventory = state.inventory.map((item, index) => (
-    index === 0 ? { ...item, quantity: ledger.productQuantity } : item
-  ));
+  const inventory = ledger.stock?.length
+    ? ledger.stock.map((item) => ({ ...item, effects: [...(item.effects ?? [])] }))
+    : state.inventory.map((item, index) => (
+        index === 0 ? { ...item, quantity: ledger.productQuantity } : item
+      ));
+  const crew = new Map((ledger.crew ?? []).map((item) => [item.id, item]));
   const downed = new Set(ledger.placements.filter((placement) => placement.health <= 0).map((placement) => placement.memberId));
   const members = state.members.map((member) => {
+    const saved = crew.get(member.id);
+    if (saved) return { ...member, ...saved };
     const placement = ledger.placements.find((item) => item.memberId === member.id);
     if (!placement) return member;
     return {
@@ -78,6 +84,7 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
   return {
     ...state,
     phase: ledger.phase,
+    shiftIndex: Math.max(1, Math.floor(ledger.shiftIndex ?? 1)),
     money: ledger.money,
     playerHeat: ledger.playerHeat,
     reputation: ledger.reputation,
@@ -203,6 +210,7 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         dealer,
         product,
         incomeMultiplier: state.block.incomeMultiplier ?? 1,
+        shiftIndex: state.shiftIndex,
       });
       const playerHeat = Math.min(100, state.playerHeat + receipt.heatDelta);
       const { rival, ...threat } = resolveThreatRoute({
@@ -351,6 +359,7 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         };
       }
       if (command.pay) {
+        const healed = state.members.find((member) => member.id === state.recovery?.memberId);
         return {
           ...state,
           money: state.money - state.recovery.cost,
@@ -360,6 +369,14 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
               ? { ...member, health: member.maxHealth, assignment: 'active' }
               : member
           )),
+          block: {
+            ...state.block,
+            placements: state.block.placements.map((placement) => (
+              placement.memberId === state.recovery?.memberId
+                ? { ...placement, health: healed?.maxHealth ?? 100 }
+                : placement
+            )),
+          },
           briefing: [`Paid $${state.recovery.cost} hospital. ${state.recovery.memberName} is back on the roster.`],
         };
       }
@@ -375,7 +392,7 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
           ...state.block,
           morale: Math.max(0, state.block.morale - 5),
         },
-        briefing: [state.recovery.waitLabel],
+        briefing: [state.recovery.waitLabel, `${state.recovery.memberName} comes back at ${REST_RETURN_HEALTH} hp next shift.`],
       };
     }
     case 'return-desktop': {
@@ -392,6 +409,29 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         ],
       };
     }
+    case 're-up': {
+      const product = state.inventory.find((item) => item.id === BLOCK_LOOP_IDS.productId);
+      if (!product) {
+        return { ...state, rejection: 'No River Cut connect on this block.' };
+      }
+      if (state.money < LOOP_RE_UP.cost) {
+        return {
+          ...state,
+          rejection: `A re-up costs $${LOOP_RE_UP.cost}. Street cash is $${state.money.toLocaleString()}.`,
+        };
+      }
+      return {
+        ...state,
+        money: state.money - LOOP_RE_UP.cost,
+        inventory: state.inventory.map((item) => (
+          item.id === product.id ? { ...item, quantity: item.quantity + LOOP_RE_UP.units } : item
+        )),
+        rejection: null,
+        briefing: [`Re-upped ${LOOP_RE_UP.units} ${product.name} for $${LOOP_RE_UP.cost}. Stash: ${product.quantity + LOOP_RE_UP.units}.`],
+      };
+    }
+    case 'next-shift':
+      return startNextShift(state, command.stock);
     case 'hydrate-ledger':
       return applyLedger(state, command.ledger);
     default:
@@ -410,5 +450,87 @@ export function seededLoopEncounter(state: LoopState) {
     route: state.threat?.route ?? 'slide',
     outcome: 'overrun',
     incidentKey: state.rivalIncident?.receiptKey ?? null,
+    shiftIndex: state.shiftIndex,
   });
+}
+
+/** The crew backs off the board: no wound, a small morale and cash hit. */
+export function retreatLoopEncounter(state: LoopState) {
+  return createDeterministicLoopResult({
+    blockId: state.block.id,
+    dealerId: state.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId,
+    route: state.threat?.route ?? 'slide',
+    outcome: 'retreated',
+    incidentKey: state.rivalIncident?.receiptKey ?? null,
+    shiftIndex: state.shiftIndex,
+  });
+}
+
+/**
+ * Open the next shift on the same block. The crew keeps its spots, rested
+ * members come back hurt, heat cools a little, and every shift gets its own
+ * deal and encounter tickets so nothing is deduped against the last one.
+ */
+function startNextShift(state: LoopState, stock?: LoopState['inventory']): LoopState {
+  if (state.phase !== 'consequence' && state.phase !== 'returned') {
+    return { ...state, rejection: 'Finish this shift before starting the next one.' };
+  }
+  if (state.recovery) {
+    return {
+      ...state,
+      rejection: `Decide on ${state.recovery.memberName} first — pay the hospital or rest it off.`,
+    };
+  }
+  if (state.pendingHealthIds.length > 0) {
+    return { ...state, rejection: 'Retry the health write before the next shift.' };
+  }
+  const shiftIndex = state.shiftIndex + 1;
+  const members = state.members.map((member) => (
+    member.health <= 0
+      ? { ...member, health: REST_RETURN_HEALTH, assignment: 'back from rest' }
+      : member
+  ));
+  const healthById = new Map(members.map((member) => [member.id, member.health]));
+  const placements = state.block.placements.map((placement) => ({
+    ...placement,
+    health: healthById.get(placement.memberId) ?? placement.health,
+  }));
+  const dealerId = state.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId;
+  const shooterId = state.selectedShooterId ?? BLOCK_LOOP_IDS.shooterId;
+  const bothPlaced = placements.some((item) => item.memberId === dealerId)
+    && placements.some((item) => item.memberId === shooterId);
+  const inventory = stock?.length ? stock.map((item) => ({ ...item })) : state.inventory;
+  const onHand = inventory.filter((item) => item.quantity > 0);
+  const playerHeat = Math.max(0, state.playerHeat - HEAT_CONFIG.BASE_DECAY_RATE);
+  const dealer = members.find((member) => member.id === dealerId);
+  const shooter = members.find((member) => member.id === shooterId);
+  const label = loopBlockLabel(state);
+  return {
+    ...state,
+    phase: bothPlaced ? 'product' : 'placement',
+    shiftIndex,
+    members,
+    inventory,
+    assignments: {},
+    playerHeat,
+    lastDeal: null,
+    threat: null,
+    rivalIncident: null,
+    rivalResolution: null,
+    lastEncounter: null,
+    recovery: null,
+    rejection: null,
+    block: {
+      ...state.block,
+      placements,
+      heat: Math.max(0, state.block.heat - 1),
+    },
+    briefing: [
+      `Shift ${shiftIndex} on ${label}. Your crew kept their spots — move them or put product on the dealer.`,
+      `${dealer?.name ?? 'Dealer'} ${dealer?.health ?? 0} hp · ${shooter?.name ?? 'Shooter'} ${shooter?.health ?? 0} hp · heat cooled to ${playerHeat}.`,
+      onHand.length
+        ? `Stash: ${onHand.map((item) => `${item.name} ×${item.quantity}`).join(', ')}.`
+        : `Stash is empty. Re-up ${LOOP_RE_UP.units} River Cut for $${LOOP_RE_UP.cost} or cook something new.`,
+    ],
+  };
 }

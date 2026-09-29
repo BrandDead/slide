@@ -19,6 +19,15 @@ export const BLOCK_LOOP_PRODUCT: CraftedDrug = {
   effects: ['fast-ticket'],
 };
 
+/** Buying River Cut back from the connect when the stash runs dry. */
+export const LOOP_RE_UP = {
+  units: 8,
+  cost: 560,
+} as const;
+
+/** Health a rested (unhospitalized) member returns with on the next shift. */
+export const REST_RETURN_HEALTH = 40;
+
 export const BLOCK_LOOP_MEMBERS: LoopMember[] = [
   {
     id: BLOCK_LOOP_IDS.dealerId,
@@ -83,6 +92,7 @@ export function createLoopState(overrides: Partial<LoopState> = {}): LoopState {
   const block = overrides.block ?? createAuthoritativeLoopBlock();
   return {
     phase: 'crew',
+    shiftIndex: 1,
     dnaId: BLOCK_LOOP_IDS.dnaId,
     catalogVersion: CURRENT_RESOLVER_CATALOG_VERSION,
     block,

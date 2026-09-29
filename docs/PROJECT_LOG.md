@@ -69,6 +69,30 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — The Strip runs shift after shift (single-player loop)
+
+- The canonical Strip was one-shot: after the first SLIDE and return, the desktop card only
+  offered "Review the strip" and the loop could not be played again without a reset. A
+  `next-shift` command now opens shift N+1 on the same block from the consequence or
+  return screen (and from the desktop card, `Run shift N`). The crew keeps its spots, heat
+  cools by `HEAT_CONFIG.BASE_DECAY_RATE`, block heat drops 1, and every shift gets its own
+  deal key (`…:N`) and encounter ticket (`…:shift-N`); shift 1 keys are unchanged.
+- Recovery matters across shifts. A shift cannot start until the hospital/rest decision is
+  made. Paying the hospital restores the member on the board (placements previously kept
+  0 hp); resting brings the member back at `REST_RETURN_HEALTH` (40 hp) next shift.
+- The Strip reads the shared books before every command for the demo ledger (cash, heat,
+  reputation from `usePlayerStore`; the stash from `useDrugInventory`), so money and heat
+  earned in DEALT, the lab, or bail/hospital are no longer overwritten by the Strip's copy.
+  Continuous heat decay is rounded to whole points on read.
+- Product: any lab-cooked product with quantity can be put on the dealer (the deal receipt
+  names it and uses its tier's heat multiplier); River Cut can be re-upped from the connect
+  (`LOOP_RE_UP`: 8 units for $560). An empty stash says so instead of hiding the step.
+- Leaving the encounter from its header (`Back off the block`) now books a retreat
+  (morale −4, pending cash −15, no wound) through the existing receipt path instead of the
+  forced overrun wound.
+- Ledger v1 gains optional `shiftIndex`, `stock`, and `crew`; older ledgers hydrate as
+  shift 1 with the legacy River Cut quantity. No backend, schema, or deployment change.
+
 ### 2026-09-29 — Ghost Crew attacks become the Strip's named threat (#163)
 
 - A visible Ghost Crew `attack` on the canonical Strip block (`demo-block-las-olas`) is now

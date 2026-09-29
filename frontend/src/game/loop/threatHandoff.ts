@@ -67,12 +67,15 @@ export function createDeterministicLoopResult(input: {
   outcome?: 'overrun' | 'secured' | 'retreated';
   /** Distinguishes a named rival attack so a later incident is not deduped. */
   incidentKey?: string | null;
+  /** Shift 1 keeps the original key; later shifts get their own ticket. */
+  shiftIndex?: number;
 }) {
   const outcome = input.outcome ?? 'overrun';
   const routeTag = input.route === 'raid' ? 'raid' : 'slide';
   const incidentTag = input.incidentKey ? `:${input.incidentKey}` : '';
+  const shiftTag = input.shiftIndex && input.shiftIndex > 1 ? `:shift-${input.shiftIndex}` : '';
   return {
-    idempotencyKey: `loop:${input.blockId}:${routeTag}:${outcome}${incidentTag}`,
+    idempotencyKey: `loop:${input.blockId}:${routeTag}:${outcome}${incidentTag}${shiftTag}`,
     outcome,
     crewDown: outcome === 'overrun' ? [input.dealerId] : [],
     oppositionDown: outcome === 'secured' ? ['opposition-1'] : [],
