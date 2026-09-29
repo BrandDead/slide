@@ -79,16 +79,27 @@ const GhostThreatBanner: React.FC = () => {
   // The Strip desk shows rival pressure inline; a fixed banner there covered
   // the Dealer/Shooter placement controls on phones.
   const onStripDesk = useNavigationStore((state) => state.currentApp === 'block_loop');
-  const [dismissedId, setDismissedId] = React.useState<string | null>(null);
+  // Every threat the player has dismissed. A single id let the previous
+  // alert return as soon as the next one was dismissed, so with two open
+  // threats the banner could never be cleared (and it covers the top of
+  // every phone screen, including the Contacts header).
+  const [dismissedIds, setDismissedIds] = React.useState<ReadonlySet<string>>(() => new Set());
 
   // Only open threats: defense results and attacks the player already
   // answered on the Strip belong in the City Briefing, not an alert.
-  const latest = onStripDesk ? undefined : feed.find(
+  const openThreats = feed.filter(
     (e) => BANNER_ACTIONS.has(e.action)
-      && e.id !== dismissedId
+      && !dismissedIds.has(e.id)
       && !isDefenseReason(e.reason)
       && !(e.action === 'attack' && (answered ?? []).includes(rivalAttackReceiptKey(e))),
   );
+  const latest = onStripDesk ? undefined : openThreats[0];
+  // Dismissing clears everything showing now; only newer threats return.
+  const dismissOpenThreats = () => setDismissedIds((prev) => {
+    const next = new Set(prev);
+    for (const event of openThreats) next.add(event.id);
+    return next;
+  });
   const onStrip = latest?.action === 'attack' && latest.targetBlockId === BLOCK_LOOP_IDS.blockId;
 
   return (
@@ -114,7 +125,7 @@ const GhostThreatBanner: React.FC = () => {
               type="button"
               style={{ ...dismissBtnStyle, marginLeft: 'auto', marginRight: 8, fontSize: '12px' }}
               onClick={() => {
-                setDismissedId(latest.id);
+                setDismissedIds((prev) => new Set(prev).add(latest.id));
                 navigateTo('block_loop');
               }}
             >
@@ -124,7 +135,7 @@ const GhostThreatBanner: React.FC = () => {
           <button
             type="button"
             style={dismissBtnStyle}
-            onClick={() => setDismissedId(latest.id)}
+            onClick={dismissOpenThreats}
             aria-label="Dismiss rival activity"
           >
             ✕

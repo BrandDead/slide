@@ -47,4 +47,35 @@ describe('GhostThreatBanner', () => {
     });
     expect(screen.getByRole('alert')).toHaveTextContent(/probing 1208/i);
   });
+
+  it('clears every open threat on one dismiss and only shows newer ones after', async () => {
+    const olderClaim: GhostFeedEvent = {
+      ...stripAttack,
+      id: 'feed-tick-1:ghost-nightfall:claim',
+      actionKey: 'tick-1:ghost-nightfall:claim',
+      action: 'claim',
+      description: 'Nightfall Crew claimed a block near yours.',
+      timestamp: 1,
+    };
+    useGhostStore.setState({ feed: [stripAttack, olderClaim] });
+    render(<GhostThreatBanner />);
+    expect(screen.getByRole('alert')).toHaveTextContent(/probing 1208/i);
+
+    // One tap clears both; the older alert must not take its place.
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss rival activity' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    expect(screen.queryByText(/claimed a block near yours/i)).not.toBeInTheDocument();
+
+    const newer: GhostFeedEvent = {
+      ...stripAttack,
+      id: 'feed-tick-3:ghost-nightfall:attack',
+      actionKey: 'tick-3:ghost-nightfall:attack',
+      description: 'Nightfall Crew is back on 1208 W Las Olas Blvd.',
+      timestamp: 3,
+    };
+    act(() => {
+      useGhostStore.setState({ feed: [newer, stripAttack, olderClaim] });
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent(/is back on 1208/i);
+  });
 });

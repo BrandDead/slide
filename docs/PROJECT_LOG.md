@@ -69,6 +69,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-29 — Photo recruit review fixes; rival banner can be cleared on phones (#184 follow-up)
+
+- Stacked on #184. Fixes the confirmed review findings in `PhotoMemberCreator`: Generate works when the name is typed last (stale `memberName`); replacing the photo no longer cancels a queued job's polling; **Add to Roster** re-checks the name and is disabled while approving, so a double tap can't recruit twice; photo recruits are now complete `GangMember` records (stats, morale, gangId, XP, health), with no `as any`. Status and approve fallbacks no longer overwrite generated image URLs.
+- `GhostThreatBanner` dismissal now clears every threat that's currently open. It used to remember one id, so with two or more open threats the previous alert came back and the banner could never be cleared. On phones that permanently covered the Contacts header (Back, + Add, tabs). Newer threats still appear. This predates #180; it was already on `main`.
+- Browser playtest in demo mode at 390×844 and 1440×900: CONTACTS → + Add → Create from Photo → Add to Roster, plus PHONE → Add Custom Member. Recruits appear in both lists, persist across reload, and there are 0 page errors.
+- Still open (not in this slice): `useGangStore.removeMember` leaves the member's contact card behind, and the demo seed runs remove-then-add on every load, so Contacts shows duplicate demo crew (React duplicate-key warnings; "ACTIVE (9)" on a fresh demo). With the backend offline, the avatar service quietly returns stock portraits instead of art from the player's photo. The fictional-content boundary in `docs/AI_CONTRIBUTOR_START_HERE.md` still needs an owner decision.
+
 ### 2026-09-29 — Personal crew recruiting wired into Contacts (#183)
 
 - The existing photo-to-member flow is now reachable from the player-facing Contacts app. Contacts shows the current gang roster, keeps service contacts available, and opens **Add Custom Member** for a permissioned photo.
