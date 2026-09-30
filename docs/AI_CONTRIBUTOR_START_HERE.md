@@ -41,7 +41,7 @@ The following documents are **background only**, not current execution instructi
 
 | Contract | Requirement |
 |---|---|
-| Fictional content boundary | Keep location, crew, rival, and narrative content fictional. Do not add real people, real criminal organizations, or instructions that mirror real-world wrongdoing. |
+| Fictional content boundary | Keep locations, crews, rivals, organizations, and narrative content fictional; do not add real criminal organizations or instructions that mirror real-world wrongdoing. The personal-crew creator may use a player-supplied photo of themselves or a friend only with explicit permission to use the image and consent to AI processing. This produces a cosmetic avatar in the fictional game, not an assertion about or targeting of the real person. Store generated asset URLs in the roster record; never persist the source photo there. Canonical world/rival art remains wholly fictional. |
 | One authoritative state path | Extend existing stores, services, hooks, and result boundaries. Do not create a second state container, duplicate notification stream, or parallel placement system. |
 | Block DNA stability | A claimed block's persisted `dnaId` is authoritative. New catalog entries must not change an existing block's tactical terrain, grid, income modifier, or encounter profile. |
 | Tactical grid | Use the existing eight-row Block DNA layout builder and `blockStore` grid helpers. Only passable, unoccupied cells may receive crew placements. |

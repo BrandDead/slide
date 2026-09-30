@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Safe photo-recruit predecessor and consent boundary (#188 / #184)
+
+- Carried the existing #185 PhotoMemberCreator fixes and regression coverage into the #184 predecessor before integration: current name state at generation, polling independent of preview replacement, approval-time name validation, synchronous duplicate-approval guard, complete typed recruit records, and sparse fallback merge preserving image URLs. Contacts backstory and banner follow-up remain on #185.
+- The world and rivals remain fictional. The explicitly authorized player-photo feature allows a self/friend cosmetic avatar only with image permission and AI-processing consent; it is not a real-person accusation or targeting feature. Only resulting asset URLs enter the roster, never the uploaded source image. This exception is documented in the contributor contract; #169's competing profile/type/resolver proposal remains draft and unmerged.
+- Added two regression-first offline-preview checks: each recruit role resolves to loadable shipped art through the existing character resolver, and stock fallback is visibly labelled in the UI. No new art, resolver, backend or combat authority. Combined phone/desktop proof confirms gallery images load, Add to Roster works, and the actual profile shows the string backstory supplied by #185. Authenticated saved-game proof remains separate under #175.
+
 ### 2026-09-30 — Live cash, exact QA flag and stable encounter log repairs (#188 / #182)
 
 - The desktop Strip card reads the current player balance for demo and signed-in display. Only the exact `?qa=1` value enables the wound shortcut outside test mode; `qa=0`, `qa=false` and an empty flag keep the real fight controls available.
@@ -101,6 +107,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
 - The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
 - This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
+### 2026-09-29 — Personal crew recruiting wired into Contacts (#183)
+
+- The existing photo-to-member flow is now reachable from the player-facing Contacts app. Contacts shows the current gang roster, keeps service contacts available, and opens **Add Custom Member** for a permissioned photo.
+- Custom member creation now requires a player-provided name in addition to the existing image-permission consent, preserves generated portrait/full-body/top-down assets when approval falls back, and records those URLs on the existing gang member rather than creating a second roster system.
+- Uploaded source photos remain temporary; preview object URLs and generation polling are cleaned up on replacement/unmount. No Supabase migration, avatar-provider change, deployment, secret, multiplayer path, or production data change is part of this slice.
+- This establishes the replacement-recruit path required before the Strip raid system can safely use permanent/lifer consequences without dead-ending the two-member starting crew.
 
 ### 2026-09-29 — Strip speaks to players; the fight is played, not skipped
 

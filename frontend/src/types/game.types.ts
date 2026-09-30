@@ -304,6 +304,9 @@ export interface GangMember {
   inventory?: InventoryItem[];
   // Avatar
   customAvatarUrl?: string;
+  portraitUrl?: string;
+  fullbodyUrl?: string;
+  topdownUrl?: string;
 }
 
 export interface MemberStats {
