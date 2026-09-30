@@ -275,6 +275,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   const nameIsValid = isValidMemberName(memberName);
   const canGenerate = uploadedFile && consent && nameIsValid && selectedOutputs.length > 0 && status === 'idle';
   const canApprove = nameIsValid && !approving;
+  const stockPreview = generatedAsset?.id.startsWith('mock-') ?? false;
 
   return (
     <div className="pmc-container">
@@ -430,7 +431,10 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h3 className="pmc-result-title">Generated Assets</h3>
+              <h3 className="pmc-result-title">{stockPreview ? 'Stock Character Preview' : 'Generated Assets'}</h3>
+              {stockPreview && (
+                <p role="status">Generation is offline. This preview uses stock character art.</p>
+              )}
               <div className="pmc-asset-gallery">
                 {generatedAsset.portraitUrl && (
                   <div className="pmc-asset-card">

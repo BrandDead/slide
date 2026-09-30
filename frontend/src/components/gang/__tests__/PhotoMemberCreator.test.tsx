@@ -85,6 +85,20 @@ describe('PhotoMemberCreator', () => {
     vi.useRealTimers();
   });
 
+  it('identifies stock offline previews without claiming the photo was generated', async () => {
+    service.generate.mockResolvedValue(asset({ id: 'mock-offline' }));
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    upload(container);
+    consent();
+    typeName('Jay');
+    await act(async () => { fireEvent.click(generateButton()); });
+
+    expect(screen.getByRole('status')).toHaveTextContent(/generation is offline/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/stock character art/i);
+    expect(screen.queryByText('Generated Assets')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add to roster/i })).toBeEnabled();
+  });
+
   it('starts generation when the name is typed after the photo and consent', async () => {
     service.generate.mockResolvedValue(asset());
     const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);

@@ -69,6 +69,51 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Final personal-crew follow-up and combined integration gates (#188 / #185)
+
+- Reconciled the follow-up against the ordered reviewed stack, preserving #184's carried creator/fallback repairs, #180's retaliation warning, and #185's dismiss-all banner behavior. Contacts renders the typed string backstory supplied by photo recruits while retaining the legacy structured-object path.
+- Combined source passes 1016 frontend tests / 4 skipped, TypeScript, lint with 0 errors / 200 existing warnings, asset audit (7.38 MB / 20 MB, 110 entries, zero audit warnings), 5 packages / 4 schemas, production build and 95 backend tests. Real demo UI at 390×844 / 1440×900 covers invalid placement, named fight/fire/retreat, unchanged reload receipt/cash, shift two, immediate Cook product on return, labelled offline stock-photo preview and roster profile backstory. A separate explicit QA shortcut covers one hospital payment, health recovery and reload.
+- Existing logo/news-icon 404s, system-font/browser limitations and expected offline avatar requests are documented in versioned evidence. These are demo viewport checks, not #175's authenticated two-user saved-game proof or launch readiness. Fable owns that separate staging proof; migration 007 stays applied and must not be replayed. #189's absent offline-pack reconciliation is queued after #188; no old branches/reward writer are imported. Nightfall art can start only after the protected combined commit is verified and a dedicated issue reserved.
+
+### 2026-09-30 — Safe photo-recruit predecessor and consent boundary (#188 / #184)
+
+- Carried the existing #185 PhotoMemberCreator fixes and regression coverage into the #184 predecessor before integration: current name state at generation, polling independent of preview replacement, approval-time name validation, synchronous duplicate-approval guard, complete typed recruit records, and sparse fallback merge preserving image URLs. Contacts backstory and banner follow-up remain on #185.
+- The world and rivals remain fictional. The explicitly authorized player-photo feature allows a self/friend cosmetic avatar only with image permission and AI-processing consent; it is not a real-person accusation or targeting feature. Only resulting asset URLs enter the roster, never the uploaded source image. This exception is documented in the contributor contract; #169's competing profile/type/resolver proposal remains draft and unmerged.
+- Added two regression-first offline-preview checks: each recruit role resolves to loadable shipped art through the existing character resolver, and stock fallback is visibly labelled in the UI. No new art, resolver, backend or combat authority. Combined phone/desktop proof confirms gallery images load, Add to Roster works, and the actual profile shows the string backstory supplied by #185. Authenticated saved-game proof remains separate under #175.
+
+### 2026-09-30 — Live cash, exact QA flag and stable encounter log repairs (#188 / #182)
+
+- The desktop Strip card reads the current player balance for demo and signed-in display. Only the exact `?qa=1` value enables the wound shortcut outside test mode; `qa=0`, `qa=false` and an empty flag keep the real fight controls available.
+- Encounter log entries retain their DOM identity when a newer event arrives and distinguish same-tick events from different actors. Presentation keys do not modify engine events, encounter receipts or result authority.
+- Six regression cases failed before repair and now pass with the existing controls. These changes preserve the player-copy pass and the preceding shared-book fixes; combined phone/desktop demo and separately labelled QA recovery proof stay separate from #175.
+
+### 2026-09-30 — Shared books and every-casualty recovery repairs (#188 / #181)
+
+- The Strip refreshes its display from the current shared cash, stash, assignments and block without writing them back. Cooked products appear on return; depletion stays depleted; passive income and placements are preserved; next shift clears only its selected dealer's product assignment.
+- Hospital affordability follows live cash and is revalidated on payment. Each downed member requires a paid or rest decision; only members explicitly rested recover to 40 hp on the next shift. Hydration reconstructs any missing offer. Fractional leftovers below one unit cannot earn a whole-unit sale.
+- Nine regression cases failed before the repair. Combined production-demo phone/desktop proof covers a real named fight, retreat, unchanged reload receipt/cash, shift two, offline photo/profile, and separately labelled QA hospital payment/reload. Full frontend/backend combined gates pass; each scoped PR head still requires exact CI before ordered merge. #175 remains independent.
+
+### 2026-09-30 — Ghost incident review repairs on the protected skills base (#188 / #180)
+
+- Reconciled the skills/main log conflict while preserving both histories. Booked player attacks on rival territory remain visible; only answered inbound Strip attacks are hidden. Incident settlement closes attacks at or before the encounter snapshot, leaving a later probe open.
+- Demo reload preserves the earned defense feed and the exactly-once rival receipt. Defense text reports the actual roster casualty, or no loss for the last survivor; the pure loop result does not invent a shooter casualty.
+- Six regression cases failed before the repair and pass with existing duplicate/reload/signed-in controls. The combined #180–#185 repair also passes frontend validation/build (1016 passed, 4 skipped), the unchanged asset/package gates, and 95 backend tests; phone/desktop combined player-path evidence is being finalized under #188. Exact repaired-head CI is required before each ordered merge. #175 remains independent.
+
+### 2026-09-30 — Integration-owner repairs to repository quality skills (#188 / #187)
+
+- Reproduced the incremental processor regression and the preflight's skipped uncommitted Python checks before fixing them. The processor retains existing manifest registrations, replaces matching IDs, validates retained files, reports every staged input, and checks all shipped runtime/package bytes before any write. Masters survive and source inputs are consumed only after manifest publication; no-source writes are unchanged.
+- Backend preflight detection now includes branch, staged, unstaged, and untracked Python paths. Separate block/environment GLB acceptance requires live loading/anchor/grid/fallback proof and measured performance budgets. Tactical art briefs now specify the exact demo MAP → Strip → Diorama capture route, commit, stage dimensions, and versioned evidence path rather than an ambiguous hero image.
+- Reserved repairs on #188 under one integration owner. Regression fixtures do not import or alter production assets. Full frontend preflight passed with 957 tests / 4 skipped, zero asset warnings at 7.38 MB / 20 MB, package validation, and production build; final focused processor/preflight cases also pass. The independent skill forward test prompted complete input-plan visibility and camera-route clarification.
+- A global dry run safely rejected existing unreadable legacy `icons/apps/{market,news,shoebox,shot-caller,trap}/{hover,regular}.png` inputs before mutation. These require explicit source cleanup ownership before the first art import; no runtime registrations or asset files were changed here. #175's authenticated saved-game proof remains separate.
+
+### 2026-09-29 — Repo-scoped AI quality and visual-production skills (#186)
+
+- Added three OpenAI Agent Skills under `.agents/skills`: `$slide-release-safety`, `$slide-visual-art-direction`, and `$slide-asset-integration-qa`. `AGENTS.md` routes future ChatGPT/Codex work through them by task type.
+- The release guard converts verified #184 failures into reusable checks: regression-first proof, current React closure state, independent async cleanup, validation at mutation time, synchronous duplicate-action protection, complete typed domain records without `as any`, non-destructive fallback merging, one authoritative result boundary, and phone/desktop player-path evidence.
+- The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
+- The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
+- This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
 ### 2026-09-30 — Photo recruit detail renders its backstory (#185 follow-up)
 
 - The Contact Detail modal assumed every truthy `backstory` value was an object with `origin` and `reason`. Photo recruits correctly use the typed string contract, which previously created an empty Backstory section. The modal now renders that string visibly while retaining the structured legacy rendering path.

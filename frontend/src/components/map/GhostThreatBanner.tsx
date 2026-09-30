@@ -91,7 +91,7 @@ const GhostThreatBanner: React.FC = () => {
     (e) => BANNER_ACTIONS.has(e.action)
       && !dismissedIds.has(e.id)
       && !isDefenseReason(e.reason)
-      && !(e.action === 'attack' && (answered ?? []).includes(rivalAttackReceiptKey(e))),
+      && !(e.action === 'attack' && e.targetBlockId === BLOCK_LOOP_IDS.blockId && (answered ?? []).includes(rivalAttackReceiptKey(e))),
   );
   const latest = onStripDesk ? undefined : openThreats[0];
   // Dismissing clears everything showing now; only newer threats return.

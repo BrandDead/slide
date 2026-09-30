@@ -105,4 +105,24 @@ describe('BlockLoopDesk', () => {
       vi.unstubAllEnvs();
     }
   });
+
+  it.each(['0', 'false', ''])('does not enable combat shortcuts for qa=%s', value => {
+    const store = useBlockLoopStore.getState();
+    store.startLoop(true);
+    store.selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId);
+    store.place(BLOCK_LOOP_IDS.dealerId, 3, 1);
+    store.place(BLOCK_LOOP_IDS.shooterId, 5, 3);
+    store.assignProduct();
+    store.runDeal();
+    store.beginEncounter();
+    vi.stubEnv('MODE', 'production');
+    window.history.replaceState(null, '', `/?qa=${value}`);
+    try {
+      render(<BlockLoopDesk />);
+      expect(screen.queryByTestId('book-the-wound')).not.toBeInTheDocument();
+    } finally {
+      window.history.replaceState(null, '', '/');
+      vi.unstubAllEnvs();
+    }
+  });
 });

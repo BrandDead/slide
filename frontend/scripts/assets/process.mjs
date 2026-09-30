@@ -242,13 +242,47 @@ async function cleanup(buf, needsAlpha) {
 async function main() {
   const files = await walk(LEGACY_ASSETS);
   const mb = (b) => (b / 1048576).toFixed(2) + ' MB';
+  let previous = null;
+  try {
+    previous = JSON.parse(await fs.readFile(MANIFEST_OUT, 'utf8'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  if (previous && !Array.isArray(previous.entries)) throw new Error('Invalid runtime manifest entries');
+  const registered = new Map();
+  const registeredPaths = new Set();
+  for (const entry of previous?.entries ?? []) {
+    if (typeof entry.id !== 'string' || typeof entry.runtimePath !== 'string' ||
+        !entry.runtimePath.startsWith('/assets/runtime/')) throw new Error('Invalid registered runtime entry');
+    const abs = path.resolve(FRONTEND, 'public', entry.runtimePath.slice(1));
+    if (!abs.startsWith(RUNTIME_DIR + path.sep) || registered.has(entry.id) || registeredPaths.has(abs)) {
+      throw new Error(`Duplicate or invalid registered runtime entry: ${entry.id}`);
+    }
+    let stat;
+    try { stat = await fs.stat(abs); } catch {
+      throw new Error(`Missing registered runtime file: ${entry.runtimePath}`);
+    }
+    if (!stat.isFile()) throw new Error(`Invalid registered runtime file: ${entry.runtimePath}`);
+    registered.set(entry.id, { ...entry, bytes: stat.size });
+    registeredPaths.add(abs);
+  }
 
   console.log(`\nSLIDE asset processor — ${files.length} source images`);
   console.log(WRITE ? 'MODE: WRITE' : 'MODE: DRY RUN (pass --write to apply)');
   console.log(`Quality pass: ${HIGH ? 'high' : 'standard'}\n`);
+  console.log(`Retaining ${registered.size} registered runtime images`);
+  console.log('Complete staged-source plan');
+  for (const abs of files) {
+    const rel = path.relative(LEGACY_ASSETS, abs).replace(/\\/g, '/');
+    const quarantine = QUARANTINE.find(item => item.rx.test(path.basename(abs)));
+    const destination = quarantine ? `art-src/${rel} (quarantine: ${quarantine.why})`
+      : `/assets/runtime/${rel.replace(/\.(png|jpe?g)$/i, '.webp')}`;
+    console.log(`  ${rel} -> ${destination}`);
+  }
 
   let beforeBytes = 0, afterBytes = 0;
-  const entries = [], quarantined = [], unclassified = [], repaired = [];
+  const quarantined = [], unclassified = [], repaired = [], plan = [];
+  const plannedIds = new Set();
 
   for (const abs of files) {
     const rel = path.relative(LEGACY_ASSETS, abs).replace(/\\/g, '/');
@@ -258,12 +292,7 @@ async function main() {
     const q = QUARANTINE.find((x) => x.rx.test(path.basename(abs)));
     if (q) {
       quarantined.push({ rel, size, why: q.why });
-      if (WRITE) {
-        const dest = path.join(ART_SRC, rel);
-        await fs.mkdir(path.dirname(dest), { recursive: true });
-        await fs.copyFile(abs, dest);
-        await fs.unlink(abs);
-      }
+      plan.push({ abs, rel });
       continue;
     }
 
@@ -271,7 +300,11 @@ async function main() {
     if (!cls) { unclassified.push({ rel, size }); afterBytes += size; continue; }
 
     const buf = await fs.readFile(abs);
-    const { pipeline, width, height, before, after, keyed, matteUsed } = await cleanup(buf, cls.alpha);
+    let cleaned;
+    try { cleaned = await cleanup(buf, cls.alpha); } catch (error) {
+      throw new Error(`Cannot process staged source ${rel}: ${error.message}; nothing written`);
+    }
+    const { pipeline, width, height, before, after, keyed, matteUsed } = cleaned;
 
     if (cls.alpha && !before.hasAlpha) {
       repaired.push({ rel, keyed, dims: `${width}x${height}`, matte: matteUsed, total: width * height });
@@ -297,9 +330,15 @@ async function main() {
     const runtimeRel = rel.replace(/\.(png|jpe?g)$/i, '.webp');
     const { role, state } = parseName(rel);
 
-    entries.push({
-      id: runtimeRel.replace(/\.[^.]+$/, '').replace(/[\/]/g, '.'),
-      runtimePath: `/assets/runtime/${runtimeRel}`,
+    const id = runtimeRel.replace(/\.[^.]+$/, '').replace(/[\/]/g, '.');
+    if (plannedIds.has(id)) throw new Error(`Multiple staged sources resolve to ${id}`);
+    const runtimePath = `/assets/runtime/${runtimeRel}`;
+    const owner = [...registered.values()].find(entry => entry.runtimePath === runtimePath && entry.id !== id);
+    if (owner) throw new Error(`Staged source would overwrite registered runtime ID ${owner.id}`);
+    plannedIds.add(id);
+    registered.set(id, {
+      id,
+      runtimePath,
       sourcePath: `art-src/${rel}`,
       class: cls.id,
       role, state,
@@ -311,16 +350,31 @@ async function main() {
       alphaRepaired: cls.alpha && !before.hasAlpha,
     });
 
-    if (WRITE) {
-      const srcDest = path.join(ART_SRC, rel);
-      await fs.mkdir(path.dirname(srcDest), { recursive: true });
-      await fs.copyFile(abs, srcDest);            // preserve master first
-      const outPath = path.join(RUNTIME_DIR, runtimeRel);
-      await fs.mkdir(path.dirname(outPath), { recursive: true });
-      await fs.writeFile(outPath, out);
-      await fs.unlink(abs);                        // remove oversized original from public/
-    }
+    plan.push({ abs, rel, runtimeRel, out });
   }
+
+  const entries = [...registered.values()].sort((a, b) => a.id.localeCompare(b.id));
+  const imageBytes = entries.reduce((sum, entry) => sum + entry.bytes, 0);
+  const finalPaths = new Set(entries.map(entry => path.resolve(FRONTEND, 'public', entry.runtimePath.slice(1))));
+  // Orphans and GLB/package files also ship. Count them without registering
+  // them as images, matching the audit's global budget boundary.
+  async function additionalBytes(dir) {
+    let children;
+    try { children = await fs.readdir(dir, { withFileTypes: true }); } catch (error) {
+      if (error.code === 'ENOENT') return 0;
+      throw error;
+    }
+    let bytes = 0;
+    for (const child of children) {
+      const abs = path.join(dir, child.name);
+      if (child.isDirectory()) bytes += await additionalBytes(abs);
+      else if (!finalPaths.has(abs)) bytes += (await fs.stat(abs)).size;
+    }
+    return bytes;
+  }
+  const otherBytes = await additionalBytes(RUNTIME_DIR) + await additionalBytes(path.join(LEGACY_ASSETS, 'packages'));
+  const stagedAfterBytes = afterBytes;
+  afterBytes = imageBytes + otherBytes;
 
   // ─── Report ────────────────────────────────────────────────
   const byClass = {};
@@ -370,21 +424,42 @@ async function main() {
 
   const budgetOk = afterBytes / 1048576 <= RUNTIME_BUDGET_MB;
   console.log('\n' + '═'.repeat(64));
-  console.log(`RUNTIME TOTAL   ${mb(beforeBytes)}  →  ${mb(afterBytes)}`);
-  console.log(`REDUCTION       ${(100 - (afterBytes / beforeBytes) * 100).toFixed(1)}%`);
+  console.log(`STAGED SOURCES  ${mb(beforeBytes)}  →  ${mb(stagedAfterBytes)}`);
+  console.log(`RUNTIME TOTAL   ${mb(afterBytes)} (includes retained images and ${mb(otherBytes)} of other runtime/package files)`);
   console.log(`BUDGET          ${RUNTIME_BUDGET_MB} MB — ${budgetOk ? 'PASS' : 'FAIL'}`);
   console.log('═'.repeat(64));
+  if (!budgetOk) throw new Error(`Runtime budget exceeded (${mb(afterBytes)} / ${RUNTIME_BUDGET_MB} MB); nothing written`);
 
   if (WRITE) {
+    if (!plan.length) {
+      console.log('\nNo staged sources. Existing manifest and runtime files unchanged.');
+      return;
+    }
+    // Complete the whole plan and budget check before any mutation. Preserve
+    // every master before writing derivatives; consume sources only after the
+    // updated manifest has been published.
+    for (const item of plan) {
+      const srcDest = path.join(ART_SRC, item.rel);
+      await fs.mkdir(path.dirname(srcDest), { recursive: true });
+      await fs.copyFile(item.abs, srcDest);
+    }
+    for (const item of plan) {
+      if (!item.out) continue;
+      const outPath = path.join(RUNTIME_DIR, item.runtimeRel);
+      await fs.mkdir(path.dirname(outPath), { recursive: true });
+      await fs.writeFile(outPath, item.out);
+    }
     const manifest = {
       generatedAt: new Date().toISOString(),
       budgetMB: RUNTIME_BUDGET_MB,
-      totalBytes: afterBytes,
+      totalBytes: imageBytes,
       qualityPass: HIGH ? 'high' : 'standard',
-      entries: entries.sort((a, b) => a.id.localeCompare(b.id)),
+      entries,
     };
     await fs.mkdir(path.dirname(MANIFEST_OUT), { recursive: true });
-    await fs.writeFile(MANIFEST_OUT, JSON.stringify(manifest, null, 2));
+    await fs.writeFile(MANIFEST_OUT + '.tmp', JSON.stringify(manifest, null, 2));
+    await fs.rename(MANIFEST_OUT + '.tmp', MANIFEST_OUT);
+    for (const item of plan) await fs.unlink(item.abs);
     console.log(`\nWrote ${entries.length} entries → src/assets/runtimeManifest.json`);
     console.log(`Masters preserved  → art-src/`);
     console.log(`Runtime derivatives→ public/assets/runtime/`);

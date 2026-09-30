@@ -453,7 +453,7 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
           <h2>Run 1208 Las Olas</h2>
           <p>
             Put your crew on the block, move product, and hold the corner when rivals slide.
-            {' '}{members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · street cash ${loop.money.toLocaleString()} · heat {Math.round(player.heat)}
+            {' '}{members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · street cash ${player.money.toLocaleString()} · heat {Math.round(player.heat)}
           </p>
           {loop.phase === 'returned' || loop.lastEncounter ? (
             <p className="strip-run-return">{loop.briefing[0]}</p>
