@@ -338,6 +338,10 @@ const Contacts: React.FC = () => {
           const member = members.find(m => m.id === contact.memberId);
           const morale = (member as any)?.morale ?? 50;
           const moraleInfo = getMoraleDescription(morale);
+          // Phase A: prefer member visual profile portrait
+          const avatarUrl = member?.visualProfile?.portrait 
+            ?? contact.customAvatarUrl 
+            ?? contact.avatar;
           // Sprint 16 (P1): mockup card, themed per role — one template
           // covers dealer / shooter / enforcer / lookout / k9 / recruit.
           return (
@@ -346,7 +350,7 @@ const Contacts: React.FC = () => {
               name={contact.nickname || contact.name}
               role={contact.role}
               level={(member as any)?.level ?? 1}
-              avatarUrl={contact.customAvatarUrl ?? contact.avatar}
+              avatarUrl={avatarUrl}
               stats={getRoleCardStats(member as any, contact.role)}
               statusNote={moraleInfo.warning ? `${moraleInfo.label} — ${moraleInfo.warning}` : moraleInfo.label}
               onOpen={() => setSelectedContact(contact)}
