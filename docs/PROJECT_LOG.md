@@ -69,6 +69,10 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Demo reseed keeps one contact per crew id (#193)
+
+- `applyDemoSeed` drops the demo crew's contact cards before `removeMember` / `addMember`. A second load no longer appends another `demo-dealer-1` (or the shooter, lookout, and enforcer ids). Contacts that are not part of the demo seed stay on the roster.
+
 ### 2026-09-30 — Phone banner and welcome hint stop covering the header and dock (#193)
 
 - The Nightfall banner publishes its height as `--slide-banner-inset` (at least 88px). The page starts below that inset instead of sliding under the fixed alert. The welcome hint sits 92px above the bottom, clear of the dock, including the safe area.
