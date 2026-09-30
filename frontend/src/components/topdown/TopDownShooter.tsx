@@ -294,10 +294,19 @@ const TopDownShooter: React.FC = () => {
   );
   
   const canLaunch = useMemo(() => {
-    const hasDriver = seats.find(s => s.seat === 'driver')?.memberId !== null;
-    const hasShooter = seats.some(s => s.seat !== 'driver' && s.memberId !== null);
-    return hasDriver && hasShooter && targetBlock !== null;
-  }, [seats, targetBlock]);
+    const driverId = seats.find(s => s.seat === 'driver')?.memberId;
+    const driver = driverId
+      ? members.find(m => m.id === driverId && m.status === 'active')
+      : undefined;
+    // Driver drives only. A lookout or dealer in a passenger seat does not
+    // count as the shooter the launch line asks for.
+    const hasShooter = seats.some(s => {
+      if (s.seat === 'driver' || !s.memberId || s.memberId === driver?.id) return false;
+      const rider = members.find(m => m.id === s.memberId && m.status === 'active');
+      return rider?.role === 'shooter' || rider?.role === 'enforcer' || rider?.role === 'boss';
+    });
+    return Boolean(driver && hasShooter && targetBlock);
+  }, [seats, members, targetBlock]);
   
   // ─── SETUP HANDLERS ───
   

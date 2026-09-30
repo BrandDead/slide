@@ -42,7 +42,8 @@
 /* ── Next step hint ── */
 .tutorial-hint {
   position: fixed;
-  bottom: 0;
+  /* Dock is fixed about 84px up from the bottom; keep the hint above it. */
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   background: rgba(10,10,15,0.95);
@@ -52,6 +53,9 @@
   align-items: center;
   gap: 10px;
   z-index: 50;
+  /* The hint teaches the next step. It must not steal taps when a control
+     scrolls underneath it (Launch Attack at 375×812). */
+  pointer-events: none;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 

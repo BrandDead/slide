@@ -93,11 +93,10 @@ export function applyDemoSeed(): void {
   // a placement that references a nonexistent member.
   const blockStore = useBlockStore.getState();
   const playerStore = usePlayerStore.getState();
-  const gangStore = useGangStore.getState();
 
   // The demo block is always overwritten by upsertBlock below.
   // Remove stale demo members and re-upsert them
-  const DEMO_IDS = new Set([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
+  const DEMO_IDS = new Set<string>([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
 
   // ── 2. Player ─────────────────────────────────────────────
   // Preserve earned progress (level/XP) if the demo player has advanced beyond seed defaults
@@ -247,14 +246,20 @@ export function applyDemoSeed(): void {
   ];
 
   // Rebuild the roster: remove any stale demo members then add fresh ones.
-  // We use the store's own removeMember/addMember actions so middleware
-  // (devtools, persist) stays consistent.
+  // removeMember leaves the contact card behind, and addMember always
+  // appends one, so a second seed used to mount two cards per demo id.
+  // Drop those contacts first. Other roster contacts stay.
+  useGangStore.setState((state) => ({
+    contacts: state.contacts.filter((contact) =>
+      !DEMO_IDS.has(contact.id) && !(contact.memberId && DEMO_IDS.has(contact.memberId)),
+    ),
+  }));
   DEMO_IDS.forEach((id) => {
-    if (gangStore.members.some((m) => m.id === id)) {
-      gangStore.removeMember(id);
+    if (useGangStore.getState().members.some((m) => m.id === id)) {
+      useGangStore.getState().removeMember(id);
     }
   });
-  demoMembers.forEach((m) => gangStore.addMember(m));
+  demoMembers.forEach((m) => useGangStore.getState().addMember(m));
 
   // ── 4. Pre-claimed DNA board ────────────────────────────────
   const dealerCard = {

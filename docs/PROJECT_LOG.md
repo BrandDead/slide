@@ -69,6 +69,25 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Welcome hint no longer steals the phone Launch Attack tap (#193)
+
+- At 375×812 the fixed welcome hint sits on top of the enabled OPS PLAN Launch Attack control. The hint stays visible so it can still teach the next step, and `pointer-events: none` lets the tap pass through to the button.
+- A DOM regression uses the founder coordinates (hint y674–720, tap 188×679) and the real overlay stylesheet. No second launch writer, and no change to gang labels, economy, encounters, or Supabase.
+
+### 2026-09-30 — Demo reseed keeps one contact per crew id (#193)
+
+- `applyDemoSeed` drops the demo crew's contact cards before `removeMember` / `addMember`. A second load no longer appends another `demo-dealer-1` (or the shooter, lookout, and enforcer ids). Contacts that are not part of the demo seed stay on the roster.
+
+### 2026-09-30 — Phone banner and welcome hint stop covering the header and dock (#193)
+
+- The Nightfall banner publishes its height as `--slide-banner-inset` (at least 88px). The page starts below that inset instead of sliding under the fixed alert. The welcome hint sits 92px above the bottom, clear of the dock, including the safe area.
+- Copy, colors, and the dismiss behavior are unchanged.
+
+### 2026-09-30 — Block Attack launch requires a driver and a shooter (#193)
+
+- OPS PLAN no longer opens Block Attack from a target alone. Launch stays disabled until the driver slot and a different shooter (or enforcer) are assigned, and the handler ignores a click that races the disabled state. The car screen still owns the seats: an empty car stays disabled, and a lookout or dealer in a passenger seat does not count as the shooter.
+- No faction-name rewrite, no economy or combat-math change, and no new encounter route. Issue #192's canonical-route choice and issue #175 stay open.
+
 ### 2026-09-30 — Independent beta gameplay and visual critic skill (#45)
 
 - Added a portable repo-scoped `slide-game-critic` Agent Skill for Cursor and other compatible agents. It requires a separate reviewer, actual revision-bound play captures at phone and desktop sizes, reproducible frame samples, a player-action trace, and explicit NOT PLAYED when no build is accessible.
