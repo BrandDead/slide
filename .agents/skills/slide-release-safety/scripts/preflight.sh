@@ -32,7 +32,15 @@ npm run validate
 printf '\n== Production build ==\n'
 npm run build
 
-if git -C "$ROOT" diff --name-only "$BASE_REF"...HEAD -- backend/python | grep -q .; then
+# Include branch changes, staged/unstaged edits, and new untracked Python
+# files. This script is commonly run before the regression fix is committed.
+BACKEND_CHANGES="$(
+  git -C "$ROOT" diff --name-only "$BASE_REF"...HEAD -- backend/python
+  git -C "$ROOT" diff --name-only --cached -- backend/python
+  git -C "$ROOT" diff --name-only -- backend/python
+  git -C "$ROOT" ls-files --others --exclude-standard -- backend/python
+)"
+if [[ -n "$BACKEND_CHANGES" ]]; then
   printf '\n== Backend tests (backend changed) ==\n'
   cd "$ROOT/backend/python"
   if [[ ! -x ./venv/bin/python ]]; then

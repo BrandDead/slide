@@ -66,7 +66,7 @@ npm run validate
 npm run build
 ```
 
-`process.mjs` is a global scan, not a per-file command. It reads staged source images across `frontend/public/assets`, copies masters to ignored `art-src/`, writes optimized derivatives, removes staged originals, and regenerates the whole runtime manifest. Inspect the dry-run and repository status before `--write`; stop if the plan includes unreserved work.
+`process.mjs` is a global scan, not a per-file command. It reads staged source images across `frontend/public/assets` and merges their registrations into the existing manifest by ID. It verifies retained files, counts the complete runtime/package budget, and finishes planning before mutation. Approved writes copy masters to ignored `art-src/`, write optimized derivatives and the merged manifest, then remove staged originals. A no-source write does not rewrite the manifest. Inspect the dry-run and repository status before `--write`; stop if the plan includes unreserved work. Missing registered files and budget overflow must fail without consuming input. Do not prune registrations merely because their source is no longer staged.
 
 The audit blocks missing files, required-alpha failure, green fringe over threshold, class oversize, and budget overflow. It warns on orphan files. Treat new orphan warnings as failures unless the files are intentionally excluded from runtime.
 
@@ -80,9 +80,22 @@ Add or update focused tests that:
 4. assert every returned file exists and is preloaded when needed;
 5. assert a component never embeds a raw `/assets/...` URL when a resolver contract exists.
 
-## 3D package proof
+## Character-package GLB proof
 
 A character package must satisfy `contracts/character-package.schema.json`: source editable files, runtime Babylon GLB, skeleton axes/unit scale, named six-part hit zones, all 14 required movement/combat/cover animation clips, LODs, and provenance. Validate it with `assets:packages`, then prove tactical, first-person, and third-person traversal, possession/member switch, firing, reload, downed state, exactly-once result application, and return to strategy. A standalone turntable is not acceptance.
+
+## Block/environment-package GLB proof
+
+Use `contracts/block-package.schema.json`, not the character schema. Report the package's editable source paths, runtime GLB, provenance, and actual consumer/loader. If no runtime loader consumes this package type yet, report integration as incomplete; do not invent acceptance from a schema pass.
+
+1. Compare `blockId` and `dnaId` to the existing claimed block. Record the authoritative grid before and after load, placement, encounter return, and fallback. Art must not rewrite persisted terrain or legal cells.
+2. Verify `gridProjection.width`, `height`, `cellSizeMeters`, `origin`, `xAxis`, and `yAxis` against the actual GLB units/orientation and current grid helpers. Check both a corner and an interior cell in the live scene; legal placement and navigation must still use canonical passability and occupancy.
+3. Check every anchor's `gridPoint` bounds and legal role, plus its world `position`/rotation against loaded geometry. Capture crew/opposition spawns, cover, objectives, extraction, vehicles, interaction/navigation, and occlusion anchors that the package contains. A JSON coordinate with no corresponding live geometry is not proof.
+4. Match `lighting.profileId`, time, weather, wetness, and any reflection probes to the live materials and approved reference. Inspect actor grounding and foreground occlusion at final size.
+5. Measure download bytes including referenced textures, loaded triangle/material counts, peak rendered draw calls, and texture memory with the loader/engine's inspector or instrumentation. Record the measurement method and values next to each of `maxDownloadBytes`, `maxTriangles`, `maxMaterials`, `maxDrawCalls`, and `maxTextureBytes`. Declared maxima and file existence are not measurements. Include all shipped package files in the global 20 MB audit.
+6. Exercise the real entry route at 390×844 and 1440×900, then force a missing/failed GLB request. The documented loader fallback must retain the Strip, recon, claim/placement controls, canonical grid, and safe encounter return. Prove one result receipt and no repeated consequence application after reload. Attach live captures, network/error evidence, and grid comparisons.
+
+Run `assets:packages`, `assets:audit`, focused loader/projection tests, full validation, and production build. Acceptance requires the live geometry, measured budget, and recovery proof as well as a schema pass; a concept render or isolated turntable is insufficient.
 
 ## Visual evidence sheet
 

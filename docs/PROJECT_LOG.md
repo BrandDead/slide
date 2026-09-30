@@ -69,6 +69,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Integration-owner repairs to repository quality skills (#188 / #187)
+
+- Reproduced the incremental processor regression and the preflight's skipped uncommitted Python checks before fixing them. The processor retains existing manifest registrations, replaces matching IDs, validates retained files, reports every staged input, and checks all shipped runtime/package bytes before any write. Masters survive and source inputs are consumed only after manifest publication; no-source writes are unchanged.
+- Backend preflight detection now includes branch, staged, unstaged, and untracked Python paths. Separate block/environment GLB acceptance requires live loading/anchor/grid/fallback proof and measured performance budgets. Tactical art briefs now specify the exact demo MAP → Strip → Diorama capture route, commit, stage dimensions, and versioned evidence path rather than an ambiguous hero image.
+- Reserved repairs on #188 under one integration owner. Regression fixtures do not import or alter production assets. Full frontend preflight passed with 957 tests / 4 skipped, zero asset warnings at 7.38 MB / 20 MB, package validation, and production build; final focused processor/preflight cases also pass. The independent skill forward test prompted complete input-plan visibility and camera-route clarification.
+- A global dry run safely rejected existing unreadable legacy `icons/apps/{market,news,shoebox,shot-caller,trap}/{hover,regular}.png` inputs before mutation. These require explicit source cleanup ownership before the first art import; no runtime registrations or asset files were changed here. #175's authenticated saved-game proof remains separate.
+
 ### 2026-09-29 — Repo-scoped AI quality and visual-production skills (#186)
 
 - Added three OpenAI Agent Skills under `.agents/skills`: `$slide-release-safety`, `$slide-visual-art-direction`, and `$slide-asset-integration-qa`. `AGENTS.md` routes future ChatGPT/Codex work through them by task type.

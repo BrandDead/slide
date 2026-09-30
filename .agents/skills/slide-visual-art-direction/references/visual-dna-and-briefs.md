@@ -4,7 +4,14 @@
 
 The approved target is not a flat map, generic cyberpunk alley, or raw satellite view. It is an authored, location-specific tactical diorama: a fixed high oblique camera reveals roofs, facades, sidewalk, street, cover, and depth. The tactical grid explains legal positions without becoming the picture.
 
-Use the current hero-block capture as the camera reference. All generated world elements must match its projection; words such as “top down,” “isometric,” or “aerial” alone are not enough. Include the approved reference image whenever the model supports image grounding.
+Use a versioned live hero-block capture as the camera reference. Reproduce it from the assignment's exact integration commit:
+
+1. In a fresh browser profile, start `VITE_DEMO_MODE=1 npm run dev -- --host 0.0.0.0` from `frontend/`. Open the local app, affirm the 18+ gate, and enter the deterministic demo.
+2. Open the desktop MAP app (or `?app=map` in demo mode), then Strip → Diorama and select the seeded 1208 W Las Olas block (`dnaId: las-olas-1208`). The desktop STRIP icon opens the separate loop desk. Confirm that the visible component is `TacticalDiorama`; record the route/query, selected block ID, seed, viewport, device-pixel ratio, and source commit.
+3. Capture the entire live screen at 1440×900 and 390×844, with crew, placement/grid overlay and HUD visible. Also capture the unobstructed scene crop from the same frame. Record the actual `.td-stage` width/height: the seed uses stage dimensions, not the viewport. Save under `docs/evidence/<date>-<issue>/hero-tactical-<viewport>.png` with a capture note. Review and approve this exact capture in the assigned issue before art generation.
+4. Put that versioned path and commit in every production brief and supply the image when the model supports grounding. If a camera/renderer change invalidates it, recapture and obtain the integration owner's reference decision before deriving more states.
+
+`docs/concept-art/gta_block_board.png` and `docs/concept-art/1208_w_las_olas_block.webp` remain historical visual-direction references. They are not interchangeable live camera measurements. Neither overhead art nor a Babylon FPS/TPS capture substitutes for the approved tactical frame. All generated world elements must match the chosen frame's projection; words such as “top down,” “isometric,” or “aerial” alone are not enough.
 
 This is the contract for `TacticalDiorama`, tactical plates, and tactical sprites—not every camera in the game. Modern Ops/Babylon FPS and TPS assets must match that route's current live capture and camera. The approved Modern Ops target is over-the-right-shoulder. Never reuse a tactical sprite, street sprite, FPS arms asset, TPS character, or environment plate across camera modes merely because the subject is the same.
 
