@@ -93,6 +93,7 @@ function settleRivalAttack(previous: LoopState, next: LoopState) {
     blockLabel: loopBlockLabel(next),
     receiptKey: resolution.receiptKey,
     outcome: resolution.outcome,
+    attackOccurredAt: next.rivalIncident.occurredAt,
   });
 }
 

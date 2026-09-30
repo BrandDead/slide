@@ -92,6 +92,8 @@ export interface RivalDefenseInput {
   /** Receipt of the attack being answered (feed actionKey ?? id). */
   receiptKey: string;
   outcome: RivalDefenseOutcome;
+  /** Timestamp of the attack snapshotted at handoff, not resolution time. */
+  attackOccurredAt?: number;
   occurredAt?: number;
 }
 
@@ -130,7 +132,8 @@ export interface GhostStoreActions {
   /**
    * Close a rival attack on a player block after the Strip encounter
    * resolves. Exactly once per attack receipt; every other open attack by the
-   * same crew on the same block closes with it so stale probes do not queue.
+   * same crew on the same block at or before the snapshotted attack closes
+   * with it. New attacks arriving during combat remain open.
    */
   resolveRivalAttack(input: RivalDefenseInput): boolean;
   /** The crew that owns a given block, if any. */
@@ -288,16 +291,19 @@ export const useGhostStore = create<GhostStore>()(
           const applied = state.appliedResponseKeys ?? [];
           if (!receiptKey || applied.includes(receiptKey)) return false;
           const occurredAt = Number.isFinite(input.occurredAt) ? Math.trunc(input.occurredAt!) : Date.now();
+          const attackOccurredAt = input.attackOccurredAt
+            ?? state.feed.find(event => rivalAttackReceiptKey(event) === receiptKey)?.timestamp
+            ?? occurredAt;
           const crew = state.crews[input.crewId];
           const updated = crew && !validateGhostCrewState(crew)
             ? applyRivalDefenseOutcome(crew, input.outcome, input.blockId, occurredAt)
             : undefined;
           const crewName = updated?.name ?? input.crewName;
           const closedKeys = pendingRivalAttacks(state.feed, input.blockId, applied)
-            .filter((event) => event.crewId === input.crewId)
+            .filter((event) => event.crewId === input.crewId && event.timestamp <= attackOccurredAt)
             .map(rivalAttackReceiptKey);
           const description = input.outcome === 'secured'
-            ? `Your crew held ${input.blockLabel}. ${crewName} lost a shooter and wants it back.`
+            ? `Your crew held ${input.blockLabel}. ${updated?.lastMove ?? `${crewName} got pushed off the block.`} They want it back.`
             : input.outcome === 'overrun'
               ? `${crewName} overran ${input.blockLabel} and got its payback.`
               : `Your crew backed off ${input.blockLabel}. ${crewName} is still circling.`;

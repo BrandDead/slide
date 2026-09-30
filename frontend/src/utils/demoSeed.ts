@@ -302,7 +302,10 @@ export function applyDemoSeed(): void {
 
   // City Briefing is a visual/player-path fixture in demo mode. Authenticated
   // production sessions only display state hydrated from the durable service.
-  useGhostStore.setState({ feed: buildDemoCityBriefing(nowMs) });
+  // Persisted moves and defense receipts must survive reload. Seed the
+  // briefing only on first entry; never replace earned outcomes with fixtures.
+  const existingFeed = useGhostStore.getState().feed;
+  if (existingFeed.length === 0) useGhostStore.setState({ feed: buildDemoCityBriefing(nowMs) });
 
   const shoebox = useShoeboxStore.getState();
   shoebox.reset();
