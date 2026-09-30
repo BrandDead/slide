@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Final personal-crew follow-up and combined integration gates (#188 / #185)
+
+- Reconciled the follow-up against the ordered reviewed stack, preserving #184's carried creator/fallback repairs, #180's retaliation warning, and #185's dismiss-all banner behavior. Contacts renders the typed string backstory supplied by photo recruits while retaining the legacy structured-object path.
+- Combined source passes 1016 frontend tests / 4 skipped, TypeScript, lint with 0 errors / 200 existing warnings, asset audit (7.38 MB / 20 MB, 110 entries, zero audit warnings), 5 packages / 4 schemas, production build and 95 backend tests. Real demo UI at 390×844 / 1440×900 covers invalid placement, named fight/fire/retreat, unchanged reload receipt/cash, shift two, immediate Cook product on return, labelled offline stock-photo preview and roster profile backstory. A separate explicit QA shortcut covers one hospital payment, health recovery and reload.
+- Existing logo/news-icon 404s, system-font/browser limitations and expected offline avatar requests are documented in versioned evidence. These are demo viewport checks, not #175's authenticated two-user saved-game proof or launch readiness. Fable owns that separate staging proof; migration 007 stays applied and must not be replayed. #189's absent offline-pack reconciliation is queued after #188; no old branches/reward writer are imported. Nightfall art can start only after the protected combined commit is verified and a dedicated issue reserved.
+
 ### 2026-09-30 — Safe photo-recruit predecessor and consent boundary (#188 / #184)
 
 - Carried the existing #185 PhotoMemberCreator fixes and regression coverage into the #184 predecessor before integration: current name state at generation, polling independent of preview replacement, approval-time name validation, synchronous duplicate-approval guard, complete typed recruit records, and sparse fallback merge preserving image URLs. Contacts backstory and banner follow-up remain on #185.
@@ -107,6 +113,18 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
 - The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
 - This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
+### 2026-09-30 — Photo recruit detail renders its backstory (#185 follow-up)
+
+- The Contact Detail modal assumed every truthy `backstory` value was an object with `origin` and `reason`. Photo recruits correctly use the typed string contract, which previously created an empty Backstory section. The modal now renders that string visibly while retaining the structured legacy rendering path.
+- A focused Contacts regression fails before the change and verifies the real roster card → profile path now shows `Joined the crew from your Contacts.`. No roster/store/data-model, backend, Supabase, deployment, or gameplay change is included.
+
+### 2026-09-29 — Photo recruit review fixes; rival banner can be cleared on phones (#184 follow-up)
+
+- Stacked on #184. Fixes the confirmed review findings in `PhotoMemberCreator`: Generate works when the name is typed last (stale `memberName`); replacing the photo no longer cancels a queued job's polling; **Add to Roster** re-checks the name and is disabled while approving, so a double tap can't recruit twice; photo recruits are now complete `GangMember` records (stats, morale, gangId, XP, health), with no `as any`. Status and approve fallbacks no longer overwrite generated image URLs.
+- `GhostThreatBanner` dismissal now clears every threat that's currently open. It used to remember one id, so with two or more open threats the previous alert came back and the banner could never be cleared. On phones that permanently covered the Contacts header (Back, + Add, tabs). Newer threats still appear. This predates #180; it was already on `main`.
+- Browser playtest in demo mode at 390×844 and 1440×900: CONTACTS → + Add → Create from Photo → Add to Roster, plus PHONE → Add Custom Member. Recruits appear in both lists, persist across reload, and there are 0 page errors.
+- Still open (not in this slice): `useGangStore.removeMember` leaves the member's contact card behind, and the demo seed runs remove-then-add on every load, so Contacts shows duplicate demo crew (React duplicate-key warnings; "ACTIVE (9)" on a fresh demo). With the backend offline, the avatar service quietly returns stock portraits instead of art from the player's photo. The fictional-content boundary in `docs/AI_CONTRIBUTOR_START_HERE.md` still needs an owner decision.
 
 ### 2026-09-29 — Personal crew recruiting wired into Contacts (#183)
 
