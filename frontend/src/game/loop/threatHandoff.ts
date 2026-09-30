@@ -47,7 +47,7 @@ export function rivalResolutionFor(
   blockLabel: string,
 ): RivalResolution {
   const line = result.outcome === 'secured'
-    ? `You held ${blockLabel} against ${incident.crewName}. They lost a shooter and will want it back.`
+    ? `You held ${blockLabel} against ${incident.crewName}. They got pushed off the block and will want it back.`
     : result.outcome === 'overrun'
       ? `${incident.crewName} overran ${blockLabel}${result.crewDown.length ? ` and left ${result.crewDown.length} of your crew hurt` : ''}. They got their payback — for now.`
       : `Your crew backed off ${blockLabel}. ${incident.crewName} is still circling.`;

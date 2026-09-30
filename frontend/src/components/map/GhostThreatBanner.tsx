@@ -87,7 +87,7 @@ const GhostThreatBanner: React.FC = () => {
     (e) => BANNER_ACTIONS.has(e.action)
       && e.id !== dismissedId
       && !isDefenseReason(e.reason)
-      && !(e.action === 'attack' && (answered ?? []).includes(rivalAttackReceiptKey(e))),
+      && !(e.action === 'attack' && e.targetBlockId === BLOCK_LOOP_IDS.blockId && (answered ?? []).includes(rivalAttackReceiptKey(e))),
   );
   const onStrip = latest?.action === 'attack' && latest.targetBlockId === BLOCK_LOOP_IDS.blockId;
 

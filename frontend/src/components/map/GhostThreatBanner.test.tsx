@@ -47,4 +47,14 @@ describe('GhostThreatBanner', () => {
     });
     expect(screen.getByRole('alert')).toHaveTextContent(/probing 1208/i);
   });
+
+  it('shows the retaliation warning for a booked player attack on rival turf', () => {
+    useGhostStore.setState({
+      feed: [{ ...stripAttack, targetBlockId: 'ghost-nightfall-turf', actionKey: 'player-hit', description: 'Nightfall will remember your hit.' }],
+      appliedResponseKeys: ['player-hit'],
+    });
+    render(<GhostThreatBanner />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Nightfall will remember your hit.');
+  });
+
 });

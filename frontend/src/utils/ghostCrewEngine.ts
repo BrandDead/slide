@@ -750,7 +750,7 @@ export function applyRivalDefenseOutcome(
         ? crew.roster.map((member) => (member.id === casualty.id ? { ...member, alive: false } : member))
         : crew.roster,
       grudge: { score: clamp(crew.grudge.score + 10), lastIncidentBlockId: blockId, lastIncidentAt: at },
-      lastMove: `${crew.name} got pushed off the block and lost a shooter.`,
+      lastMove: `${crew.name} got pushed off the block${casualty ? ` and lost ${casualty.role === 'enforcer' ? 'an' : 'a'} ${casualty.role}` : ' with no roster loss'}.`,
     };
   }
   if (outcome === 'overrun') {

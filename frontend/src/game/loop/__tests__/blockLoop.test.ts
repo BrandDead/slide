@@ -72,6 +72,18 @@ describe('placement rules', () => {
 });
 
 describe('product assignment and deal', () => {
+  it('rejects fractional stash leftovers and cannot sell more product than exists', () => {
+    const placed = placedLoop();
+    const fractional = { ...placed, inventory: placed.inventory.map(item => ({ ...item, quantity: 0.2 })) };
+    const assigned = reduceLoop(fractional, { type: 'assign-product', dealerId: BLOCK_LOOP_IDS.dealerId, productId: BLOCK_LOOP_IDS.productId });
+    expect(assigned.rejection).toMatch(/full unit/i);
+    const dealt = reduceLoop(fractional, { type: 'run-deal' });
+    expect(dealt.money).toBe(fractional.money);
+    expect(dealt.lastDeal).toBeNull();
+    const receipt = resolveLoopDeal({ blockId: fractional.block.id, dealer: fractional.block.placements[0], product: fractional.inventory[0], incomeMultiplier: 1 });
+    expect(Math.abs(receipt.productDelta)).toBe(0);
+    expect(receipt.moneyDelta).toBe(0);
+  });
   it('assigns River Cut and consumes quantity on a deterministic deal', () => {
     const before = placedLoop();
     const after = reduceLoop(before, { type: 'run-deal' });

@@ -129,6 +129,7 @@ export function toCityBriefItems(feed: GhostFeedEvent[], answeredKeys: string[] 
   return feed
     .filter((event) => !(
       event.action === 'attack'
+      && isStripEvent(event)
       && !isDefenseReason(event.reason)
       && answered.has(event.actionKey?.trim() || event.id)
     ))

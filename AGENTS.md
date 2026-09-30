@@ -5,6 +5,18 @@
 > and active queue. The project log is the append-only record of decisions, direction,
 > roadmap order, and rollback anchors. Append a dated log entry when meaningful work lands.
 
+## Repository skills (ChatGPT / Codex)
+
+Codex discovers the project-specific Agent Skills under `.agents/skills/`. Invoke the matching skill explicitly when the task falls within its scope; do not rely on a generic coding or image prompt.
+
+| Skill | Required use |
+|---|---|
+| `$slide-release-safety` | Every gameplay/code change, bug fix, PR review, review-finding response, or merge-readiness pass. Requires regression-first tests, complete typed records, duplicate-action/idempotency checks, full validation, and real player-path evidence. |
+| `$slide-visual-art-direction` | Every image-generation or visual-polish task involving GPT Image, Astra, FLUX, or another image model. Locks the shared 2.5D tactical-diorama camera, visual DNA, fictional-content boundary, continuity, and output inventory before generation. |
+| `$slide-asset-integration-qa` | Every generated/licensed asset added to or replaced in the game. Requires manifest/resolver/package wiring, alpha/size/budget/provenance gates, and live runtime captures at phone and desktop sizes. |
+
+For a task that both generates and ships art, use `$slide-visual-art-direction` first and `$slide-asset-integration-qa` second. Apply `$slide-release-safety` as well when code or shared game behavior changes.
+
 ## Cursor Cloud specific instructions
 
 This repo is **DEALT / SLIDE**, an iOS-style urban-warfare game with two services:
