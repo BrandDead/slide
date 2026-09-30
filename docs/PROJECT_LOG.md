@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Shared books and every-casualty recovery repairs (#188 / #181)
+
+- The Strip refreshes its display from the current shared cash, stash, assignments and block without writing them back. Cooked products appear on return; depletion stays depleted; passive income and placements are preserved; next shift clears only its selected dealer's product assignment.
+- Hospital affordability follows live cash and is revalidated on payment. Each downed member requires a paid or rest decision; only members explicitly rested recover to 40 hp on the next shift. Hydration reconstructs any missing offer. Fractional leftovers below one unit cannot earn a whole-unit sale.
+- Nine regression cases failed before the repair. Combined production-demo phone/desktop proof covers a real named fight, retreat, unchanged reload receipt/cash, shift two, offline photo/profile, and separately labelled QA hospital payment/reload. Full frontend/backend combined gates pass; each scoped PR head still requires exact CI before ordered merge. #175 remains independent.
+
 ### 2026-09-30 — Ghost incident review repairs on the protected skills base (#188 / #180)
 
 - Reconciled the skills/main log conflict while preserving both histories. Booked player attacks on rival territory remain visible; only answered inbound Strip attacks are hidden. Incident settlement closes attacks at or before the encounter snapshot, leaving a later probe open.
@@ -89,6 +95,30 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
 - The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
 - This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
+### 2026-09-29 — The Strip runs shift after shift (single-player loop)
+
+- The canonical Strip was one-shot: after the first SLIDE and return, the desktop card only
+  offered "Review the strip" and the loop could not be played again without a reset. A
+  `next-shift` command now opens shift N+1 on the same block from the consequence or
+  return screen (and from the desktop card, `Run shift N`). The crew keeps its spots, heat
+  cools by `HEAT_CONFIG.BASE_DECAY_RATE`, block heat drops 1, and every shift gets its own
+  deal key (`…:N`) and encounter ticket (`…:shift-N`); shift 1 keys are unchanged.
+- Recovery matters across shifts. A shift cannot start until the hospital/rest decision is
+  made. Paying the hospital restores the member on the board (placements previously kept
+  0 hp); resting brings the member back at `REST_RETURN_HEALTH` (40 hp) next shift.
+- The Strip reads the shared books before every command for the demo ledger (cash, heat,
+  reputation from `usePlayerStore`; the stash from `useDrugInventory`), so money and heat
+  earned in DEALT, the lab, or bail/hospital are no longer overwritten by the Strip's copy.
+  Continuous heat decay is rounded to whole points on read.
+- Product: any lab-cooked product with quantity can be put on the dealer (the deal receipt
+  names it and uses its tier's heat multiplier); River Cut can be re-upped from the connect
+  (`LOOP_RE_UP`: 8 units for $560). An empty stash says so instead of hiding the step.
+- Leaving the encounter from its header (`Back off the block`) now books a retreat
+  (morale −4, pending cash −15, no wound) through the existing receipt path instead of the
+  forced overrun wound.
+- Ledger v1 gains optional `shiftIndex`, `stock`, and `crew`; older ledgers hydrate as
+  shift 1 with the legacy River Cut quantity. No backend, schema, or deployment change.
 
 ### 2026-09-29 — Ghost Crew attacks become the Strip's named threat (#163)
 

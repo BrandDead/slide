@@ -33,13 +33,13 @@ export function resolveLoopDeal(input: {
     Math.round(HEAT_CONFIG.DEAL_HEAT.regular * tier.heatMultiplier + dealer.exposureRisk * 0.0125),
   );
   const exposureDelta = Math.max(1, Math.round(dealer.exposureRisk * 0.0875));
-  const unitsSold = Math.max(
-    1,
-    Math.min(product.quantity, Math.round(2 + (dealer.incomePerTick || 40) / 20)),
+  const unitsSold = Math.min(
+    Math.floor(Math.max(0, product.quantity)),
+    Math.max(1, Math.round(2 + (dealer.incomePerTick || 40) / 20)),
   );
   const moneyDelta = Math.round(unitsSold * (90 + product.quality) * (1 + demandBonusPct / 100) * incomeMultiplier);
   const leftoverQuantity = Math.max(0, product.quantity - unitsSold);
-  const explanation = `Street exposure +${demandBonusPct}% → higher demand, but heat +${heatDelta} and exposure +${exposureDelta}. ${unitsSold} River Cut moved for $${moneyDelta}.`;
+  const explanation = `Street exposure +${demandBonusPct}% → higher demand, but heat +${heatDelta} and exposure +${exposureDelta}. ${unitsSold} ${product.name} moved for $${moneyDelta}.`;
 
   return {
     key: `deal:${blockId}:${dealer.memberId}:${dealer.x}:${dealer.y}:${product.id}:${shiftIndex}`,
