@@ -53,6 +53,9 @@
   align-items: center;
   gap: 10px;
   z-index: 50;
+  /* The hint teaches the next step. It must not steal taps when a control
+     scrolls underneath it (Launch Attack at 375×812). */
+  pointer-events: none;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 

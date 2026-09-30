@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Welcome hint no longer steals the phone Launch Attack tap (#193)
+
+- At 375×812 the fixed welcome hint sits on top of the enabled OPS PLAN Launch Attack control. The hint stays visible so it can still teach the next step, and `pointer-events: none` lets the tap pass through to the button.
+- A DOM regression uses the founder coordinates (hint y674–720, tap 188×679) and the real overlay stylesheet. No second launch writer, and no change to gang labels, economy, encounters, or Supabase.
+
 ### 2026-09-30 — Demo reseed keeps one contact per crew id (#193)
 
 - `applyDemoSeed` drops the demo crew's contact cards before `removeMember` / `addMember`. A second load no longer appends another `demo-dealer-1` (or the shooter, lookout, and enforcer ids). Contacts that are not part of the demo seed stay on the roster.
