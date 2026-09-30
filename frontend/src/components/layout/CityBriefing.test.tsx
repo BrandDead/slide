@@ -87,4 +87,10 @@ describe('Strip routing (#163)', () => {
     expect(held).toMatchObject({ category: 'DEFENSE RESULT', tone: 'success' });
     expect(held.cta.destination).toBe('block_loop');
   });
+
+  it('keeps a player attack on rival turf visible even though its response key is booked', () => {
+    const response = { ...base, id: 'response-player-hit', actionKey: 'player-hit', targetBlockId: 'ghost-nightfall-turf', description: 'Nightfall will remember your hit.' };
+    expect(toCityBriefItems([response], ['player-hit'])).toHaveLength(1);
+    expect(toCityBriefItems([response], ['player-hit'])[0].description).toBe(response.description);
+  });
 });

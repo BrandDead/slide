@@ -69,6 +69,39 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Live cash, exact QA flag and stable encounter log repairs (#188 / #182)
+
+- The desktop Strip card reads the current player balance for demo and signed-in display. Only the exact `?qa=1` value enables the wound shortcut outside test mode; `qa=0`, `qa=false` and an empty flag keep the real fight controls available.
+- Encounter log entries retain their DOM identity when a newer event arrives and distinguish same-tick events from different actors. Presentation keys do not modify engine events, encounter receipts or result authority.
+- Six regression cases failed before repair and now pass with the existing controls. These changes preserve the player-copy pass and the preceding shared-book fixes; combined phone/desktop demo and separately labelled QA recovery proof stay separate from #175.
+
+### 2026-09-30 — Shared books and every-casualty recovery repairs (#188 / #181)
+
+- The Strip refreshes its display from the current shared cash, stash, assignments and block without writing them back. Cooked products appear on return; depletion stays depleted; passive income and placements are preserved; next shift clears only its selected dealer's product assignment.
+- Hospital affordability follows live cash and is revalidated on payment. Each downed member requires a paid or rest decision; only members explicitly rested recover to 40 hp on the next shift. Hydration reconstructs any missing offer. Fractional leftovers below one unit cannot earn a whole-unit sale.
+- Nine regression cases failed before the repair. Combined production-demo phone/desktop proof covers a real named fight, retreat, unchanged reload receipt/cash, shift two, offline photo/profile, and separately labelled QA hospital payment/reload. Full frontend/backend combined gates pass; each scoped PR head still requires exact CI before ordered merge. #175 remains independent.
+
+### 2026-09-30 — Ghost incident review repairs on the protected skills base (#188 / #180)
+
+- Reconciled the skills/main log conflict while preserving both histories. Booked player attacks on rival territory remain visible; only answered inbound Strip attacks are hidden. Incident settlement closes attacks at or before the encounter snapshot, leaving a later probe open.
+- Demo reload preserves the earned defense feed and the exactly-once rival receipt. Defense text reports the actual roster casualty, or no loss for the last survivor; the pure loop result does not invent a shooter casualty.
+- Six regression cases failed before the repair and pass with existing duplicate/reload/signed-in controls. The combined #180–#185 repair also passes frontend validation/build (1016 passed, 4 skipped), the unchanged asset/package gates, and 95 backend tests; phone/desktop combined player-path evidence is being finalized under #188. Exact repaired-head CI is required before each ordered merge. #175 remains independent.
+
+### 2026-09-30 — Integration-owner repairs to repository quality skills (#188 / #187)
+
+- Reproduced the incremental processor regression and the preflight's skipped uncommitted Python checks before fixing them. The processor retains existing manifest registrations, replaces matching IDs, validates retained files, reports every staged input, and checks all shipped runtime/package bytes before any write. Masters survive and source inputs are consumed only after manifest publication; no-source writes are unchanged.
+- Backend preflight detection now includes branch, staged, unstaged, and untracked Python paths. Separate block/environment GLB acceptance requires live loading/anchor/grid/fallback proof and measured performance budgets. Tactical art briefs now specify the exact demo MAP → Strip → Diorama capture route, commit, stage dimensions, and versioned evidence path rather than an ambiguous hero image.
+- Reserved repairs on #188 under one integration owner. Regression fixtures do not import or alter production assets. Full frontend preflight passed with 957 tests / 4 skipped, zero asset warnings at 7.38 MB / 20 MB, package validation, and production build; final focused processor/preflight cases also pass. The independent skill forward test prompted complete input-plan visibility and camera-route clarification.
+- A global dry run safely rejected existing unreadable legacy `icons/apps/{market,news,shoebox,shot-caller,trap}/{hover,regular}.png` inputs before mutation. These require explicit source cleanup ownership before the first art import; no runtime registrations or asset files were changed here. #175's authenticated saved-game proof remains separate.
+
+### 2026-09-29 — Repo-scoped AI quality and visual-production skills (#186)
+
+- Added three OpenAI Agent Skills under `.agents/skills`: `$slide-release-safety`, `$slide-visual-art-direction`, and `$slide-asset-integration-qa`. `AGENTS.md` routes future ChatGPT/Codex work through them by task type.
+- The release guard converts verified #184 failures into reusable checks: regression-first proof, current React closure state, independent async cleanup, validation at mutation time, synchronous duplicate-action protection, complete typed domain records without `as any`, non-destructive fallback merging, one authoritative result boundary, and phone/desktop player-path evidence.
+- The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
+- The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
+- This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
 ### 2026-09-29 — Strip speaks to players; the fight is played, not skipped
 
 - Player-facing Strip, encounter, and desktop-card copy no longer shows QA/closed-beta

@@ -125,4 +125,28 @@ describe('repeatable Strip shifts', () => {
     expect(old.shiftIndex).toBe(1);
     expect(old.inventory[0].quantity).toBe(shift2.inventory[0].quantity);
   });
+
+  it('requires a recovery decision for each downed member, including after reload', () => {
+    const live = runLoopCommands([...CREW, ASSIGN, { type: 'run-deal' }, { type: 'begin-encounter' }]);
+    const result = { ...seededLoopEncounter(live), crewDown: [BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId] };
+    const wounded = reduceLoop(live, { type: 'apply-encounter', result });
+    const paid = reduceLoop(wounded, { type: 'recover', pay: true });
+    expect(paid.recovery?.memberId).toBe(BLOCK_LOOP_IDS.shooterId);
+    expect(reduceLoop(paid, { type: 'next-shift' }).shiftIndex).toBe(1);
+    const restored = reduceLoop(createLoopState(), { type: 'hydrate-ledger', ledger: toLoopLedger(paid) });
+    const rested = reduceLoop(restored, { type: 'recover', pay: false });
+    const next = reduceLoop(rested, { type: 'next-shift' });
+    expect(next.shiftIndex).toBe(2);
+    expect(dealer(next).health).toBe(100);
+    expect(next.members.find(member => member.id === BLOCK_LOOP_IDS.shooterId)?.health).toBe(REST_RETURN_HEALTH);
+    expect(next.money).toBe(wounded.money - wounded.recovery!.cost);
+  });
+
+  it('does not silently revive a downed member who has not elected rest', () => {
+    const wounded = woundedShift();
+    const next = reduceLoop({ ...wounded, recovery: null }, { type: 'next-shift' });
+    expect(dealer(next).health).toBe(0);
+    expect(next.shiftIndex).toBe(1);
+    expect(next.recovery?.memberId).toBe(BLOCK_LOOP_IDS.dealerId);
+  });
 });
