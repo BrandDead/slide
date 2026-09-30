@@ -113,8 +113,8 @@ export function createLoopState(overrides: Partial<LoopState> = {}): LoopState {
     economyKeys: [],
     pendingHealthIds: [],
     briefing: [
-      'Fictional 1208 Las Olas is claimed. DNA card las-olas-1208 owns this board.',
-      'Select Lil Dre and Big Rome, then place them on legal cells.',
+      '1208 W Las Olas Blvd is yours. Lock in your dealer and shooter.',
+      'Then put them on the block: closer to the street pays more but draws more fire.',
     ],
     recovery: null,
     rejection: null,

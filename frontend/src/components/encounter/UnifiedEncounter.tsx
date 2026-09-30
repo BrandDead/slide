@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import type { BlockData } from '../../types/block.types';
 import { createCombatSession, getCombatSnapshot } from '../../game/combat/combatSession';
 import { prepareEncounter } from '../../game/combat/prepareEncounter';
-import type { CombatResult, CombatSnapshot } from '../../game/combat/types';
+import type { CombatEvent, CombatResult, CombatSnapshot } from '../../game/combat/types';
 import { UnifiedEncounterScene } from './UnifiedEncounterScene';
 import './UnifiedEncounter.css';
 
@@ -47,6 +47,11 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<UnifiedEncounterScene | null>(null);
   const resolvedRef = useRef(false);
+  // Engine events are immutable objects retained across snapshots. A local
+  // presentation sequence distinguishes same-tick IDs without remounting
+  // prior aria-live entries or changing combat identity/result authority.
+  const eventKeysRef = useRef(new WeakMap<CombatEvent, string>());
+  const eventSequenceRef = useRef(0);
   const [preparation] = useState(() => prepareEncounter(block, { oppositionName, sessionSalt }));
   const reducedMotion = useReducedMotion();
   const [snapshot, setSnapshot] = useState<CombatSnapshot>(() => getCombatSnapshot(createCombatSession(preparation)));
@@ -108,6 +113,14 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
 
   const activeCrew = snapshot.combatants.filter((actor) => actor.team === 'crew' && !actor.isDown).length;
   const opposition = snapshot.combatants.filter((actor) => actor.team === 'opposition' && !actor.isDown).length;
+  const logEntries = snapshot.events.slice(-4).map(item => {
+    let key = eventKeysRef.current.get(item);
+    if (!key) {
+      key = `${item.id}:${item.actorId ?? ''}:${item.targetId ?? ''}:${eventSequenceRef.current++}`;
+      eventKeysRef.current.set(item, key);
+    }
+    return { item, key };
+  }).reverse();
 
   return createPortal(
     <section className="unified-encounter" aria-label="Tactical encounter">
@@ -151,7 +164,7 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
       </div>
 
       <div className="ue-event-log" aria-live="polite" aria-label="Combat status">
-        {snapshot.events.slice(-4).reverse().map((item) => <p key={item.id}>{item.message}</p>)}
+        {logEntries.map(({ item, key }) => <p key={key}>{item.message}</p>)}
         {snapshot.events.length === 0 && <p>Choose a crew member, use cover, and reach the highlighted secure exit.</p>}
       </div>
 

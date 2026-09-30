@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Live cash, exact QA flag and stable encounter log repairs (#188 / #182)
+
+- The desktop Strip card reads the current player balance for demo and signed-in display. Only the exact `?qa=1` value enables the wound shortcut outside test mode; `qa=0`, `qa=false` and an empty flag keep the real fight controls available.
+- Encounter log entries retain their DOM identity when a newer event arrives and distinguish same-tick events from different actors. Presentation keys do not modify engine events, encounter receipts or result authority.
+- Six regression cases failed before repair and now pass with the existing controls. These changes preserve the player-copy pass and the preceding shared-book fixes; combined phone/desktop demo and separately labelled QA recovery proof stay separate from #175.
+
 ### 2026-09-30 — Shared books and every-casualty recovery repairs (#188 / #181)
 
 - The Strip refreshes its display from the current shared cash, stash, assignments and block without writing them back. Cooked products appear on return; depletion stays depleted; passive income and placements are preserved; next shift clears only its selected dealer's product assignment.
@@ -95,6 +101,24 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
 - The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
 - This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
+### 2026-09-29 — Strip speaks to players; the fight is played, not skipped
+
+- Player-facing Strip, encounter, and desktop-card copy no longer shows QA/closed-beta
+  language ("DNA card … owns this board", "UnifiedEncounter is running on …", "Consequence
+  is on the strip ledger", "Closed-beta Las Olas path", "seizure-risk hit"). The desk shows
+  the street address; the canonical DNA id remains as `data-dna-id` for QA and tests.
+- The Strip desk no longer passes a `missing` map context to the diorama (it never loads
+  street tiles by design), so the "Street map imagery is optional" warning appears only when
+  a real map load fails. The threat step no longer prints the receipt and reason twice.
+- The deterministic "Book the wound" dock skipped the fight and, on phones, covered the
+  encounter's Fire/Reload/Secure/Retreat controls. It is now a QA shortcut shown only in
+  test mode or with `?qa=1`. A scripted playtest wins the real encounter (move to the
+  secure exit, interact) on 1440×900 and 390×844 and books `You held … against Nightfall
+  Crew` with no shortcut.
+- Encounter event-log keys are unique (two actors can emit the same event on one tick,
+  which produced React duplicate-key warnings every turn). Consequence deltas are signed
+  (`morale +4, pending cash +$75`).
 
 ### 2026-09-29 — The Strip runs shift after shift (single-player loop)
 

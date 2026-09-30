@@ -36,7 +36,7 @@ export function resolveThreatRoute(input: {
   return {
     route: 'slide',
     rival: null,
-    reason: `Heat stays under raid threshold, but ${input.dealerExposure} street exposure pulls a SLIDE defense on this DNA board.`,
+    reason: `Heat is under the raid line, but ${input.dealerExposure} street exposure draws a crew sliding through. Defend the block.`,
   };
 }
 
@@ -84,9 +84,9 @@ export function createDeterministicLoopResult(input: {
     moraleDelta: outcome === 'secured' ? 4 : outcome === 'overrun' ? -12 : -4,
     pendingIncomeDelta: outcome === 'secured' ? 75 : outcome === 'overrun' ? -50 : -15,
     summary: outcome === 'overrun'
-      ? 'Lil Dre took a wound holding the strip. The books record one seizure-risk hit.'
+      ? 'Lil Dre took a wound holding the strip.'
       : outcome === 'secured'
-        ? 'The crew held the DNA board and extracted.'
+        ? 'The crew held the block and got out clean.'
         : 'The crew disengaged before the slide closed.',
   };
 }

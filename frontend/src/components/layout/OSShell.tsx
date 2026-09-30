@@ -447,14 +447,13 @@ const OSShell: React.FC<OSShellProps> = ({ gangMorale = 75, incomePerMinute = 0 
         </div>
       </div>
 
-      <section className="strip-run-card" aria-label="Las Olas closed-beta path">
+      <section className="strip-run-card" aria-label="Your block: 1208 Las Olas">
         <div>
-          <p className="strip-run-kicker">Closed-beta Las Olas path</p>
+          <p className="strip-run-kicker">Your block · shift {loop.shiftIndex}</p>
           <h2>Run 1208 Las Olas</h2>
           <p>
-            STRIP desk → MAP diorama → place crew → deal → SLIDE → return. Street tiles are optional.
-            {' '}{loop.block.dnaId ?? 'las-olas-1208'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · cash ${player.money.toLocaleString()} · heat {Math.round(player.heat)}
-            {loop.threat ? ` · ${loop.threat.route}` : ''}
+            Put your crew on the block, move product, and hold the corner when rivals slide.
+            {' '}{members.find((m) => m.id === BLOCK_LOOP_IDS.dealerId)?.name ?? 'Lil Dre'} · {members.find((m) => m.id === BLOCK_LOOP_IDS.shooterId)?.name ?? 'Big Rome'} · street cash ${player.money.toLocaleString()} · heat {Math.round(player.heat)}
           </p>
           {loop.phase === 'returned' || loop.lastEncounter ? (
             <p className="strip-run-return">{loop.briefing[0]}</p>

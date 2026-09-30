@@ -23,7 +23,7 @@ export function describePlacementReject(reason: PlacementRejectReason): string {
     case 'duplicate-cell':
       return 'Two members cannot share one cell.';
     case 'over-capacity':
-      return 'This DNA card is at max crew.';
+      return 'This block is at max crew.';
     case 'unknown-member':
       return 'That member is not on this loop roster.';
     case 'missing-block':
