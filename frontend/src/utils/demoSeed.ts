@@ -96,7 +96,7 @@ export function applyDemoSeed(): void {
 
   // The demo block is always overwritten by upsertBlock below.
   // Remove stale demo members and re-upsert them
-  const DEMO_IDS = new Set([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
+  const DEMO_IDS = new Set<string>([DEMO_DEALER_ID, DEMO_SHOOTER_ID, DEMO_LOOKOUT_ID, DEMO_ENFORCER_ID]);
 
   // ── 2. Player ─────────────────────────────────────────────
   // Preserve earned progress (level/XP) if the demo player has advanced beyond seed defaults
