@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Independent beta gameplay and visual critic skill (#45)
+
+- Added a portable repo-scoped `slide-game-critic` Agent Skill for Cursor and other compatible agents. It requires a separate reviewer, actual revision-bound play captures at phone and desktop sizes, reproducible frame samples, a player-action trace, and explicit NOT PLAYED when no build is accessible.
+- Gameplay and visuals receive separate evidence-backed 0–10 scores; an 8+ candidate-quality verdict requires both dimensions at 8+, no P0/P1, a real loop and recovery/reload proof. The builder gets ranked findings and at most three bounded fix/review rounds, never a self-awarded launch pass. The skill keeps founder photos private and leaves #175's authenticated saved-game and external-beta gates intact.
+- This is agent guidance only. It changes no gameplay, renderer, assets, production credentials, migrations, deployment or tests; the active Grok run still needs its own real play evidence before a critic can score it.
+
 ### 2026-09-30 — Final personal-crew follow-up and combined integration gates (#188 / #185)
 
 - Reconciled the follow-up against the ordered reviewed stack, preserving #184's carried creator/fallback repairs, #180's retaliation warning, and #185's dismiss-all banner behavior. Contacts renders the typed string backstory supplied by photo recruits while retaining the legacy structured-object path.
