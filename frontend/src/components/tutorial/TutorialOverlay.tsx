@@ -56,6 +56,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ hidden = false }) => 
         {!hidden && !showTutorialOverlay && nextStep && (
           <motion.div
             className="tutorial-hint"
+            style={{ bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}

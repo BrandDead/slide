@@ -72,6 +72,8 @@ const dismissBtnStyle: React.CSSProperties = {
 /** Events that warrant a player-facing banner. */
 const BANNER_ACTIONS = new Set<GhostFeedEvent['action']>(['attack', 'claim']);
 
+const MIN_BANNER_INSET_PX = 88;
+
 const GhostThreatBanner: React.FC = () => {
   const feed = useGhostStore(selectGhostFeed);
   const answered = useGhostStore((state) => state.appliedResponseKeys);
@@ -101,11 +103,37 @@ const GhostThreatBanner: React.FC = () => {
     return next;
   });
   const onStrip = latest?.action === 'attack' && latest.targetBlockId === BLOCK_LOOP_IDS.blockId;
+  const bannerRef = React.useRef<HTMLDivElement>(null);
+
+  // The banner is fixed, and the page underneath is absolutely positioned,
+  // so a flow layout cannot push the header down. Publish the measured
+  // height (at least one phone row) for `.page-container` to inset.
+  React.useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (!latest) {
+      root.style.removeProperty('--slide-banner-inset');
+      return;
+    }
+    const publish = () => {
+      const measured = bannerRef.current?.getBoundingClientRect().height ?? 0;
+      const inset = Math.max(Math.ceil(measured), MIN_BANNER_INSET_PX);
+      root.style.setProperty('--slide-banner-inset', `${inset}px`);
+    };
+    publish();
+    const node = bannerRef.current;
+    const observer = node && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(publish) : null;
+    observer?.observe(node as HTMLDivElement);
+    return () => {
+      observer?.disconnect();
+      root.style.removeProperty('--slide-banner-inset');
+    };
+  }, [latest]);
 
   return (
     <AnimatePresence>
       {latest && (
         <motion.div
+          ref={bannerRef}
           key={latest.id}
           initial={{ y: -80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

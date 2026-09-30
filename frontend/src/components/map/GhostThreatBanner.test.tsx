@@ -57,6 +57,19 @@ describe('GhostThreatBanner', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Nightfall will remember your hit.');
   });
 
+  it('reserves space under the banner so the header is not covered, then clears it', async () => {
+    useGhostStore.setState({ feed: [stripAttack] });
+    render(<GhostThreatBanner />);
+
+    const inset = document.documentElement.style.getPropertyValue('--slide-banner-inset');
+    expect(Number.parseInt(inset, 10)).toBeGreaterThanOrEqual(88);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss rival activity' }));
+    await waitFor(() => {
+      expect(document.documentElement.style.getPropertyValue('--slide-banner-inset')).toBe('');
+    });
+  });
+
   it('clears every open threat on one dismiss and only shows newer ones after', async () => {
     const olderClaim: GhostFeedEvent = {
       ...stripAttack,

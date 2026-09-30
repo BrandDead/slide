@@ -35,4 +35,14 @@ describe('TutorialOverlay', () => {
 
     expect(screen.getByText('Welcome to SLIDE')).toBeInTheDocument();
   });
+
+  it('sits the welcome hint above the phone dock', () => {
+    render(<TutorialOverlay />);
+
+    const hint = screen.getByText('Welcome to SLIDE').closest('.tutorial-hint');
+    expect(hint).toBeInstanceOf(HTMLElement);
+    const bottom = (hint as HTMLElement).style.bottom;
+    expect(bottom).toContain('92px');
+    expect(bottom).toContain('safe-area-inset-bottom');
+  });
 });

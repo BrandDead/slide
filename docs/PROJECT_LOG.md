@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Phone banner and welcome hint stop covering the header and dock (#193)
+
+- The Nightfall banner publishes its height as `--slide-banner-inset` (at least 88px). The page starts below that inset instead of sliding under the fixed alert. The welcome hint sits 92px above the bottom, clear of the dock, including the safe area.
+- Copy, colors, and the dismiss behavior are unchanged.
+
 ### 2026-09-30 — Block Attack launch requires a driver and a shooter (#193)
 
 - OPS PLAN no longer opens Block Attack from a target alone. Launch stays disabled until the driver slot and a different shooter (or enforcer) are assigned, and the handler ignores a click that races the disabled state. The car screen still owns the seats: an empty car stays disabled, and a lookout or dealer in a passenger seat does not count as the shooter.
