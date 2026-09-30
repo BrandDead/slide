@@ -23,10 +23,14 @@ import {
   buildGhostBlock,
   pickClaimTarget,
   addGrudge,
+  applyRivalDefenseOutcome,
+  isDefenseReason,
+  RIVAL_DEFENSE_REASON,
   validateGhostCrewState,
   type GhostCrew,
   type GhostAction,
   type GhostTickContext,
+  type RivalDefenseOutcome,
 } from '../utils/ghostCrewEngine';
 import { getDNAById } from '../config/blockDNA';
 import { useBlockStore } from './blockStore';
@@ -79,6 +83,45 @@ export interface GhostTickReceipt {
   reason?: 'duplicate-tick' | 'invalid-tick-key' | 'no-crews' | GhostAction['reason'] | 'action-rejected';
 }
 
+export interface RivalDefenseInput {
+  crewId: string;
+  /** Name shown to the player when the crew record is missing locally. */
+  crewName: string;
+  blockId: string;
+  blockLabel: string;
+  /** Receipt of the attack being answered (feed actionKey ?? id). */
+  receiptKey: string;
+  outcome: RivalDefenseOutcome;
+  /** Timestamp of the attack snapshotted at handoff, not resolution time. */
+  attackOccurredAt?: number;
+  occurredAt?: number;
+}
+
+/** Stable receipt identity for a feed attack event. */
+export function rivalAttackReceiptKey(event: Pick<GhostFeedEvent, 'id' | 'actionKey'>): string {
+  return event.actionKey?.trim() || event.id;
+}
+
+/**
+ * Attack events against one player block that have not been answered yet.
+ * Newest first. Defense receipts close attacks and are never pending.
+ */
+export function pendingRivalAttacks(
+  feed: GhostFeedEvent[],
+  blockId: string,
+  appliedResponseKeys: string[] = [],
+): GhostFeedEvent[] {
+  const applied = new Set(appliedResponseKeys);
+  return feed
+    .filter((event) => (
+      event.action === 'attack'
+      && event.targetBlockId === blockId
+      && !isDefenseReason(event.reason)
+      && !applied.has(rivalAttackReceiptKey(event))
+    ))
+    .sort((left, right) => right.timestamp - left.timestamp);
+}
+
 export interface GhostStoreActions {
   /** Seed the default crews if the store is empty (first run). */
   seedCrews(): void;
@@ -86,6 +129,13 @@ export interface GhostStoreActions {
   runTick(options?: GhostTickOptions): GhostTickReceipt;
   /** Record a player attack on a ghost block → raises that crew's grudge. */
   recordPlayerAttack(crewId: string, blockId: string, responseKey?: string, occurredAt?: number): boolean;
+  /**
+   * Close a rival attack on a player block after the Strip encounter
+   * resolves. Exactly once per attack receipt; every other open attack by the
+   * same crew on the same block at or before the snapshotted attack closes
+   * with it. New attacks arriving during combat remain open.
+   */
+  resolveRivalAttack(input: RivalDefenseInput): boolean;
   /** The crew that owns a given block, if any. */
   crewForBlock(blockId: string): GhostCrew | undefined;
   /** Overlay the latest durable state fetched from the authoritative world. */
@@ -230,6 +280,61 @@ export const useGhostStore = create<GhostStore>()(
             type: 'warning',
             title: `${crew.name} holds a grudge`,
             message: `Your hit on their turf raised their grudge to ${updated.grudge.score}. Expect payback.`,
+            priority: 'high',
+          });
+          return true;
+        },
+
+        resolveRivalAttack(input) {
+          const state = get();
+          const receiptKey = input.receiptKey.trim();
+          const applied = state.appliedResponseKeys ?? [];
+          if (!receiptKey || applied.includes(receiptKey)) return false;
+          const occurredAt = Number.isFinite(input.occurredAt) ? Math.trunc(input.occurredAt!) : Date.now();
+          const attackOccurredAt = input.attackOccurredAt
+            ?? state.feed.find(event => rivalAttackReceiptKey(event) === receiptKey)?.timestamp
+            ?? occurredAt;
+          const crew = state.crews[input.crewId];
+          const updated = crew && !validateGhostCrewState(crew)
+            ? applyRivalDefenseOutcome(crew, input.outcome, input.blockId, occurredAt)
+            : undefined;
+          const crewName = updated?.name ?? input.crewName;
+          const closedKeys = pendingRivalAttacks(state.feed, input.blockId, applied)
+            .filter((event) => event.crewId === input.crewId && event.timestamp <= attackOccurredAt)
+            .map(rivalAttackReceiptKey);
+          const description = input.outcome === 'secured'
+            ? `Your crew held ${input.blockLabel}. ${updated?.lastMove ?? `${crewName} got pushed off the block.`} They want it back.`
+            : input.outcome === 'overrun'
+              ? `${crewName} overran ${input.blockLabel} and got its payback.`
+              : `Your crew backed off ${input.blockLabel}. ${crewName} is still circling.`;
+          const defenseKey = `defense:${receiptKey}`;
+          const feedEvent: GhostFeedEvent = {
+            id: `defense-${receiptKey}`,
+            crewId: input.crewId,
+            crewName,
+            action: 'attack',
+            description,
+            targetBlockId: input.blockId,
+            timestamp: occurredAt,
+            actionKey: defenseKey,
+            reason: RIVAL_DEFENSE_REASON[input.outcome],
+          };
+          set(
+            (current) => ({
+              crews: updated ? { ...current.crews, [input.crewId]: updated } : current.crews,
+              feed: [feedEvent, ...current.feed].slice(0, FEED_LIMIT),
+              appliedResponseKeys: [
+                ...(current.appliedResponseKeys ?? []),
+                ...new Set([receiptKey, ...closedKeys, defenseKey]),
+              ].slice(-RECEIPT_LIMIT),
+            }),
+            false,
+            'ghost/resolveRivalAttack',
+          );
+          useNotificationStore.getState().addNotification({
+            type: input.outcome === 'secured' ? 'success' : 'warning',
+            title: input.outcome === 'secured' ? `${crewName} pushed back` : `${crewName} hit the block`,
+            message: description,
             priority: 'high',
           });
           return true;

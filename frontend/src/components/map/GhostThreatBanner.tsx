@@ -7,7 +7,15 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGhostStore, selectGhostFeed, type GhostFeedEvent } from '../../stores/ghostCrewStore';
+import {
+  rivalAttackReceiptKey,
+  selectGhostFeed,
+  useGhostStore,
+  type GhostFeedEvent,
+} from '../../stores/ghostCrewStore';
+import { useNavigationStore } from '../../stores/gameStore';
+import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
+import { isDefenseReason } from '../../utils/ghostCrewEngine';
 
 const bannerStyle: React.CSSProperties = {
   position: 'fixed',
@@ -66,11 +74,22 @@ const BANNER_ACTIONS = new Set<GhostFeedEvent['action']>(['attack', 'claim']);
 
 const GhostThreatBanner: React.FC = () => {
   const feed = useGhostStore(selectGhostFeed);
+  const answered = useGhostStore((state) => state.appliedResponseKeys);
+  const navigateTo = useNavigationStore((state) => state.navigateTo);
+  // The Strip desk shows rival pressure inline; a fixed banner there covered
+  // the Dealer/Shooter placement controls on phones.
+  const onStripDesk = useNavigationStore((state) => state.currentApp === 'block_loop');
   const [dismissedId, setDismissedId] = React.useState<string | null>(null);
 
-  const latest = feed.find(
-    (e) => BANNER_ACTIONS.has(e.action) && e.id !== dismissedId,
+  // Only open threats: defense results and attacks the player already
+  // answered on the Strip belong in the City Briefing, not an alert.
+  const latest = onStripDesk ? undefined : feed.find(
+    (e) => BANNER_ACTIONS.has(e.action)
+      && e.id !== dismissedId
+      && !isDefenseReason(e.reason)
+      && !(e.action === 'attack' && e.targetBlockId === BLOCK_LOOP_IDS.blockId && (answered ?? []).includes(rivalAttackReceiptKey(e))),
   );
+  const onStrip = latest?.action === 'attack' && latest.targetBlockId === BLOCK_LOOP_IDS.blockId;
 
   return (
     <AnimatePresence>
@@ -90,7 +109,20 @@ const GhostThreatBanner: React.FC = () => {
             <span style={actionStyle}>{latest.action}</span>
             <span style={descStyle}>{latest.description}</span>
           </div>
+          {onStrip && (
+            <button
+              type="button"
+              style={{ ...dismissBtnStyle, marginLeft: 'auto', marginRight: 8, fontSize: '12px' }}
+              onClick={() => {
+                setDismissedId(latest.id);
+                navigateTo('block_loop');
+              }}
+            >
+              Defend
+            </button>
+          )}
           <button
+            type="button"
             style={dismissBtnStyle}
             onClick={() => setDismissedId(latest.id)}
             aria-label="Dismiss rival activity"

@@ -3,13 +3,14 @@ import { useGhostStore, selectGhostFeed } from '../../stores/ghostCrewStore';
 import {
   formatCityBriefTime,
   toCityBriefItems,
+  type CityBriefDestination,
   type CityBriefTone,
 } from './cityBriefingModel';
 import './CityBriefing.css';
 
 interface CityBriefingProps {
   onNavigate: (
-    destination: 'map' | 'gang_hq' | 'dealt_v2',
+    destination: CityBriefDestination,
     targetBlockId?: string,
   ) => void;
 }
@@ -27,7 +28,8 @@ const TONE_LABEL: Record<CityBriefTone, string> = {
  */
 const CityBriefing: React.FC<CityBriefingProps> = ({ onNavigate }) => {
   const feed = useGhostStore(selectGhostFeed);
-  const items = React.useMemo(() => toCityBriefItems(feed), [feed]);
+  const answered = useGhostStore((state) => state.appliedResponseKeys);
+  const items = React.useMemo(() => toCityBriefItems(feed, answered ?? []), [feed, answered]);
 
   return (
     <section className="city-briefing" aria-labelledby="city-briefing-title">

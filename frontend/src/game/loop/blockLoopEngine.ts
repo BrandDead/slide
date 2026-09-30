@@ -1,10 +1,15 @@
 import { RECOVERY_CONFIG } from '../../utils/bailHospitalSystem';
 import { applyPlacement, streetVsSafetyPreview, toPlacement, validatePlacement } from './placementRules';
 import { canAssignProductToDealer, resolveLoopDeal } from './dealResolver';
-import { createDeterministicLoopResult, resolveThreatRoute } from './threatHandoff';
+import { createDeterministicLoopResult, resolveThreatRoute, rivalResolutionFor } from './threatHandoff';
 import { createLoopState } from './blockLoopFixture';
 import type { LoopCommand, LoopLedgerV1, LoopState } from './blockLoopTypes';
 import { BLOCK_LOOP_IDS } from './blockLoopTypes';
+
+/** Short player-facing block label, e.g. "1208 Las Olas". */
+export function loopBlockLabel(state: Pick<LoopState, 'block'>): string {
+  return state.block.address?.split(',')[0]?.trim() || 'the block';
+}
 
 function memberById(state: LoopState, memberId: string) {
   return state.members.find((member) => member.id === memberId);
@@ -65,7 +70,10 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
       summary: ledger.briefing[0] ?? 'Consequence already booked.',
     } : null);
   const threat = ledger.threatRoute
-    ? { route: ledger.threatRoute, reason: `Restored ${ledger.threatRoute} handoff on ${state.block.dnaId}.` }
+    ? {
+        route: ledger.threatRoute,
+        reason: ledger.threatReason ?? `Restored ${ledger.threatRoute} handoff on ${state.block.dnaId}.`,
+      }
     : null;
   return {
     ...state,
@@ -81,6 +89,8 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
     lastDeal,
     lastEncounter,
     threat,
+    rivalIncident: ledger.rivalIncident ? { ...ledger.rivalIncident } : null,
+    rivalResolution: ledger.rivalResolution ? { ...ledger.rivalResolution } : null,
     appliedEncounterKeys: [...ledger.appliedEncounterKeys],
     economyKeys: [...ledger.economyKeys],
     pendingHealthIds: [...ledger.pendingHealthIds],
@@ -195,9 +205,11 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         incomeMultiplier: state.block.incomeMultiplier ?? 1,
       });
       const playerHeat = Math.min(100, state.playerHeat + receipt.heatDelta);
-      const threat = resolveThreatRoute({
+      const { rival, ...threat } = resolveThreatRoute({
         playerHeat,
         dealerExposure: dealer.exposureRisk,
+        rivalIncident: command.rivalIncident ?? null,
+        blockLabel: loopBlockLabel(state),
       });
       return {
         ...state,
@@ -207,6 +219,8 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         reputation: state.reputation + receipt.reputationDelta,
         lastDeal: receipt,
         threat,
+        rivalIncident: rival,
+        rivalResolution: null,
         economyKeys: [...state.economyKeys, receipt.key],
         inventory: state.inventory.map((item) => (
           item.id === product.id ? { ...item, quantity: receipt.leftoverQuantity } : item
@@ -227,10 +241,15 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         ...state,
         phase: 'encounter',
         rejection: null,
-        briefing: [
-          `${state.threat.route === 'raid' ? 'Raid' : 'SLIDE'} opens on ${state.block.dnaId ?? 'this DNA board'}, not a default empty grid.`,
-          state.mapFallbackNotice,
-        ],
+        briefing: state.rivalIncident
+          ? [
+              `${state.rivalIncident.crewName} rolls up on ${loopBlockLabel(state)}. Reach the exit with your crew, or back off before they close in.`,
+              state.mapFallbackNotice,
+            ]
+          : [
+              `${state.threat.route === 'raid' ? 'Raid' : 'SLIDE'} opens on ${state.block.dnaId ?? 'this DNA board'}, not a default empty grid.`,
+              state.mapFallbackNotice,
+            ],
       };
     }
     case 'apply-encounter': {
@@ -267,10 +286,14 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
             unpaidLabel: 'Street cash cannot cover hospital. Rest is the only recovery path.',
           }
         : null;
+      const rivalResolution = state.rivalIncident && !state.rivalResolution
+        ? rivalResolutionFor(state.rivalIncident, command.result, loopBlockLabel(state))
+        : state.rivalResolution;
       return {
         ...state,
         phase: 'consequence',
         lastEncounter: command.result,
+        rivalResolution,
         appliedEncounterKeys: [...state.appliedEncounterKeys, key],
         economyKeys: [...state.economyKeys, key],
         pendingHealthIds: healthWrite === 'failed' ? command.result.crewDown : [],
@@ -278,6 +301,7 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         recovery,
         rejection: null,
         briefing: [
+          ...(rivalResolution && rivalResolution !== state.rivalResolution ? [rivalResolution.line] : []),
           command.result.summary,
           `Heat ${command.result.heatDelta >= 0 ? '+' : ''}${command.result.heatDelta}, morale ${command.result.moraleDelta}, pending cash ${command.result.pendingIncomeDelta}.`,
           healthWrite === 'failed'
@@ -360,7 +384,7 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
         phase: 'returned',
         rejection: null,
         briefing: [
-          `Block ${state.block.dnaId} still owns the board.`,
+          state.rivalResolution?.line ?? `Block ${state.block.dnaId} still owns the board.`,
           `Street cash $${state.money}. Heat ${state.playerHeat}. Product ${state.inventory[0]?.quantity ?? 0}.`,
           state.lastEncounter
             ? `Encounter ${state.lastEncounter.idempotencyKey} stays booked.`
@@ -385,5 +409,6 @@ export function seededLoopEncounter(state: LoopState) {
     dealerId: state.selectedDealerId ?? BLOCK_LOOP_IDS.dealerId,
     route: state.threat?.route ?? 'slide',
     outcome: 'overrun',
+    incidentKey: state.rivalIncident?.receiptKey ?? null,
   });
 }

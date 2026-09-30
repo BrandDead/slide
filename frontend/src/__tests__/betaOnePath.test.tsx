@@ -52,7 +52,7 @@ describe('Las Olas closed-beta one path', () => {
     const productQty = useDrugInventory.getState().inventory[BLOCK_LOOP_IDS.productId]?.quantity;
     fireEvent.click(screen.getByRole('button', { name: /close the deal/i }));
     expect(usePlayerStore.getState().player.money).toBeGreaterThan(moneyAfterProduct);
-    fireEvent.click(screen.getByRole('button', { name: /enter slide/i }));
+    fireEvent.click(screen.getByTestId('enter-slide'));
     expect(await screen.findByText(/encounter board/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /book the wound/i }));
     fireEvent.click(screen.getByRole('button', { name: /return to desktop/i }));

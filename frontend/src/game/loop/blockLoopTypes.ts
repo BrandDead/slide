@@ -96,6 +96,27 @@ export interface RecoveryOffer {
   unpaidLabel: string;
 }
 
+/**
+ * A visible Ghost Crew attack on the Strip block, snapshotted when the deal
+ * names the threat. The receipt key is the rival feed event's actionKey.
+ */
+export interface RivalIncident {
+  receiptKey: string;
+  eventId: string;
+  crewId: string;
+  crewName: string;
+  description: string;
+  occurredAt: number;
+}
+
+export interface RivalResolution {
+  receiptKey: string;
+  crewId: string;
+  crewName: string;
+  outcome: CombatResult['outcome'];
+  line: string;
+}
+
 export interface LoopState {
   phase: LoopPhase;
   dnaId: string;
@@ -111,6 +132,10 @@ export interface LoopState {
   reputation: number;
   lastDeal: DealReceipt | null;
   threat: { route: ThreatRoute; reason: string } | null;
+  /** Named rival behind the current threat, when a Ghost Crew is attacking. */
+  rivalIncident: RivalIncident | null;
+  /** How the named rival attack ended for this shift. */
+  rivalResolution: RivalResolution | null;
   lastEncounter: CombatResult | null;
   appliedEncounterKeys: string[];
   economyKeys: string[];
@@ -143,6 +168,9 @@ export interface LoopLedgerV1 {
   selectedShooterId?: string | null;
   briefing: string[];
   threatRoute: ThreatRoute | null;
+  threatReason?: string | null;
+  rivalIncident?: RivalIncident | null;
+  rivalResolution?: RivalResolution | null;
   pendingHealthIds: string[];
   recovery: RecoveryOffer | null;
 }
@@ -151,7 +179,7 @@ export type LoopCommand =
   | { type: 'select-crew'; dealerId: string; shooterId: string }
   | { type: 'place'; memberId: string; x: number; y: number }
   | { type: 'assign-product'; dealerId: string; productId: string }
-  | { type: 'run-deal' }
+  | { type: 'run-deal'; rivalIncident?: RivalIncident | null }
   | { type: 'begin-encounter' }
   | { type: 'apply-encounter'; result: CombatResult; healthWrite?: 'ok' | 'failed' }
   | { type: 'retry-health' }

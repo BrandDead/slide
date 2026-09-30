@@ -63,3 +63,34 @@ describe('cityBriefing', () => {
     expect(onNavigate).toHaveBeenCalledWith('map', 'block-east');
   });
 });
+
+describe('Strip routing (#163)', () => {
+  const base = {
+    id: 'feed-a',
+    crewId: 'ghost-nightfall',
+    crewName: 'Nightfall Crew',
+    action: 'attack' as const,
+    description: 'Nightfall Crew is probing 1208 W Las Olas Blvd.',
+    targetBlockId: 'demo-block-las-olas',
+    timestamp: 10,
+  };
+
+  it('sends a Strip-block attack to the Strip and keeps other attacks on the map', () => {
+    const [strip] = toCityBriefItems([base]);
+    expect(strip.cta).toEqual({ label: 'DEFEND THE STRIP', destination: 'block_loop' });
+    const [elsewhere] = toCityBriefItems([{ ...base, targetBlockId: 'block-2' }]);
+    expect(elsewhere.cta).toEqual({ label: 'REVIEW DEFENSE', destination: 'map' });
+  });
+
+  it('labels a defense result by outcome', () => {
+    const [held] = toCityBriefItems([{ ...base, id: 'defense-a', reason: 'defense-held' as const }]);
+    expect(held).toMatchObject({ category: 'DEFENSE RESULT', tone: 'success' });
+    expect(held.cta.destination).toBe('block_loop');
+  });
+
+  it('keeps a player attack on rival turf visible even though its response key is booked', () => {
+    const response = { ...base, id: 'response-player-hit', actionKey: 'player-hit', targetBlockId: 'ghost-nightfall-turf', description: 'Nightfall will remember your hit.' };
+    expect(toCityBriefItems([response], ['player-hit'])).toHaveLength(1);
+    expect(toCityBriefItems([response], ['player-hit'])[0].description).toBe(response.description);
+  });
+});

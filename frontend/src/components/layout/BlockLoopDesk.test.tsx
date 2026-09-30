@@ -60,7 +60,7 @@ describe('BlockLoopDesk', () => {
     fireEvent.click(screen.getByRole('button', { name: /put river cut on dre/i }));
     fireEvent.click(screen.getByRole('button', { name: /close the deal/i }));
     expect(screen.getAllByText(/Street exposure \+18%/).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole('button', { name: /enter slide/i }));
+    fireEvent.click(screen.getByTestId('enter-slide'));
     expect(await screen.findByText(/encounter board/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /book the wound/i }));
     expect(screen.getByRole('heading', { name: 'Consequence' })).toBeInTheDocument();

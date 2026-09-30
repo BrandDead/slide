@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Ghost incident review repairs on the protected skills base (#188 / #180)
+
+- Reconciled the skills/main log conflict while preserving both histories. Booked player attacks on rival territory remain visible; only answered inbound Strip attacks are hidden. Incident settlement closes attacks at or before the encounter snapshot, leaving a later probe open.
+- Demo reload preserves the earned defense feed and the exactly-once rival receipt. Defense text reports the actual roster casualty, or no loss for the last survivor; the pure loop result does not invent a shooter casualty.
+- Six regression cases failed before the repair and pass with existing duplicate/reload/signed-in controls. The combined #180–#185 repair also passes frontend validation/build (1016 passed, 4 skipped), the unchanged asset/package gates, and 95 backend tests; phone/desktop combined player-path evidence is being finalized under #188. Exact repaired-head CI is required before each ordered merge. #175 remains independent.
+
 ### 2026-09-30 — Integration-owner repairs to repository quality skills (#188 / #187)
 
 - Reproduced the incremental processor regression and the preflight's skipped uncommitted Python checks before fixing them. The processor retains existing manifest registrations, replaces matching IDs, validates retained files, reports every staged input, and checks all shipped runtime/package bytes before any write. Masters survive and source inputs are consumed only after manifest publication; no-source writes are unchanged.
@@ -83,6 +89,32 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 - The art-direction skill replaces generic “8K/cinematic/cyberpunk” prompt recipes with a runtime-first brief for GPT Image, Astra, and other image models. It locks the canonical stylized-realistic 2.5D tactical-diorama camera, regional-but-fictional content, coherent palette/light/materials, character continuity, state inventories, pivots, and model-specific prompt structure.
 - The asset-integration skill makes live rendering—not an asset gallery—the acceptance boundary. It requires source/runtime separation, canonical naming, manifest/resolver or schema-valid package wiring, alpha/fringe/dimension/budget checks, provenance, state/fallback proof, and final-size captures at 390×844 and 1440×900.
 - This is documentation/tooling only. No gameplay, renderer, store, asset, migration, deployment, secret, or production-data behavior changes.
+
+### 2026-09-29 — Ghost Crew attacks become the Strip's named threat (#163)
+
+- A visible Ghost Crew `attack` on the canonical Strip block (`demo-block-las-olas`) is now
+  a playable incident instead of banner-only flavor. `blockLoopStore.runDeal()` reads the
+  newest unanswered attack from the existing Ghost Crew feed; `resolveThreatRoute()` names
+  the rival (police heat still outranks it and opens the raid route). The threat panel,
+  encounter opposition labels, tactical brief, consequence, and return briefing all name
+  the crew, e.g. "Nightfall Crew overran 1208 W Las Olas Blvd…".
+- One incident, one receipt. The attack's `actionKey` is the receipt: the loop's encounter
+  idempotency key carries it, `UnifiedEncounter` salts its session seed with it, and
+  `ghostCrewStore.resolveRivalAttack()` records it (plus every other open attack from the
+  same crew on that block) in the existing `appliedResponseKeys`. Replaying the ticket, a
+  reload, or a second call changes neither the player's books nor the rival's roster,
+  treasury, grudge, or feed. `applyRivalDefenseOutcome()` is pure: holding the block costs
+  the rival a shooter (never its last member) and raises its grudge; an overrun or retreat
+  pays the rival and cools its grudge.
+- The rival result is written to the Ghost Crew feed as a `DEFENSE RESULT` item; the City
+  Briefing leads with it, hides the answered attack, and routes Strip attacks/results to the
+  Strip (`DEFEND THE STRIP` / `REVIEW THE STRIP`). The fixed rival banner shows only open
+  threats, offers `Defend` for Strip attacks, and no longer covers the Strip desk's
+  Dealer/Shooter controls on phones.
+- Scope: no new engine, store, table, or migration. Rival mutation runs only for the
+  local demo/guest ledger (`canUseDemoLoopLedger`); signed-in rival state stays
+  server-owned. Ledger v1 gains optional `threatReason`, `rivalIncident`, and
+  `rivalResolution` fields; older ledgers hydrate unchanged. Rollback: revert the PR.
 
 ### 2026-09-25 — Staging migration 007 reconciled; returning-player proof remains (#175)
 

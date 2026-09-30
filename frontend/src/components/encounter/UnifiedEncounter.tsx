@@ -12,6 +12,10 @@ interface UnifiedEncounterProps {
   block: BlockData;
   onResolved: (result: CombatResult) => void;
   onClose: () => void;
+  /** Named rival crew, when a Ghost Crew attack started this encounter. */
+  oppositionName?: string | null;
+  /** Keeps separate incidents on the same block from sharing a result key. */
+  sessionSalt?: string | null;
 }
 
 function useReducedMotion(): boolean {
@@ -29,12 +33,18 @@ function useReducedMotion(): boolean {
   return reducedMotion;
 }
 
-export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({ block, onResolved, onClose }) => {
+export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
+  block,
+  onResolved,
+  onClose,
+  oppositionName,
+  sessionSalt,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<UnifiedEncounterScene | null>(null);
   const resolvedRef = useRef(false);
-  const [preparation] = useState(() => prepareEncounter(block));
+  const [preparation] = useState(() => prepareEncounter(block, { oppositionName, sessionSalt }));
   const reducedMotion = useReducedMotion();
   const [snapshot, setSnapshot] = useState<CombatSnapshot>(() => getCombatSnapshot(createCombatSession(preparation)));
   const [result, setResult] = useState<CombatResult | null>(null);
