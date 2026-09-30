@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Block Attack launch requires a driver and a shooter (#193)
+
+- OPS PLAN no longer opens Block Attack from a target alone. Launch stays disabled until the driver slot and a different shooter (or enforcer) are assigned, and the handler ignores a click that races the disabled state. The car screen still owns the seats: an empty car stays disabled, and a lookout or dealer in a passenger seat does not count as the shooter.
+- No faction-name rewrite, no economy or combat-math change, and no new encounter route. Issue #192's canonical-route choice and issue #175 stay open.
+
 ### 2026-09-30 — Independent beta gameplay and visual critic skill (#45)
 
 - Added a portable repo-scoped `slide-game-critic` Agent Skill for Cursor and other compatible agents. It requires a separate reviewer, actual revision-bound play captures at phone and desktop sizes, reproducible frame samples, a player-action trace, and explicit NOT PLAYED when no build is accessible.

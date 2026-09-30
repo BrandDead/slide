@@ -18,10 +18,20 @@ export const AttackPlanner: React.FC = () => {
   });
 
   const availableMembers = members.filter(m => m.status === 'active');
+  const memberFor = (id: string) => availableMembers.find((member) => member.id === id);
+  const driverMember = memberFor(assignedRoles.driver);
+  // The driver seat does not shoot. A second, different member in the
+  // scout or enforcer slot has to be someone who can fire.
+  const shooterMember = (['scout', 'enforcer'] as const)
+    .map((slot) => memberFor(assignedRoles[slot]))
+    .find((member) => member
+      && member.id !== driverMember?.id
+      && (member.role === 'shooter' || member.role === 'enforcer' || member.role === 'boss'));
+  const canLaunch = Boolean(selectedTarget && driverMember && shooterMember);
 
   const handleLaunch = () => {
-    if (!selectedTarget) return;
-    // Launch into TopDownShooter with intel
+    if (!canLaunch) return;
+    // Existing route: the car screen still owns seat assignment.
     navigateTo('topdown');
   };
 
@@ -81,9 +91,9 @@ export const AttackPlanner: React.FC = () => {
         </div>
 
         <button 
-          className={`launch-btn ${!selectedTarget ? 'disabled' : ''}`}
+          className={`launch-btn ${canLaunch ? '' : 'disabled'}`}
           onClick={handleLaunch}
-          disabled={!selectedTarget}
+          disabled={!canLaunch}
         >
           LAUNCH ATTACK
         </button>
