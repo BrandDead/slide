@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Legacy topdown assignedRoles route characterized, launch behavior unchanged (#192)
+
+- On `main-tL2525` (`cf05276`), `OSShell` ATTACK (`id: 'topdown'`, `handleAppClick`) and `AttackPlanner.handleLaunch` both call `navigateTo('topdown')` with no `assignedRoles`. `App.renderCurrentApp` renders `TopDownShooter` for that route. A probe that required the planner to stay off `topdown` failed because `currentApp` became `topdown`.
+- `TopDownShooter.canLaunch` already refuses combat without a driver seat, another seated member, and a target. That component writes cash, heat, XP, and deaths from `endCombat` only after combat starts, and it does not call `blockStore.applyEncounterResult`. `UnifiedEncounter` stays on `BlockModeView`.
+- Issue #192 still asks the founder to choose canonical encounter routing or a labeled practice route. No launch-path change and no second consequence writer. The characterization test records the current route and the unchanged economy.
+
 ### 2026-09-30 — Independent beta gameplay and visual critic skill (#45)
 
 - Added a portable repo-scoped `slide-game-critic` Agent Skill for Cursor and other compatible agents. It requires a separate reviewer, actual revision-bound play captures at phone and desktop sizes, reproducible frame samples, a player-action trace, and explicit NOT PLAYED when no build is accessible.
