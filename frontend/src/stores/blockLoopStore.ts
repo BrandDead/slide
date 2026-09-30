@@ -36,7 +36,7 @@ function projectToStores(loop: LoopState) {
 
   useBlockStore.getState().upsertBlock({
     ...loop.block,
-    appliedEncounterResultKeys: loop.appliedEncounterKeys,
+    appliedEncounterResultKeys: [...new Set([...(loop.block.appliedEncounterResultKeys ?? []), ...loop.appliedEncounterKeys])],
   });
   useBlockStore.getState().selectBlock(loop.block.id);
   usePlayerStore.getState().updatePlayer({
@@ -95,6 +95,7 @@ function settleRivalAttack(previous: LoopState, next: LoopState) {
     blockLabel: loopBlockLabel(next),
     receiptKey: resolution.receiptKey,
     outcome: resolution.outcome,
+    attackOccurredAt: next.rivalIncident.occurredAt,
   });
 }
 
@@ -105,8 +106,7 @@ function settleRivalAttack(previous: LoopState, next: LoopState) {
 export function stashForLoop(loop: Pick<LoopState, 'inventory'>): CraftedDrug[] {
   const drugs = useDrugInventory.getState().inventory;
   const riverCut = drugs[BLOCK_LOOP_IDS.productId]
-    ?? loop.inventory.find((item) => item.id === BLOCK_LOOP_IDS.productId)
-    ?? BLOCK_LOOP_PRODUCT;
+    ?? { ...(loop.inventory.find((item) => item.id === BLOCK_LOOP_IDS.productId) ?? BLOCK_LOOP_PRODUCT), quantity: 0 };
   const others = Object.values(drugs)
     .filter((item) => item.id !== BLOCK_LOOP_IDS.productId && item.quantity > 0);
   return [{ ...riverCut }, ...others.map((item) => ({ ...item }))];
@@ -120,13 +120,18 @@ export function stashForLoop(loop: Pick<LoopState, 'inventory'>): CraftedDrug[] 
 function withSharedBooks(loop: LoopState): LoopState {
   const player = usePlayerStore.getState().player;
   if (!canUseDemoLoopLedger(player.id)) return loop;
+  const block = useBlockStore.getState().blocks[loop.block.id];
+  const cash = Math.round(player.money);
   return {
     ...loop,
     // Heat decays continuously elsewhere; the Strip books whole points.
-    money: Math.round(player.money),
+    money: cash,
     playerHeat: Math.round(player.heat),
     reputation: player.reputation,
     inventory: stashForLoop(loop),
+    assignments: { ...useDrugInventory.getState().assignments },
+    block: block ?? loop.block,
+    recovery: loop.recovery ? { ...loop.recovery, affordable: cash >= loop.recovery.cost } : null,
   };
 }
 
@@ -136,6 +141,8 @@ interface BlockLoopStore {
   startLoop: (forceReset?: boolean) => void;
   hydrateFromLedger: (ledger: LoopLedgerV1) => void;
   dispatch: (command: LoopCommand) => void;
+  /** Refresh the demo projection for display without writing shared state. */
+  syncSharedBooks: () => void;
   selectCrew: (dealerId: string, shooterId: string) => void;
   place: (memberId: string, x: number, y: number) => void;
   assignProduct: (productId?: string) => void;
@@ -188,6 +195,12 @@ export const useBlockLoopStore = create<BlockLoopStore>((set, get) => ({
     const loop = reduceLoop(createLoopState(), { type: 'hydrate-ledger', ledger });
     projectToStores(loop);
     set({ loop, started: true });
+  },
+
+  syncSharedBooks: () => {
+    const current = get().loop;
+    const loop = withSharedBooks(current);
+    if (loop !== current) set({ loop });
   },
 
   dispatch: (command) => {

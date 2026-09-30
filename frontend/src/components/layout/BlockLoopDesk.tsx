@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import TacticalDiorama from '../map/TacticalDiorama';
 import TopDownBlock from '../map/TopDownBlock';
 import { LazyRoute, RouteLoadBoundary, createRetryableLazy } from '../system/RouteLoadBoundary';
-import { useNavigationStore, useGangStore } from '../../stores/gameStore';
+import { useNavigationStore, useGangStore, usePlayerStore } from '../../stores/gameStore';
+import { useDrugInventory } from '../../stores/useDrugInventory';
 import { useBlockStore } from '../../stores/blockStore';
 import { findPendingRivalIncident, useBlockLoopStore } from '../../stores/blockLoopStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
@@ -52,7 +53,7 @@ const PHASES: { id: LoopPhase; label: string }[] = [
 function qaShortcutsEnabled(): boolean {
   if (import.meta.env.MODE === 'test') return true;
   if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location.search).has('qa');
+  return new URLSearchParams(window.location.search).get('qa') === '1';
 }
 
 const BlockLoopDesk: React.FC = () => {
@@ -63,6 +64,7 @@ const BlockLoopDesk: React.FC = () => {
     loop,
     started,
     startLoop,
+    syncSharedBooks,
     selectCrew,
     place,
     assignProduct,
@@ -103,6 +105,14 @@ const BlockLoopDesk: React.FC = () => {
     if (!started) startLoop();
   }, [started, startLoop]);
 
+  const sharedPlayer = usePlayerStore(state => state.player);
+  const sharedInventory = useDrugInventory(state => state.inventory);
+  const sharedAssignments = useDrugInventory(state => state.assignments);
+  const sharedBlock = useBlockStore(state => state.blocks[loop.block.id]);
+  React.useEffect(() => {
+    syncSharedBooks();
+  }, [sharedPlayer, sharedInventory, sharedAssignments, sharedBlock, syncSharedBooks]);
+
   const preview = useMemo(
     () => streetVsSafetyPreview(loop.block, loop.members[0]?.level ?? 2),
     [loop.block, loop.members],
@@ -111,7 +121,7 @@ const BlockLoopDesk: React.FC = () => {
   const shooter = loop.members.find((member) => member.id === (loop.selectedShooterId ?? BLOCK_LOOP_IDS.shooterId));
   const product = loop.inventory[0];
   const qaShortcuts = qaShortcutsEnabled();
-  const onHand = loop.inventory.filter((item) => item.quantity > 0);
+  const onHand = loop.inventory.filter((item) => item.quantity >= 1);
   const equipped = loop.inventory.find((item) => item.id === loop.assignments[dealer?.id ?? '']);
   const canStartNextShift = !loop.recovery && loop.pendingHealthIds.length === 0;
   const nextShiftButton = (

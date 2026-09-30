@@ -10,39 +10,22 @@ import type {
   AvatarGenerateRequest,
   GeneratedMemberAsset,
 } from '../types/avatar.types';
+import { getCharacterForRole } from './assetResolver';
 
 const API_BASE: string = (typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_URL : undefined) ?? 'http://localhost:5000';
 
-// ─── Mock assets (used when backend is offline) ──────────────
-const MOCK_PORTRAITS: Record<string, string> = {
-  dealer:   '/assets/generated/characters/portraits/character_dealer_male_blacktee_portrait_v001.png',
-  enforcer: '/assets/generated/characters/portraits/character_enforcer_male_portrait_v001.png',
-  lookout:  '/assets/generated/characters/portraits/character_lookout_female_portrait_v001.png',
-  driver:   '/assets/generated/characters/portraits/character_driver_male_portrait_v001.png',
-};
-
-const MOCK_FULLBODY: Record<string, string> = {
-  dealer:   '/assets/generated/characters/fullbody/character_dealer_male_blacktee_fullbody_front_v001.png',
-  enforcer: '/assets/generated/characters/fullbody/character_enforcer_male_fullbody_front_v001.png',
-  lookout:  '/assets/generated/characters/fullbody/character_lookout_female_fullbody_front_v001.png',
-  driver:   '/assets/generated/characters/fullbody/character_driver_male_fullbody_front_v001.png',
-};
-
-const MOCK_TOPDOWN: Record<string, string> = {
-  dealer:   '/assets/generated/characters/topdown/character_dealer_male_blacktee_topdown_v001.png',
-  enforcer: '/assets/generated/characters/topdown/character_enforcer_male_topdown_v001.png',
-};
-
+// Offline previews use the existing registered character kits.
 function buildMockAsset(req: AvatarGenerateRequest): GeneratedMemberAsset {
   const role = req.role;
+  const stock = getCharacterForRole(role);
   return {
     id: `mock-${Date.now()}`,
     role,
     style: req.style,
     outputs: req.outputs,
-    portraitUrl:  req.outputs.includes('portrait') ? (MOCK_PORTRAITS[role] ?? MOCK_PORTRAITS.dealer) : undefined,
-    fullbodyUrl:  req.outputs.includes('fullbody')  ? (MOCK_FULLBODY[role]  ?? MOCK_FULLBODY.dealer)  : undefined,
-    topdownUrl:   req.outputs.includes('topdown')   ? (MOCK_TOPDOWN[role]   ?? MOCK_TOPDOWN.dealer)   : undefined,
+    portraitUrl:  req.outputs.includes('portrait') ? stock.portrait : undefined,
+    fullbodyUrl:  req.outputs.includes('fullbody')  ? stock.fullbody  : undefined,
+    topdownUrl:   req.outputs.includes('topdown')   ? stock.topdown   : undefined,
     promptUsed: `Mock prompt for ${role} in ${req.style} style.`,
     status: 'ready',
     createdAt: new Date().toISOString(),

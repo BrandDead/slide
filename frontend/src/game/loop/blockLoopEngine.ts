@@ -16,6 +16,20 @@ function memberById(state: LoopState, memberId: string) {
   return state.members.find((member) => member.id === memberId);
 }
 
+function recoveryFor(members: LoopState['members'], money: number) {
+  const wounded = members.find(member => member.health <= 0 && member.assignment !== 'resting');
+  if (!wounded) return null;
+  return {
+    memberId: wounded.id,
+    memberName: wounded.name,
+    kind: 'hospital' as const,
+    cost: RECOVERY_CONFIG.HOSPITAL_BASE_COST,
+    affordable: money >= RECOVERY_CONFIG.HOSPITAL_BASE_COST,
+    waitLabel: `Rest it off — no cash, morale dips, ${wounded.name} stays off the board.`,
+    unpaidLabel: 'Street cash cannot cover hospital. Rest is the only recovery path.',
+  };
+}
+
 function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
   const grid = state.block.grid.map((row) => row.map((zone) => ({
     ...zone,
@@ -102,7 +116,7 @@ function applyLedger(state: LoopState, ledger: LoopLedgerV1): LoopState {
     economyKeys: [...ledger.economyKeys],
     pendingHealthIds: [...ledger.pendingHealthIds],
     briefing: [...ledger.briefing],
-    recovery: ledger.recovery,
+    recovery: ledger.recovery ? { ...ledger.recovery, affordable: ledger.money >= ledger.recovery.cost } : recoveryFor(members, ledger.money),
     rejection: null,
     block: {
       ...state.block,
@@ -174,8 +188,8 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
       if (!dealer || dealer.role !== 'dealer') {
         return { ...state, rejection: 'Place the dealer before assigning product.' };
       }
-      if (!product || product.quantity <= 0) {
-        return { ...state, rejection: 'No River Cut remains in the stash.' };
+      if (!product || !Number.isFinite(product.quantity) || product.quantity < 1) {
+        return { ...state, rejection: 'The stash needs at least one full unit of product.' };
       }
       if (!canAssignProductToDealer(dealer.zoneType)) {
         return { ...state, rejection: 'Deep alley/rooftop cells cannot take product. Move closer to the street.' };
@@ -204,6 +218,9 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
       const product = state.inventory.find((item) => item.id === productId);
       if (!dealer || !product) {
         return { ...state, rejection: 'Equip product on the placed dealer before dealing.' };
+      }
+      if (!Number.isFinite(product.quantity) || product.quantity < 1) {
+        return { ...state, rejection: 'The stash needs at least one full unit of product.' };
       }
       const receipt = resolveLoopDeal({
         blockId: state.block.id,
@@ -282,18 +299,10 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
           ? { ...member, health: 0, assignment: 'wounded' }
           : member
       ));
-      const wounded = state.members.find((member) => downed.has(member.id));
-      const recovery = wounded
-        ? {
-            memberId: wounded.id,
-            memberName: wounded.name,
-            kind: 'hospital' as const,
-            cost: RECOVERY_CONFIG.HOSPITAL_BASE_COST,
-            affordable: state.money >= RECOVERY_CONFIG.HOSPITAL_BASE_COST,
-            waitLabel: 'Rest it off — no cash, morale dips, Dre stays off the board.',
-            unpaidLabel: 'Street cash cannot cover hospital. Rest is the only recovery path.',
-          }
-        : null;
+      const recovery = recoveryFor(
+        healthWrite === 'failed' ? members.map(member => downed.has(member.id) ? { ...member, health: 0, assignment: 'wounded' } : member) : members,
+        state.money,
+      );
       const rivalResolution = state.rivalIncident && !state.rivalResolution
         ? rivalResolutionFor(state.rivalIncident, command.result, loopBlockLabel(state))
         : state.rivalResolution;
@@ -348,27 +357,32 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
       };
     }
     case 'recover': {
+      if (state.pendingHealthIds.length > 0) {
+        return { ...state, rejection: 'Retry the health write before deciding recovery.' };
+      }
       if (!state.recovery) {
         return { ...state, rejection: 'No recovery is pending.' };
       }
-      if (command.pay && !state.recovery.affordable) {
+      if (command.pay && state.money < state.recovery.cost) {
         return {
           ...state,
+          recovery: { ...state.recovery, affordable: false },
           rejection: state.recovery.unpaidLabel,
           briefing: [state.recovery.unpaidLabel, state.recovery.waitLabel],
         };
       }
       if (command.pay) {
         const healed = state.members.find((member) => member.id === state.recovery?.memberId);
+        const money = state.money - state.recovery.cost;
+        const members = state.members.map(member => member.id === state.recovery?.memberId
+          ? { ...member, health: member.maxHealth, assignment: 'active' }
+          : member);
         return {
           ...state,
-          money: state.money - state.recovery.cost,
-          recovery: null,
-          members: state.members.map((member) => (
-            member.id === state.recovery?.memberId
-              ? { ...member, health: member.maxHealth, assignment: 'active' }
-              : member
-          )),
+          money,
+          recovery: recoveryFor(members, money),
+          members,
+          rejection: null,
           block: {
             ...state.block,
             placements: state.block.placements.map((placement) => (
@@ -380,14 +394,14 @@ export function reduceLoop(state: LoopState, command: LoopCommand): LoopState {
           briefing: [`Paid $${state.recovery.cost} hospital. ${state.recovery.memberName} is back on the roster.`],
         };
       }
+      const members = state.members.map(member => member.id === state.recovery?.memberId
+        ? { ...member, morale: Math.max(0, member.morale - 5), assignment: 'resting' }
+        : member);
       return {
         ...state,
-        recovery: null,
-        members: state.members.map((member) => (
-          member.id === state.recovery?.memberId
-            ? { ...member, morale: Math.max(0, member.morale - 5), assignment: 'resting' }
-            : member
-        )),
+        recovery: recoveryFor(members, state.money),
+        members,
+        rejection: null,
         block: {
           ...state.block,
           morale: Math.max(0, state.block.morale - 5),
@@ -475,10 +489,12 @@ function startNextShift(state: LoopState, stock?: LoopState['inventory']): LoopS
   if (state.phase !== 'consequence' && state.phase !== 'returned') {
     return { ...state, rejection: 'Finish this shift before starting the next one.' };
   }
-  if (state.recovery) {
+  const recovery = state.recovery ?? recoveryFor(state.members, state.money);
+  if (recovery) {
     return {
       ...state,
-      rejection: `Decide on ${state.recovery.memberName} first — pay the hospital or rest it off.`,
+      recovery,
+      rejection: `Decide on ${recovery.memberName} first — pay the hospital or rest it off.`,
     };
   }
   if (state.pendingHealthIds.length > 0) {
@@ -486,7 +502,7 @@ function startNextShift(state: LoopState, stock?: LoopState['inventory']): LoopS
   }
   const shiftIndex = state.shiftIndex + 1;
   const members = state.members.map((member) => (
-    member.health <= 0
+    member.health <= 0 && member.assignment === 'resting'
       ? { ...member, health: REST_RETURN_HEALTH, assignment: 'back from rest' }
       : member
   ));
@@ -499,19 +515,21 @@ function startNextShift(state: LoopState, stock?: LoopState['inventory']): LoopS
   const shooterId = state.selectedShooterId ?? BLOCK_LOOP_IDS.shooterId;
   const bothPlaced = placements.some((item) => item.memberId === dealerId)
     && placements.some((item) => item.memberId === shooterId);
-  const inventory = stock?.length ? stock.map((item) => ({ ...item })) : state.inventory;
-  const onHand = inventory.filter((item) => item.quantity > 0);
+  const inventory = stock ? stock.map((item) => ({ ...item })) : state.inventory;
+  const onHand = inventory.filter((item) => item.quantity >= 1);
   const playerHeat = Math.max(0, state.playerHeat - HEAT_CONFIG.BASE_DECAY_RATE);
   const dealer = members.find((member) => member.id === dealerId);
   const shooter = members.find((member) => member.id === shooterId);
   const label = loopBlockLabel(state);
+  const assignments = { ...state.assignments };
+  delete assignments[dealerId];
   return {
     ...state,
     phase: bothPlaced ? 'product' : 'placement',
     shiftIndex,
     members,
     inventory,
-    assignments: {},
+    assignments,
     playerHeat,
     lastDeal: null,
     threat: null,

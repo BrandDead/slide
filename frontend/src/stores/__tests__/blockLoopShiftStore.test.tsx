@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useBlockStore } from '../blockStore';
 import { usePlayerStore } from '../gameStore';
 import { useDrugInventory } from '../useDrugInventory';
@@ -104,5 +104,88 @@ describe('Strip shifts through the shared stores', () => {
     expect(screen.getByTestId('strip-shift')).toHaveTextContent('2');
     expect(screen.getByRole('heading', { name: 'Equip product' })).toBeInTheDocument();
     expect(screen.getByTestId('assign-river-cut')).toHaveTextContent('Put River Cut on Dre');
+  });
+
+  it('does not spend below zero when another app uses the hospital cash', () => {
+    applyDemoSeed();
+    finishFirstShift();
+    const store = useBlockLoopStore.getState();
+    usePlayerStore.getState().updatePlayer({ money: 10 });
+    store.recover(true);
+    expect(usePlayerStore.getState().player.money).toBe(10);
+    expect(useBlockLoopStore.getState().loop.recovery?.affordable).toBe(false);
+    expect(useBlockLoopStore.getState().loop.rejection).toMatch(/cannot cover hospital/i);
+  });
+
+  it('updates hospital affordability on screen when cash changes in another app', () => {
+    applyDemoSeed();
+    finishFirstShift();
+    const cost = useBlockLoopStore.getState().loop.recovery!.cost;
+    usePlayerStore.getState().updatePlayer({ money: 10 });
+    render(<BlockLoopDesk />);
+    expect(screen.getByRole('button', { name: 'Pay hospital' })).toBeDisabled();
+    act(() => usePlayerStore.getState().updatePlayer({ money: 5_000 }));
+    expect(screen.getByRole('button', { name: 'Pay hospital' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Pay hospital' }));
+    expect(usePlayerStore.getState().player.money).toBe(5_000 - cost);
+  });
+
+  it('shows fresh lab stock after leaving an empty stash and returning without a Strip command', () => {
+    applyDemoSeed();
+    finishFirstShift();
+    const store = useBlockLoopStore.getState();
+    store.recover(false);
+    useDrugInventory.setState({ inventory: {}, assignments: {} });
+    store.nextShift();
+    const firstVisit = render(<BlockLoopDesk />);
+    expect(screen.getByTestId('stash-empty')).toBeInTheDocument();
+    firstVisit.unmount();
+    useDrugInventory.getState().addDrug({ id: 'cooked-on-return', name: 'Blue Static', tier: 'pure', quality: 88, quantity: 4, craftedAt: 1, effects: [] });
+    render(<BlockLoopDesk />);
+    expect(screen.getByTestId('assign-cooked-on-return')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('assign-cooked-on-return'));
+    expect(useBlockLoopStore.getState().loop.assignments[BLOCK_LOOP_IDS.dealerId]).toBe('cooked-on-return');
+  });
+
+  it('clears only the Strip dealer assignment when starting the next shift', () => {
+    applyDemoSeed();
+    finishFirstShift();
+    useDrugInventory.setState({ assignments: { ...useDrugInventory.getState().assignments, 'other-block-dealer': BLOCK_LOOP_IDS.productId } });
+    const store = useBlockLoopStore.getState();
+    store.recover(false);
+    store.nextShift();
+    expect(useDrugInventory.getState().assignments['other-block-dealer']).toBe(BLOCK_LOOP_IDS.productId);
+    expect(useDrugInventory.getState().assignments[BLOCK_LOOP_IDS.dealerId]).toBeUndefined();
+  });
+
+  it('retains income and placements added through the shared block between shifts', () => {
+    applyDemoSeed();
+    finishFirstShift();
+    const store = useBlockLoopStore.getState();
+    store.recover(false);
+    const block = useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId];
+    const added = { ...block.placements[0], memberId: BLOCK_LOOP_IDS.enforcerId, memberName: 'Kilo', role: 'enforcer' as const, x: 4, y: 2, zoneType: 'sidewalk' as const, health: 100 };
+    useBlockStore.getState().upsertBlock({ ...block, placements: [...block.placements, added], pendingIncome: block.pendingIncome + 420 });
+    store.nextShift();
+    const live = useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId];
+    expect(live.pendingIncome).toBe(block.pendingIncome + 420);
+    expect(live.placements.find(item => item.memberId === BLOCK_LOOP_IDS.enforcerId)).toMatchObject({ x: 4, y: 2 });
+  });
+
+  it('does not resurrect stock deleted by passive consumption and cannot pay for a depleted deal', () => {
+    applyDemoSeed();
+    const store = useBlockLoopStore.getState();
+    store.startLoop(true);
+    store.selectCrew(BLOCK_LOOP_IDS.dealerId, BLOCK_LOOP_IDS.shooterId);
+    store.place(BLOCK_LOOP_IDS.dealerId, 3, 1);
+    store.place(BLOCK_LOOP_IDS.shooterId, 5, 3);
+    store.assignProduct();
+    const cash = usePlayerStore.getState().player.money;
+    useDrugInventory.getState().consumeAssignedDrugs(10_000);
+    expect(useDrugInventory.getState().inventory[BLOCK_LOOP_IDS.productId]).toBeUndefined();
+    store.runDeal();
+    expect(usePlayerStore.getState().player.money).toBe(cash);
+    expect(useBlockLoopStore.getState().loop.inventory[0].quantity).toBe(0);
+    expect(useBlockLoopStore.getState().loop.lastDeal).toBeNull();
   });
 });

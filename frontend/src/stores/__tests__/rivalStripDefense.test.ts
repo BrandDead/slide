@@ -15,6 +15,7 @@ import { BLOCK_LOOP_IDS } from '../../game/loop/blockLoopTypes';
 import { applyDemoSeed } from '../../utils/demoSeed';
 import { clearLoopLedger, readLoopLedger } from '../../game/loop/blockLoopPersist';
 import { seededLoopEncounter } from '../../game/loop/blockLoopEngine';
+import { rivalResolutionFor } from '../../game/loop/threatHandoff';
 import { toCityBriefItems } from '../../components/layout/cityBriefingModel';
 import { applyRivalDefenseOutcome, DEFAULT_GHOST_CREWS } from '../../utils/ghostCrewEngine';
 
@@ -171,6 +172,34 @@ describe('Ghost Crew attack on the Strip (#163)', () => {
     expect(useGhostStore.getState().feed).toHaveLength(0);
   });
 
+  it('leaves a newer attack open when it arrives during the snapshotted encounter', () => {
+    applyDemoSeed();
+    useGhostStore.getState().seedCrews();
+    useGhostStore.setState({ feed: [attack()] });
+    const live = runToEncounter();
+    const newer = attack({ id: 'new-probe', actionKey: 'new-probe-key', timestamp: NOW + 1_000 });
+    useGhostStore.setState({ feed: [newer, ...useGhostStore.getState().feed] });
+    useBlockLoopStore.getState().resolveEncounter(seededLoopEncounter(live));
+    expect(findPendingRivalIncident()?.receiptKey).toBe('new-probe-key');
+    expect(useGhostStore.getState().appliedResponseKeys).not.toContain('new-probe-key');
+  });
+
+  it('keeps the booked defense visible across two demo reloads without repeating rival consequences', () => {
+    applyDemoSeed();
+    useGhostStore.getState().seedCrews();
+    useGhostStore.setState({ feed: [attack()] });
+    const live = runToEncounter();
+    useBlockLoopStore.getState().resolveEncounter(seededLoopEncounter(live));
+    const rival = useGhostStore.getState().crews['ghost-nightfall'];
+    for (let reload = 0; reload < 2; reload++) {
+      applyDemoSeed();
+      const items = toCityBriefItems(useGhostStore.getState().feed, useGhostStore.getState().appliedResponseKeys);
+      expect(items.some(item => item.category === 'DEFENSE RESULT' && item.description.includes('overran'))).toBe(true);
+      expect(useGhostStore.getState().crews['ghost-nightfall']).toEqual(rival);
+      expect(useGhostStore.getState().feed.filter(event => event.reason === 'defense-overrun')).toHaveLength(1);
+    }
+  });
+
   it('does not change rival state for a signed-in account', () => {
     applyDemoSeed();
     useGhostStore.getState().seedCrews();
@@ -203,5 +232,28 @@ describe('applyRivalDefenseOutcome', () => {
       treasury: crew.treasury + 50,
       grudge: { score: 45 },
     });
+  });
+
+  it('names the actual fallback casualty and reports no loss for a sole survivor', () => {
+    const noShooter = { ...crew, roster: [
+      { ...crew.roster[0], id: 'dealer-only', role: 'dealer' as const, alive: true },
+      { ...crew.roster[0], id: 'enforcer-only', role: 'enforcer' as const, alive: true },
+    ] };
+    const held = applyRivalDefenseOutcome(noShooter, 'secured', BLOCK_LOOP_IDS.blockId, NOW);
+    expect(held.lastMove).toMatch(/lost an? enforcer/i);
+    expect(held.lastMove).not.toMatch(/lost a shooter/i);
+    const alone = applyRivalDefenseOutcome({ ...noShooter, roster: noShooter.roster.slice(0, 1) }, 'secured', BLOCK_LOOP_IDS.blockId, NOW);
+    expect(alone.lastMove).toMatch(/no roster loss/i);
+    expect(alone.roster[0].alive).toBe(true);
+  });
+
+  it('does not invent a shooter casualty in the feed or pure loop receipt', () => {
+    reset();
+    const survivor = { ...crew, roster: [{ ...crew.roster[0], alive: true }] };
+    useGhostStore.setState({ crews: { [crew.id]: survivor }, feed: [] });
+    useGhostStore.getState().resolveRivalAttack({ crewId: crew.id, crewName: crew.name, blockId: BLOCK_LOOP_IDS.blockId, blockLabel: '1208', receiptKey: 'sole-survivor', outcome: 'secured', occurredAt: NOW });
+    expect(useGhostStore.getState().feed[0].description).not.toMatch(/lost a shooter/i);
+    const receipt = rivalResolutionFor({ receiptKey: 'sole-survivor', eventId: 'a', crewId: crew.id, crewName: crew.name, description: 'probe', occurredAt: NOW }, { outcome: 'secured', crewDown: [] }, '1208');
+    expect(receipt.line).not.toMatch(/lost a shooter/i);
   });
 });
