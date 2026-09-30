@@ -876,8 +876,14 @@ const ContactDetailModal: React.FC<ContactDetailModalProps> = ({ contact, member
         {m?.backstory && (
           <div className="detail-section">
             <h3>Backstory</h3>
-            <p className="backstory-text">{m.backstory.origin}</p>
-            <p className="backstory-reason"><strong>Why they're here:</strong> {m.backstory.reason}</p>
+            {typeof m.backstory === 'string' ? (
+              <p className="backstory-text">{m.backstory}</p>
+            ) : (
+              <>
+                <p className="backstory-text">{m.backstory.origin}</p>
+                <p className="backstory-reason"><strong>Why they're here:</strong> {m.backstory.reason}</p>
+              </>
+            )}
           </div>
         )}
 

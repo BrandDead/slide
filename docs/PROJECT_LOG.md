@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Photo recruit detail renders its backstory (#185 follow-up)
+
+- The Contact Detail modal assumed every truthy `backstory` value was an object with `origin` and `reason`. Photo recruits correctly use the typed string contract, which previously created an empty Backstory section. The modal now renders that string visibly while retaining the structured legacy rendering path.
+- A focused Contacts regression fails before the change and verifies the real roster card → profile path now shows `Joined the crew from your Contacts.`. No roster/store/data-model, backend, Supabase, deployment, or gameplay change is included.
+
 ### 2026-09-29 — Photo recruit review fixes; rival banner can be cleared on phones (#184 follow-up)
 
 - Stacked on #184. Fixes the confirmed review findings in `PhotoMemberCreator`: Generate works when the name is typed last (stale `memberName`); replacing the photo no longer cancels a queued job's polling; **Add to Roster** re-checks the name and is disabled while approving, so a double tap can't recruit twice; photo recruits are now complete `GangMember` records (stats, morale, gangId, XP, health), with no `as any`. Status and approve fallbacks no longer overwrite generated image URLs.
