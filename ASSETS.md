@@ -80,3 +80,12 @@ The map-resilience slice uses the reference to guide fallback hierarchy, state m
 | Block DNA expansion visual target | QA reference for eight fictional tactical archetypes and their terrain silhouettes | 2560×1440 | `/home/ubuntu/slide-artifact-audit/block_dna_expansion_batch_reference.png` | No; review reference only |
 
 The Block DNA batch-one reference establishes harbor, transit-market, canal, and service-district silhouettes in the canonical tropical-noir oblique-diorama direction. It remains outside the runtime asset tree and must not be copied into `frontend/public` or registered in `runtimeManifest.json`; the content expansion is intentionally data-driven and has no asset-budget impact.
+
+## 2026-09-30 — Drive-By Car Loadout Plates (#197)
+
+| Asset | Provenance | Source master | Runtime manifest ID/path | Output |
+|---|---|---|---|---:|
+| Night street with top-down four-seat vehicle, landscape | Original OpenAI GPT Image 2.5 generation; no found artwork incorporated | `art-src/generated/environments/street/block_slide_car_loadout_desktop_v001.png` (2560×1440) | `generated.environments.street.block_slide_car_loadout_desktop_v001` → `/assets/runtime/generated/environments/street/block_slide_car_loadout_desktop_v001.webp` | 1920×1080, 138,152 bytes |
+| Matching vertical vehicle loadout plate | Original OpenAI GPT Image 2.5 generation; no found artwork incorporated | `art-src/generated/environments/street/block_slide_car_loadout_mobile_v001.png` (1440×2560) | `generated.environments.street.block_slide_car_loadout_mobile_v001` → `/assets/runtime/generated/environments/street/block_slide_car_loadout_mobile_v001.webp` | 1080×1920, 201,184 bytes |
+
+Both sources were imported using the processor's exact-source `--only` option after #198, not by hand-editing the manifest. The global runtime package is 7.70 MB against the 20 MB limit. These plates are **decorative only**: four seat buttons, selection/status text, stats, cargo, and the launch action remain accessible DOM. Fictional demo members have only a clearly labeled role-art fallback; a verified personal likeness depends on a real member photo and the separate #195 generation-provider gate. The driver cannot fire from the moving car.

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-06T02:36:25.102Z",
+  "generatedAt": "2026-10-01T03:16:53.148Z",
   "budgetMB": 20,
-  "totalBytes": 6096278,
+  "totalBytes": 6435614,
   "qualityPass": "standard",
   "entries": [
     {
@@ -937,6 +937,42 @@
       "pivot": {
         "x": 0.5,
         "y": 0.5
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.street.block_slide_car_loadout_desktop_v001",
+      "runtimePath": "/assets/runtime/generated/environments/street/block_slide_car_loadout_desktop_v001.webp",
+      "sourcePath": "art-src/generated/environments/street/block_slide_car_loadout_desktop_v001.png",
+      "class": "env-street",
+      "role": null,
+      "state": null,
+      "width": 1920,
+      "height": 1080,
+      "bytes": 138152,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
+      },
+      "alphaRepaired": false
+    },
+    {
+      "id": "generated.environments.street.block_slide_car_loadout_mobile_v001",
+      "runtimePath": "/assets/runtime/generated/environments/street/block_slide_car_loadout_mobile_v001.webp",
+      "sourcePath": "art-src/generated/environments/street/block_slide_car_loadout_mobile_v001.png",
+      "class": "env-street",
+      "role": null,
+      "state": null,
+      "width": 1080,
+      "height": 1920,
+      "bytes": 201184,
+      "hasAlpha": false,
+      "fringeRatio": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 1
       },
       "alphaRepaired": false
     },
