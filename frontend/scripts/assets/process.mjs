@@ -20,6 +20,8 @@
 //   node scripts/assets/process.mjs            # dry run
 //   node scripts/assets/process.mjs --write
 //   node scripts/assets/process.mjs --write --quality-pass=high
+//   node scripts/assets/process.mjs --only=generated/environments/street/new_plate.png
+//   node scripts/assets/process.mjs --write --only=generated/environments/street/new_plate.png
 // ============================================================
 
 import { promises as fs } from 'node:fs';
@@ -30,6 +32,7 @@ import sharp from 'sharp';
 const ARGV = process.argv.slice(2);
 const WRITE = ARGV.includes('--write');
 const HIGH = ARGV.includes('--quality-pass=high');
+const ONLY = ARGV.filter(arg => arg.startsWith('--only=')).map(arg => arg.slice('--only='.length));
 
 const FRONTEND = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
 const REPO = path.resolve(FRONTEND, '..');
@@ -240,7 +243,30 @@ async function cleanup(buf, needsAlpha) {
 // ─── Main ────────────────────────────────────────────────────
 
 async function main() {
-  const files = await walk(LEGACY_ASSETS);
+  if (ARGV.some(arg => arg === '--only' || (arg.startsWith('--only') && !arg.startsWith('--only=')))) {
+    throw new Error('Invalid --only source: expected --only=<exact relative image path>');
+  }
+  const seen = new Set();
+  const selected = [];
+  for (const rel of ONLY) {
+    if (!rel || rel.includes('\\') || path.posix.isAbsolute(rel) || path.isAbsolute(rel) ||
+        path.posix.normalize(rel) !== rel || rel.startsWith('.') ||
+        rel.startsWith('runtime/') || rel.startsWith('packages/') ||
+        !/\.(png|webp|jpe?g)$/i.test(rel) || seen.has(rel)) {
+      throw new Error(`Invalid --only source: ${rel}`);
+    }
+    const abs = path.resolve(LEGACY_ASSETS, rel);
+    if (!abs.startsWith(LEGACY_ASSETS + path.sep)) throw new Error(`Invalid --only source: ${rel}`);
+    try {
+      const stat = await fs.lstat(abs);
+      if (!stat.isFile() || await fs.realpath(abs) !== abs) throw new Error('not a regular source');
+    } catch {
+      throw new Error(`Invalid --only source: ${rel} is missing or not a regular file`);
+    }
+    seen.add(rel);
+    selected.push(abs);
+  }
+  const files = ONLY.length ? selected : await walk(LEGACY_ASSETS);
   const mb = (b) => (b / 1048576).toFixed(2) + ' MB';
   let previous = null;
   try {
