@@ -13,7 +13,7 @@ import json
 import math
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from utils.utc import utc_now, utc_now_iso
 import logging
 import re
 
@@ -445,7 +445,7 @@ class GridGenerator:
         if seed:
             self.config.seed = seed
         elif not self.config.seed:
-            self.config.seed = f"{city}_{traffic_score}_{datetime.utcnow().timestamp()}"
+            self.config.seed = f"{city}_{traffic_score}_{utc_now().timestamp()}"
 
         if zone_layout is not None:
             if len(zone_layout) != self.config.grid_height:
@@ -486,7 +486,7 @@ class GridGenerator:
             grid=grid,
             seed=self.config.seed,
             config=self.config,
-            generated_at=datetime.utcnow().isoformat(),
+            generated_at=utc_now_iso(),
             stats=stats,
             grid_contract={
                 'name': 'block-dna-grid',

@@ -6,7 +6,7 @@ Handles drive-by shooting mechanics
 from flask import Blueprint, request, jsonify, g
 import logging
 import random
-from datetime import datetime
+from utils.utc import utc_now, utc_now_iso
 from typing import Dict, Any, List
 
 from services.block_state_engine import get_block_state_engine
@@ -58,7 +58,7 @@ def start_driveby():
         member_exposure = _calculate_member_exposure(target_snapshot, street_tiles)
         
         # Create session
-        session_id = f"driveby-{datetime.utcnow().timestamp()}"
+        session_id = f"driveby-{utc_now().timestamp()}"
         
         driveby_sessions[session_id] = {
             'id': session_id,
@@ -75,7 +75,7 @@ def start_driveby():
             'casualties': [],
             'heat_gained': 0,
             'seed': target_snapshot.seed,
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': utc_now_iso()
         }
         
         logger.info(f"Started drive-by {session_id} on block {target_block_id}")

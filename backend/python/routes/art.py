@@ -9,7 +9,7 @@ import os
 import hashlib
 import json
 import time
-from datetime import datetime
+from utils.utc import utc_now_iso
 
 art_bp = Blueprint('art', __name__, url_prefix='/api/art')
 
@@ -157,7 +157,7 @@ def generate_art():
         'thumbnail_url': image_url,
         'asset_id': asset_id,
         'provider': provider_used,
-        'created_at': datetime.utcnow().isoformat(),
+        'created_at': utc_now_iso(),
     }
     
     return jsonify({

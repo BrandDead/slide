@@ -69,6 +69,16 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
+
+- Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.
+- `to_iso_utc` deliberately reproduces the established external wire format — UTC ISO-8601 with **no** offset designator, e.g. `2026-07-17T01:02:03.456789`. Internal values are timezone-aware; only the serialization keeps the old shape, so no API field name or serialized timestamp changes for any consumer. Emitting `Z` or `+00:00` remains a deliberate future contract change that would need consumer review.
+- `api/combat.py` and `api/driveby.py` session identifiers and the `grid_generator` seed now derive from the true UTC epoch. The previous `naive.timestamp()` reinterpreted the naive value as host-local time, so those identifiers were only correct on a UTC host.
+- Files touched: `api/{avatar,combat,driveby,inventory,world}.py`, `routes/art.py`, `services/{block_state_engine,grid_generator,scheduler}.py`, the new `utils/utc.py` helper, and `tests/test_utc_timestamps.py` (12 regression tests written and shown failing on the base first). No field names, signatures, or response shapes changed.
+- Deliberately left naive and recorded rather than silently fixed: the unused SQLAlchemy model `models/block.py` (its `DateTime` columns are `timestamp without time zone`, so changing its defaults is a persistence-semantics decision, not a warning fix) and the standalone `backend-drip-*.py` / `backend-ocr-service.py` / `backend-brand-verification-service.py` scripts, which the suite never imports.
+- Gates on this branch: `preflight.sh` passed — frontend lint/typecheck clean, Vitest 91 files / 1033 passed / 4 skipped, asset audit 112 assets / 0 errors / 0 warnings at 7.70 MB of the 20 MB budget, package validation 5 packages / 4 schemas, production build 3347 modules in 27.18s, backend pytest 107 passed with 0 warnings.
+- Branch `fix/170-timezone-aware-utc`; PR opened for the integration owner. Not merged and not deployed. The change is backend-only, so it holds no frontend file that #188/#169/#190/#201 have reserved.
+
 ### 2026-09-30 — Drive-by car loadout: true roles, portrait-first HUD, original responsive art (#197)
 
 - The DRIVE app's four-seat selector now limits drivers to active dealers/recruits/shooters/dedicated drivers; only active shooters occupy passenger seats. Seat assignments are rechecked at launch, including stale member roles, injuries, absence and duplicates. The legacy first-person mini-game does not yet bind individual shots to a named passenger (#201), although the driver is excluded from shooter XP.
