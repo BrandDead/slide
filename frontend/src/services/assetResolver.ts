@@ -14,6 +14,7 @@ import {
 } from '../assets/assetManifest';
 import { getWorldActor } from '../render/worldActorResolver';
 import type { MemberRole } from '../types/block.types';
+import runtimeManifest from '../assets/runtimeManifest.json';
 
 // ─── Role → character kit ────────────────────────────────────
 // Roles without dedicated art borrow the closest existing kit.
@@ -75,6 +76,13 @@ export function getHeroStreetBackdropUrl(): string {
   return environmentAssets[HERO_ENVIRONMENT_ID].streetBackdropNight
     ?? environmentAssets[HERO_ENVIRONMENT_ID].streetBackdropDay
     ?? getDefaultStreetBackdropUrl();
+}
+
+/** Registered generated car-loadout plates; an older manifest keeps the scene playable. */
+export function getCarLoadoutBackdropUrl(view: 'desktop' | 'mobile'): string {
+  const id = `generated.environments.street.block_slide_car_loadout_${view}_v001`;
+  const entry = runtimeManifest.entries.find(a => a.id === id && a.class === 'env-street');
+  return entry?.runtimePath ?? getHeroStreetBackdropUrl();
 }
 
 export function getHeroTopdownBgUrl(): string {

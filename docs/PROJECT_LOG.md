@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Drive-by car loadout: true roles, portrait-first HUD, original responsive art (#197)
+
+- The DRIVE app's four-seat selector now limits drivers to active dealers/recruits/shooters/dedicated drivers; only active shooters occupy passenger seats. Seat assignments are rechecked at launch, including stale member roles, injuries, absence and duplicates. The legacy first-person mini-game does not yet bind individual shots to a named passenger (#201), although the driver is excluded from shooter XP.
+- The accessible, responsive DOM HUD displays stored member images first, labels resolver-backed role art as **not member likeness**, and shows actual recorded health/stats and carried inventory without inventing weapons or absent health/gear. Two original GPT Image 2.5 street/car plates were imported with the scoped processor into the manifest (339,336 bytes total) under the existing 20 MB asset budget; generated art contains no functional HUD text.
+- Phone/desktop demo DRIVE → assign dealer driver + shooter passenger → mission entry was replayed at 375×812, 390×844 and 1440×900. This is a local demo path, **not** authenticated saved-game proof, founder-photo likeness generation, a canonical ATTACK route, a dismount implementation, individual shooter attribution, or a beta deployment. #175, #192, #195, #201 and the release gate remain open.
+
 ### 2026-09-30 — Opt-in exact-source asset import (#198)
 
 - `process.mjs --only=<relative-image-path>` may be repeated for newly reserved staged sources; it retains and validates all registered runtime entries and the global budget but never consumes unselected legacy inputs. Absolute, traversal, runtime/package, duplicate, symlink, and nonexistent selections fail before mutation. The no-flag global behavior remains unchanged.
