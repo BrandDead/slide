@@ -30,6 +30,9 @@ import {
   shouldTriggerBulletCam,
 } from '../../utils/bulletCamTrigger';
 import '../combat/CombatTacticalHud.css';
+import { useGangStore } from '../../stores/gameStore';
+import type { CarCrew } from './CarCrewSelector';
+import { availablePassengerShooters } from './driveByParticipants';
 
 // ============ TYPES ============
 type TargetType = 'gang' | 'civilian' | 'leader';
@@ -55,6 +58,7 @@ interface Target {
 
 interface Bullet {
   id: number;
+  shooterId: string | null;
   startX: number;
   startY: number;
   x: number;
@@ -86,6 +90,7 @@ interface Block {
 
 interface GameStats {
   kills: number;
+  killsByShooter: Record<string, number>;
   civilianHits: number;
   accuracy: number;
   shotsHit: number;
@@ -129,14 +134,24 @@ const preloadImages = (urls: string[]): Promise<Record<string, HTMLImageElement>
 // ============ MAIN COMPONENT ============
 const DriveByEngine: React.FC<{
   onExit?: () => void;
-  onComplete?: (stats: GameStats) => void;
+  onRunStart?: (runId: number) => void;
+  onComplete?: (stats: GameStats, runId: number) => void;
   /** Structured target from CarCrewSelector — seeds the procedural street */
   targetBlock?: DriveByTarget | null;
+  /** Confirmed seats from the DRIVE app; the driver never fires. */
+  crew?: CarCrew | null;
 }> = ({ 
   onExit, 
+  onRunStart,
   onComplete,
   targetBlock,
+  crew,
 }) => {
+  const members = useGangStore(state => state.members);
+  const validShooters = availablePassengerShooters(crew, members);
+  const [selectedShooterId, setSelectedShooterId] = useState<string | null>(null);
+  const activeShooterId = selectedShooterId ?? validShooters[0]?.id ?? null;
+  const activeShooter = validShooters.find(member => member.id === activeShooterId);
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'paused' | 'gameover' | 'victory'>('menu');
   const [score, setScore] = useState(0);
   const [heat, setHeat] = useState(0);
@@ -148,7 +163,7 @@ const DriveByEngine: React.FC<{
   const [bullets, setBullets] = useState<Bullet[]>([]);
   const [crosshair, setCrosshair] = useState({ x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2 });
   const [stats, setStats] = useState<GameStats>({
-    kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0
+    kills: 0, killsByShooter: {}, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0
   });
   const [combatFeed, setCombatFeed] = useState<CombatFeedItem[]>([]);
   const [hitMarker, setHitMarker] = useState<CombatHitMarker | null>(null);
@@ -157,6 +172,7 @@ const DriveByEngine: React.FC<{
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameLoopRef = useRef<number>(0);
+  const runIdRef = useRef(0);
   const lastShotRef = useRef(0);
   const blockPosRef = useRef(0);
   const parallaxRef = useRef({ bg: 0, mid: 0, fg: 0 });
@@ -276,6 +292,11 @@ const DriveByEngine: React.FC<{
 
   // ============ GAME INITIALIZATION ============
   const initGame = useCallback(() => {
+    if (!activeShooterId || !availablePassengerShooters(crew, useGangStore.getState().members)
+      .some(member => member.id === activeShooterId)) return;
+    const runId = ++runIdRef.current;
+    onRunStart?.(runId);
+    setSelectedShooterId(activeShooterId);
     setScore(0);
     setHeat(0);
     setCarHealth(100);
@@ -296,7 +317,7 @@ const DriveByEngine: React.FC<{
     bulletCamActiveRef.current = false;
     lastBulletCamAtRef.current = 0;
     setBulletCamShot(null);
-    setStats({ kills: 0, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0 });
+    setStats({ kills: 0, killsByShooter: {}, civilianHits: 0, accuracy: 0, shotsHit: 0, shotsFired: 0, blocksCleared: 0, moneyEarned: 0 });
     // Reset window state so retries start with a fresh intact window
     const freshWindow = createWindowState(true);
     setWindowState(freshWindow);
@@ -331,7 +352,7 @@ const DriveByEngine: React.FC<{
     
     setBlocks(newBlocks);
     setGameState('playing');
-  }, []);
+  }, [activeShooterId, crew, onRunStart]);
 
   // ============ SPAWN TARGETS ============
   const spawnTargets = useCallback((block: Block) => {
@@ -385,6 +406,9 @@ const DriveByEngine: React.FC<{
   // ============ SHOOTING ============
   const shoot = useCallback((x: number, y: number) => {
     if (gameState !== 'playing' || ammo <= 0 || bulletCamActiveRef.current) return;
+    // Check at click time as the roster may change after mission selection.
+    if (!activeShooterId || !availablePassengerShooters(crew, useGangStore.getState().members)
+      .some(member => member.id === activeShooterId)) return;
     // Sprint 17: cannot fire through raised/moving glass.
     if (!canShoot(windowRef.current)) {
       playSound('miss');
@@ -410,6 +434,7 @@ const DriveByEngine: React.FC<{
 
     setBullets(prev => [...prev, {
       id: now,
+      shooterId: activeShooterId,
       startX: GAME_WIDTH * 0.7,
       startY: GAME_HEIGHT * 0.75,
       x: GAME_WIDTH * 0.7,
@@ -419,7 +444,7 @@ const DriveByEngine: React.FC<{
       speed: BULLET_SPEED,
       isPlayer: true
     }]);
-  }, [gameState, ammo, addParticles, triggerShake]);
+  }, [gameState, ammo, addParticles, triggerShake, activeShooterId, crew]);
 
   // ============ AUDIO ============
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -636,7 +661,7 @@ const DriveByEngine: React.FC<{
     lastBulletCamAtRef.current = now;
     setBulletCamShot({
       shotId: `${bullet.id}:${target.id}`,
-      shooterId: 'driveby-player',
+      shooterId: bullet.shooterId ?? 'unknown-passenger',
       startX: bullet.startX,
       startY: bullet.startY,
       targetX: bullet.targetX,
@@ -660,6 +685,7 @@ const DriveByEngine: React.FC<{
   // ============ GAME LOOP ============
   useEffect(() => {
     if (gameState !== 'playing') return;
+    const runId = runIdRef.current;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -723,7 +749,7 @@ const DriveByEngine: React.FC<{
         
         if (nextBlock >= blocks.length) {
           setGameState('victory');
-          if (onComplete) onComplete(stats);
+          if (onComplete) onComplete(stats, runId);
           return;
         }
         
@@ -754,6 +780,7 @@ const DriveByEngine: React.FC<{
             
             setBullets(prev => [...prev, {
               id: now + target.id,
+              shooterId: null,
               startX: target.x + target.width / 2,
               startY: target.y + target.height / 2,
               x: target.x + target.width / 2,
@@ -833,6 +860,9 @@ const DriveByEngine: React.FC<{
                         setStats(s => ({ 
                           ...s, 
                           kills: s.kills + 1, 
+                          killsByShooter: bullet.shooterId
+                            ? { ...s.killsByShooter, [bullet.shooterId]: (s.killsByShooter[bullet.shooterId] ?? 0) + 1 }
+                            : s.killsByShooter,
                           shotsHit: s.shotsHit + 1,
                           moneyEarned: s.moneyEarned + target.bounty 
                         }));
@@ -869,7 +899,7 @@ const DriveByEngine: React.FC<{
                 const newHealth = h - Math.max(1, Math.round(10 * mult));
                 if (newHealth <= 0) {
                   setGameState('gameover');
-                  if (onComplete) onComplete(stats);
+                  if (onComplete) onComplete(stats, runId);
                 }
                 playSound('damage');
                 triggerShake(5);
@@ -898,7 +928,7 @@ const DriveByEngine: React.FC<{
       // Check raid threshold
       if (heat >= HEAT_RAID_THRESHOLD) {
         setGameState('gameover');
-        if (onComplete) onComplete(stats);
+        if (onComplete) onComplete(stats, runId);
         return;
       }
 
@@ -1269,6 +1299,17 @@ const DriveByEngine: React.FC<{
         />
       )}
 
+      {(gameState === 'menu' || gameState === 'playing') && crew && (
+        <div role="group" aria-label="Firing passenger" style={styles.shooterBar}>
+          <span>Current shooter: {activeShooter?.name ?? 'Unavailable'}</span>
+          {validShooters.map(member => <button type="button" key={member.id}
+            aria-label={`Fire as ${member.name}`}
+            aria-pressed={activeShooterId === member.id}
+            style={{ ...styles.shooterButton, ...(activeShooterId === member.id ? styles.shooterButtonActive : {}) }}
+            onClick={() => setSelectedShooterId(member.id)}>{member.name}</button>)}
+        </div>
+      )}
+
       {/* Sprint 17: touch control for the window — [2] on desktop */}
       {gameState === 'playing' && !windowState.shattered && (
         <button
@@ -1298,7 +1339,7 @@ const DriveByEngine: React.FC<{
               <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#ffaa00'}}>~</span> Heat 100 = raid. Keep the car alive.</p>
               <p style={styles.instructionItem}><span style={{...styles.instructionIcon, color: '#8de8ff'}}>2</span> Lower the glass or you cannot shoot</p>
             </div>
-            <button style={styles.startButton} onClick={initGame}>
+            <button style={styles.startButton} onClick={initGame} disabled={!activeShooter}>
               START MISSION
             </button>
             {onExit && <button style={styles.exitButton} onClick={onExit}>BACK</button>}
@@ -1360,6 +1401,21 @@ function darkenColor(hex: string, amount: number): string {
 
 // ============ STYLES ============
 const styles: { [key: string]: React.CSSProperties } = {
+  shooterBar: {
+    position: 'absolute', top: 64, left: 10, zIndex: 12,
+    display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center',
+    color: '#fff', background: 'rgba(10,10,15,.88)', padding: '6px 10px',
+    border: '1px solid rgba(255,255,255,.16)', borderRadius: 6,
+    fontSize: 12, maxWidth: 'calc(100% - 20px)',
+  },
+  shooterButton: {
+    border: '1px solid rgba(255,255,255,.3)', borderRadius: 4,
+    background: '#22262a', color: '#fff', font: 'inherit', padding: '5px 8px',
+    cursor: 'pointer', minHeight: 30,
+  },
+  shooterButtonActive: {
+    border: '1px solid #00d64f', color: '#a3ffb9',
+  },
   container: {
     position: 'relative',
     width: '100%',
