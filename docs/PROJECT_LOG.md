@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-01 — DRIVE passenger identity and local reward guard (#201, partial)
+
+- The legacy DRIVE mission now receives a snapshot of the confirmed four-seat crew, exposes the selected **active shooter passenger** in its HUD, rechecks eligibility before starting and at firing time, tags player bullets with that member ID, and credits kills/XP only to named passengers whose bullets cause a hit. The driver is excluded even when shooter-trained; duplicate, malformed and stale seats cannot fire. A run ID lets each local retry/replay book once without accepting a callback from a prior run. A valid in-flight shot keeps its credit if a member later becomes unavailable.
+- Red→green participant and reward regressions cover shooter-driver vs passenger, stale/injured and duplicate seats, switching, named XP, repeated completion, retries, and post-shot roster changes. The actual demo DRIVE path was replayed at 375×812, 390×844 and 1440×900 with the status-rail overlap corrected. **Still open on #201:** shots are not gated or parameterized by a recorded weapon/ammo inventory; same-frame finalization may read stale stats; and mounted-component duplicate protection is not a durable authoritative reward receipt across reloads. This slice is not outside-beta readiness or the authenticated two-user proof (#175).
+
 ### 2026-09-30 — Drive-by car loadout: true roles, portrait-first HUD, original responsive art (#197)
 
 - The DRIVE app's four-seat selector now limits drivers to active dealers/recruits/shooters/dedicated drivers; only active shooters occupy passenger seats. Seat assignments are rechecked at launch, including stale member roles, injuries, absence and duplicates. The legacy first-person mini-game does not yet bind individual shots to a named passenger (#201), although the driver is excluded from shooter XP.
