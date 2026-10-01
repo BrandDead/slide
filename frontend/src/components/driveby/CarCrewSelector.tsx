@@ -39,15 +39,19 @@ function ready(seats: CarSeat[], members: GangMember[]): boolean {
   if (!occupied.every(s => eligible(s, members.find(m => m.id === s.memberId)))) return false;
   return Boolean(seats.find(s => s.position === 'driver')?.memberId && occupied.some(s => s.position !== 'driver'));
 }
-function MemberPortrait({ member, className }: { member: GangMember; className: string }) {
-  const identity = member.customAvatarUrl || member.portraitUrl || member.avatarUrl;
+const storedPortrait = (member: GangMember) => member.customAvatarUrl || member.portraitUrl || member.avatarUrl;
+function MemberPortrait({ member, className, onFallback }: { member: GangMember; className: string; onFallback?: () => void }) {
+  const identity = storedPortrait(member);
   const roleArt = getPortrait(member.role ?? 'recruit');
   const [url, setUrl] = useState<string | null>(identity || roleArt);
   useEffect(() => setUrl(identity || roleArt), [identity, roleArt]);
   if (!url) return <span className={`${className} portrait-unavailable`} aria-label="Portrait unavailable">{member.name.slice(0, 1)}</span>;
   return <img className={className} src={url}
     alt={identity && url === identity ? `${member.name} portrait` : `${member.role ?? 'Crew'} role portrait (not member likeness)`}
-    onError={() => setUrl(current => current !== roleArt ? roleArt : null)} />;
+    onError={() => {
+      if (url !== roleArt && roleArt) { onFallback?.(); setUrl(roleArt); }
+      else setUrl(null);
+    }} />;
 }
 
 const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
@@ -56,6 +60,7 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
   const [seats, setSeats] = useState<CarSeat[]>(() => INITIAL_SEATS.map(s => ({ ...s })));
   const [selectedSeat, setSelectedSeat] = useState<CarSeat['position'] | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
+  const [failedPortraits, setFailedPortraits] = useState<Set<string>>(() => new Set());
   const [target, setTarget] = useState<DriveByTarget | null>(pendingTarget);
   const [targetText, setTargetText] = useState('');
   useEffect(() => { if (pendingTarget) setTarget(pendingTarget); }, [pendingTarget]);
@@ -66,6 +71,9 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
   const focused = members.find(m => m.id === focusedId);
   const canLaunch = ready(seats, members);
   const count = seats.filter(s => s.memberId && eligible(s, members.find(m => m.id === s.memberId))).length;
+  const portraitKey = (member: GangMember) => `${member.id}:${storedPortrait(member)}`;
+  const showsRoleArt = (member: GangMember) => !storedPortrait(member) || failedPortraits.has(portraitKey(member));
+  const markPortraitFallback = (member: GangMember) => setFailedPortraits(prev => new Set(prev).add(portraitKey(member)));
 
   function assignMember(position: CarSeat['position'], id: string) {
     const seat = seats.find(s => s.position === position);
@@ -111,7 +119,7 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
                 onClick={() => member ? (setSeats(prev => prev.map(s => s.position === seat.position ? { ...s, memberId: null } : s)), setFocusedId(null)) : setSelectedSeat(selectedSeat === seat.position ? null : seat.position)}
                 whileTap={{ scale: 0.97 }}>
                 {member ? <span className="seat-member">
-                  <MemberPortrait key={`${member.id}:${member.customAvatarUrl || member.portraitUrl || member.avatarUrl}`} member={member} className="seat-avatar" />
+                  <MemberPortrait key={portraitKey(member)} member={member} className="seat-avatar" onFallback={() => markPortraitFallback(member)} />
                   <span className="seat-name">{member.nickname || member.name}</span>
                   <span className="seat-role">{invalid ? 'UNAVAILABLE' : seat.position === 'driver' ? 'DRIVING' : 'SHOOTER'}</span>
                 </span> : <span className="seat-empty"><span className="seat-plus" aria-hidden="true">+</span><span className="seat-label">{seat.label}</span></span>}
@@ -131,10 +139,10 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
           <div className="picker-list">{choices.length === 0 ? <div className="picker-empty">No available {selected.position === 'driver' ? 'driver' : 'shooters'}. Recruit or free a member in CREW.</div> :
             choices.map(member => <motion.button type="button" key={member.id} className="picker-member"
               onClick={() => assignMember(selected.position, member.id)} whileTap={{ scale: 0.98 }}>
-              <MemberPortrait key={`${member.id}:${member.customAvatarUrl || member.portraitUrl || member.avatarUrl}`} member={member} className="picker-avatar" />
+              <MemberPortrait key={portraitKey(member)} member={member} className="picker-avatar" onFallback={() => markPortraitFallback(member)} />
               <span className="picker-info"><span className="picker-name">{member.name}</span>
                 <span className="picker-role">{(member.role ?? 'recruit').toUpperCase()} · LV {member.level}</span>
-                {!member.customAvatarUrl && !member.portraitUrl && !member.avatarUrl && <span className="picker-art-note">Role portrait — not member likeness</span>}
+                {showsRoleArt(member) && <span className="picker-art-note">Role portrait — not member likeness</span>}
               </span><span className="picker-stats">HP {member.health ?? '—'}</span>
             </motion.button>)}</div>
         </motion.section>}</AnimatePresence>
@@ -144,7 +152,8 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
           <div className="ccs-panel-heading"><span>CREW / LOADOUT</span><span>01–04</span></div>
           {focused ? <><div className="ccs-member-title"><strong>{focused.name}</strong><span>{focused.role ?? 'recruit'} · LV {focused.level}</span></div>
             <div className="ccs-stat-grid">
-              <div><small>HEALTH</small><strong>{focused.health === undefined ? 'Not recorded' : `${focused.health} / ${focused.maxHealth ?? 100}`}</strong></div>
+              <div><small>HEALTH</small><strong>{focused.health === undefined ? 'Not recorded' :
+                focused.maxHealth === undefined ? `${focused.health} · max not recorded` : `${focused.health} / ${focused.maxHealth}`}</strong></div>
               <div><small>MORALE</small><strong>{focused.morale}/100</strong></div>
               <div><small>LOYALTY</small><strong>{focused.loyalty}/100</strong></div>
               <div><small>AGILITY</small><strong>{focused.stats.agility}/100</strong></div>
@@ -156,7 +165,7 @@ const CarCrewSelector: React.FC<Props> = ({ onConfirm, onCancel }) => {
                     <li key={item.itemId}><span>{item.name || item.itemId}</span><strong>×{item.quantity}</strong></li>)}</ul>
                   : <p>No items carried</p>}
             </div>
-            {!focused.customAvatarUrl && !focused.portraitUrl && !focused.avatarUrl && <p className="ccs-portrait-note">Role portrait — not member likeness</p>}
+            {showsRoleArt(focused) && <p className="ccs-portrait-note">Role portrait — not member likeness</p>}
           </> : <p className="ccs-empty-note">Assign a member to inspect their condition and actual carried gear.</p>}
         </section>
         <section className="target-block-section">

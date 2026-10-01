@@ -71,9 +71,9 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ### 2026-09-30 — Drive-by car loadout: true roles, portrait-first HUD, original responsive art (#197)
 
-- The DRIVE app's four-seat selector now limits drivers to active dealers/recruits/shooters/dedicated drivers; only active shooters occupy passenger seats and fire in drive-bys. Seat assignments are rechecked at launch, including stale member roles, injuries, absence and duplicates. A shooter who drives still does not fire in-car.
+- The DRIVE app's four-seat selector now limits drivers to active dealers/recruits/shooters/dedicated drivers; only active shooters occupy passenger seats. Seat assignments are rechecked at launch, including stale member roles, injuries, absence and duplicates. The legacy first-person mini-game does not yet bind individual shots to a named passenger (#201), although the driver is excluded from shooter XP.
 - The accessible, responsive DOM HUD displays stored member images first, labels resolver-backed role art as **not member likeness**, and shows actual recorded health/stats and carried inventory without inventing weapons or absent health/gear. Two original GPT Image 2.5 street/car plates were imported with the scoped processor into the manifest (339,336 bytes total) under the existing 20 MB asset budget; generated art contains no functional HUD text.
-- Phone/desktop demo DRIVE → assign dealer driver + shooter passenger → mission entry was replayed at 390×844 and 1440×900. This is a local demo path, **not** authenticated saved-game proof, founder-photo likeness generation, a canonical ATTACK route, a dismount implementation, or a beta deployment. #175, #192, #195 and the release gate remain open.
+- Phone/desktop demo DRIVE → assign dealer driver + shooter passenger → mission entry was replayed at 375×812, 390×844 and 1440×900. This is a local demo path, **not** authenticated saved-game proof, founder-photo likeness generation, a canonical ATTACK route, a dismount implementation, individual shooter attribution, or a beta deployment. #175, #192, #195, #201 and the release gate remain open.
 
 ### 2026-09-30 — Opt-in exact-source asset import (#198)
 

@@ -239,6 +239,19 @@ describe('CarCrewSelector → street handoff (#108)', () => {
     expect(screen.getByRole('img', { name: /shooter.*role portrait/i })).toHaveAttribute('src', expect.stringMatching(/\.webp$/));
   });
 
+  it('visibly labels role art when a stored personal portrait fails to load', () => {
+    mockMembers = [
+      { ...mkMember('d1', 'Wheel Man', 'dealer'), customAvatarUrl: '/private/broken-member.webp' },
+      mkMember('s1', 'Trigger', 'shooter'),
+    ];
+    render(<CarCrewSelector onConfirm={() => {}} onCancel={() => {}} />);
+    fireEvent.click(screen.getByText('Driver', { selector: '.seat-label' }).closest('.car-seat')!);
+    fireEvent.error(screen.getByRole('img', { name: 'Wheel Man portrait' }));
+    expect(within(screen.getByRole('button', { name: /wheel man/i })).getByText('Role portrait — not member likeness')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Wheel Man'));
+    expect(within(screen.getByRole('region', { name: /member status and carried items/i })).getByText('Role portrait — not member likeness')).toBeInTheDocument();
+  });
+
   it('shows actual carried inventory and core member stats without inventing a weapon or cash', () => {
     mockMembers = [{
       ...mkMember('d1', 'Wheel Man', 'dealer'), level: 4, health: 73, morale: 65, loyalty: 91,
@@ -248,7 +261,7 @@ describe('CarCrewSelector → street handoff (#108)', () => {
     fireEvent.click(screen.getByText('Driver', { selector: '.seat-label' }).closest('.car-seat')!);
     fireEvent.click(screen.getByText('Wheel Man'));
     expect(screen.getByText('Field kit').closest('li')).toHaveTextContent('Field kit×2');
-    expect(screen.getByText(/73\s*\/\s*100/)).toBeInTheDocument();
+    expect(screen.getByText('73 · max not recorded')).toBeInTheDocument();
     expect(screen.getByText(/65\/100/)).toBeInTheDocument();
     expect(screen.getByText(/91\/100/)).toBeInTheDocument();
     expect(screen.queryByText(/Glock|\$200/)).not.toBeInTheDocument();
