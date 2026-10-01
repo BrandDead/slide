@@ -69,6 +69,11 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-09-30 — Opt-in exact-source asset import (#198)
+
+- `process.mjs --only=<relative-image-path>` may be repeated for newly reserved staged sources; it retains and validates all registered runtime entries and the global budget but never consumes unselected legacy inputs. Absolute, traversal, runtime/package, duplicate, symlink, and nonexistent selections fail before mutation. The no-flag global behavior remains unchanged.
+- Needed for #197 car-loadout art: global dry run currently fails on an unrelated tracked app icon. No existing icons or package textures were modified or moved by this tooling change.
+
 ### 2026-09-30 — Welcome hint no longer steals the phone Launch Attack tap (#193)
 
 - At 375×812 the fixed welcome hint sits on top of the enabled OPS PLAN Launch Attack control. The hint stays visible so it can still teach the next step, and `pointer-events: none` lets the tap pass through to the button.
