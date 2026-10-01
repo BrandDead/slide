@@ -5,7 +5,7 @@ Handles passive income, heat decay, and world simulation
 
 from flask import Blueprint, request, jsonify, g
 import logging
-from datetime import datetime, timedelta
+from utils.utc import utc_now_iso
 from typing import Dict, Any
 
 from services.block_state_engine import get_block_state_engine
@@ -80,7 +80,7 @@ def advance_world():
             'success': True,
             'minutes_advanced': minutes,
             'events': events,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': utc_now_iso()
         })
         
     except Exception as e:
@@ -226,7 +226,7 @@ def get_world_status():
         return jsonify({
             'user_id': user_id,
             'blocks': blocks_status,
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': utc_now_iso()
         })
         
     except Exception as e:

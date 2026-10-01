@@ -7,7 +7,7 @@ from flask import Blueprint, request, jsonify, g
 import logging
 import random
 from typing import Optional, Dict, Any
-from datetime import datetime
+from utils.utc import utc_now, utc_now_iso
 
 from services.block_state_engine import get_block_state_engine, BlockSnapshot
 from middleware.auth import require_auth
@@ -58,7 +58,7 @@ def start_combat():
             return jsonify({'error': 'Failed to load target snapshot'}), 500
         
         # Create combat session
-        session_id = f"combat-{datetime.utcnow().timestamp()}"
+        session_id = f"combat-{utc_now().timestamp()}"
         
         combat_sessions[session_id] = {
             'id': session_id,
@@ -73,7 +73,7 @@ def start_combat():
             'combat_log': [],
             'status': 'active',
             'seed': target_snapshot.seed,
-            'created_at': datetime.utcnow().isoformat()
+            'created_at': utc_now_iso()
         }
         
         # Initialize HP tracking

@@ -5,7 +5,7 @@ Handles underground market, equipment, and transactions
 
 from flask import Blueprint, request, jsonify, g
 import logging
-from datetime import datetime
+from utils.utc import utc_now_iso
 from typing import Dict, List, Any
 import uuid
 
@@ -197,7 +197,7 @@ def buy_item():
             'quantity': quantity,
             'amount': -total_cost,
             'balance': user_cash[user_id],
-            'timestamp': datetime.utcnow().isoformat()
+            'timestamp': utc_now_iso()
         })
         
         logger.info(f"User {user_id} purchased {quantity}x {item['name']} for ${total_cost}")

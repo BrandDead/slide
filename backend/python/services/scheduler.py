@@ -9,7 +9,7 @@ import os
 import logging
 import random
 import uuid
-from datetime import datetime, timedelta
+from utils.utc import utc_now_iso
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class WorldEvent:
         self.target_user_id = target_user_id
         self.target_block_id = target_block_id
         self.target_member_id = target_member_id
-        self.timestamp = datetime.utcnow().isoformat()
+        self.timestamp = utc_now_iso()
 
     def to_dict(self) -> dict:
         return {
@@ -268,7 +268,7 @@ class WorldTickProcessor:
             'events': [e.to_dict() for e in events],
             'income': total_income,
             'heat_change': total_heat_change,
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utc_now_iso(),
         }
 
     def _process_block_tick(
@@ -409,7 +409,7 @@ class WorldTickProcessor:
             'events': [e.to_dict() for e in events],
             'income': income,
             'heat_change': -2,
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utc_now_iso(),
         }
 
 

@@ -8,7 +8,7 @@ import hashlib
 import logging
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, asdict
-from datetime import datetime
+from utils.utc import utc_now_iso
 from supabase import create_client, Client
 import os
 
@@ -424,7 +424,7 @@ class BlockStateEngine:
                 block_id=block_id,
                 snapshot_id=snapshot_id,
                 snapshot_version=snapshot_version,
-                created_at=datetime.utcnow().isoformat(),
+                created_at=utc_now_iso(),
                 address=block.get('address', ''),
                 city=block.get('city', ''),
                 bbox=bbox,
@@ -489,7 +489,7 @@ class BlockStateEngine:
             block_id=block_id,
             snapshot_id=snapshot_id,
             snapshot_version=1,
-            created_at=datetime.utcnow().isoformat(),
+            created_at=utc_now_iso(),
             address=block.get('address', '123 Mock St'),
             city=block.get('city', 'Los Angeles'),
             bbox=[-118.25, 34.05, -118.24, 34.06],
@@ -586,7 +586,7 @@ class BlockStateEngine:
     
     def _generate_snapshot_id(self, block_id: str, version: int) -> str:
         """Generate unique snapshot ID"""
-        data = f"{block_id}-{version}-{datetime.utcnow().isoformat()}"
+        data = f"{block_id}-{version}-{utc_now_iso()}"
         return hashlib.sha256(data.encode()).hexdigest()[:16]
     
     def _generate_seed(self, block_id: str, version: int) -> str:

@@ -10,7 +10,7 @@ Sprint: morale-heat-photo-batch2
 import os
 import uuid
 import json
-from datetime import datetime
+from utils.utc import utc_now_iso
 from flask import Blueprint, request, jsonify
 
 avatar_bp = Blueprint("avatar", __name__, url_prefix="/api/avatar")
@@ -181,7 +181,7 @@ def generate():
         "style": style,
         "outputs": outputs,
         "status": "ready",
-        "createdAt": datetime.utcnow().isoformat(),
+        "createdAt": utc_now_iso(),
         **assets,
     }
     _jobs[job_id] = asset
