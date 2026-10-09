@@ -2,100 +2,66 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigationStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
+import { getBlockResponseReadiness, useCombatIntentStore } from '../../stores/combatIntentStore';
 import './AttackPlanner.css';
 
 export const AttackPlanner: React.FC = () => {
   const { goBack, navigateTo } = useNavigationStore();
-  const { members } = useGangStore();
-  const { blocks: rawBlocks } = useBlockStore();
-  const blocks = Object.values(rawBlocks ?? {}) as any[];
-  
-  const [selectedTarget, setSelectedTarget] = useState<string>('');
-  const [assignedRoles, setAssignedRoles] = useState<{ [role: string]: string }>({
-    scout: '',
-    enforcer: '',
-    driver: ''
-  });
-
-  const availableMembers = members.filter(m => m.status === 'active');
-  const memberFor = (id: string) => availableMembers.find((member) => member.id === id);
-  const driverMember = memberFor(assignedRoles.driver);
-  // The driver seat does not shoot. A second, different member in the
-  // scout or enforcer slot has to be someone who can fire.
-  const shooterMember = (['scout', 'enforcer'] as const)
-    .map((slot) => memberFor(assignedRoles[slot]))
-    .find((member) => member
-      && member.id !== driverMember?.id
-      && (member.role === 'shooter' || member.role === 'enforcer' || member.role === 'boss'));
-  const canLaunch = Boolean(selectedTarget && driverMember && shooterMember);
+  const members = useGangStore(state => state.members);
+  const { blocks, selectedBlockId, selectBlock } = useBlockStore();
+  const ownedBlocks = Object.values(blocks).filter(block => block.owner === 'player');
+  const [targetId, setTargetId] = useState(() =>
+    ownedBlocks.find(block => block.id === selectedBlockId)?.id ?? ownedBlocks[0]?.id ?? '',
+  );
+  const block = blocks[targetId];
+  const readiness = getBlockResponseReadiness(block, members);
 
   const handleLaunch = () => {
-    if (!canLaunch) return;
-    // Existing route: the car screen still owns seat assignment.
-    navigateTo('topdown');
+    // Read current ownership/roster at the command boundary, including two taps
+    // in the same render. MAP independently validates when it consumes intent.
+    if (useCombatIntentStore.getState().queueBlockResponse(targetId)) navigateTo('map');
   };
 
   return (
     <div className="attack-planner">
       <div className="ap-header">
-        <motion.button className="back-btn" onClick={goBack} whileTap={{ scale: 0.9 }}>← Back</motion.button>
-        <h1>⚔️ OPS PLANNER</h1>
+        <motion.button type="button" className="back-btn" onClick={goBack} whileTap={{ scale: 0.9 }}>Back</motion.button>
+        <h1>OPS PLAN</h1>
       </div>
-      
       <div className="ap-content">
         <div className="ap-section">
-          <h3>1. Select Target Block</h3>
-          <select value={selectedTarget} onChange={(e) => setSelectedTarget(e.target.value)} className="ap-select">
-            <option value="">-- Select Enemy Block --</option>
-            {blocks.filter((b: any) => b.owner !== 'player').map((b: any) => (
-              <option key={b.id} value={b.id}>{b.address} (Heat: {b.heat})</option>
-            ))}
-            <option value="dummy-target">187th St & 5th Ave (Rival Territory)</option>
+          <h3>Respond on your block</h3>
+          <p>Hold your territory with the crew already positioned there. This response is fought on foot.</p>
+          <label htmlFor="response-block">Your block</label>
+          <select id="response-block" value={targetId} onChange={event => setTargetId(event.target.value)} className="ap-select">
+            {ownedBlocks.length === 0 && <option value="">Claim a block in MAP first</option>}
+            {ownedBlocks.map(candidate => <option key={candidate.id} value={candidate.id}>{candidate.address}</option>)}
           </select>
         </div>
-
-        <div className="ap-section">
-          <h3>2. Assign Roles</h3>
-          <div className="role-assignment">
-            <div className="role-row">
-              <label>Scout (Intel)</label>
-              <select value={assignedRoles.scout} onChange={(e) => setAssignedRoles({...assignedRoles, scout: e.target.value})} className="ap-select">
-                <option value="">-- Assign Member --</option>
-                {availableMembers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.role})</option>)}
-              </select>
-            </div>
-            <div className="role-row">
-              <label>Enforcer (Heavy)</label>
-              <select value={assignedRoles.enforcer} onChange={(e) => setAssignedRoles({...assignedRoles, enforcer: e.target.value})} className="ap-select">
-                <option value="">-- Assign Member --</option>
-                {availableMembers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.role})</option>)}
-              </select>
-            </div>
-            <div className="role-row">
-              <label>Driver (Getaway)</label>
-              <select value={assignedRoles.driver} onChange={(e) => setAssignedRoles({...assignedRoles, driver: e.target.value})} className="ap-select">
-                <option value="">-- Assign Member --</option>
-                {availableMembers.map(m => <option key={m.id} value={m.id}>{m.name} ({m.role})</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="ap-section ap-intel">
-          <h3>3. Intel Briefing</h3>
-          {selectedTarget && assignedRoles.scout ? (
-            <p className="intel-text text-green">Scout reports 3 hostiles. Moderate police presence.</p>
-          ) : (
-            <p className="intel-text text-red">Assign a scout to gather intel.</p>
-          )}
-        </div>
-
-        <button 
-          className={`launch-btn ${canLaunch ? '' : 'disabled'}`}
-          onClick={handleLaunch}
-          disabled={!canLaunch}
-        >
-          LAUNCH ATTACK
+        <section className="ap-section" aria-label="Confirmed response crew">
+          <h3>Crew on the block</h3>
+          {readiness.crew.length === 0 && <p>No confirmed crew positions yet.</p>}
+          <ul className="ap-crew-list">
+            {readiness.crew.map(placement => (
+              <li key={placement.memberId}>
+                <div><strong>{placement.memberName}</strong><span>{placement.role} · Lv{placement.level}</span></div>
+                <span>{placement.health} HP · {placement.zoneType}</span>
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="ap-position" onClick={() => {
+            if (block?.owner === 'player') selectBlock(block.id);
+            navigateTo('map');
+          }}>Position crew in MAP</button>
+        </section>
+        <section className="ap-section ap-intel" aria-label="Response briefing">
+          <h3>Before you move</h3>
+          {block && <p>Heat {block.heat}/5 · morale {block.morale}%</p>}
+          <p className={`intel-text ${readiness.canLaunch ? 'text-green' : 'text-red'}`} role="status">{readiness.reason}</p>
+          <p>Use cover, reach the secure exit, then return to see the consequences. Rival takeovers and vehicle attacks are separate operations.</p>
+        </section>
+        <button type="button" className={`launch-btn ${readiness.canLaunch ? '' : 'disabled'}`} onClick={handleLaunch} disabled={!readiness.canLaunch}>
+          Launch response
         </button>
       </div>
     </div>

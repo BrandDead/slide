@@ -2,10 +2,11 @@
 // Territory Map — Block board + iPhone Maps-style hood recon
 // ============================================================
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigationStore, usePlayerStore, useGangStore } from '../../stores/gameStore';
 import { useBlockStore } from '../../stores/blockStore';
+import { getBlockResponseReadiness, useCombatIntentStore } from '../../stores/combatIntentStore';
 import { useShoeboxStore } from '../../stores/useShoeboxStore';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
 import PlayableMap, { type PlayableMapStatus } from './PlayableMap';
@@ -94,6 +95,7 @@ const TerritoryMap: React.FC = () => {
     level: number;
   } | null>(null);
   const [responseBlockId, setResponseBlockId] = useState<string | null>(null);
+  const pendingResponse = useCombatIntentStore(state => state.pendingEncounterBlockId);
 
   const liveList = useMemo(() => Object.values(blocks), [blocks]);
   const origin = useMemo(() => {
@@ -139,6 +141,17 @@ const TerritoryMap: React.FC = () => {
     setNotification(msg);
     window.setTimeout(() => setNotification(null), ms);
   }, []);
+
+  useEffect(() => {
+    if (!pendingResponse) return;
+    const blockId = useCombatIntentStore.getState().consumeBlockResponse();
+    if (!blockId) {
+      notify('Crew or block changed. Review your positions before responding.', 4000);
+      return;
+    }
+    setResponseBlockId(blockId);
+    setView('block');
+  }, [pendingResponse, notify]);
 
   const flyTo = useCallback(
     (lat: number, lng: number, zoom = 16) => {
@@ -244,6 +257,11 @@ const TerritoryMap: React.FC = () => {
   }, [flyTo, selectBlock]);
 
   const handleAttack = useCallback((block: ReconBlock | MapBlockData) => {
+    const readiness = getBlockResponseReadiness(useBlockStore.getState().blocks[block.id], useGangStore.getState().members);
+    if (!readiness.canLaunch) {
+      notify(readiness.reason, 4000);
+      return;
+    }
     selectBlock(block.id);
     setSelectedMapBlock(null);
     setShowRecon(false);

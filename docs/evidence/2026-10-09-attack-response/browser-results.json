@@ -1,0 +1,65 @@
+[
+  {
+    "label": "phone",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "events": "Lil Dre takes 7 damage.\n\nRival 2 fires.\n\nLil Dre takes 7 damage.\n\nLookout fires.",
+    "saved": {
+      "blockId": "demo-block-las-olas",
+      "receiptKeys": [
+        "encounter-demo-block-las-olas-1fx578a:retreated"
+      ],
+      "heat": 1,
+      "morale": 66
+    },
+    "afterDemoReload": {
+      "receiptKeys": [
+        "encounter-demo-block-las-olas-1fx578a:retreated"
+      ],
+      "heat": 1,
+      "morale": 66
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "label": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "events": "Lil Dre takes 7 damage.\n\nRival 2 fires.\n\nLil Dre takes 7 damage.\n\nLookout fires.",
+    "saved": {
+      "blockId": "demo-block-las-olas",
+      "receiptKeys": [
+        "encounter-demo-block-las-olas-1fx578a:retreated"
+      ],
+      "heat": 1,
+      "morale": 66
+    },
+    "afterDemoReload": {
+      "receiptKeys": [
+        "encounter-demo-block-las-olas-1fx578a:retreated"
+      ],
+      "heat": 1,
+      "morale": 66
+    },
+    "pageErrors": [],
+    "consoleErrors": []
+  },
+  {
+    "label": "phone-failure",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "recovery": "Failed encounter chunk leaves board and retry available",
+    "pageErrors": [],
+    "consoleErrors": [
+      "Failed to load resource: net::ERR_FAILED",
+      "TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:4179/assets/UnifiedEncounter-yeUEQgaB.js"
+    ]
+  }
+]

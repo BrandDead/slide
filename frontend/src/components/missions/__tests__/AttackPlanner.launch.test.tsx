@@ -1,82 +1,70 @@
-/**
- * GG-002: OPS PLAN must not launch a Block Attack until a driver and a
- * shooter are assigned. Target-only launch is the empty-seat path.
- */
 import React from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
 import AttackPlanner from '../AttackPlanner';
-import { useGangStore, useNavigationStore } from '../../../stores/gameStore';
-import type { GangMember } from '../../../types/game.types';
+import { useGangStore, useNavigationStore, usePlayerStore } from '../../../stores/gameStore';
+import { useBlockStore } from '../../../stores/blockStore';
+import { useCombatIntentStore } from '../../../stores/combatIntentStore';
+import { applyDemoSeed } from '../../../utils/demoSeed';
+import { BLOCK_LOOP_IDS } from '../../../game/loop/blockLoopTypes';
 
-function crewMember(partial: Pick<GangMember, 'id' | 'name' | 'role'>): GangMember {
-  return {
-    gangId: 'demo-gang',
-    nickname: partial.name,
-    avatarUrl: '',
-    backstory: '',
-    age: 24,
-    region: 'miami',
-    stats: { strength: 50, agility: 50, intelligence: 50, charisma: 50, luck: 50, intimidation: 50 },
-    level: 2,
-    experience: 0,
-    skillPoints: 0,
-    skills: [],
-    loyalty: 80,
-    morale: 80,
-    respect: 40,
-    kills: 0,
-    arrests: 0,
-    dealsCompleted: 0,
-    moneyEarned: 0,
-    status: 'active',
-    currentAssignment: null,
-    joinedAt: '2026-01-01T00:00:00.000Z',
-    health: 100,
-    maxHealth: 100,
-    ...partial,
-  };
-}
-
-const dealer = crewMember({ id: 'demo-dealer-1', name: 'Lil Dre', role: 'dealer' });
-const shooter = crewMember({ id: 'demo-shooter-1', name: 'Big Rome', role: 'shooter' });
-
-describe('AttackPlanner launch seats', () => {
+describe('AttackPlanner canonical block response', () => {
   beforeEach(() => {
-    useNavigationStore.setState({
-      currentApp: 'planner',
-      previousApp: 'home',
-      appStack: ['home', 'planner'],
-      isTransitioning: false,
-    });
-    useGangStore.setState({ members: [dealer, shooter], contacts: [] });
+    useBlockStore.setState({ blocks: {}, selectedBlockId: null });
+    applyDemoSeed();
+    useCombatIntentStore.getState().reset();
+    useNavigationStore.setState({ currentApp: 'planner', appStack: ['home', 'planner'] });
   });
 
-  it('keeps Launch Attack disabled when a target is chosen and the driver and shooter are empty', () => {
+  it('shows the actual crew and carries the selected block to MAP exactly once', () => {
     render(<AttackPlanner />);
+    expect(screen.getByText('Lil Dre')).toBeInTheDocument();
+    expect(screen.getByText('Kilo')).toBeInTheDocument();
+    const before = usePlayerStore.getState().player;
+    const launch = screen.getByRole('button', { name: /launch response/i });
+    act(() => { launch.click(); launch.click(); });
+    expect(useNavigationStore.getState().currentApp).toBe('map');
+    expect(useNavigationStore.getState().appStack).toEqual(['home', 'planner', 'map']);
+    expect(useCombatIntentStore.getState().pendingEncounterBlockId).toBe(BLOCK_LOOP_IDS.blockId);
+    expect(usePlayerStore.getState().player).toEqual(before);
+  });
 
-    fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'dummy-target' } });
+  it('never offers NPC, unclaimed, or fabricated targets', () => {
+    const block = useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId];
+    useBlockStore.getState().upsertBlock({ ...block, id: 'rival', owner: 'npc', address: 'Rival block' });
+    useBlockStore.getState().upsertBlock({ ...block, id: 'empty', owner: 'unclaimed', address: 'Empty block' });
+    render(<AttackPlanner />);
+    const select = screen.getByRole('combobox', { name: /your block/i });
+    expect(select).not.toHaveTextContent('Rival block');
+    expect(select).not.toHaveTextContent('Empty block');
+    expect(select).not.toHaveTextContent('187th');
+  });
 
-    const launch = screen.getByRole('button', { name: /launch attack/i });
+  it('uses the newly selected block instead of the prior target', () => {
+    const block = useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId];
+    useBlockStore.getState().upsertBlock({ ...block, id: 'second-block', address: 'Second strip' });
+    render(<AttackPlanner />);
+    fireEvent.change(screen.getByRole('combobox', { name: /your block/i }), { target: { value: 'second-block' } });
+    fireEvent.click(screen.getByRole('button', { name: /launch response/i }));
+    expect(useCombatIntentStore.getState().pendingEncounterBlockId).toBe('second-block');
+    expect(useBlockStore.getState().selectedBlockId).toBe('second-block');
+  });
+
+  it('denies launch after a previously valid shooter becomes unavailable', () => {
+    render(<AttackPlanner />);
+    act(() => useGangStore.getState().updateMember('demo-enforcer-1', { status: 'hospitalized' }));
+    const launch = screen.getByRole('button', { name: /launch response/i });
     expect(launch).toBeDisabled();
-
     fireEvent.click(launch);
     expect(useNavigationStore.getState().currentApp).toBe('planner');
+    expect(useCombatIntentStore.getState().pendingEncounterBlockId).toBeNull();
   });
 
-  it('launches only after a driver and a different shooter are assigned', () => {
+  it('keeps empty blocks in planning instead of inventing a scout', () => {
+    const block = useBlockStore.getState().blocks[BLOCK_LOOP_IDS.blockId];
+    useBlockStore.getState().upsertBlock({ ...block, placements: [] });
     render(<AttackPlanner />);
-    const [target, , enforcer, driver] = screen.getAllByRole('combobox');
-
-    fireEvent.change(target, { target: { value: 'dummy-target' } });
-    fireEvent.change(driver, { target: { value: dealer.id } });
-    expect(screen.getByRole('button', { name: /launch attack/i })).toBeDisabled();
-
-    fireEvent.change(enforcer, { target: { value: shooter.id } });
-    const launch = screen.getByRole('button', { name: /launch attack/i });
-    expect(launch).toBeEnabled();
-
-    fireEvent.click(launch);
-    expect(useNavigationStore.getState().currentApp).toBe('topdown');
+    expect(screen.getByRole('button', { name: /launch response/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /position crew/i })).toBeEnabled();
   });
 });

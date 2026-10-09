@@ -9,6 +9,7 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
+import { getBlockResponseReadiness } from '../../stores/combatIntentStore';
 import { usePlayerStore, useGangStore } from '../../stores/gameStore';
 import type { BlockData, BlockViewMode, MemberRole } from '../../types/block.types';
 import type { CombatResult } from '../../game/combat/types';
@@ -173,17 +174,34 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
   useEffect(() => {
     if (!autoStartEncounter) return;
+    const targetId = initialBlockId ?? selectedBlockId;
+    const readiness = getBlockResponseReadiness(targetId ? useBlockStore.getState().blocks[targetId] : undefined, useGangStore.getState().members);
+    if (!readiness.canLaunch) {
+      showToast(readiness.reason, 4000);
+      onAutoEncounterStarted?.();
+      return;
+    }
     setShowDriveBy(false);
     setShowModernOps(false);
     setShowRaid(false);
     setShowEncounter(true);
     onAutoEncounterStarted?.();
-  }, [autoStartEncounter, onAutoEncounterStarted]);
+  }, [autoStartEncounter, initialBlockId, selectedBlockId, onAutoEncounterStarted, showToast]);
 
   // Income ticking is handled centrally by gameLoopEngine (App.tsx)
   // BlockModeView only reads pendingIncome and allows manual collection
 
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
+
+  const openEncounter = () => {
+    const liveBlock = selectedBlockId ? useBlockStore.getState().blocks[selectedBlockId] : undefined;
+    const readiness = getBlockResponseReadiness(liveBlock, useGangStore.getState().members);
+    if (!readiness.canLaunch) { showToast(readiness.reason, 4000); return; }
+    setShowDriveBy(false);
+    setShowModernOps(false);
+    setShowRaid(false);
+    setShowEncounter(true);
+  };
 
   const handleCollect = useCallback(async () => {
     if (!selectedBlockId || !block) return;
@@ -252,7 +270,9 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
 
   const handleEncounterResolved = useCallback((result: CombatResult) => {
     if (!selectedBlockId) return;
-    const activeBlock = blocks[selectedBlockId];
+    const activeBlock = useBlockStore.getState().blocks[selectedBlockId];
+    // Guard all shared consequences, not just the block projection.
+    if (!activeBlock || activeBlock.appliedEncounterResultKeys?.includes(result.idempotencyKey)) return;
     const rivalCrew = activeBlock?.owner === 'npc'
       ? useGhostStore.getState().crewForBlock(selectedBlockId)
       : undefined;
@@ -273,7 +293,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         result.idempotencyKey,
       );
     }
-    updatePlayer({ heat: Math.max(0, Math.min(5, (player.heat ?? 0) + result.heatDelta)) });
+    updatePlayer({ heat: Math.max(0, Math.min(5, (usePlayerStore.getState().player.heat ?? 0) + result.heatDelta)) });
     setShowEncounter(false);
     setShowModernOps(false);
     if (activeBlock && result.crewDown.length > 0) {
@@ -290,7 +310,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       setShowBailModal(true);
     }
     showToast(result.summary, 3500);
-  }, [applyEncounterResult, blocks, player.heat, selectedBlockId, showToast, updatePlayer]);
+  }, [applyEncounterResult, selectedBlockId, showToast, updatePlayer]);
 
   const handleDriveByResolved = useCallback(
     (outcome: 'repelled' | 'successful' | 'fled' | undefined, casualties: string[]) => {
@@ -375,7 +395,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         <button
           type="button"
           className={`bmv-tab ${showEncounter ? 'active danger' : ''}`}
-          onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter((v) => !v); }}
+          onClick={() => { if (showEncounter) setShowEncounter(false); else openEncounter(); }}
         >
           Encounter
         </button>
@@ -450,7 +470,7 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
         <motion.button
           type="button"
           className="bmv-btn slide"
-          onClick={() => { setShowDriveBy(false); setShowModernOps(false); setShowRaid(false); setShowEncounter(true); }}
+          onClick={openEncounter}
           whileTap={{ scale: 0.95 }}
         >
           Encounter
