@@ -69,6 +69,17 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-09 — Nightfall reuse and touch geometry, draft handoff (#190)
+
+- **Base/branch:** `9eef5aac28a82275d7a2e1596e8658b167953ed7` / `fix/190-tactical-role-art`. Reservations: #190 comments 6086504547 and 6087048558. Reuse existing resources before creating code/assets.
+- **Player change:** registered idle/downed role art now renders named fictional rivals; resolver aliases share URL texture keys; distinct team rings and backed labels improve readability. Existing engine events render once even when same-tick IDs collide. Reveal the registered plate without changing cover/extraction geometry.
+- **Input repair:** remove forced canvas CSS dimensions so existing Phaser FIT keeps taps aligned. Put full-screen combat above the rival banner; close control minimum becomes 44px. No camera, cell, hitbox, engine command, economy or result-writer change.
+- **HUD:** expose existing crew snapshot HP/ammo/reload/down state in the existing DOM stats row. No parallel selection/state or new service.
+- **Regression/gates before HUD:** scene suite 4 failed / 1 passed on base, then 5 passed. Full frontend 1,038 passed / 4 skipped / 92 files; typecheck/build pass; lint 200 baseline warnings / 0 errors / no new warnings; asset audit 112 / 7.70 MB of 20 MB / no errors or warnings; packages 5 / schemas 4. HUD regression failed on the base UI; final local preflight completion is unknown after the workspace disconnected.
+- **Built-game proof before HUD:** real 390×844 touch and 1440×900 pointer path Strip → named Nightfall → actual cell movement → fire/reload → registered downed rival → retreat → apply once → strategy → reload. Both happy paths had no page/console errors and one unchanged local receipt. Reinjecting old canvas CSS reproduced wrong destination cells at both sizes. Phone actor-image failure retained playable labels/controls/result/reload (0 page errors; 16 expected resource errors).
+- **Draft hold:** GitHub CI checks the published final source; final HUD phone/desktop/failure recapture and screenshot upload remain pending because the workspace went offline. Evidence summary and exact limits: `docs/evidence/2026-10-09-nightfall-presentation/`. Do not claim final HUD manual proof or authenticated receipt durability.
+- **Integration/limits:** independent of #204 ATTACK response; both append this log and require append-only reconciliation on integration. No #169 resolver/member-identity, #201 DRIVE, #175 staging, migrations, secrets, Supabase or deployment edits. Role-art provenance/fallback/budget recorded in ASSETS.md. Full #190 hero approval/missing poses, phone Diorama hit-area overlap and #175 authenticated recovery remain open.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.

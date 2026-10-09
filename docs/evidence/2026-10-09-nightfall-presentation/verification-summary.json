@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-09",
+  "repository": "BrandDead/slide",
+  "baseCommit": "9eef5aac28a82275d7a2e1596e8658b167953ed7",
+  "scope": "Nightfall presentation and Phaser FIT correction",
+  "recordType": "Summary of locally completed and inspected checks; not raw Playwright output",
+  "verifiedSourceBlobs": {
+    "scene": "60feef55e8ff462e77aa6abea3a5c04d8ff8ada0",
+    "css": "67b2e6c7468d3235c5f50e1558a304db0e69d483"
+  },
+  "timing": {
+    "localAutomatedChecks": "Before the final DOM crew-condition HUD addition",
+    "browserChecks": "Before the final DOM crew-condition HUD addition",
+    "finalHudLocalPreflight": "Started, completion unknown: workspace environment disconnected",
+    "finalHudBrowserCheck": "Pending",
+    "screenshotUpload": "Blocked by workspace outage; no screenshot files are included in this summary"
+  },
+  "regressionFirst": {
+    "sceneBase": {
+      "passed": 1,
+      "failed": 4
+    },
+    "sceneAfter": {
+      "passed": 5,
+      "failed": 0
+    },
+    "hudBase": {
+      "passed": 1,
+      "failed": 1,
+      "expectedFailure": "Scout condition label absent"
+    }
+  },
+  "preHudLocalGates": {
+    "frontend": {
+      "passed": 1038,
+      "skipped": 4,
+      "files": 92
+    },
+    "lint": {
+      "warnings": 200,
+      "errors": 0,
+      "newWarnings": 0
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "assets": {
+      "count": 112,
+      "runtimeMB": 7.7,
+      "budgetMB": 20,
+      "errors": 0,
+      "warnings": 0
+    },
+    "packages": {
+      "count": 5,
+      "schemas": 4
+    }
+  },
+  "browserMethod": {
+    "build": "Existing demo mode built after normal validation, with demo Supabase configuration",
+    "runtime": "Real built React/Phaser game; real controls, commands and result application",
+    "delivery": "Hermetic static delivery of built files and system font fallback",
+    "inspection": "Read-only Phaser boot observer inspected actual session cells and sprite texture URLs",
+    "route": [
+      "Age gate",
+      "Run the Block",
+      "Lock Dre and Rome",
+      "Place Dre",
+      "Legal board",
+      "Storefront at (4,3)",
+      "Assign Rome",
+      "Close Deal",
+      "Defend Block",
+      "Named Nightfall encounter"
+    ],
+    "persistenceBoundary": "Local demo receipt and reload; authenticated server receipt not exercised"
+  },
+  "happyPaths": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "input": "Real touchscreen taps at rendered cell centers",
+      "intendedDestinations": {
+        "Dre": {
+          "x": 0,
+          "y": 2
+        },
+        "Rome": {
+          "x": 4,
+          "y": 4
+        }
+      },
+      "observedDestinations": {
+        "Dre": {
+          "x": 0,
+          "y": 2
+        },
+        "Rome": {
+          "x": 4,
+          "y": 4
+        }
+      },
+      "fireReload": "completed",
+      "downedRival": "Nightfall lookout used registered shooter downed texture",
+      "outcome": "retreated",
+      "appliedReceiptCount": 1,
+      "reloadLedgerUnchanged": true,
+      "pageErrors": 0,
+      "consoleErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "input": "Real pointer clicks at rendered cell centers",
+      "intendedDestinations": {
+        "Dre": {
+          "x": 0,
+          "y": 2
+        },
+        "Rome": {
+          "x": 4,
+          "y": 4
+        }
+      },
+      "observedDestinations": {
+        "Dre": {
+          "x": 0,
+          "y": 2
+        },
+        "Rome": {
+          "x": 4,
+          "y": 4
+        }
+      },
+      "fireReload": "completed",
+      "downedRival": "Nightfall lookout used registered shooter downed texture",
+      "outcome": "retreated",
+      "appliedReceiptCount": 1,
+      "reloadLedgerUnchanged": true,
+      "pageErrors": 0,
+      "consoleErrors": 0
+    }
+  ],
+  "sizingRegression": {
+    "method": "Reinjected base canvas CSS into the otherwise unchanged presentation build",
+    "phone": {
+      "intendedDre": {
+        "x": 0,
+        "y": 2
+      },
+      "actualDre": {
+        "x": 0,
+        "y": 3
+      },
+      "correctCells": false
+    },
+    "desktop": {
+      "intendedDre": {
+        "x": 0,
+        "y": 2
+      },
+      "actualDre": {
+        "x": 1,
+        "y": 2
+      },
+      "correctCells": false
+    },
+    "geometry": {
+      "worldWidth": 960,
+      "worldHeight": 600,
+      "gridCols": 8,
+      "gridRows": 8,
+      "cellWidth": 120,
+      "cellHeight": 55.25,
+      "playfieldTop": 86,
+      "playfieldBottom": 72
+    }
+  },
+  "imageFailure": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "method": "Abort registered character/topdown image requests",
+    "labelsAndMarkers": "visible",
+    "fireReloadRetreat": "playable",
+    "appliedReceiptCount": 1,
+    "reloadLedgerUnchanged": true,
+    "pageErrors": 0,
+    "expectedFailedResourceConsoleErrors": 16
+  },
+  "observedLocalReceipt": {
+    "key": "encounter-demo-block-las-olas-m36lx4:retreated",
+    "money": 13256,
+    "playerHeat": 9,
+    "blockMorale": 66
+  },
+  "remaining": [
+    "Repeat final HUD phone/desktop happy and image-failure paths and attach captures",
+    "Complete #190 hero package/style approval and missing aim/fire/hit/reload pose inventory",
+    "Authenticated result durability and recovery remain under #175",
+    "Legal-board fallback was used; mobile Diorama hit-area overlap is not fixed here"
+  ]
+}

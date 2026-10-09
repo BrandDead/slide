@@ -154,6 +154,11 @@ export const UnifiedEncounter: React.FC<UnifiedEncounterProps> = ({
           <span><strong>{activeCrew}</strong> crew active</span>
           <span><strong>{opposition}</strong> opposition visible</span>
           <span><strong>{snapshot.objective.progress}/{snapshot.objective.target}</strong> secure exits</span>
+          {snapshot.combatants.filter(actor => actor.team === 'crew').map(actor => (
+            <span key={actor.id} aria-label={`${actor.name} condition`}>
+              <strong>{actor.name}</strong> · {actor.isDown ? 'DOWN' : `${actor.health} HP`} · {actor.ammo}/{actor.maxAmmo} ammo{actor.reloadUntilTick !== null && !actor.isDown ? ' · reloading' : ''}
+            </span>
+          ))}
         </div>
         <div className="ue-action-row">
           <button type="button" disabled={!isReady || snapshot.phase !== 'active'} onClick={() => sceneRef.current?.fireNearestSelected()}>Fire nearest</button>
