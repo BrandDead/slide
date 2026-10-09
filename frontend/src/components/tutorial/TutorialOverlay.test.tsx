@@ -6,8 +6,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import TutorialOverlay from './TutorialOverlay';
 import AttackPlanner from '../missions/AttackPlanner';
 import { useTutorialProgressStore } from '../../stores/tutorialProgressStore';
-import { useGangStore, useNavigationStore } from '../../stores/gameStore';
-import type { GangMember } from '../../types/game.types';
+import { useNavigationStore } from '../../stores/gameStore';
+import { useBlockStore } from '../../stores/blockStore';
+import { useCombatIntentStore } from '../../stores/combatIntentStore';
+import { applyDemoSeed } from '../../utils/demoSeed';
 
 describe('TutorialOverlay', () => {
   beforeEach(() => {
@@ -51,7 +53,7 @@ describe('TutorialOverlay', () => {
     expect(bottom).toContain('safe-area-inset-bottom');
   });
 
-  it('lets an enabled Launch Attack tap pass through the phone hint', () => {
+  it('lets an enabled Launch Response tap pass through the phone hint', () => {
     const css = readFileSync(resolve(__dirname, 'TutorialOverlay.css'), 'utf8');
     const style = document.createElement('style');
     style.textContent = css;
@@ -63,13 +65,9 @@ describe('TutorialOverlay', () => {
       appStack: ['home', 'planner'],
       isTransitioning: false,
     });
-    useGangStore.setState({
-      members: [
-        crewMember({ id: 'demo-dealer-1', name: 'Lil Dre', role: 'dealer' }),
-        crewMember({ id: 'demo-shooter-1', name: 'Big Rome', role: 'shooter' }),
-      ],
-      contacts: [],
-    });
+    useBlockStore.setState({ blocks: {}, selectedBlockId: null });
+    applyDemoSeed();
+    useCombatIntentStore.getState().reset();
 
     render(
       <>
@@ -78,19 +76,14 @@ describe('TutorialOverlay', () => {
       </>,
     );
 
-    const [target, , enforcer, driver] = screen.getAllByRole('combobox');
-    fireEvent.change(target, { target: { value: 'dummy-target' } });
-    fireEvent.change(driver, { target: { value: 'demo-dealer-1' } });
-    fireEvent.change(enforcer, { target: { value: 'demo-shooter-1' } });
-
-    const launch = screen.getByRole('button', { name: /launch attack/i });
+    const launch = screen.getByRole('button', { name: /launch response/i });
     expect(launch).toBeEnabled();
 
     const hint = screen.getByText('Welcome to SLIDE').closest('.tutorial-hint');
     expect(hint).toBeInstanceOf(HTMLElement);
 
     // jsdom has no layout engine. These boxes are the 375×812 measurements
-    // from the founder review: hint y674–720, Launch Attack center (188, 679).
+    // for a hint overlapping the launch action: hint y674–720, button center (188, 679).
     const boxes = new Map<HTMLElement, { left: number; top: number; right: number; bottom: number }>([
       [hint as HTMLElement, { left: 0, top: 674, right: 375, bottom: 720 }],
       [launch, { left: 16, top: 654, right: 359, bottom: 704 }],
@@ -98,37 +91,10 @@ describe('TutorialOverlay', () => {
 
     expect(phoneHitTarget(188, 679, boxes)).toBe(launch);
     expect(phoneHitTarget(188, 679, boxes)?.classList.contains('launch-btn')).toBe(true);
+    fireEvent.click(launch);
+    expect(useNavigationStore.getState().currentApp).toBe('map');
   });
 });
-
-function crewMember(partial: Pick<GangMember, 'id' | 'name' | 'role'>): GangMember {
-  return {
-    gangId: 'demo-gang',
-    nickname: partial.name,
-    avatarUrl: '',
-    backstory: '',
-    age: 24,
-    region: 'miami',
-    stats: { strength: 50, agility: 50, intelligence: 50, charisma: 50, luck: 50, intimidation: 50 },
-    level: 2,
-    experience: 0,
-    skillPoints: 0,
-    skills: [],
-    loyalty: 80,
-    morale: 80,
-    respect: 40,
-    kills: 0,
-    arrests: 0,
-    dealsCompleted: 0,
-    moneyEarned: 0,
-    status: 'active',
-    currentAssignment: null,
-    joinedAt: '2026-01-01T00:00:00.000Z',
-    health: 100,
-    maxHealth: 100,
-    ...partial,
-  };
-}
 
 type PhoneBox = { left: number; top: number; right: number; bottom: number };
 

@@ -61,7 +61,6 @@ const Shoebox           = createRetryableLazy(() => import('./components/economy
 const Market            = createRetryableLazy(() => import('./components/economy/Market'));
 const Missions          = createRetryableLazy(() => import('./components/missions/Missions'));
 const Leaderboard       = createRetryableLazy(() => import('./components/hub/Leaderboard'));
-const TopDownShooter    = createRetryableLazy(() => import('./components/topdown/TopDownShooter'));
 const BipNDipGame       = createRetryableLazy(() => import('./components/topdown/BipNDipGame'));
 const PoliceRaidGame    = createRetryableLazy(() => import('./components/raid/PoliceRaidGame'));
 const GangManagement    = createRetryableLazy(() => import('./components/gang/GangManagement'));
@@ -216,7 +215,8 @@ const App: React.FC = () => {
       // Lazy-loaded screens wrapped in Suspense + recovery
       case 'slide':       return <LazyRoute label="SLIDE"><SlideGame key="slide" /></LazyRoute>;
       case 'driveby':     return <LazyRoute label="Drive-by"><DriveByGame key="driveby" /></LazyRoute>;
-      case 'topdown':     return <LazyRoute label="Top-down"><TopDownShooter key="topdown" /></LazyRoute>;
+      // Keep old ATTACK links useful without entering the legacy result writer.
+      case 'topdown':     return <LazyRoute label="Attack planning"><AttackPlanner key="topdown" /></LazyRoute>;
       case 'bipndip':     return <LazyRoute label="Bip N Dip"><BipNDipGame key="bipndip" /></LazyRoute>;
       case 'raid':        return <LazyRoute label="Raid"><PoliceRaidGame key="raid" /></LazyRoute>;
       case 'gang_hq':     return <LazyRoute label="Crew"><GangManagement key="gang_hq" /></LazyRoute>;

@@ -69,6 +69,14 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-09 — Canonical owned-block response slice (#192)
+
+- ATTACK and OPS PLAN now show the player's actual owned blocks and confirmed crew positions, then carry the selected block through the existing combat-intent store to MAP's `UnifiedEncounter`. Launch rechecks ownership/roster at queue, consume and encounter entry; empty/all-downed/unavailable crews stay in planning. Removed the fake target/seat selection and the legacy shooter route from these entries without adding an engine or result writer.
+- BlockMode now rejects a repeated result before shared player heat and service submission, using the current store rather than a captured block/heat snapshot. The independent DRIVE intent is retained.
+- Regression-first evidence: 12 new flow tests and 2 BlockMode regressions failed on the base, then passed after the fix. Full validation: 93 files / 1,047 passed / 4 existing skips; TypeScript passed; lint 0 errors / 200 baseline warnings; assets 112 / 7.70 MB of 20 MB / 0 errors or warnings; 5 packages / 4 schemas; production build passed. Offline backend: 107 passed, 0 warnings.
+- Built-game ATTACK → confirmed crew → fire/reload → retreat → one local result → return → reload passed at 390×844 and 1440×900, with no happy-path page/console errors; failed encounter-chunk recovery retained the board and retry. Capture details, font/network constraints and screenshots: `docs/evidence/2026-10-09-attack-response/`.
+- Branch `fix/192-canonical-block-response`; review PR only, no merge/deployment. #192 remains open for a separately contracted NPC invasion/driver-dismount path. #169, #201 and #175 remain with their existing owners; local demo receipts are not authenticated server proof, and the existing remote receipt failure/recovery path still needs #175 sign-off.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.
