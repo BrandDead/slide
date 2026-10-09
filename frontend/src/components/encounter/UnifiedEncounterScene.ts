@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { advanceCombat, createCombatSession, dispatchCombatCommand, getCombatSnapshot } from '../../game/combat/combatSession';
 import { PhaserReadyGate } from '../../utils/phaserSceneReady';
 import type { CombatCommand, CombatSnapshot, Combatant, EncounterPreparation, GridPoint } from '../../game/combat/types';
-import { getWorldActor } from '../../render/worldActorResolver';
+import { getWorldActor, type ActorState } from '../../render/worldActorResolver';
 
 const CANVAS_W = 960;
 const CANVAS_H = 600;
@@ -39,7 +39,8 @@ export class UnifiedEncounterScene extends Phaser.Scene {
   });
   private actorViews = new Map<string, ActorView>();
   private effects: TransientEffect[] = [];
-  private lastEventId: string | null = null;
+  // Engine events retain object identity; their same-tick IDs can collide.
+  private readonly renderedEvents = new WeakSet<CombatSnapshot['events'][number]>();
   private selectedCrewId: string | null = null;
   private sequence = 0;
   private accumulator = 0;
@@ -73,12 +74,14 @@ export class UnifiedEncounterScene extends Phaser.Scene {
     if (this.preparation.backgroundUrl) this.load.image(this.backgroundKey, this.preparation.backgroundUrl);
     const loaded = new Set<string>();
     for (const actor of [...this.preparation.crew, ...this.preparation.opposition]) {
-      if (actor.team !== 'crew') continue;
-      const resolved = getWorldActor(actor.role, 'idle', 'topdown');
-      if (!resolved || loaded.has(resolved.url)) continue;
-      const key = this.textureKey(actor);
-      this.load.image(key, resolved.url);
-      loaded.add(resolved.url);
+      // Opposition is a fictional armed role, not a crew identity. Borrow the
+      // registered shooter kit without changing the engine role or hit cell.
+      for (const state of ['idle', 'downed'] as const) {
+        const resolved = getWorldActor(actor.role === 'opposition' ? 'shooter' : actor.role, state, 'topdown');
+        if (!resolved || loaded.has(resolved.url)) continue;
+        this.load.image(this.textureKey(actor, state), resolved.url);
+        loaded.add(resolved.url);
+      }
     }
   }
 
@@ -138,7 +141,7 @@ export class UnifiedEncounterScene extends Phaser.Scene {
     if (this.textures.exists(this.backgroundKey)) {
       this.add.image(CANVAS_W / 2, CANVAS_H / 2, this.backgroundKey)
         .setDisplaySize(CANVAS_W, CANVAS_H)
-        .setAlpha(0.52);
+        .setAlpha(0.68);
     } else {
       const background = this.add.graphics();
       background.fillGradientStyle(0x162436, 0x162436, 0x080d16, 0x080d16, 1);
@@ -162,9 +165,11 @@ export class UnifiedEncounterScene extends Phaser.Scene {
     this.preparation.terrain.flat().forEach((cell) => {
       const { x, y } = this.pointToPixel(cell);
       const fill = tint[cell.zoneType] ?? 0x233142;
-      const alpha = cell.passable ? 0.74 : 0.92;
+      const alpha = this.textures.exists(this.backgroundKey)
+        ? (cell.passable ? 0.28 : 0.74)
+        : (cell.passable ? 0.74 : 0.92);
       const rectangle = this.add.rectangle(x, y, CELL_W - 4, CELL_H - 4, fill, alpha)
-        .setStrokeStyle(1, cell.cover >= 0.6 ? 0x83d5d0 : 0x314c5d, 0.7);
+        .setStrokeStyle(1, cell.cover >= 0.6 ? 0x83d5d0 : 0x314c5d, cell.cover >= 0.6 ? 0.7 : 0.3);
       this.terrainLayer.add(rectangle);
       if (cell.cover >= 0.6) {
         const coverMark = this.add.rectangle(x, y - CELL_H * 0.25, CELL_W * 0.52, 5, 0x83d5d0, 0.85);
@@ -189,7 +194,7 @@ export class UnifiedEncounterScene extends Phaser.Scene {
     this.statusText = this.add.text(CANVAS_W / 2, 39, '', { fontFamily: 'monospace', fontSize: '10px', color: '#f1c77d', align: 'center' }).setOrigin(0.5, 0);
     this.ammoText = this.add.text(CANVAS_W - 20, 13, '', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff', align: 'right' }).setOrigin(1, 0);
     this.timerText = this.add.text(CANVAS_W - 20, 38, '', { fontFamily: 'monospace', fontSize: '10px', color: '#9db0bf', align: 'right' }).setOrigin(1, 0);
-    const controls = this.add.text(20, CANVAS_H - 54, 'TAP/CICK: move or target · WASD/ARROWS: move · SPACE: fire · R: reload · E: exit · Q: retreat', {
+    const controls = this.add.text(20, CANVAS_H - 54, 'TAP/CLICK: move or target · WASD/ARROWS: move · SPACE: fire · R: reload · E: exit · Q: retreat', {
       fontFamily: 'monospace', fontSize: '10px', color: '#9db0bf', wordWrap: { width: CANVAS_W - 40 },
     });
     this.uiLayer.add([title, location, this.objectiveText, this.statusText, this.ammoText, this.timerText, controls]);
@@ -273,35 +278,38 @@ export class UnifiedEncounterScene extends Phaser.Scene {
         view = this.createActorView(actor, point);
         this.actorViews.set(actor.id, view);
       }
-      view.sprite.setPosition(point.x, point.y - 8).setAlpha(actor.isDown ? 0.36 : 1);
+      const texture = this.textureKey(actor);
+      if ('setTexture' in view.sprite && this.textures.exists(texture)) view.sprite.setTexture(texture);
+      view.sprite.setPosition(point.x, point.y - 8).setAlpha(actor.isDown ? 0.68 : 1);
       view.healthBack.setPosition(point.x, point.y - CELL_H * 0.34);
       view.healthFill.setPosition(point.x - 24 + 24 * hpRatio, point.y - CELL_H * 0.34).setSize(48 * hpRatio, 5);
       view.label.setPosition(point.x, point.y + CELL_H * 0.31).setText(actor.isDown ? `${actor.name} · DOWN` : actor.name);
-      view.selectedRing.setPosition(point.x, point.y).setVisible(actor.id === this.selectedCrewId && !actor.isDown);
+      view.selectedRing.setPosition(point.x, point.y).setVisible(!actor.isDown && (actor.team === 'opposition' || actor.id === this.selectedCrewId));
     });
   }
 
   private createActorView(actor: Combatant, point: { x: number; y: number }): ActorView {
     const actorTexture = this.textureKey(actor);
-    const hasTexture = actor.team === 'crew' && this.textures.exists(actorTexture);
+    const hasTexture = this.textures.exists(actorTexture);
+    const art = getWorldActor(actor.role === 'opposition' ? 'shooter' : actor.role, actor.isDown ? 'downed' : 'idle', 'topdown');
     const sprite = hasTexture
-      ? this.add.image(point.x, point.y, actorTexture).setScale(0.32)
+      ? this.add.image(point.x, point.y, actorTexture).setOrigin(art?.pivot.x ?? 0.5, art?.pivot.y ?? 0.5).setScale(0.32)
       : this.add.circle(point.x, point.y, 15, actor.team === 'crew' ? 0x54d6d0 : 0xef7777, 1);
     const healthBack = this.add.rectangle(point.x, point.y - 24, 50, 6, 0x111827, 0.9);
     const healthFill = this.add.rectangle(point.x, point.y - 24, 48, 5, actor.team === 'crew' ? 0x4ade80 : 0xfb7185, 1);
-    const label = this.add.text(point.x, point.y + 25, actor.name, { fontFamily: 'monospace', fontSize: '9px', color: actor.team === 'crew' ? '#d9fffb' : '#ffd8d8', align: 'center' }).setOrigin(0.5);
-    const selectedRing = this.add.circle(point.x, point.y, 22, 0x9cf5ed, 0).setStrokeStyle(2, 0x9cf5ed, 0.95).setVisible(false);
+    const label = this.add.text(point.x, point.y + 25, actor.name, { fontFamily: 'monospace', fontSize: '12px', backgroundColor: '#07111dcc', padding: { x: 3, y: 2 }, color: actor.team === 'crew' ? '#d9fffb' : '#ffd8d8', align: 'center' }).setOrigin(0.5);
+    const selectedRing = this.add.circle(point.x, point.y, 22, 0x9cf5ed, 0).setStrokeStyle(2, actor.team === 'crew' ? 0x9cf5ed : 0xfb7185, 0.95).setVisible(false);
     this.actorLayer.add([sprite, healthBack, healthFill, label, selectedRing]);
     return { sprite, healthBack, healthFill, label, selectedRing };
   }
 
   private handleNewEvents(): void {
-    const latestEvents = this.lastEventId
-      ? this.session.events.slice(this.session.events.findIndex((item) => item.id === this.lastEventId) + 1)
-      : this.session.events;
+    const latestEvents = this.session.events.filter(item => !this.renderedEvents.has(item));
     if (latestEvents.length === 0) return;
-    latestEvents.forEach((item) => this.renderEvent(item));
-    this.lastEventId = latestEvents.at(-1)?.id ?? this.lastEventId;
+    latestEvents.forEach((item) => {
+      this.renderedEvents.add(item);
+      this.renderEvent(item);
+    });
     this.emitSnapshot();
   }
 
@@ -365,7 +373,9 @@ export class UnifiedEncounterScene extends Phaser.Scene {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
   }
 
-  private textureKey(actor: Combatant): string {
-    return `encounter-actor-${actor.role}`;
+  private textureKey(actor: Combatant, state: ActorState = actor.isDown ? 'downed' : 'idle'): string {
+    const art = getWorldActor(actor.role === 'opposition' ? 'shooter' : actor.role, state, 'topdown');
+    // Aliased roles/states share one loaded texture rather than an absent key.
+    return `encounter-actor-${art?.url ?? actor.role}`;
   }
 }

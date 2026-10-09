@@ -89,3 +89,22 @@ The Block DNA batch-one reference establishes harbor, transit-market, canal, and
 | Matching vertical vehicle loadout plate | Original OpenAI GPT Image 2.5 generation; no found artwork incorporated | `art-src/generated/environments/street/block_slide_car_loadout_mobile_v001.png` (1440×2560) | `generated.environments.street.block_slide_car_loadout_mobile_v001` → `/assets/runtime/generated/environments/street/block_slide_car_loadout_mobile_v001.webp` | 1080×1920, 201,184 bytes |
 
 Both sources were imported using the processor's exact-source `--only` option after #198, not by hand-editing the manifest. The global runtime package is 7.70 MB against the 20 MB limit. These plates are **decorative only**: four seat buttons, selection/status text, stats, cargo, and the launch action remain accessible DOM. Fictional demo members have only a clearly labeled role-art fallback; a verified personal likeness depends on a real member photo and the separate #195 generation-provider gate. The loadout excludes the driver from passenger-shooter seats and post-mission shooter XP, but the legacy mini-game does not yet attribute shots to named passengers (#201).
+
+## Nightfall tactical presentation reuse — 2026-10-09
+
+`UnifiedEncounterScene` now consumes the existing `worldActorResolver` topdown idle/downed role art for crew and fictional opposition. Opposition borrows the registered shooter kit for presentation only; named identity, engine role, team, position and combat authority are preserved. URL-derived texture keys keep resolver aliases on the same loaded image. No generated art, asset import, manifest change, dependency or acquisition was added.
+
+| Registered asset ID | Runtime file under `/assets/runtime/generated/characters/topdown/` | Existing source under `art-src/generated/characters/topdown/` | Bytes |
+|---|---|---|---:|
+| `generated.characters.topdown.character_dealer_male_blacktee_topdown_idle_v001` | `character_dealer_male_blacktee_topdown_idle_v001.webp` | `character_dealer_male_blacktee_topdown_idle_v001.png` | 12,014 |
+| `generated.characters.topdown.character_dealer_male_topdown_downed_v001` | `character_dealer_male_topdown_downed_v001.webp` | `character_dealer_male_topdown_downed_v001.png` | 19,238 |
+| `generated.characters.topdown.character_shooter_male_topdown_idle_v001` | `character_shooter_male_topdown_idle_v001.webp` | `character_shooter_male_topdown_idle_v001.png` | 11,120 |
+| `generated.characters.topdown.character_shooter_male_topdown_downed_v001` | `character_shooter_male_topdown_downed_v001.webp` | `character_shooter_male_topdown_downed_v001.png` | 21,134 |
+
+These are previously registered repository assets with their existing provenance, not newly acquired art or member likenesses. All four are 384×384 with alpha and resolver pivot `(0.5,0.5)`. The scene uses resolver pivots and the existing `0.32` sprite scale (122.88 world pixels; approximately 49.92 CSS pixels at 390px width).
+
+**State/fallback contract:** preload idle/downed URLs once; use registered downed art when available. Missing actor images retain team-colored geometric markers and named labels. Aim/fire/hit/reload pose art is not available in this kit: idle is intentional while existing tracers/impacts and snapshot HUD communicate combat. No pose animation is claimed. The existing Las Olas `preparation.backgroundUrl` remains the plate; increased plate visibility and lighter passable-cell tint preserve cover/extraction readability. Missing plate retains the existing terrain/background fallback.
+
+**Projection/budget:** 960×600 world, 8×8 terrain, 120×55.25 cells, top 86/bottom 72 and engine hit cells are unchanged. Phaser FIT owns canvas sizing/centering; CSS does not stretch it. Preloading the two already-shipped downed images adds at most 40,372 bytes of requests for the demonstrated dealer/shooter pair; shipped asset budget delta is zero. Audit remained 112 assets / 7.70 MB of 20 MB / no errors or warnings, with 5 valid packages and 4 schemas.
+
+Phone/desktop and actor-image-failure checks completed before the final DOM health/ammo/reload HUD addition. Final HUD recapture and screenshot upload are pending after a workspace outage; see `docs/evidence/2026-10-09-nightfall-presentation/README.md`. This narrow reuse fix does not complete #190's full hero-package/style approval or its missing pose inventory.
