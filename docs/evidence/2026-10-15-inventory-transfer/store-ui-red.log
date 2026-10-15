@@ -1,0 +1,764 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/stores/__tests__/inventoryTransfer.test.ts src/components/trap/__tests__/TrapApp.transfer.test.tsx
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide/frontend
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts (18 tests | 18 failed) 31ms
+   × crew inventory transfer boundary > gives product without a CommonJS runtime failure and preserves its recorded metadata 12ms
+     → expected [Function] to not throw an error but 'Error: Cannot find module \'../config…' was thrown
+   × crew inventory transfer boundary > rejects invalid quantity 0 without inventory mutation 3ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects invalid quantity -1 without inventory mutation 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects invalid quantity 0.5 without inventory mutation 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects invalid quantity NaN without inventory mutation 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects invalid quantity Infinity without inventory mutation 2ms
+     → expected undefined to be false // Object.is equality
+   × crew inventory transfer boundary > rejects invalid quantity -Infinity without inventory mutation 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects invalid quantity 4 without inventory mutation 1ms
+     → expected undefined to be false // Object.is equality
+   × crew inventory transfer boundary > deducts from only the first matching source stack, not every variant of an item 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > preserves recorded armor protection and gives unique carried-item IDs for repeated legitimate actions 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > denies transfers after the recipient becomes hospitalized 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > denies transfers after the recipient becomes jailed 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > denies transfers after the recipient becomes missing 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects a role change to shooter instead of giving it dealer product 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rejects missing source and recipient records 1ms
+     → expected undefined to be false // Object.is equality
+   × crew inventory transfer boundary > does not invent an equipment category for unclassified legacy weapons 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > rechecks current stock on retry and never transfers the same last unit twice 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+   × crew inventory transfer boundary > restores transferred metadata and remaining stash through the existing local persistence 1ms
+     → Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+stderr | src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > gives the selected product, retains its stats, and reports actual success
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+
+stderr | src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > reports role denial without a success message and allows another eligible recipient
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+
+stderr | src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > submits a selected give once for two same-frame taps
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+
+stderr | src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > permits another legitimate give after explicitly selecting the stash again
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)
+    at Module._load (node:internal/modules/cjs/loader:1341:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at transferItemToMember (/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts:611:65)
+    at handleGift (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:128:5)
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx (5 tests | 5 failed) 630ms
+   × THE TRAP transfer confirmation > gives the selected product, retains its stats, and reports actual success 324ms
+     → expected 3 to be 2 // Object.is equality
+   × THE TRAP transfer confirmation > reports role denial without a success message and allows another eligible recipient 114ms
+     → expected [] to have a length of 1 but got +0
+   × THE TRAP transfer confirmation > does not report success when stock changes after the gift panel opens 63ms
+     → expected [ { type: 'success', …(7) } ] to have a length of +0 but got 1
+   × THE TRAP transfer confirmation > submits a selected give once for two same-frame taps 47ms
+     → expected 3 to be 2 // Object.is equality
+   × THE TRAP transfer confirmation > permits another legitimate give after explicitly selecting the stash again 80ms
+     → expected 3 to be 1 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 23 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > gives product without a CommonJS runtime failure and preserves its recorded metadata
+AssertionError: expected [Function] to not throw an error but 'Error: Cannot find module \'../config…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts"
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:37:12
+     35|     expect(() => {
+     36|       result = useEconomyStore.getState().transferItemToMember('river-…
+     37|     }).not.toThrow();
+       |            ^
+     38|     expect(result).toBe(true);
+     39|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity 0 without inventory mutation
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity -1 without inventory mutation
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity 0.5 without inventory mutation
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity NaN without inventory mutation
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity -Infinity without inventory mutation
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:49:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity Infinity without inventory mutation
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects invalid quantity 4 without inventory mutation
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:49:99
+     47|     const stash = useEconomyStore.getState().inventory;
+     48|     const crew = useGangStore.getState().members;
+     49|     expect(useEconomyStore.getState().transferItemToMember('river-cut'…
+       |                                                                                                   ^
+     50|     expect(useEconomyStore.getState().inventory).toEqual(stash);
+     51|     expect(useGangStore.getState().members).toEqual(crew);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > deducts from only the first matching source stack, not every variant of an item
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:56:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > preserves recorded armor protection and gives unique carried-item IDs for repeated legitimate actions
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:63:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > denies transfers after the recipient becomes hospitalized
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > denies transfers after the recipient becomes jailed
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > denies transfers after the recipient becomes missing
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:73:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects a role change to shooter instead of giving it dealer product
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:80:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rejects missing source and recipient records
+AssertionError: expected undefined to be false // Object.is equality
+
+- Expected:
+false
+
++ Received:
+undefined
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:87:90
+     85|
+     86|   it('rejects missing source and recipient records', () => {
+     87|     expect(useEconomyStore.getState().transferItemToMember('missing', …
+       |                                                                                          ^
+     88|     expect(useEconomyStore.getState().transferItemToMember('river-cut'…
+     89|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > does not invent an equipment category for unclassified legacy weapons
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:96:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > rechecks current stock on retry and never transfers the same last unit twice
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:103:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/23]⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > restores transferred metadata and remaining stash through the existing local persistence
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Object.transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:110:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/23]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > gives the selected product, retains its stats, and reports actual success
+AssertionError: expected 3 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:40:62
+     38|     render(<TrapApp />);
+     39|     expect(() => fireEvent.click(selectGift())).not.toThrow();
+     40|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(2);
+       |                                                              ^
+     41|     expect(useGangStore.getState().members[0].inventory?.[0]).toMatchO…
+     42|     expect(successMessages()).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/23]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > reports role denial without a success message and allows another eligible recipient
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:54:31
+     52|     fireEvent.click(screen.getByText('Slim'));
+     53|     fireEvent.click(screen.getByRole('button', { name: 'GIVE' }));
+     54|     expect(successMessages()).toHaveLength(1);
+       |                               ^
+     55|     expect(useGangStore.getState().members.find((member) => member.id …
+     56|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/23]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > does not report success when stock changes after the gift panel opens
+AssertionError: expected [ { type: 'success', …(7) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:63:31
+     61|     act(() => useEconomyStore.setState({ inventory: [] }));
+     62|     fireEvent.click(give);
+     63|     expect(successMessages()).toHaveLength(0);
+       |                               ^
+     64|     expect(useGangStore.getState().members[0].inventory).toEqual([]);
+     65|     expect(useNotificationStore.getState().notifications.some((notific…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/23]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > submits a selected give once for two same-frame taps
+AssertionError: expected 3 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:75:62
+     73|       fireEvent.click(give);
+     74|     });
+     75|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(2);
+       |                                                              ^
+     76|     expect(useGangStore.getState().members[0].inventory).toHaveLength(…
+     77|     expect(successMessages()).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/23]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > permits another legitimate give after explicitly selecting the stash again
+AssertionError: expected 3 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 3
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:86:62
+     84|     fireEvent.click(container.querySelector('.trap-member-card')!);
+     85|     fireEvent.click(screen.getAllByRole('button', { name: 'GIVE' }).at…
+     86|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(1);
+       |                                                              ^
+     87|     expect(useGangStore.getState().members[0].inventory).toHaveLength(…
+     88|     expect(successMessages()).toHaveLength(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/23]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 7 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "gives the selected product, retains its stats, and reports actual success". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "reports role denial without a success message and allows another eligible recipient". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "reports role denial without a success message and allows another eligible recipient". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "submits a selected give once for two same-frame taps". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "submits a selected give once for two same-frame taps". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "permits another legitimate give after explicitly selecting the stash again". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯⎯ Uncaught Exception ⎯⎯⎯⎯⎯
+Error: Cannot find module '../config/roleMechanics'
+Require stack:
+- /home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts
+ ❯ Module._resolveFilename node:internal/modules/cjs/loader:1564:15
+ ❯ wrapResolveFilename node:internal/modules/cjs/loader:1118:27
+ ❯ defaultResolveImplForCJSLoading node:internal/modules/cjs/loader:1142:10
+ ❯ resolveForCJSWithHooks node:internal/modules/cjs/loader:1169:12
+ ❯ Module._load node:internal/modules/cjs/loader:1341:5
+ ❯ wrapModuleLoad node:internal/modules/cjs/loader:261:19
+ ❯ Module.require node:internal/modules/cjs/loader:1674:12
+ ❯ require node:internal/modules/helpers:157:16
+ ❯ transferItemToMember src/stores/gameStore.ts:611:65
+    609|           // ── Role-based inventory restriction ─────────────────────…
+    610|           // eslint-disable-next-line @typescript-eslint/no-var-requir…
+    611|           const { canRoleHoldItem, getEquipRejectionMessage } = requir…
+       |                                                                 ^
+    612|           const memberRole = (member.role ?? 'dealer') as any;
+    613|           const itemType = item.type as any;
+ ❯ handleGift src/components/trap/TrapApp.tsx:128:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'MODULE_NOT_FOUND', requireStack: [ '/home/ubuntu/projects/slide/frontend/src/stores/gameStore.ts' ] }
+This error originated in "src/components/trap/__tests__/TrapApp.transfer.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "permits another legitimate give after explicitly selecting the stash again". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ Test Files  2 failed (2)
+      Tests  23 failed (23)
+     Errors  7 errors
+   Start at  13:42:05
+   Duration  3.03s (transform 409ms, setup 217ms, collect 674ms, tests 661ms, environment 1.97s, prepare 244ms)

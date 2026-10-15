@@ -1,0 +1,92 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/stores/__tests__/inventoryTransfer.test.ts src/components/trap/__tests__/TrapApp.transfer.test.tsx
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide/frontend
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts (19 tests | 1 failed) 25ms
+   × crew inventory transfer boundary > gives the explicitly selected second stack rather than the first batch with that item ID 10ms
+     → expected [ 2, 7 ] to deeply equal [ 3, 6 ]
+stderr | src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > gives the selected named batch when two stash rows share an item ID
+Warning: Encountered two children with the same key, `river-cut`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at TrapApp (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:47:44)
+Warning: Encountered two children with the same key, `river-cut`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at TrapApp (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:47:44)
+Warning: Encountered two children with the same key, `river-cut`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at TrapApp (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:47:44)
+Warning: Encountered two children with the same key, `river-cut`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at TrapApp (/home/ubuntu/projects/slide/frontend/src/components/trap/TrapApp.tsx:47:44)
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx (6 tests | 1 failed) 497ms
+   × THE TRAP transfer confirmation > gives the selected named batch when two stash rows share an item ID 51ms
+     → expected [ 2, 5 ] to deeply equal [ 3, 4 ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/stores/__tests__/inventoryTransfer.test.ts > crew inventory transfer boundary > gives the explicitly selected second stack rather than the first batch with that item ID
+AssertionError: expected [ 2, 7 ] to deeply equal [ 3, 6 ]
+
+- Expected
++ Received
+
+  Array [
+-   3,
+-   6,
++   2,
++   7,
+  ]
+
+ ❯ src/stores/__tests__/inventoryTransfer.test.ts:64:79
+     62|     useEconomyStore.setState({ inventory: [product(), product({ id: 's…
+     63|     expect(useEconomyStore.getState().transferItemToMember('river-cut'…
+     64|     expect(useEconomyStore.getState().inventory.map((item) => item.qua…
+       |                                                                               ^
+     65|     expect(useGangStore.getState().members[0].inventory?.[0].quality).…
+     66|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > gives the selected named batch when two stash rows share an item ID
+AssertionError: expected [ 2, 5 ] to deeply equal [ 3, 4 ]
+
+- Expected
++ Received
+
+  Array [
+-   3,
+-   4,
++   2,
++   5,
+  ]
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:100:79
+     98|     fireEvent.click(screen.getByText('Weezy'));
+     99|     fireEvent.click(screen.getByRole('button', { name: 'GIVE' }));
+    100|     expect(useEconomyStore.getState().inventory.map((item) => item.qua…
+       |                                                                               ^
+    101|     expect(useGangStore.getState().members[0].inventory?.[0].quality).…
+    102|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 23 passed (25)
+   Start at  13:45:57
+   Duration  2.58s (transform 430ms, setup 231ms, collect 719ms, tests 521ms, environment 1.70s, prepare 156ms)

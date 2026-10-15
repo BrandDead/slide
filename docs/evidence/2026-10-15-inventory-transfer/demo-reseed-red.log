@@ -1,0 +1,75 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/utils/__tests__/demoSeedInventory.test.ts
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide/frontend
+
+ ❯ src/utils/__tests__/demoSeedInventory.test.ts (4 tests | 2 failed) 25ms
+   × demo carried inventory continuity > keeps a real transferred item across two reseeds without restoring consumed stock or duplicating contacts 16ms
+     → expected undefined to deeply equal [ { …(9) } ]
+   × demo carried inventory continuity > keeps persisted carried metadata through hydration followed by the actual demo-startup reseed 5ms
+     → expected undefined to match object { itemId: 'river-cut', …(4) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/utils/__tests__/demoSeedInventory.test.ts > demo carried inventory continuity > keeps a real transferred item across two reseeds without restoring consumed stock or duplicating contacts
+AssertionError: expected undefined to deeply equal [ { …(9) } ]
+
+- Expected:
+Array [
+  Object {
+    "acquiredAt": "2026-10-15T13:49:34.385Z",
+    "id": "98559b11-8ba0-493e-ae30-4a3b47a5358a",
+    "itemId": "river-cut",
+    "name": "River Cut",
+    "odRisk": 12,
+    "quality": 72,
+    "quantity": 1,
+    "tier": 2,
+    "type": "drug",
+  },
+]
+
++ Received:
+undefined
+
+ ❯ src/utils/__tests__/demoSeedInventory.test.ts:21:87
+     19|     applyDemoSeed();
+     20|     applyDemoSeed();
+     21|     expect(useGangStore.getState().getMemberById(BLOCK_LOOP_IDS.dealer…
+       |                                                                                       ^
+     22|     expect(useGangStore.getState().getMemberById(BLOCK_LOOP_IDS.dealer…
+     23|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(2);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/utils/__tests__/demoSeedInventory.test.ts > demo carried inventory continuity > keeps persisted carried metadata through hydration followed by the actual demo-startup reseed
+AssertionError: expected undefined to match object { itemId: 'river-cut', …(4) }
+
+- Expected:
+Object {
+  "itemId": "river-cut",
+  "odRisk": 12,
+  "quality": 72,
+  "quantity": 1,
+  "tier": 2,
+}
+
++ Received:
+undefined
+
+ ❯ src/utils/__tests__/demoSeedInventory.test.ts:34:92
+     32|     await useGangStore.persist.rehydrate();
+     33|     applyDemoSeed();
+     34|     expect(useGangStore.getState().getMemberById(BLOCK_LOOP_IDS.dealer…
+       |                                                                                            ^
+     35|       itemId: 'river-cut', quantity: 1, quality: 72, tier: 2, odRisk: …
+     36|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  13:49:31
+   Duration  2.85s (transform 562ms, setup 186ms, collect 842ms, tests 25ms, environment 1.12s, prepare 117ms)

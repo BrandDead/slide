@@ -69,6 +69,20 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-15 — Safe crew inventory transfer and demo reload continuity (#208)
+
+Reserved the existing economy-transfer action, TRAP give flow, their new regressions, and narrowly scoped demo-reseed inventory continuation before editing from protected main `9eef5aa`. This is independent of open ATTACK #204, Nightfall #205, DRIVE #202, identity #169, current-login API #206, and legacy session-owner #207 runtime files; their branches were not edited or merged.
+
+The existing `transferItemToMember` used browser-incompatible CommonJS `require`, accepted malformed quantities, dropped metadata, and deducted all matching stash stacks. It now uses static ESM imports and existing role rules, validates positive whole requested quantities against current stock/active recipient, accepts an optional exact source-stack ID, preserves product/gear metadata with unique carried IDs, and returns explicit success/failure. TRAP confirms only successful gives, shows retryable inline denial, and guards one selected action against same-frame taps. Unclassified legacy weapons remain unsupported; no DRIVE classification or new authority was invented. Contacts' ignored return result remains a separately coordinated follow-up because its file overlaps deferred identity work.
+
+Actual reload tracing additionally reproduced demo startup erasing transferred carried inventory. The minimal demo-only repair preserves it only for the prior demo player and matching demo-gang member, never another account/gang. Other seed reset behavior is unchanged.
+
+Regression-first evidence covers base store/UI runtime failures; second-batch, missing-feedback and reseed failures before their fixes; and actual carried-record loss after page reload. Final focused/adjacent suite: 35 passed (29 new regressions plus six existing seeder tests). Full gates: 1,062 frontend passed / four existing intentional skips / 94 files; lint 0 errors and unchanged 200 baseline warnings; typecheck, production build, asset audit/packages and diff hygiene passed; isolated backend 107 passed. Independent read-only review found no material issues. A separately built local demo passed desktop-to-TRAP give, role-denial and actual reload at 390×844, 375×812 and 1440×900 with zero uncaught page exceptions.
+
+Built-preview console evidence remains honest: unchanged `/favicon.svg`, `/assets/game_logo.png` and `/assets/generated/ui/icons/icon_news_v001.png` return 404 (5/4/4 occurrences including reload), while dev SPA fallback masks those HTTP failures. Reported under #190; no shell/index/sprite/manifest or asset edit occurred. This is not clean-console, authenticated saved-game, external-beta or launch proof. Evidence: `docs/evidence/2026-10-15-inventory-transfer/README.md`, raw red/green/full gates, browser JSON, screenshots, portable runner and source hashes.
+
+The ten-PR audit also identified the already posted unresolved P1 in #206; integration hold recorded on #175. #175 remains open for separately approved isolated-staging two-synthetic-user Auth/RLS/denied-direct-write and canonical Flask consequence/reload/second-session proof. Migration 007 is already applied and must not be replayed. Older project-log current-state/roadmap blocks remain historical; this entry does not rewrite them or supersede the contributor guide. No remote SQL/migration, Auth configuration, production, deployment, scheduler, payment, release tag, protected branch or other model branch changed. Branch `fix/safe-crew-inventory-transfer` is prepared for integration-owner review, not merged or deployed.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.

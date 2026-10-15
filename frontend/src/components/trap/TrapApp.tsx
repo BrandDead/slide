@@ -21,7 +21,7 @@
 //   contribution. The member's contact card is marked backdoored.
 // ============================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useNavigationStore,
@@ -90,6 +90,8 @@ const TrapApp: React.FC = () => {
   const [giftQty, setGiftQty] = useState(1);
   const [showBackdoorConfirm, setShowBackdoorConfirm] = useState<string | null>(null);
   const [showMemberStash, setShowMemberStash] = useState<string | null>(null);
+  const giftCommitted = useRef(false);
+  const [giftError, setGiftError] = useState<string | null>(null);
 
   // ── Filtered inventory ─────────────────────────────────────
 
@@ -114,8 +116,10 @@ const TrapApp: React.FC = () => {
   // ── Gift item to member ────────────────────────────────────
 
   const handleGift = () => {
-    if (!selectedItem || !giftTarget || giftQty < 1) return;
+    if (giftCommitted.current || !selectedItem || !giftTarget || giftQty < 1) return;
+    setGiftError(null);
     if (giftQty > selectedItem.quantity) {
+      setGiftError(`You only have ${selectedItem.quantity} of that item.`);
       addNotification({
         type: 'warning',
         title: 'Not Enough Stock',
@@ -125,7 +129,13 @@ const TrapApp: React.FC = () => {
       });
       return;
     }
-    transferItemToMember(selectedItem.itemId, giftTarget, giftQty);
+    giftCommitted.current = true;
+    if (!transferItemToMember(selectedItem.itemId, giftTarget, giftQty, selectedItem.id)) {
+      giftCommitted.current = false;
+      setGiftError(useNotificationStore.getState().notifications[0]?.message
+        ?? 'The item was not given. Check your stock and crew.');
+      return;
+    }
     const member = members.find((m) => m.id === giftTarget);
     addNotification({
       type: 'success',
@@ -215,13 +225,15 @@ const TrapApp: React.FC = () => {
             </div>
           ) : (
             <div className="trap-item-list">
-              {displayItems.map((item) => (
+              {displayItems.map((item, index) => (
                 <motion.div
-                  key={item.itemId}
-                  className={`trap-item ${selectedItem?.itemId === item.itemId ? 'selected' : ''}`}
+                  key={item.id ?? `${item.type}:${item.itemId}:${index}`}
+                  className={`trap-item ${selectedItem === item ? 'selected' : ''}`}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
-                    setSelectedItem(selectedItem?.itemId === item.itemId ? null : item);
+                    giftCommitted.current = false;
+                    setGiftError(null);
+                    setSelectedItem(selectedItem === item ? null : item);
                     setGiftTarget(null);
                     setGiftQty(1);
                   }}
@@ -260,6 +272,7 @@ const TrapApp: React.FC = () => {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     if (selectedItem) {
+                      setGiftError(null);
                       setGiftTarget(giftTarget === m.id ? null : m.id);
                     } else {
                       setShowMemberStash(showMemberStash === m.id ? null : m.id);
@@ -305,6 +318,7 @@ const TrapApp: React.FC = () => {
             <div className="trap-gift-warning">
               Once given, this item belongs to them. Backdoor to recover.
             </div>
+            {giftError && <p className="trap-gift-warning" role="alert">{giftError}</p>}
             <div className="trap-gift-controls">
               <button
                 className="trap-qty-btn"

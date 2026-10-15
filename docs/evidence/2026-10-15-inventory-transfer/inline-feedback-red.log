@@ -1,0 +1,745 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/components/trap/__tests__/TrapApp.transfer.test.tsx -t reports role denial
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide/frontend
+
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx (6 tests | 1 failed | 5 skipped) 334ms
+   × THE TRAP transfer confirmation > reports role denial without a success message and allows another eligible recipient 332ms
+     → Unable to find an accessible element with the role "alert"
+
+Here are the accessible roles:
+
+  button:
+
+  Name "BACK":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-back"[39m
+  [36m/>[39m
+
+  Name "ALL":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab active"[39m
+  [36m/>[39m
+
+  Name "WEAPONS":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "ARMOR":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "VEHICLES":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "PRODUCT":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "TOOLS":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "CONSUMABLES":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "-":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-qty-btn"[39m
+  [36m/>[39m
+
+  Name "+":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-qty-btn"[39m
+  [36m/>[39m
+
+  Name "GIVE":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-gift-btn"[39m
+  [36m/>[39m
+
+  Name "CANCEL":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-cancel-btn"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "THE TRAP":
+  [36m<h1[39m
+    [33mclass[39m=[32m"trap-title"[39m
+  [36m/>[39m
+
+  Name "STASH":
+  [36m<h2[39m
+    [33mclass[39m=[32m"trap-section-title"[39m
+  [36m/>[39m
+
+  Name "CREW":
+  [36m<h2[39m
+    [33mclass[39m=[32m"trap-section-title"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"trap-app"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-header"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-back"[39m
+        [36m>[39m
+          [0mBACK[0m
+        [36m</button>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-title-block"[39m
+        [36m>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"trap-title"[39m
+          [36m>[39m
+            [0mTHE TRAP[0m
+          [36m</h1>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-value"[39m
+          [36m>[39m
+            [0m$210[0m
+            [0m in stash[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-tabs"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab active"[39m
+        [36m>[39m
+          [0mALL[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mWEAPONS[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mARMOR[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mVEHICLES[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mPRODUCT[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mTOOLS[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mCONSUMABLES[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-inventory"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"trap-section-title"[39m
+          [36m>[39m
+            [0mSTASH[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"trap-item-list"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-item selected"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-icon"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-type-badge"[39m
+                [36m>[39m
+                  [0mDRU[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-name"[39m
+                [36m>[39m
+                  [0mRiver Cut[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-sub"[39m
+                [36m>[39m
+                  [0m72% pure · T2[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-meta"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-qty"[39m
+                [36m>[39m
+                  [0mx[0m
+                  [0m3[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-value"[39m
+                [36m>[39m
+                  [0m$210[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-members"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"trap-section-title"[39m
+          [36m>[39m
+            [0mCREW[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"trap-member-list"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-member-card targeted"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-avatar"[39m
+              [36m>[39m
+                [0mWE[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-name"[39m
+                [36m>[39m
+                  [0mWeezy[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-role"[39m
+                [36m>[39m
+                  [0mSHOOTER[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-held"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-level"[39m
+                [36m>[39m
+                  [0mLV[0m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-member-card "[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-avatar"[39m
+              [36m>[39m
+                [0mSL[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-name"[39m
+                [36m>[39m
+                  [0mSlim[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-role"[39m
+                [36m>[39m
+                  [0mDEALER[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-held"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-level"[39m
+                [36m>[39m
+                  [0mLV[0m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-gift-panel"[39m
+        [33mstyle[39m=[32m"opacity: 0; transform: translateY(40px) translateZ(0);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-info"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-item"[39m
+          [36m>[39m
+            [0mRiver Cut[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-arrow"[39m
+          [36m>[39m
+            [0mto[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-member"[39m
+          [36m>[39m
+            [0mWeezy[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-warning"[39m
+        [36m>[39m
+          [0mOnce given, this item belongs to them. Backdoor to recover.[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-controls"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-qty-btn"[39m
+          [36m>[39m
+            [0m-[0m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-qty-val"[39m
+          [36m>[39m
+            [0m1[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-qty-btn"[39m
+          [36m>[39m
+            [0m+[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-gift-btn"[39m
+          [36m>[39m
+            [0mGIVE[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-cancel-btn"[39m
+          [36m>[39m
+            [0mCANCEL[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/trap/__tests__/TrapApp.transfer.test.tsx > THE TRAP transfer confirmation > reports role denial without a success message and allows another eligible recipient
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+Here are the accessible roles:
+
+  button:
+
+  Name "BACK":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-back"[39m
+  [36m/>[39m
+
+  Name "ALL":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab active"[39m
+  [36m/>[39m
+
+  Name "WEAPONS":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "ARMOR":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "VEHICLES":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "PRODUCT":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "TOOLS":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "CONSUMABLES":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-tab "[39m
+  [36m/>[39m
+
+  Name "-":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-qty-btn"[39m
+  [36m/>[39m
+
+  Name "+":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-qty-btn"[39m
+  [36m/>[39m
+
+  Name "GIVE":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-gift-btn"[39m
+  [36m/>[39m
+
+  Name "CANCEL":
+  [36m<button[39m
+    [33mclass[39m=[32m"trap-cancel-btn"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "THE TRAP":
+  [36m<h1[39m
+    [33mclass[39m=[32m"trap-title"[39m
+  [36m/>[39m
+
+  Name "STASH":
+  [36m<h2[39m
+    [33mclass[39m=[32m"trap-section-title"[39m
+  [36m/>[39m
+
+  Name "CREW":
+  [36m<h2[39m
+    [33mclass[39m=[32m"trap-section-title"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"trap-app"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-header"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-back"[39m
+        [36m>[39m
+          [0mBACK[0m
+        [36m</button>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-title-block"[39m
+        [36m>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"trap-title"[39m
+          [36m>[39m
+            [0mTHE TRAP[0m
+          [36m</h1>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-value"[39m
+          [36m>[39m
+            [0m$210[0m
+            [0m in stash[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-tabs"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab active"[39m
+        [36m>[39m
+          [0mALL[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mWEAPONS[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mARMOR[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mVEHICLES[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mPRODUCT[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mTOOLS[0m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"trap-tab "[39m
+        [36m>[39m
+          [0mCONSUMABLES[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-body"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-inventory"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"trap-section-title"[39m
+          [36m>[39m
+            [0mSTASH[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"trap-item-list"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-item selected"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-icon"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-type-badge"[39m
+                [36m>[39m
+                  [0mDRU[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-name"[39m
+                [36m>[39m
+                  [0mRiver Cut[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-sub"[39m
+                [36m>[39m
+                  [0m72% pure · T2[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-item-meta"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-qty"[39m
+                [36m>[39m
+                  [0mx[0m
+                  [0m3[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-item-value"[39m
+                [36m>[39m
+                  [0m$210[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-members"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"trap-section-title"[39m
+          [36m>[39m
+            [0mCREW[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"trap-member-list"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-member-card targeted"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-avatar"[39m
+              [36m>[39m
+                [0mWE[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-name"[39m
+                [36m>[39m
+                  [0mWeezy[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-role"[39m
+                [36m>[39m
+                  [0mSHOOTER[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-held"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-level"[39m
+                [36m>[39m
+                  [0mLV[0m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"trap-member-card "[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-avatar"[39m
+              [36m>[39m
+                [0mSL[0m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-info"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-name"[39m
+                [36m>[39m
+                  [0mSlim[0m
+                [36m</span>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-role"[39m
+                [36m>[39m
+                  [0mDEALER[0m
+                [36m</span>[39m
+              [36m</div>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"trap-member-held"[39m
+              [36m>[39m
+                [36m<span[39m
+                  [33mclass[39m=[32m"trap-member-level"[39m
+                [36m>[39m
+                  [0mLV[0m
+                  [0m1[0m
+                [36m</span>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"trap-gift-panel"[39m
+        [33mstyle[39m=[32m"opacity: 0; transform: translateY(40px) translateZ(0);"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-info"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-item"[39m
+          [36m>[39m
+            [0mRiver Cut[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-arrow"[39m
+          [36m>[39m
+            [0mto[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-gift-member"[39m
+          [36m>[39m
+            [0mWeezy[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-warning"[39m
+        [36m>[39m
+          [0mOnce given, this item belongs to them. Backdoor to recover.[0m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"trap-gift-controls"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-qty-btn"[39m
+          [36m>[39m
+            [0m-[0m
+          [36m</button>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"trap-qty-val"[39m
+          [36m>[39m
+            [0m1[0m
+          [36m</span>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-qty-btn"[39m
+          [36m>[39m
+            [0m+[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-gift-btn"[39m
+          [36m>[39m
+            [0mGIVE[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33mclass[39m=[32m"trap-cancel-btn"[39m
+          [36m>[39m
+            [0mCANCEL[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/trap/__tests__/TrapApp.transfer.test.tsx:52:19
+     50|     expect(useEconomyStore.getState().inventory[0].quantity).toBe(3);
+     51|     expect(screen.getByRole('button', { name: 'GIVE' })).toBeInTheDocu…
+     52|     expect(screen.getByRole('alert')).toHaveTextContent("can't hold dr…
+       |                   ^
+     53|     fireEvent.click(screen.getByText('Slim'));
+     54|     fireEvent.click(screen.getByRole('button', { name: 'GIVE' }));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 skipped (6)
+   Start at  13:47:45
+   Duration  2.62s (transform 384ms, setup 126ms, collect 611ms, tests 334ms, environment 882ms, prepare 97ms)

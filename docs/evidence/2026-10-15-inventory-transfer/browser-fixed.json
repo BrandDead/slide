@@ -1,0 +1,62 @@
+[
+  {
+    "name": "phone",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "mode": "fixed",
+    "before": 50,
+    "after": 49,
+    "giveControl": {
+      "x": 124,
+      "y": 800.5042724609375,
+      "width": 181.578125,
+      "height": 32,
+      "visible": true,
+      "hit": true
+    },
+    "pageErrors": [],
+    "pass": true
+  },
+  {
+    "name": "small-phone",
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "mode": "fixed",
+    "before": 50,
+    "after": 49,
+    "giveControl": {
+      "x": 124,
+      "y": 768.5186767578125,
+      "width": 166.578125,
+      "height": 32,
+      "visible": true,
+      "hit": true
+    },
+    "pageErrors": [],
+    "pass": true
+  },
+  {
+    "name": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "mode": "fixed",
+    "before": 50,
+    "after": 49,
+    "giveControl": {
+      "x": 244,
+      "y": 856.3202514648438,
+      "width": 991.578125,
+      "height": 32,
+      "visible": true,
+      "hit": true
+    },
+    "pageErrors": [],
+    "pass": true
+  }
+]
