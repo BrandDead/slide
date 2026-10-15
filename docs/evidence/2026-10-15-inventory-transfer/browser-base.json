@@ -1,0 +1,48 @@
+[
+  {
+    "name": "phone",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "mode": "base",
+    "before": 50,
+    "after": 50,
+    "giveControl": {
+      "x": 124,
+      "y": 800.5116577148438,
+      "width": 181.578125,
+      "height": 32,
+      "visible": true,
+      "hit": true
+    },
+    "pageErrors": [
+      "require is not defined",
+      "require is not defined"
+    ],
+    "pass": true
+  },
+  {
+    "name": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "mode": "base",
+    "before": 50,
+    "after": 50,
+    "giveControl": {
+      "x": 244,
+      "y": 856.479248046875,
+      "width": 991.578125,
+      "height": 32,
+      "visible": true,
+      "hit": true
+    },
+    "pageErrors": [
+      "require is not defined",
+      "require is not defined"
+    ],
+    "pass": true
+  }
+]

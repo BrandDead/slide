@@ -1,0 +1,210 @@
+{
+  "date": "2026-10-15",
+  "branch": "fix/safe-crew-inventory-transfer",
+  "base_sha": "9eef5aac28a82275d7a2e1596e8658b167953ed7",
+  "source_sha256": {
+    "frontend/src/stores/gameStore.ts": "d1e3cae827a621e42d0d010a12a2df8ade6c7379606e070f22fd838c2fd25dc3",
+    "frontend/src/components/trap/TrapApp.tsx": "1f297256c76fe84319fcf38b51e2823e20c932bda3a88bb1c6de291da25d4814",
+    "frontend/src/utils/demoSeed.ts": "60df2eb9d5f869db7054f9b3bf42b3d60122deae3dc7da69ed9e7d517dbf6aed",
+    "frontend/src/stores/__tests__/inventoryTransfer.test.ts": "4f4eb6454be7b016c3d4f522e414ea70f1021e2e81235e800907620decf29d23",
+    "frontend/src/components/trap/__tests__/TrapApp.transfer.test.tsx": "7841da32127b0105b4de77f8a670278f4673972416f61606bc43a337f15f0bbf",
+    "frontend/src/utils/__tests__/demoSeedInventory.test.ts": "3c4ffd35fd7f48dd801b7506e7b13e280b39d48ed408e39ad9b755f88ae135e9"
+  },
+  "new_regressions": 29,
+  "focused_plus_adjacent_passed": 35,
+  "frontend": {
+    "passed": 1062,
+    "skipped": 4,
+    "files": 94,
+    "lint_errors": 0,
+    "lint_baseline_warnings": 200,
+    "new_lint_warnings": 0,
+    "typecheck": "passed",
+    "production_build": "passed"
+  },
+  "backend": {
+    "passed": 107,
+    "remote_credentials": "blank"
+  },
+  "assets": {
+    "runtime_mb": 7.7,
+    "budget_mb": 20,
+    "audit_errors": 0,
+    "audit_warnings": 0,
+    "packages": 5,
+    "schemas": 4
+  },
+  "browser": [
+    {
+      "name": "phone",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "mode": "built",
+      "url": "http://127.0.0.1:3001",
+      "before": 50,
+      "after": 49,
+      "scope": "inventory player path; not a clean-console or launch approval",
+      "giveControl": {
+        "x": 124,
+        "y": 800.5116577148438,
+        "width": 181.578125,
+        "height": 32,
+        "visible": true,
+        "hit": true
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)"
+      ],
+      "failedResources": [
+        {
+          "url": "http://127.0.0.1:3001/favicon.svg",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        }
+      ],
+      "checks": [
+        "real Trap give",
+        "stock deducted once",
+        "carried item persisted",
+        "role denial has no success",
+        "inline rejection visible",
+        "real reload retains exact carried record and stock"
+      ],
+      "pass": true
+    },
+    {
+      "name": "small-phone",
+      "viewport": {
+        "width": 375,
+        "height": 812
+      },
+      "mode": "built",
+      "url": "http://127.0.0.1:3001",
+      "before": 50,
+      "after": 49,
+      "scope": "inventory player path; not a clean-console or launch approval",
+      "giveControl": {
+        "x": 124,
+        "y": 768.3202514648438,
+        "width": 166.578125,
+        "height": 32,
+        "visible": true,
+        "hit": true
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)"
+      ],
+      "failedResources": [
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        }
+      ],
+      "checks": [
+        "real Trap give",
+        "stock deducted once",
+        "carried item persisted",
+        "role denial has no success",
+        "inline rejection visible",
+        "real reload retains exact carried record and stock"
+      ],
+      "pass": true
+    },
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "mode": "built",
+      "url": "http://127.0.0.1:3001",
+      "before": 50,
+      "after": 49,
+      "scope": "inventory player path; not a clean-console or launch approval",
+      "giveControl": {
+        "x": 244,
+        "y": 856.4043579101562,
+        "width": 991.578125,
+        "height": 32,
+        "visible": true,
+        "hit": true
+      },
+      "pageErrors": [],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)",
+        "Failed to load resource: the server responded with a status of 404 (File not found)"
+      ],
+      "failedResources": [
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/game_logo.png",
+          "status": 404
+        },
+        {
+          "url": "http://127.0.0.1:3001/assets/generated/ui/icons/icon_news_v001.png",
+          "status": 404
+        }
+      ],
+      "checks": [
+        "real Trap give",
+        "stock deducted once",
+        "carried item persisted",
+        "role denial has no success",
+        "inline rejection visible",
+        "real reload retains exact carried record and stock"
+      ],
+      "pass": true
+    }
+  ],
+  "independent_review": "no material findings",
+  "merge": "not performed",
+  "production_deployment": "not performed",
+  "authenticated_saved_game_gate": "not executed; #175 remains open"
+}

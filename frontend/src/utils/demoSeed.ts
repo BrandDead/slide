@@ -245,6 +245,17 @@ export function applyDemoSeed(): void {
     },
   ];
 
+  // Reload must not erase items already transferred from the local stash.
+  // Only carry matching demo-owned records, never another account's inventory.
+  if (currentPlayer.id === 'demo-player') {
+    for (const member of demoMembers) {
+      const existing = useGangStore.getState().getMemberById(member.id);
+      if (existing?.gangId === member.gangId && existing.inventory !== undefined) {
+        member.inventory = existing.inventory;
+      }
+    }
+  }
+
   // Rebuild the roster: remove any stale demo members then add fresh ones.
   // removeMember leaves the contact card behind, and addMember always
   // appends one, so a second seed used to mount two cards per demo id.

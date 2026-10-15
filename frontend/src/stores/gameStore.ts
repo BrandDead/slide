@@ -4,6 +4,8 @@
 
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
+import { v4 as uuidv4 } from 'uuid';
+import { canRoleHoldItem, getEquipRejectionMessage, type MemberRole } from '../config/roleMechanics';
 import type {
   Player,
   GangMember,
@@ -545,7 +547,7 @@ interface EconomyState {
   addTransaction: (transaction: Transaction) => void;
   addInventoryItem: (item: InventoryItem) => void;
   removeInventoryItem: (itemId: string, quantity: number) => void;
-  transferItemToMember: (itemId: string, memberId: string, quantity: number) => void;
+  transferItemToMember: (itemId: string, memberId: string, quantity: number, sourceId?: string) => boolean;
   purchaseFromMarket: (listingId: string, quantity: number) => boolean;
 }
 
@@ -595,62 +597,67 @@ export const useEconomyStore = create<EconomyState>()(
             .filter((i) => i.quantity > 0),
         })),
         
-        transferItemToMember: (itemId, memberId, quantity) => {
+        transferItemToMember: (itemId, memberId, quantity, sourceId) => {
+          const reject = (message: string): false => {
+            useNotificationStore.getState().addNotification({
+              type: 'warning',
+              title: 'Cannot Equip',
+              message,
+              priority: 'high',
+            });
+            return false;
+          };
+          if (!Number.isSafeInteger(quantity) || quantity <= 0) {
+            return reject('Choose a positive whole number of items.');
+          }
+
           const { inventory } = get();
-          const item = inventory.find((i) => i.itemId === itemId);
-          
-          if (!item || item.quantity < quantity) return;
+          const itemIndex = inventory.findIndex((item) => item.itemId === itemId
+            && (sourceId === undefined || item.id === sourceId));
+          const item = inventory[itemIndex];
+          if (!item || !Number.isFinite(item.quantity) || item.quantity < quantity) {
+            return reject('That stock is no longer available. Choose an item from the stash again.');
+          }
           
           const gangStore = useGangStore.getState();
           const member = gangStore.getMemberById(memberId);
-          
-          if (!member) return;
+          if (!member || member.status !== 'active') {
+            return reject('Choose an active crew member to receive this item.');
+          }
 
           // ── Role-based inventory restriction ──────────────────────────
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { canRoleHoldItem, getEquipRejectionMessage } = require('../config/roleMechanics');
-          const memberRole = (member.role ?? 'dealer') as any;
-          const itemType = item.type as any;
-          if (!canRoleHoldItem(memberRole, itemType)) {
-            const msg = getEquipRejectionMessage(memberRole, itemType);
-            // Surface the rejection via notification store
-            try {
-              const notifStore = useNotificationStore.getState();
-              notifStore.addNotification({
-                type: 'warning',
-                title: 'Cannot Equip',
-                message: msg,
-                priority: 'high',
-                timestamp: Date.now(),
-              });
-            } catch { /* silent fallback */ }
-            return;
+          // Legacy weapon records do not identify ranged/melee/accessory;
+          // keep them blocked rather than inventing a classification.
+          if (item.type === 'weapon') {
+            return reject('Weapon transfer is not supported by this stash action yet.');
+          }
+          const memberRole = (member.role ?? 'dealer') as MemberRole;
+          if (!canRoleHoldItem(memberRole, item.type)) {
+            return reject(getEquipRejectionMessage(memberRole, item.type));
           }
           
-          // Remove from player inventory
+          // Preserve the complete carried record, including product/gear stats.
+          const carriedItem: InventoryItem = {
+            ...item,
+            id: uuidv4(),
+            quantity,
+            acquiredAt: new Date().toISOString(),
+          };
+
+          // Only the selected source stack is consumed; same-ID variants remain.
           set((state) => ({
-            inventory: state.inventory.map((i) =>
-              i.itemId === itemId
-                ? { ...i, quantity: i.quantity - quantity }
-                : i
-            ),
+            inventory: state.inventory.flatMap((entry, index) => {
+              if (index !== itemIndex) return [entry];
+              const remaining = entry.quantity - quantity;
+              return remaining > 0 ? [{ ...entry, quantity: remaining }] : [];
+            }),
           }));
           
           // Add to member inventory
           gangStore.updateMember(memberId, {
-            inventory: [
-              ...(member.inventory ?? []),
-              {
-                id: Date.now().toString(),
-                type: item.type,
-                itemId: item.itemId,
-                name: item.name,
-                quantity,
-                acquiredAt: new Date().toISOString(),
-                value: item.value,
-              },
-            ],
+            inventory: [...(member.inventory ?? []), carriedItem],
           });
+          return true;
         },
         
         purchaseFromMarket: (listingId, quantity) => {
