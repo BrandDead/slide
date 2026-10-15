@@ -1,0 +1,19 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/stores/__tests__/inventoryTransfer.test.ts src/components/trap/__tests__/TrapApp.transfer.test.tsx src/utils/__tests__/demoSeedInventory.test.ts src/utils/__tests__/demoSeedContacts.test.ts src/utils/__tests__/demoSeedBooks.test.ts src/utils/__tests__/demoSeedProgress.test.ts
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide/frontend
+
+ ✓ src/stores/__tests__/inventoryTransfer.test.ts (19 tests) 19ms
+ ✓ src/utils/__tests__/demoSeedContacts.test.ts (2 tests) 15ms
+ ✓ src/utils/__tests__/demoSeedInventory.test.ts (4 tests) 19ms
+ ✓ src/utils/__tests__/demoSeedBooks.test.ts (2 tests) 12ms
+ ✓ src/components/trap/__tests__/TrapApp.transfer.test.tsx (6 tests) 653ms
+   ✓ THE TRAP transfer confirmation > gives the selected product, retains its stats, and reports actual success 339ms
+ ✓ src/utils/__tests__/demoSeedProgress.test.ts (2 tests) 11ms
+
+ Test Files  6 passed (6)
+      Tests  35 passed (35)
+   Start at  13:50:28
+   Duration  4.00s (transform 1.11s, setup 761ms, collect 4.62s, tests 728ms, environment 6.42s, prepare 547ms)

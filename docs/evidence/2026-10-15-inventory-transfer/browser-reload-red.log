@@ -1,0 +1,79 @@
+phone live Trap controls: BACK
+THE TRAP
+$4.1K in stash
+ALL
+WEAPONS
+ARMOR
+VEHICLES
+PRODUCT
+TOOLS
+CONSUMABLES
+STASH
+DRU
+Cannabis
+x50
+$1.0K
+DRU
+Cocaine
+x20
+$1.6K
+DRU
+Percocet
+x30
+$1.5K
+CREW
+LI
+Lil Dre
+DEALER
+LV2
+BI
+Big Rome
+SHOOTER
+LV3
+TA
+Tasha
+LOOKOUT
+LV2
+KI
+Kilo
+ENFORCER
+LV3
+node:internal/modules/run_main:122
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ undefined
+- [
+-   {
+-     acquiredAt: '2026-10-15T13:50:05.190Z',
+-     id: 'e7f37b9a-449d-45a5-8789-147e424e0f02',
+-     itemId: 'weed',
+-     name: 'Cannabis',
+-     quantity: 1,
+-     type: 'drug',
+-     value: 20
+-   }
+- ]
+
+    at file:///home/ubuntu/slide-audit/check-trap.mjs:85:14 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: [
+    {
+      id: 'e7f37b9a-449d-45a5-8789-147e424e0f02',
+      type: 'drug',
+      itemId: 'weed',
+      name: 'Cannabis',
+      quantity: 1,
+      acquiredAt: '2026-10-15T13:50:05.190Z',
+      value: 20
+    }
+  ],
+  operator: 'deepStrictEqual'
+}
+
+Node.js v22.13.0

@@ -34,7 +34,7 @@ Demo startup previously rebuilt starter crew without its persisted inventory. Th
 | Isolated backend pytest | 107 passed |
 | Diff hygiene | Passed |
 
-Commands and raw output are retained in `full-preflight.log` and `backend-green.log`. The existing oversized-bundle warnings remain. Backend tests ran with remote Supabase/database variables blank; no remote production data was accessed or changed.
+Commands and raw output are retained in `full-preflight.log` and `backend-green.log`. Only terminal trailing whitespace and extra EOF blank lines were normalized for diff hygiene; assertions, outcomes and errors are unchanged. The existing oversized-bundle warnings remain. Backend tests ran with remote Supabase/database variables blank; no remote production data was accessed or changed.
 
 ## Final built-game player path
 
