@@ -69,6 +69,13 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-14 — Flask requests follow the existing Supabase login (#175 source follow-up)
+
+- Use the current Supabase SDK session for Flask requests, SDK-managed token refresh and account changes. Share concurrent refreshes, limit retries, and reject replies/replays after the account changes. Defer SDK loading so offline store imports remain usable.
+- Regression-first: final 16-case suite fails 12 cases on unchanged `9eef5aa`, then passes all 16 after repair. Independent auth/offline-store review passes 27 tests with no configured VITE credentials. Full repair-only gate passes 1,049 frontend tests / 4 existing skips; type/lint/assets/packages/build pass with 200 existing lint warnings and no new lint warnings. The mixed static/dynamic Supabase import adds one recorded Rollup advisory.
+- The exact service was rebuilt with the existing #204/#205 frontend and independently replayed on phone/desktop and actor-image failure, preserving the live HUD and one local receipt after reload. Full local combined gate: 1,069 frontend tests / 4 skips and 131 backend tests. These remain local/demo and contract proofs; #175 live staging evidence stays open. No backend, schema, secret, scheduler, production or deployment change in this PR.
+- Evidence: `docs/evidence/2026-10-14-current-auth-api/README.md`. Integration must preserve the other dated project-log entries and verify exact published-head CI.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.
