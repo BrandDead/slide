@@ -62,6 +62,7 @@ def start_driveby():
         
         driveby_sessions[session_id] = {
             'id': session_id,
+            'owner_id': g.user['id'],
             'target_block_id': target_block_id,
             'target_snapshot_id': target_snapshot.snapshot_id,
             'vehicle': vehicle,
@@ -115,10 +116,9 @@ def execute_driveby():
         session_id = data.get('session_id')
         target_tile = data.get('target_tile', {})
         
-        if session_id not in driveby_sessions:
+        session = driveby_sessions.get(session_id)
+        if session is None or session.get('owner_id') != g.user['id']:
             return jsonify({'error': 'Session not found'}), 404
-        
-        session = driveby_sessions[session_id]
         
         if session['shots_fired'] >= session['max_shots']:
             return jsonify({'error': 'No shots remaining'}), 400
@@ -178,10 +178,9 @@ def complete_driveby(session_id: str):
         Final stats and rewards
     """
     try:
-        if session_id not in driveby_sessions:
+        session = driveby_sessions.get(session_id)
+        if session is None or session.get('owner_id') != g.user['id']:
             return jsonify({'error': 'Session not found'}), 404
-        
-        session = driveby_sessions[session_id]
         
         # Calculate escape success (based on vehicle speed and heat)
         escape_chance = 0.7 + (session['vehicle'].get('speed', 50) / 200.0)
