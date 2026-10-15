@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-14 — Creator-bound legacy HTTP encounter sessions
+
+- Record the authenticated creator when the existing Flask combat/drive-by session starts. Check that creator before existing-session access, preserving ordinary creator behavior and offline development flow. Session-not-found responses stay consistent; no combat calculation, roster or economy rule changes.
+- Regression-first: 12 failed / 12 passed on unchanged `9eef5aa`; corrected request-level suite passes 24 cases. Full backend passes 131 tests with no warnings. The combined local frontend/backend candidate also passed 1,069 frontend tests / 4 existing skips and all build/type/lint/asset gates; this PR itself does not change frontend behavior.
+- Evidence: `docs/evidence/2026-10-14-session-ownership/README.md`. Legacy in-memory HTTP sessions are not the canonical solo renderer or a live PvP implementation. Durable sessions, wider action validation, live #175 proof and release readiness remain separate. No schema, RLS, credential, scheduler, production or deployment change. Exact published-head CI and integration-owner review remain required.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.

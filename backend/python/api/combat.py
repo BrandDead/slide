@@ -62,6 +62,7 @@ def start_combat():
         
         combat_sessions[session_id] = {
             'id': session_id,
+            'owner_id': g.user['id'],
             'attacker_gang_id': attacker_gang_id,
             'target_block_id': target_block_id,
             'target_snapshot_id': target_snapshot_id,
@@ -128,10 +129,9 @@ def submit_combat_turn():
         session_id = data.get('session_id')
         action = data.get('action', {})
         
-        if session_id not in combat_sessions:
+        session = combat_sessions.get(session_id)
+        if session is None or session.get('owner_id') != g.user['id']:
             return jsonify({'error': 'Combat session not found'}), 404
-        
-        session = combat_sessions[session_id]
         
         if session['status'] != 'active':
             return jsonify({'error': 'Combat session not active'}), 400
@@ -196,10 +196,9 @@ def submit_combat_turn():
 @require_auth
 def get_combat_session(session_id: str):
     """Get combat session state"""
-    if session_id not in combat_sessions:
+    session = combat_sessions.get(session_id)
+    if session is None or session.get('owner_id') != g.user['id']:
         return jsonify({'error': 'Combat session not found'}), 404
-    
-    session = combat_sessions[session_id]
     
     return jsonify({
         'session_id': session_id,
