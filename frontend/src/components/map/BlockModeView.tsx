@@ -5,7 +5,7 @@
 // Sprint: block-mode-combat-assets
 // ============================================================
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockStore } from '../../stores/blockStore';
 import { useGhostStore } from '../../stores/ghostCrewStore';
@@ -31,7 +31,7 @@ import { PoliceRaidGame } from '../topdown/PoliceRaidGame';
 import { LazyRoute, createRetryableLazy } from '../system/RouteLoadBoundary';
 import { vaultDeposit } from '../../utils/moneyRouter';
 import { commitEncounterResult } from '../../services/worldPersistence.service';
-import { blocksApi } from '../../services/api.service';
+import { blocksApi, isAccountChangedError } from '../../services/api.service';
 import './BlockModeView.css';
 
 const ModernOpsEncounter = createRetryableLazy(() => import('../ops/ModernOpsEncounter'));
@@ -146,14 +146,30 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const [showRaid, setShowRaid] = useState(false);
   const [showLegalBoard, setShowLegalBoard] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [collecting, setCollecting] = useState(false);
   const [bailIncidents, setBailIncidents] = useState<IncidentMember[]>([]);
   const [showBailModal, setShowBailModal] = useState(false);
+  const collectInFlight = useRef(false);
+  const collectMounted = useRef(true);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { checkMoraleOnDeploy } = useMoraleEffects();
   const { completeStep } = useTutorialProgressStore();
 
   const showToast = useCallback((msg: string, duration = 2500) => {
     setToast(msg);
-    setTimeout(() => setToast(null), duration);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => {
+      toastTimer.current = null;
+      if (collectMounted.current) setToast(null);
+    }, duration);
+  }, []);
+
+  useEffect(() => {
+    collectMounted.current = true;
+    return () => {
+      collectMounted.current = false;
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
   }, []);
 
   // ── Warm block art (portraits, sprites, backdrops) ──
@@ -186,7 +202,9 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
   const block = selectedBlockId ? (blocks[selectedBlockId] as BlockData | undefined) : undefined;
 
   const handleCollect = useCallback(async () => {
-    if (!selectedBlockId || !block) return;
+    if (collectInFlight.current || !selectedBlockId || !block) return;
+    collectInFlight.current = true;
+    setCollecting(true);
     try {
       const result = await blocksApi.collect(selectedBlockId);
       if (result.collected > 0) {
@@ -205,7 +223,13 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       } else {
         showToast('No income to collect yet.');
       }
-    } catch {
+    } catch (error: unknown) {
+      // A committed or rejected collect belongs to the account that sent it.
+      // The offline fallback would pay whichever local owner is still mounted.
+      if (isAccountChangedError(error)) {
+        showToast('Account changed. Collection was not applied to this save.');
+        return;
+      }
       const amount = collectIncome(selectedBlockId);
       if (amount > 0) {
         vaultDeposit(amount, 'block_income', `Collected $${amount} from ${block.address}`, {
@@ -216,8 +240,11 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
       } else {
         showToast('No income to collect yet.');
       }
+    } finally {
+      collectInFlight.current = false;
+      if (collectMounted.current) setCollecting(false);
     }
-  }, [selectedBlockId, block, collectIncome, updateMoney, updatePlayer, player.bankBalance, showToast, completeStep]);
+  }, [selectedBlockId, block, collectIncome, updateMoney, updatePlayer, showToast, completeStep]);
 
   const handleDeploy = useCallback(
     (memberId: string, memberName: string, role: string, level: number) => {
@@ -442,7 +469,8 @@ const BlockModeView: React.FC<BlockModeViewProps> = ({
           type="button"
           className="bmv-btn collect"
           onClick={handleCollect}
-          disabled={block.pendingIncome === 0}
+          disabled={collecting || block.pendingIncome === 0}
+          aria-busy={collecting}
           whileTap={{ scale: 0.95 }}
         >
           Collect ${block.pendingIncome}

@@ -35,46 +35,115 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor — attach auth token
+type SessionRequestConfig = InternalAxiosRequestConfig & {
+  _authUserId?: string | null;
+  _retry?: boolean;
+};
+
+/** The request's account is no longer the active session. Do not treat this as offline. */
+export class AccountChangedError extends axios.CanceledError<unknown> {
+  readonly accountChanged = true as const;
+
+  constructor(config?: InternalAxiosRequestConfig) {
+    super('Account changed while the request was pending', config);
+  }
+}
+
+export function isAccountChangedError(error: unknown): error is AccountChangedError {
+  return error instanceof AccountChangedError
+    || Boolean(error && typeof error === 'object' && (error as { accountChanged?: unknown }).accountChanged === true);
+}
+
+let supabaseModule: Promise<typeof import('./supabase')> | null = null;
+
+function loadSupabase() {
+  supabaseModule ??= import('./supabase');
+  return supabaseModule;
+}
+
+async function getCurrentSession() {
+  // Pure stores also import this module in offline tools/tests. Initialize the
+  // configured SDK only when an HTTP request actually needs its session.
+  const { supabase } = await loadSupabase();
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session;
+}
+
+function requireSameAccount(config: SessionRequestConfig, userId: string | null) {
+  if (config._authUserId !== undefined && config._authUserId !== userId) {
+    throw new AccountChangedError(config);
+  }
+}
+
+let refreshInFlight: { userId: string; promise: Promise<void> } | null = null;
+
+async function refreshCurrentSession(userId: string): Promise<void> {
+  if (refreshInFlight?.userId === userId) return refreshInFlight.promise;
+
+  const pending = {
+    userId,
+    promise: (async () => {
+      const { supabase } = await loadSupabase();
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) throw error;
+      if (!data.session?.access_token || data.session.user.id !== userId) {
+        throw new AccountChangedError();
+      }
+    })(),
+  };
+  refreshInFlight = pending;
+  try {
+    await pending.promise;
+  } finally {
+    if (refreshInFlight === pending) refreshInFlight = null;
+  }
+}
+
+// Use the same SDK session as AuthScreen, including automatic token rotation.
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  async (config: SessionRequestConfig) => {
+    const session = await getCurrentSession();
+    const userId = session?.user.id ?? null;
+    requireSameAccount(config, userId);
+    config._authUserId = userId;
+    config.headers.delete('Authorization');
+    if (session?.access_token) config.headers.set('Authorization', `Bearer ${session.access_token}`);
     return config;
   },
   (error) => Promise.reject(error),
 );
 
-// Response interceptor — handle 401 with token refresh
+// Never deliver an old account's response, or replay its mutation as a new user.
 apiClient.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    const session = await getCurrentSession();
+    requireSameAccount(response.config, session?.user.id ?? null);
+    return response;
+  },
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as SessionRequestConfig | undefined;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest?._authUserId && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-            refresh_token: refreshToken,
-          });
+        const session = await getCurrentSession();
+        requireSameAccount(originalRequest, session?.user.id ?? null);
+        if (!session?.access_token) return Promise.reject(error);
 
-          const { access_token } = response.data;
-          localStorage.setItem('access_token', access_token);
-
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          }
-          return apiClient(originalRequest);
+        // A late 401 may refer to a token the SDK has already replaced.
+        if (originalRequest.headers.get('Authorization') === `Bearer ${session.access_token}`) {
+          await refreshCurrentSession(originalRequest._authUserId);
         }
-      } catch {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/auth';
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // An account change is not an offline failure. Callers must not apply
+        // a committed or rejected mutation to whichever local owner is mounted.
+        if (isAccountChangedError(refreshError)) return Promise.reject(refreshError);
+        // SDK auth events own sign-out/navigation. A transient error must not
+        // erase a valid session or create a second token store.
+        return Promise.reject(error);
       }
     }
 
