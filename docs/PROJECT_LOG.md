@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-16 — Collection does not pay the mounted owner after an account switch (#206 P1)
+
+- A collect that Flask had already committed, or that returned unauthorized after the session changed, was rejected by the API client and then treated as an offline failure. `BlockModeView` deposited that pending income into whichever local owner was still mounted.
+- Account changes now reject with `AccountChangedError`. That result does not vault-deposit or clear pending income. A double tap sends and applies one collection. The same-account offline fallback still pays once.
+- Regression on `c3f0de5`: the new collect suite failed with a `$250` deposit to the mounted owner and two in-flight collect requests. After the fix, that suite passes (4), the auth suite passes (16), BlockModeView chrome passes, and the full frontend suite passes 1,053 / 4 existing skips. Typecheck is clean. The touched-file lint warning on an unused `player.bankBalance` hook dependency is removed. No backend, schema, RLS, secret, scheduler, or deploy change.
+
 ### 2026-10-14 — Flask requests follow the existing Supabase login (#175 source follow-up)
 
 - Use the current Supabase SDK session for Flask requests, SDK-managed token refresh and account changes. Share concurrent refreshes, limit retries, and reject replies/replays after the account changes. Defer SDK loading so offline store imports remain usable.

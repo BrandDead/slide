@@ -40,6 +40,20 @@ type SessionRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+/** The request's account is no longer the active session. Do not treat this as offline. */
+export class AccountChangedError extends axios.CanceledError<unknown> {
+  readonly accountChanged = true as const;
+
+  constructor(config?: InternalAxiosRequestConfig) {
+    super('Account changed while the request was pending', config);
+  }
+}
+
+export function isAccountChangedError(error: unknown): error is AccountChangedError {
+  return error instanceof AccountChangedError
+    || Boolean(error && typeof error === 'object' && (error as { accountChanged?: unknown }).accountChanged === true);
+}
+
 let supabaseModule: Promise<typeof import('./supabase')> | null = null;
 
 function loadSupabase() {
@@ -58,7 +72,7 @@ async function getCurrentSession() {
 
 function requireSameAccount(config: SessionRequestConfig, userId: string | null) {
   if (config._authUserId !== undefined && config._authUserId !== userId) {
-    throw new axios.CanceledError('Account changed while the request was pending', config);
+    throw new AccountChangedError(config);
   }
 }
 
@@ -74,7 +88,7 @@ async function refreshCurrentSession(userId: string): Promise<void> {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) throw error;
       if (!data.session?.access_token || data.session.user.id !== userId) {
-        throw new Error('The original session is no longer available');
+        throw new AccountChangedError();
       }
     })(),
   };
@@ -123,7 +137,10 @@ apiClient.interceptors.response.use(
           await refreshCurrentSession(originalRequest._authUserId);
         }
         return apiClient(originalRequest);
-      } catch {
+      } catch (refreshError) {
+        // An account change is not an offline failure. Callers must not apply
+        // a committed or rejected mutation to whichever local owner is mounted.
+        if (isAccountChangedError(refreshError)) return Promise.reject(refreshError);
         // SDK auth events own sign-out/navigation. A transient error must not
         // erase a valid session or create a second token store.
         return Promise.reject(error);

@@ -188,7 +188,7 @@ describe('Flask requests follow the active Supabase session', () => {
       current = session('bob');
       unauthorized(config);
     });
-    await expect(api.blocksApi.collect('alice-block')).rejects.toBeDefined();
+    await expect(api.blocksApi.collect('alice-block')).rejects.toSatisfy(api.isAccountChangedError);
     expect(client.defaults.adapter).toHaveBeenCalledTimes(1);
     expect(auth.refreshSession).not.toHaveBeenCalled();
   });
@@ -198,7 +198,7 @@ describe('Flask requests follow the active Supabase session', () => {
       current = null;
       unauthorized(config);
     });
-    await expect(api.blocksApi.collect('alice-block')).rejects.toBeDefined();
+    await expect(api.blocksApi.collect('alice-block')).rejects.toSatisfy(api.isAccountChangedError);
     expect(client.defaults.adapter).toHaveBeenCalledTimes(1);
     expect(auth.refreshSession).not.toHaveBeenCalled();
   });
@@ -208,7 +208,7 @@ describe('Flask requests follow the active Supabase session', () => {
       current = session('bob');
       return response(config);
     });
-    await expect(api.playerApi.getState()).rejects.toBeDefined();
+    await expect(api.playerApi.getState()).rejects.toSatisfy(api.isAccountChangedError);
     expect(client.defaults.adapter).toHaveBeenCalledTimes(1);
   });
 
@@ -218,7 +218,7 @@ describe('Flask requests follow the active Supabase session', () => {
       return { data: { session: current }, error: null };
     });
     client.defaults.adapter = vi.fn(async (config) => unauthorized(config));
-    await expect(api.blocksApi.collect('alice-block')).rejects.toBeDefined();
+    await expect(api.blocksApi.collect('alice-block')).rejects.toSatisfy(api.isAccountChangedError);
     expect(client.defaults.adapter).toHaveBeenCalledTimes(1);
     expect(auth.refreshSession).toHaveBeenCalledTimes(1);
   });
