@@ -1,0 +1,438 @@
+{
+  "createdAt": "2026-10-17T17:58:28.218325+00:00",
+  "decision": "Final-source existing-art integration evidence passed; author/integration review required; final style and launch approval withheld.",
+  "mainCommit": "9eef5aac28a82275d7a2e1596e8658b167953ed7",
+  "candidatePR": 205,
+  "candidateCommit": "9227dc67d0ce174b7960ceaa06f42f865cf84abc",
+  "candidateSourceChanged": false,
+  "buildMode": "VITE_DEMO_MODE=1; npm run build; Python static local HTTP servers",
+  "browser": "Chromium headless phone emulation and desktop; reduced-motion; deviceScaleFactor 1",
+  "normalAndFailureCandidateChecksPassed": 48,
+  "baselineNegativeArtFailuresExpected": true,
+  "runtimeValidation": {
+    "testsPassed": 1039,
+    "testsSkipped": 4,
+    "testFiles": 92,
+    "lintErrors": 0,
+    "existingLintWarnings": 200,
+    "assets": 112,
+    "runtimeAssetMB": 7.7,
+    "runtimeBudgetMB": 20,
+    "assetErrors": 0,
+    "assetWarnings": 0,
+    "packages": 5,
+    "schemas": 4,
+    "build": "pass"
+  },
+  "reports": [
+    {
+      "report": "main-1440x900-report.json",
+      "label": "main",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": 11,
+      "passed": 9,
+      "failures": [
+        "All opposition uses registered character Images, not circles",
+        "Downed opponent uses registered downed state"
+      ],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 3,
+      "capturedScreenshots": [
+        "main-1440x900-strategy-diorama.png",
+        "main-1440x900-encounter-entry.png",
+        "main-1440x900-reload-hud.png",
+        "main-1440x900-combat-state.png",
+        "main-1440x900-result.png",
+        "main-1440x900-consequence.png",
+        "main-1440x900-returned.png",
+        "main-1440x900-reload-return.png"
+      ]
+    },
+    {
+      "report": "main-390x844-report.json",
+      "label": "main",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": 11,
+      "passed": 9,
+      "failures": [
+        "All opposition uses registered character Images, not circles",
+        "Downed opponent uses registered downed state"
+      ],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 4,
+      "capturedScreenshots": [
+        "main-390x844-strategy-diorama.png",
+        "main-390x844-encounter-entry.png",
+        "main-390x844-reload-hud.png",
+        "main-390x844-combat-state.png",
+        "main-390x844-result.png",
+        "main-390x844-consequence.png",
+        "main-390x844-returned.png",
+        "main-390x844-reload-return.png"
+      ]
+    },
+    {
+      "report": "pr205-1440x900-report.json",
+      "label": "pr205",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": 12,
+      "passed": 12,
+      "failures": [],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 3,
+      "capturedScreenshots": [
+        "pr205-1440x900-strategy-diorama.png",
+        "pr205-1440x900-encounter-entry.png",
+        "pr205-1440x900-reload-hud.png",
+        "pr205-1440x900-combat-state.png",
+        "pr205-1440x900-result.png",
+        "pr205-1440x900-consequence.png",
+        "pr205-1440x900-returned.png",
+        "pr205-1440x900-reload-return.png"
+      ]
+    },
+    {
+      "report": "pr205-390x844-report.json",
+      "label": "pr205",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": 12,
+      "passed": 12,
+      "failures": [],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 4,
+      "capturedScreenshots": [
+        "pr205-390x844-strategy-diorama.png",
+        "pr205-390x844-encounter-entry.png",
+        "pr205-390x844-reload-hud.png",
+        "pr205-390x844-combat-state.png",
+        "pr205-390x844-result.png",
+        "pr205-390x844-consequence.png",
+        "pr205-390x844-returned.png",
+        "pr205-390x844-reload-return.png"
+      ]
+    },
+    {
+      "report": "pr205-failure-1440x900-report.json",
+      "label": "pr205-failure",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "checks": 12,
+      "passed": 12,
+      "failures": [],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 19,
+      "capturedScreenshots": [
+        "pr205-failure-1440x900-strategy-diorama.png",
+        "pr205-failure-1440x900-encounter-entry.png",
+        "pr205-failure-1440x900-reload-hud.png",
+        "pr205-failure-1440x900-combat-state.png",
+        "pr205-failure-1440x900-result.png",
+        "pr205-failure-1440x900-consequence.png",
+        "pr205-failure-1440x900-returned.png",
+        "pr205-failure-1440x900-reload-return.png"
+      ]
+    },
+    {
+      "report": "pr205-failure-390x844-report.json",
+      "label": "pr205-failure",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "checks": 12,
+      "passed": 12,
+      "failures": [],
+      "uncaughtPageErrors": 0,
+      "consoleErrors": 20,
+      "capturedScreenshots": [
+        "pr205-failure-390x844-strategy-diorama.png",
+        "pr205-failure-390x844-encounter-entry.png",
+        "pr205-failure-390x844-reload-hud.png",
+        "pr205-failure-390x844-combat-state.png",
+        "pr205-failure-390x844-result.png",
+        "pr205-failure-390x844-consequence.png",
+        "pr205-failure-390x844-returned.png",
+        "pr205-failure-390x844-reload-return.png"
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "main-1440x900-combat-state.png",
+      "bytes": 568152,
+      "sha256": "d3da1dc14855463270dcbb3d530a25589d07059d2154bf10849973fe981f92c7"
+    },
+    {
+      "file": "main-1440x900-consequence.png",
+      "bytes": 105746,
+      "sha256": "479bf07e4428f95c6964c4f694e08c70205ceb53ec02dde60528359f3394a882"
+    },
+    {
+      "file": "main-1440x900-encounter-entry.png",
+      "bytes": 597145,
+      "sha256": "91773d2d4eed0c4bcd05b6ef3272a2db181ba8890efda0862fcdafe84df99543"
+    },
+    {
+      "file": "main-1440x900-reload-hud.png",
+      "bytes": 567085,
+      "sha256": "eca822ffc12ce6e0047b65dddf7701f88c2352f7da17e62f01b653f132bff494"
+    },
+    {
+      "file": "main-1440x900-reload-return.png",
+      "bytes": 107975,
+      "sha256": "4ded306060ac4c1cf622c20305dc4eab678a42741cc42f72485b8086f63c57f2"
+    },
+    {
+      "file": "main-1440x900-result.png",
+      "bytes": 103334,
+      "sha256": "3e3a78f4ef230ef9a432dbde35f63c89ec519f657a647e98f490c9926ca0ca18"
+    },
+    {
+      "file": "main-1440x900-returned.png",
+      "bytes": 383934,
+      "sha256": "f5dc0d265f837c43965736d28b9cf7ff333dca461128c2823ce962779e718538"
+    },
+    {
+      "file": "main-1440x900-strategy-diorama.png",
+      "bytes": 462723,
+      "sha256": "4492833826c7e45d719d3e7810a0ecb8210211a8957834017e128073d960a137"
+    },
+    {
+      "file": "main-390x844-combat-state.png",
+      "bytes": 141213,
+      "sha256": "49da817461c2e0becfc786b3b650dbe5be6debba10d73099d04b632fc6412a13"
+    },
+    {
+      "file": "main-390x844-consequence.png",
+      "bytes": 77193,
+      "sha256": "15b079a3365ad2c23252e827d546f22ab6fa455fc69d6f4e15f0090cf0f95262"
+    },
+    {
+      "file": "main-390x844-encounter-entry.png",
+      "bytes": 140841,
+      "sha256": "9d3a54e13f29e48a3d66fdab249e4c35b9bf29f11941a97dee6d71f9466bed01"
+    },
+    {
+      "file": "main-390x844-reload-hud.png",
+      "bytes": 141311,
+      "sha256": "7c53054a5c2ad8883b4e53044953e2cea16d8ed49a3d14228413a98c7e5c3b04"
+    },
+    {
+      "file": "main-390x844-reload-return.png",
+      "bytes": 79782,
+      "sha256": "302db01a0db0a999e7b0299e30c4618131f56f423f79db3ffffd2e2137c03007"
+    },
+    {
+      "file": "main-390x844-result.png",
+      "bytes": 38244,
+      "sha256": "89c2b086550cacbc04e98a146983edf7961eb80f5382f43fb0771f0896258c63"
+    },
+    {
+      "file": "main-390x844-returned.png",
+      "bytes": 143916,
+      "sha256": "09b319653a39fa7bb592a1f26816d568a7f31f7bf637ef3625d0f65505c48e5d"
+    },
+    {
+      "file": "main-390x844-strategy-diorama.png",
+      "bytes": 206609,
+      "sha256": "97479c221a7f9c7797e4173e6da8d703f75b5abd50e2c272c5d788447643a231"
+    },
+    {
+      "file": "pr205-1440x900-combat-state.png",
+      "bytes": 760972,
+      "sha256": "c7495418a76240e52388aa4cc48facf5f3b138ba77230c402181af8b0961fb38"
+    },
+    {
+      "file": "pr205-1440x900-consequence.png",
+      "bytes": 105746,
+      "sha256": "479bf07e4428f95c6964c4f694e08c70205ceb53ec02dde60528359f3394a882"
+    },
+    {
+      "file": "pr205-1440x900-encounter-entry.png",
+      "bytes": 810196,
+      "sha256": "fed1d97368e56e27d63658b7dacfc1221a85227afcfdd33dc6c6901d78102690"
+    },
+    {
+      "file": "pr205-1440x900-reload-hud.png",
+      "bytes": 779633,
+      "sha256": "6e9da009ce0109b518a56ae106bb5b6c302c2cf95704e1ac3baac58cfef1b9d0"
+    },
+    {
+      "file": "pr205-1440x900-reload-return.png",
+      "bytes": 107975,
+      "sha256": "4ded306060ac4c1cf622c20305dc4eab678a42741cc42f72485b8086f63c57f2"
+    },
+    {
+      "file": "pr205-1440x900-result.png",
+      "bytes": 119292,
+      "sha256": "9166ddce5a48868fcfd39db27ba2b5be815e1e5508ddac5d4681f4a447def3e7"
+    },
+    {
+      "file": "pr205-1440x900-returned.png",
+      "bytes": 383070,
+      "sha256": "3eaf341b952495bbb564e066d11b39441a74ff20d7f0f90a4d7083e05a537644"
+    },
+    {
+      "file": "pr205-1440x900-strategy-diorama.png",
+      "bytes": 462723,
+      "sha256": "4492833826c7e45d719d3e7810a0ecb8210211a8957834017e128073d960a137"
+    },
+    {
+      "file": "pr205-390x844-combat-state.png",
+      "bytes": 180498,
+      "sha256": "8b04c806693d4c5ff8b5a3f3fd78c06b14bbc563bca618ff99bd7f32e87880a1"
+    },
+    {
+      "file": "pr205-390x844-consequence.png",
+      "bytes": 77193,
+      "sha256": "15b079a3365ad2c23252e827d546f22ab6fa455fc69d6f4e15f0090cf0f95262"
+    },
+    {
+      "file": "pr205-390x844-encounter-entry.png",
+      "bytes": 180328,
+      "sha256": "af077dc5328e0692eb4df1bdd1b3807dbfef45bb4f20da8080cec2e2980a41bf"
+    },
+    {
+      "file": "pr205-390x844-reload-hud.png",
+      "bytes": 181159,
+      "sha256": "e4cc23211fb6f77de47c945a3f7694eab99f3f5a11c13a7f4eafbb4274d20319"
+    },
+    {
+      "file": "pr205-390x844-reload-return.png",
+      "bytes": 79782,
+      "sha256": "302db01a0db0a999e7b0299e30c4618131f56f423f79db3ffffd2e2137c03007"
+    },
+    {
+      "file": "pr205-390x844-result.png",
+      "bytes": 40834,
+      "sha256": "e60cddfe1be8d81133a400153164aeaba2e9cbecb0c43cd51b56bc855178305c"
+    },
+    {
+      "file": "pr205-390x844-returned.png",
+      "bytes": 143916,
+      "sha256": "09b319653a39fa7bb592a1f26816d568a7f31f7bf637ef3625d0f65505c48e5d"
+    },
+    {
+      "file": "pr205-390x844-strategy-diorama.png",
+      "bytes": 206609,
+      "sha256": "97479c221a7f9c7797e4173e6da8d703f75b5abd50e2c272c5d788447643a231"
+    },
+    {
+      "file": "pr205-failure-1440x900-combat-state.png",
+      "bytes": 753546,
+      "sha256": "8da64e25853773514ad84a1b7713b961b32b610fc87d5e71dfd6a37e0458d898"
+    },
+    {
+      "file": "pr205-failure-1440x900-consequence.png",
+      "bytes": 105746,
+      "sha256": "479bf07e4428f95c6964c4f694e08c70205ceb53ec02dde60528359f3394a882"
+    },
+    {
+      "file": "pr205-failure-1440x900-encounter-entry.png",
+      "bytes": 803996,
+      "sha256": "94ddf5866d545f30aa189b915f0a26accf3af587a55a52db0fa632e558a6faf3"
+    },
+    {
+      "file": "pr205-failure-1440x900-reload-hud.png",
+      "bytes": 749286,
+      "sha256": "1a5b9efc2fc1180c5dff3973a1cf4787864907f85d310c6356d6ce12b497fc88"
+    },
+    {
+      "file": "pr205-failure-1440x900-reload-return.png",
+      "bytes": 107975,
+      "sha256": "4ded306060ac4c1cf622c20305dc4eab678a42741cc42f72485b8086f63c57f2"
+    },
+    {
+      "file": "pr205-failure-1440x900-result.png",
+      "bytes": 122110,
+      "sha256": "b5db53a86c29652a0b2aedcd9d56b5887712e71945ea3a8ff81dfba3af155d79"
+    },
+    {
+      "file": "pr205-failure-1440x900-returned.png",
+      "bytes": 382396,
+      "sha256": "55d10a79d3f5a8cf36834cb2fa76427641097661770665b26affc4b31d54c373"
+    },
+    {
+      "file": "pr205-failure-1440x900-strategy-diorama.png",
+      "bytes": 462723,
+      "sha256": "4492833826c7e45d719d3e7810a0ecb8210211a8957834017e128073d960a137"
+    },
+    {
+      "file": "pr205-failure-390x844-combat-state.png",
+      "bytes": 179315,
+      "sha256": "4b9cb36e98d7532eb79325522175eaa141dd80d72c8bf0e6b15937ac7cea1a9d"
+    },
+    {
+      "file": "pr205-failure-390x844-consequence.png",
+      "bytes": 77193,
+      "sha256": "15b079a3365ad2c23252e827d546f22ab6fa455fc69d6f4e15f0090cf0f95262"
+    },
+    {
+      "file": "pr205-failure-390x844-encounter-entry.png",
+      "bytes": 179447,
+      "sha256": "e1718e01c858d37b619ac3bf58de12dc29cd82d06a196ce1583e25819e810b9b"
+    },
+    {
+      "file": "pr205-failure-390x844-reload-hud.png",
+      "bytes": 180050,
+      "sha256": "7c8a7285532f673f017e7d61fb3a6362f3c56a2de7e54ff11daea40ac05ced51"
+    },
+    {
+      "file": "pr205-failure-390x844-reload-return.png",
+      "bytes": 244577,
+      "sha256": "0a0d373cf2770ffb47f11faf8bf067017b1fd10113234e3f7290d0bd138fbdf4"
+    },
+    {
+      "file": "pr205-failure-390x844-result.png",
+      "bytes": 41943,
+      "sha256": "b4bbafd251baa985467e766c14420f65db7b59db72fbed14634cd74097ce0eaa"
+    },
+    {
+      "file": "pr205-failure-390x844-returned.png",
+      "bytes": 143916,
+      "sha256": "09b319653a39fa7bb592a1f26816d568a7f31f7bf637ef3625d0f65505c48e5d"
+    },
+    {
+      "file": "pr205-failure-390x844-strategy-diorama.png",
+      "bytes": 206609,
+      "sha256": "97479c221a7f9c7797e4173e6da8d703f75b5abd50e2c272c5d788447643a231"
+    }
+  ],
+  "excludedClaims": [
+    "physical iPhone or Safari compatibility",
+    "full-motion or FPS benchmarks",
+    "authenticated Supabase persistence",
+    "final member-art approval",
+    "historical tap-offset reproduction in this fresh run",
+    "Modern Ops connected player path",
+    "full game or launch completion",
+    "merge or production deployment"
+  ],
+  "evidenceBranchValidation": {
+    "exitCode": 0,
+    "testsPassed": 1033,
+    "testsSkipped": 4,
+    "testFiles": 91,
+    "typecheck": "pass",
+    "lintErrors": 0,
+    "existingLintWarnings": 200,
+    "assetAudit": "pass",
+    "packageValidation": "pass",
+    "log": "evidence-branch-validate.log",
+    "applicationSourceChanged": false
+  }
+}

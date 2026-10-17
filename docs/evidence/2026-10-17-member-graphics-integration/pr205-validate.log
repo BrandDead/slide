@@ -1,0 +1,1186 @@
+
+> dealt-slide-mvp@1.0.0 validate
+> npm run lint && npm run typecheck && npm test && npm run assets:audit && npm run assets:packages
+
+
+> dealt-slide-mvp@1.0.0 lint
+> eslint "src/**/*.{ts,tsx}" --report-unused-disable-directives
+
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/__tests__/economy-pillar1.test.ts
+  7:32  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/__tests__/idempotency.test.ts
+  7:32  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/__tests__/lasOlasReliability.test.tsx
+  10:10  warning  'useDrugInventory' is defined but never used   @typescript-eslint/no-unused-vars
+  11:10  warning  'useBlockLoopStore' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/alchemy/AlchemyLab.tsx
+   11:15  warning  'BaseElement' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   11:28  warning  'CraftedDrug' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+   11:41  warning  'AlchemyRecipe' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+  102:11  warning  'player' is assigned a value but never used                                                                                                    @typescript-eslint/no-unused-vars
+  102:19  warning  'updateMoney' is assigned a value but never used                                                                                               @typescript-eslint/no-unused-vars
+  277:6   warning  React Hook useCallback has missing dependencies: 'addInventoryItem' and 'addNotification'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  285:9   warning  'discoveredRecipes' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/block/DrugAssignmentPanel.tsx
+  347:54  warning  React Hook useMemo has an unnecessary dependency: 'inventory'. Either exclude it or remove the dependency array                     react-hooks/exhaustive-deps
+  351:62  warning  React Hook useMemo has unnecessary dependencies: 'assignments' and 'inventory'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+  352:58  warning  React Hook useMemo has unnecessary dependencies: 'assignments' and 'inventory'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/casino/Casino.tsx
+    5:18  warning  'AnimatePresence' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+  315:6   warning  React Hook useCallback has missing dependencies: 'PAYOUTS' and 'SYMBOLS'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/cocaine-crush/CocaineCrush.tsx
+   30:11  warning  'player' is assigned a value but never used                                                                         @typescript-eslint/no-unused-vars
+   66:9   warning  'availableDrugs' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  260:17  warning  'validatedMatches' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+  320:6   warning  React Hook useCallback has a missing dependency: 'commitSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/common/GameSprite.tsx
+   22:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   29:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   36:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   41:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   45:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   49:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   56:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   66:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   70:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   74:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   79:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  122:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  130:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  142:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  152:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  281:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  288:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  296:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  304:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/compliance/AgeGate.tsx
+  11:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  16:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  25:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/contacts/ContactProfile.tsx
+   11:3  warning  'useEconomyStore' is defined but never used            @typescript-eslint/no-unused-vars
+  231:9  warning  'equippedClothing' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/contacts/Contacts.tsx
+   20:100  warning  'calculateHospitalImpact' is defined but never used                         @typescript-eslint/no-unused-vars
+   22:36   warning  'MemberStatus' is defined but never used                                    @typescript-eslint/no-unused-vars
+   37:57   warning  'killMember' is assigned a value but never used                             @typescript-eslint/no-unused-vars
+   39:11   warning  'uploads' is assigned a value but never used                                @typescript-eslint/no-unused-vars
+  285:42   warning  'memberId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  527:30   warning  'memberId' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  659:9    warning  'bailCost' is assigned a value but never used                               @typescript-eslint/no-unused-vars
+  724:7    warning  'RANK_TITLES' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/contacts/LevelUpPopup.tsx
+  27:7  warning  'RANK_TITLES' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/contacts/RoleContactCard.tsx
+   40:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+   99:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  104:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/dealt-v2/DealtSpeed.tsx
+    8:51  warning  'useMemo' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   10:46  warning  'useEconomyStore' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   61:7   warning  'UNIT_CONVERSIONS' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+   67:7   warning  'UNIT_LABELS' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  143:11  warning  'player' is assigned a value but never used                                                                       @typescript-eslint/no-unused-vars
+  161:6   warning  React Hook useEffect has a missing dependency: 'nextDeal'. Either include it or remove the dependency array       react-hooks/exhaustive-deps
+  181:6   warning  React Hook useEffect has a missing dependency: 'handleTimeout'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/dealt-v2/DealtSymptoms.tsx
+    8:51  warning  'useMemo' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   10:61  warning  'useEconomyStore' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   71:46  warning  'level' is defined but never used. Allowed unused args must match /^_/u                                        @typescript-eslint/no-unused-vars
+  116:11  warning  'streak' is assigned a value but never used                                                                    @typescript-eslint/no-unused-vars
+  116:19  warning  'completeDeal' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  131:6   warning  React Hook useEffect has a missing dependency: 'nextClient'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/dealt/DealtMode.tsx
+  40:6  warning  React Hook useEffect has missing dependencies: 'currentClient', 'currentOutcome', and 'generateNewClient'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/driveby/DriveByEngine.tsx
+   422:6   warning  React Hook useCallback has a missing dependency: 'playSound'. Either include it or remove the dependency array                                     react-hooks/exhaustive-deps
+   922:6   warning  React Hook useEffect has missing dependencies: 'render' and 'targets.length'. Either include them or remove the dependency array                   react-hooks/exhaustive-deps
+   926:11  warning  'block' is assigned a value but never used                                                                                                         @typescript-eslint/no-unused-vars
+  1165:6   warning  React Hook useCallback has unnecessary dependencies: 'ammo', 'carHealth', 'heat', and 'score'. Either exclude them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/economy/MarketMembers.tsx
+  147:6  warning  React Hook useCallback has a missing dependency: 'maxMembers'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/gang/GangMemberCard.tsx
+   8:3   warning  'Heart' is defined but never used          @typescript-eslint/no-unused-vars
+   9:3   warning  'Target' is defined but never used         @typescript-eslint/no-unused-vars
+  10:3   warning  'Brain' is defined but never used          @typescript-eslint/no-unused-vars
+  11:3   warning  'Zap' is defined but never used            @typescript-eslint/no-unused-vars
+  12:3   warning  'Shield' is defined but never used         @typescript-eslint/no-unused-vars
+  13:3   warning  'Star' is defined but never used           @typescript-eslint/no-unused-vars
+  14:3   warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
+  15:3   warning  'Skull' is defined but never used          @typescript-eslint/no-unused-vars
+  16:3   warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+  17:3   warning  'Clock' is defined but never used          @typescript-eslint/no-unused-vars
+  18:3   warning  'TrendingUp' is defined but never used     @typescript-eslint/no-unused-vars
+  19:3   warning  'Award' is defined but never used          @typescript-eslint/no-unused-vars
+  20:3   warning  'Crosshair' is defined but never used      @typescript-eslint/no-unused-vars
+  22:3   warning  'MoreVertical' is defined but never used   @typescript-eslint/no-unused-vars
+  25:3   warning  'Flame' is defined but never used          @typescript-eslint/no-unused-vars
+  27:40  warning  'CityRegion' is defined but never used     @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/gang/MemberCreation.tsx
+  72:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/graffiti/GraffitiGame.tsx
+    7:46  warning  'useCallback' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+    9:81  warning  'generateAllGraffitiOptions' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+   10:50  warning  'GraffitiMember' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   10:66  warning  'GangProfile' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  318:6   warning  React Hook useEffect has a missing dependency: 'checkForEncounters'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/OSShell.tsx
+  52:61  warning  'incomePerMinute' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/RaidEventOverlay.tsx
+  46:10  warning  '_showBail' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/BlockModeView.tsx
+  220:6  warning  React Hook useCallback has an unnecessary dependency: 'player.bankBalance'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/BlockOverlay.tsx
+  34:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  46:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/ClaimBlockModal.tsx
+  19:58  warning  'reset' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/DrugAssignmentPanel.tsx
+   96:61  warning  React Hook useMemo has a missing dependency: 'drugStore'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  110:6   warning  React Hook useMemo has a missing dependency: 'drugStore'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/NPCPanel.tsx
+  15:8  warning  'NPCMember' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/PlayableMap.tsx
+  198:6  warning  React Hook useEffect has missing dependencies: 'center', 'mode', and 'zoom'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/TacticalPlacementOverlay.tsx
+  38:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/map/__tests__/DrugAssignmentPanel.test.ts
+  7:32  warning  'beforeEach' is defined but never used  @typescript-eslint/no-unused-vars
+  7:44  warning  'vi' is defined but never used          @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/missions/Missions.tsx
+  44:6  warning  React Hook useEffect has a missing dependency: 'missions.length'. Either include it or remove the dependency array        react-hooks/exhaustive-deps
+  61:6  warning  React Hook useEffect has a missing dependency: 'handleMissionComplete'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/onboarding/Onboarding.tsx
+  41:11  warning  'player' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/settings/SettingsPage.tsx
+  10:3  warning  'useEconomyStore' is defined but never used  @typescript-eslint/no-unused-vars
+  11:3  warning  'useDealtStore' is defined but never used    @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/BlockDriveByEngine.tsx
+  149:5  warning  React Hook useCallback has a missing dependency: 'resolveEvent'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/CanvasStreetRenderer.tsx
+  5:3  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/CanvasStreetRendererV3.tsx
+   17:8   warning  'ImpactSurfaceKind' is defined but never used              @typescript-eslint/no-unused-vars
+  133:7   warning  'MEMBER_RENDER_HEIGHT' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  236:10  warning  'memberRenderPoint' is defined but never used              @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/FPSOverlay.tsx
+  288:14  warning  The ref value 'gunRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'gunRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/SlideGame.tsx
+   15:10  warning  'soundManager' is defined but never used                 @typescript-eslint/no-unused-vars
+   32:8   warning  'SlidePhase' is defined but never used                   @typescript-eslint/no-unused-vars
+  123:11  warning  'player' is assigned a value but never used              @typescript-eslint/no-unused-vars
+  124:11  warning  'members' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  408:9   warning  'newDefenders' is never reassigned. Use 'const' instead  prefer-const
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/slide/SlidePhaser3Scene.ts
+  38:3  warning  'GRID_WIDTH' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx
+  29:14  warning  Fast refresh only works when a file only exports components. Move your React context(s) to a separate file                      react-refresh/only-export-components
+  60:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/topdown/BipNDipGame.tsx
+  136:6  warning  React Hook useEffect has a missing dependency: 'session.footChase'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/topdown/PhaserTopDownBlock.tsx
+  110:6  warning  React Hook useEffect has a missing dependency: 'block'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/topdown/PoliceRaidGame.tsx
+  97:6  warning  React Hook useEffect has a missing dependency: 'raidState'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/topdown/TopDownShooter.tsx
+    9:40  warning  'useEffect' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+    9:51  warning  'useRef' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+   15:3   warning  'useEconomyStore' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   18:15  warning  'GangMember' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   18:27  warning  'InventoryItem' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  119:7   warning  'RELOAD_COST' is assigned a value but never used                                                                     @typescript-eslint/no-unused-vars
+  183:43  warning  'gangColor' is defined but never used. Allowed unused args must match /^_/u                                          @typescript-eslint/no-unused-vars
+  248:11  warning  'player' is assigned a value but never used                                                                          @typescript-eslint/no-unused-vars
+  249:32  warning  'updateMember' is assigned a value but never used                                                                    @typescript-eslint/no-unused-vars
+  250:11  warning  'addNotification' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  277:10  warning  'showCommandPanel' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+  277:28  warning  'setShowCommandPanel' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  288:9   warning  'assignedMembers' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  584:6   warning  React Hook useCallback has an unnecessary dependency: 'defenders'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  658:6   warning  React Hook useCallback has a missing dependency: 'endCombat'. Either include it or remove the dependency array       react-hooks/exhaustive-deps
+  663:6   warning  React Hook useCallback has a missing dependency: 'endCombat'. Either include it or remove the dependency array       react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/hooks/useApi.ts
+  83:5  warning  React Hook useCallback has a missing dependency: 'options'. Either include it or remove the dependency array                                     react-hooks/exhaustive-deps
+  95:6  warning  React Hook useEffect has missing dependencies: 'execute', 'method', and 'options.immediate'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/hooks/useBlockClaim.ts
+  124:41  warning  'gangName' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  210:29  warning  'userId' is defined but never used. Allowed unused args must match /^_/u    @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/hooks/useBlockSatellite.ts
+  114:20  warning  The ref value 'requestIdRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'requestIdRef.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/hooks/useBlockSync.ts
+  131:36  warning  The ref value 'debounceTimers.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'debounceTimers.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/services/apiClient.ts
+  247:39  warning  'newToken' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/services/combatService.ts
+   12:3   warning  'Vehicle' is defined but never used                                         @typescript-eslint/no-unused-vars
+   15:3   warning  'UNIT_STATS' is defined but never used                                      @typescript-eslint/no-unused-vars
+   16:3   warning  'VEHICLE_STATS' is defined but never used                                   @typescript-eslint/no-unused-vars
+   19:3   warning  'isPositionValid' is defined but never used                                 @typescript-eslint/no-unused-vars
+   21:3   warning  'isAdjacent' is defined but never used                                      @typescript-eslint/no-unused-vars
+  262:38  warning  'defender' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  266:41  warning  'defender' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/services/location.service.ts
+  10:3  warning  'buildBlockBounds' is defined but never used  @typescript-eslint/no-unused-vars
+  12:3  warning  'isInServiceArea' is defined but never used   @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/services/supabase.ts
+  799:26  warning  'region' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/stores/authStore.ts
+  98:25  warning  'authData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/stores/blockStore.ts
+   15:3   warning  'DriveByEvent' is defined but never used       @typescript-eslint/no-unused-vars
+  587:32  warning  '_removed' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/stores/combatStore.ts
+  12:3  warning  'CombatOutcome' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/stores/gameStore.ts
+   13:3   warning  'CombatSession' is defined but never used                              @typescript-eslint/no-unused-vars
+   14:3   warning  'Drug' is defined but never used                                       @typescript-eslint/no-unused-vars
+   15:3   warning  'Recipe' is defined but never used                                     @typescript-eslint/no-unused-vars
+   19:3   warning  'Mission' is defined but never used                                    @typescript-eslint/no-unused-vars
+   43:11  warning  'get' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  402:13  warning  'get' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/stores/npcStore.ts
+  289:13  warning  'get' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/ImpactEngine.ts
+  377:11  warning  'life' is never reassigned. Use 'const' instead  prefer-const
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/PerformanceManager.ts
+  399:11  warning  'clampedDelta' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  492:32  warning  'priority' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/__tests__/bailHospitalSystem.test.ts
+  24:8  warning  'RecoveryKind' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/alchemyEngine.ts
+   8:3  warning  'CraftedDrug' is defined but never used      @typescript-eslint/no-unused-vars
+  10:3  warning  'CraftingSession' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/combatResolver.ts
+   12:3   warning  'CombatEventResult' is defined but never used                               @typescript-eslint/no-unused-vars
+  286:44  warning  'attacker' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  347:31  warning  'route' is assigned a value but never used                                  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/dealtEngine.ts
+  387:9  warning  Unexpected lexical declaration in case block  no-case-declarations
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/gameLoopEngine.ts
+  16:3   warning  'HEAT_CONFIG' is defined but never used  @typescript-eslint/no-unused-vars
+  25:62  warning  'ODEvent' is defined but never used      @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/graffitiEngine.ts
+  91:53  warning  'secondary' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/gridFactory.ts
+  12:3  warning  'MicroCoord' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/gridGenerator.ts
+   19:3   warning  'TileGenerationContext' is defined but never used  @typescript-eslint/no-unused-vars
+   24:10  warning  'getCityConfig' is defined but never used          @typescript-eslint/no-unused-vars
+  325:13  warning  'gridHeight' is assigned a value but never used    @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/moraleSystem.ts
+  92:3  warning  'rng' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/turnLogic.ts
+   1:33  warning  'macroToMicroRegion' is defined but never used                         @typescript-eslint/no-unused-vars
+  29:3   warning  'rng' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/vehicleEngine.ts
+  15:3  warning  'VEHICLE_SEAT_CONFIGS' is defined but never used  @typescript-eslint/no-unused-vars
+  18:8  warning  'VehicleSeatConfig' is defined but never used     @typescript-eslint/no-unused-vars
+
+/home/ubuntu/projects/slide-nightfall-proof/frontend/src/utils/weaponSystem.ts
+  12:8  warning  'ShooterTier' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 200 problems (0 errors, 200 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+
+
+> dealt-slide-mvp@1.0.0 typecheck
+> tsc --noEmit
+
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide-nightfall-proof/frontend
+
+ ✓ src/utils/__tests__/blockMappers.test.ts (16 tests) 68ms
+ ✓ src/__tests__/idempotency.test.ts (18 tests) 52ms
+ ✓ src/__tests__/lasOlasReliability.test.tsx (30 tests | 4 skipped) 92ms
+ ✓ src/stores/blockStore.encounter.test.ts (20 tests) 1426ms
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > hands a geocoded AddressResult through CarCrew and into a coordinate-seeded scene
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > pre-fills a target locked from the Maps recon pin
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ ✓ src/stores/__tests__/mostWantedStore.test.ts (48 tests) 72ms
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > labels the offline text fallback and hands a text-seed target when no geocoder result is chosen
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > two coordinate-distinct autocomplete picks produce distinct scenes
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ ✓ src/components/raid/__tests__/policeRaid.test.ts (42 tests) 80ms
+ ✓ src/utils/__tests__/ghostCrewEngine.test.ts (29 tests) 94ms
+ ✓ src/utils/__tests__/policeRaidEngine.test.ts (46 tests) 32ms
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > two coordinate-distinct autocomplete picks produce distinct scenes
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ ✓ src/game/loop/__tests__/blockLoop.test.ts (18 tests) 52ms
+ ✓ src/components/driveby/__tests__/carCrewTarget.test.tsx (12 tests) 4533ms
+   ✓ CarCrewSelector → street handoff (#108) > hands a geocoded AddressResult through CarCrew and into a coordinate-seeded scene 1602ms
+   ✓ CarCrewSelector → street handoff (#108) > two coordinate-distinct autocomplete picks produce distinct scenes 1610ms
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > offers dealer, recruit, shooter and driver as drivers, but only shooters as passengers
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > lets a shooter drive without counting them as the passenger shooter
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > refuses a now-injured or changed-role passenger before launch
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > shows the member portrait first, and labels role art when identity is missing
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > visibly labels role art when a stored personal portrait fails to load
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > shows actual carried inventory and core member stats without inventing a weapon or cash
+Not implemented: Window's scrollTo() method
+
+stderr | src/components/driveby/__tests__/carCrewTarget.test.tsx > CarCrewSelector → street handoff (#108) > does not invent full health or gear when the roster has no health record
+Not implemented: Window's scrollTo() method
+
+ ✓ src/stores/__tests__/getBackStore.test.ts (43 tests) 31ms
+ ✓ src/utils/__tests__/bailHospitalSystem.test.ts (59 tests) 52ms
+ ✓ src/stores/__tests__/ghostCrewStore.test.ts (11 tests) 91ms
+ ✓ src/render/__tests__/projection.test.ts (40 tests) 57ms
+ ✓ src/utils/__tests__/blockDNAResolver.test.ts (16 tests) 61ms
+ ✓ src/utils/__tests__/marketMembersCatalog.test.ts (44 tests) 57ms
+ ✓ src/stores/__tests__/rivalStripDefense.test.ts (11 tests) 53ms
+ ✓ src/components/topdown/__tests__/bipNDipGame.test.ts (27 tests) 56ms
+ ✓ src/utils/__tests__/blockDNALegacyContract.test.ts (20 tests) 46ms
+ ✓ src/render/__tests__/dioramaAdapter.test.ts (9 tests) 45ms
+ ✓ src/game/combat/__tests__/combatSession.test.ts (11 tests) 37ms
+ ✓ src/render/__tests__/worldActorResolver.test.ts (25 tests) 30ms
+ ✓ src/__tests__/economy-pillar1.test.ts (14 tests) 22ms
+ ✓ src/stores/__tests__/blockLoopShiftStore.test.tsx (9 tests) 1235ms
+   ✓ Strip shifts through the shared stores > offers the next shift from the desk once the recovery is decided 836ms
+ ✓ src/game/loop/__tests__/blockLoopShifts.test.ts (9 tests) 77ms
+ ✓ src/utils/__tests__/blockDNAReloadIdentity.test.ts (7 tests) 73ms
+ ✓ src/game/combat/__tests__/CombatSessionController.test.ts (8 tests) 15ms
+ ✓ src/render/__tests__/proceduralDriveBy.test.ts (16 tests) 40ms
+ ✓ src/components/gang/__tests__/PhotoMemberCreator.test.tsx (5 tests) 1345ms
+   ✓ PhotoMemberCreator > identifies stock offline previews without claiming the photo was generated 481ms
+ ✓ src/components/encounter/__tests__/UnifiedEncounterScene.presentation.test.ts (5 tests) 26ms
+ ✓ src/stores/__tests__/npcStore.test.ts (14 tests) 22ms
+ ✓ src/game/combat/__tests__/aimedFire.test.ts (5 tests) 10ms
+ ✓ src/__tests__/betaGate.smoke.test.ts (12 tests) 343ms
+ ✓ src/config/__tests__/blockDNA.test.ts (23 tests) 129ms
+ ✓ src/hooks/__tests__/useBlockSync.test.tsx (5 tests) 268ms
+ ✓ src/components/tutorial/TutorialOverlay.test.tsx (4 tests) 471ms
+ ✓ src/utils/__tests__/memberXpWiring.test.ts (18 tests) 9ms
+ ✓ src/components/layout/BlockLoopDesk.test.tsx (8 tests) 2008ms
+   ✓ BlockLoopDesk > shows the dealer, shooter, block, product, money, and heat on the strip 399ms
+   ✓ BlockLoopDesk > rejects a street cell and places a curb dealer with a visible income/exposure split 605ms
+   ✓ BlockLoopDesk > runs a deal receipt then books a deterministic wound 884ms
+ ✓ src/stores/__tests__/blockLoopStore.test.ts (5 tests) 72ms
+ ✓ src/utils/__tests__/shoeboxAnalytics.test.ts (6 tests) 28ms
+ ✓ src/components/gang/__tests__/MemberProgressPanel.test.ts (18 tests) 16ms
+ ✓ src/components/map/PlayableMap.test.tsx (6 tests) 514ms
+ ✓ src/components/topdown/__tests__/blockTopDownCoords.test.ts (18 tests) 21ms
+ ✓ src/components/slide/__tests__/v3Projection.test.ts (16 tests) 9ms
+ ✓ src/components/graffiti/__tests__/graffitiWiring.test.ts (14 tests) 14ms
+ ✓ src/services/worldPersistence.service.test.ts (6 tests) 9ms
+ ✓ src/game/assets/__tests__/assetPackages.test.ts (4 tests) 10ms
+stderr | src/__tests__/betaOnePath.test.tsx > Las Olas closed-beta one path > walks the seeded Las Olas desk from lock through deal, wound, and reload-safe books
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+Warning: An update to BlockLoopDesk inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+
+ ✓ src/__tests__/betaOnePath.test.tsx (4 tests) 2344ms
+   ✓ Las Olas closed-beta one path > does not treat a missing local acknowledgement as 18+ just because this is a demo build 734ms
+   ✓ Las Olas closed-beta one path > walks the seeded Las Olas desk from lock through deal, wound, and reload-safe books 1277ms
+   ✓ Las Olas closed-beta one path > puts the Las Olas run CTA above city briefing on the command desktop 325ms
+ ✓ src/game/combat/__tests__/portableContracts.test.ts (3 tests) 6ms
+ ✓ src/components/map/__tests__/DrugAssignmentPanel.test.ts (11 tests) 28ms
+ ✓ src/components/map/GhostThreatBanner.test.tsx (5 tests) 767ms
+   ✓ GhostThreatBanner > routes an open Strip attack to the Strip 500ms
+ ✓ src/utils/__tests__/driveByTarget.test.ts (11 tests) 12ms
+ ✓ src/components/layout/CityBriefing.test.tsx (6 tests) 314ms
+ ✓ src/components/map/TacticalDiorama.test.tsx (4 tests) 1066ms
+   ✓ TacticalDiorama player path > renders the Las Olas street plate with cover, street, crew, objective, and extraction 382ms
+ ✓ src/components/encounter/__tests__/UnifiedEncounterLog.test.tsx (2 tests) 159ms
+ ✓ src/components/cocaine-crush/__tests__/cocaineCrush.test.ts (11 tests) 25ms
+stderr | src/services/blockPersistence.service.test.ts > blockPersistence.service authoritative projection > does not fall through to an unguarded upsert when the server rejects a stale projection
+[BlockPersistence] Skipped stale block projection after a newer encounter result.
+
+ ✓ src/services/blockPersistence.service.test.ts (4 tests) 15ms
+ ✓ src/components/slide/__tests__/phaserBridge.test.ts (21 tests) 19ms
+ ✓ src/config/__tests__/blockDNACatalogExport.test.ts (6 tests) 128ms
+ ✓ src/components/map/__tests__/NPCThreatBanner.test.tsx (5 tests) 449ms
+stderr | src/components/system/RouteLoadBoundary.test.tsx > RouteLoadBoundary > shows recovery UI and keeps the fallback board when a heavy surface fails
+Error: WebGL unavailable
+    at Boom (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:7:9)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+Error: WebGL unavailable
+    at Boom (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:7:9)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+The above error occurred in the <Boom> component:
+
+    at Boom (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:10:9)
+    at RouteLoadBoundary (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:69:1)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RouteLoadBoundary.
+
+stderr | src/components/system/RouteLoadBoundary.test.tsx > RouteLoadBoundary > retries and remounts children after a synchronous render failure
+Error: chunk failed
+    at Flaky (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:37:30)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+Error: chunk failed
+    at Flaky (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:37:30)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+The above error occurred in the <Flaky> component:
+
+    at Flaky (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:54:30)
+    at RouteLoadBoundary (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:69:1)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RouteLoadBoundary.
+
+stderr | src/components/system/RouteLoadBoundary.test.tsx > RouteLoadBoundary > retries a rejected React.lazy import with a fresh loader attempt
+Error: Failed to fetch dynamically imported module
+    at /home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:58:31
+    at /home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:77:11
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+Error: Failed to fetch dynamically imported module
+    at /home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.test.tsx:58:31
+    at /home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:77:11
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+The above error occurred in the <RetryableLazy> component:
+
+    at RetryableLazy (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:36:43)
+    at Suspense
+    at RouteLoadBoundary (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:69:1)
+    at LazyRoute (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:148:3)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RouteLoadBoundary.
+
+ ✓ src/components/system/RouteLoadBoundary.test.tsx (4 tests) 383ms
+ ✓ src/components/map/__tests__/playableMapGeometry.test.ts (3 tests) 6ms
+ ✓ src/utils/__tests__/BulletCamEngine.test.ts (5 tests) 12ms
+ ✓ src/hooks/useGhostCrewSync.test.tsx (3 tests) 237ms
+stderr | src/components/layout/BlockLoopDesk.fallback.test.tsx > BlockLoopDesk diorama fallback board > advances loop placement from a fallback board cell click
+Error: WebGL unavailable
+    at default (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.fallback.test.tsx:4:11)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+Error: WebGL unavailable
+    at default (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.fallback.test.tsx:4:11)
+    at renderWithHooks (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:20103:13)
+    at beginWork (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (/home/ubuntu/projects/slide/frontend/node_modules/react-dom/cjs/react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+    at innerInvokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+    at invokeEventListeners (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    at HTMLUnknownElementImpl._dispatch (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    at HTMLUnknownElementImpl.dispatchEvent (/home/ubuntu/projects/slide/frontend/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:114:17)
+The above error occurred in the <default> component:
+
+    at default (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.fallback.test.tsx:4:11)
+    at RouteLoadBoundary (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/system/RouteLoadBoundary.tsx:69:1)
+    at section
+    at div
+    at BlockLoopDesk (/home/ubuntu/projects/slide-nightfall-proof/frontend/src/components/layout/BlockLoopDesk.tsx:72:56)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, RouteLoadBoundary.
+
+ ✓ src/components/layout/BlockLoopDesk.fallback.test.tsx (1 test) 916ms
+   ✓ BlockLoopDesk diorama fallback board > advances loop placement from a fallback board cell click 914ms
+stderr | src/components/topdown/__tests__/TopDownShooter.launch.test.tsx > TopDownShooter empty seats > stays disabled when the passenger cannot shoot, then enables for a shooter
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+Not implemented: Window's scrollTo() method
+
+ ✓ src/components/topdown/__tests__/TopDownShooter.launch.test.tsx (2 tests) 505ms
+   ✓ TopDownShooter empty seats > keeps Launch Attack disabled while the driver and shooter seats are empty 341ms
+ ✓ src/__tests__/routePerformance.contract.test.ts (6 tests) 8ms
+ ✓ src/components/missions/__tests__/AttackPlanner.launch.test.tsx (2 tests) 346ms
+ ✓ src/types/contracts/blockScene.test.ts (3 tests) 5ms
+ ✓ src/utils/__tests__/bulletCamTrigger.test.ts (6 tests) 5ms
+ ✓ src/components/map/BlockModeView.test.tsx (1 test) 302ms
+   ✓ BlockModeView beta chrome > keeps diorama, board, and encounter as the only Strip tabs and forwards map failure 300ms
+ ✓ src/hooks/__tests__/useBlockSatellite.test.ts (7 tests) 6ms
+ ✓ src/utils/__tests__/nearbyBlocks.test.ts (4 tests) 9ms
+ ✓ src/components/contacts/__tests__/Contacts.test.tsx (1 test) 359ms
+   ✓ Contacts photo recruit detail > shows the generated photo recruit backstory in the contact profile 357ms
+ ✓ src/components/phone/__tests__/PhoneApp.test.tsx (2 tests) 365ms
+ ✓ src/components/compliance/AgeGate.test.tsx (5 tests) 507ms
+   ✓ AgeGate demo evaluation chrome > shows the mature-content gate and evaluation banner without skipping 18+ 499ms
+ ✓ src/utils/__tests__/demoSeedBooks.test.ts (2 tests) 11ms
+ ✓ src/utils/__tests__/demoSeedContacts.test.ts (2 tests) 10ms
+stderr | src/services/__tests__/avatarGeneration.service.test.ts > offline photo preview > returns loadable registered stock art for every recruit role
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+[AvatarService] Backend unavailable, using mock assets.
+
+stderr | src/services/__tests__/avatarGeneration.service.test.ts > offline photo preview > keeps unrequested outputs absent in the offline preview
+[AvatarService] Backend unavailable, using mock assets.
+
+ ✓ src/services/__tests__/avatarGeneration.service.test.ts (2 tests) 12ms
+ ✓ src/components/hub/Leaderboard.test.tsx (2 tests) 270ms
+ ✓ src/components/system/StartupErrorBoundary.test.tsx (2 tests) 299ms
+ ✓ src/utils/__tests__/demoSeedProgress.test.ts (2 tests) 10ms
+ ✓ src/stores/__tests__/notificationStore.test.ts (2 tests) 6ms
+ ✓ src/utils/authPlayer.test.ts (5 tests) 5ms
+ ✓ src/utils/__tests__/geo.test.ts (5 tests) 5ms
+ ✓ src/utils/__tests__/phaserReady.test.ts (3 tests) 5ms
+ ✓ src/components/layout/__tests__/OSShellBalance.test.tsx (2 tests) 387ms
+   ✓ command desk authoritative street cash > shows and refreshes the live player balance for account-123 318ms
+ ✓ src/game/ops/__tests__/opsCoordinates.test.ts (2 tests) 7ms
+ ✓ src/stores/__tests__/combatIntentStore.test.ts (1 test) 3ms
+ ✓ src/components/hub/Leaderboard.security.test.ts (1 test) 3ms
+ ✓ src/__tests__/releasePreflight.test.ts (4 tests) 263ms
+ ✓ src/__tests__/assetProcessor.test.ts (8 tests) 1462ms
+   ✓ asset processor incremental imports > retains registered actors when importing a new actor and on a repeated no-op write 313ms
+
+ Test Files  92 passed (92)
+      Tests  1039 passed | 4 skipped (1043)
+   Start at  17:53:39
+   Duration  43.93s (transform 6.10s, setup 12.46s, collect 24.33s, tests 25.96s, environment 107.94s, prepare 11.44s)
+
+
+> dealt-slide-mvp@1.0.0 assets:audit
+> node scripts/assets/audit.mjs
+
+
+SLIDE asset audit
+──────────────────────────────────────────────────────────────────────
+Assets checked : 112
+Package files  : 13 (1.57 MB)
+Runtime total  : 7.70 MB / 20 MB budget
+Errors         : 0
+Warnings       : 0
+
+AUDIT PASSED
+
+> dealt-slide-mvp@1.0.0 assets:packages
+> node scripts/assets/validate-packages.mjs
+
+Asset package validation passed: 5 package(s), 4 schema(s).
