@@ -69,6 +69,26 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-17 — Locked GTA cover prompt + gpt-image-2.5-flare (#210)
+
+- Owner approved the round-3 GTA V loading-screen / box-cover look over the cartoon path. Winning prompt is `docs/STYLE_PROMPT.md`. Runtime pieces live in one module, `backend/python/config/slide_art_style.py` (STYLE + SHOT + IDENTITY + SAFETY), shared by portrait, full-body, future idle/aim/fire/hit/downed sheets, and props.
+- GPT Image calls use `images.edit` with the upload as the identity reference, size `1024x1536`, quality `medium`. Primary model `gpt-image-2.5-flare`, fallback `gpt-image-2`. DALL·E still never used. No-key path is unchanged: photo crop + body locked.
+- `OPENAI_API_KEY` was not present in this environment at wiring time. Owner is adding it to Cursor cloud agent secrets.
+
+### 2026-10-17 — GPT Image likeness, no vector bodies, Manus handoff (#210)
+
+- Owner rejected the stick-figure / clip-art full-body as unacceptable. Target is GTA V loading-screen illustrated realism, same look across portrait, body, and in-game states.
+- Vendor decision (delegated): GPT Image only. `OPENAI_API_KEY` enables it (not set yet). Model order `gpt-image-2` → `gpt-image-1.5` → `gpt-image-1`. DALL·E is never used. No key or a failed call → real photo crop + `bodyLocked`, never a vector body.
+- `LAUNCH_READINESS.md` now states plainly that GTA-quality characters **and** HW2 gunplay will struggle on the current web stack, and recommends illustrated GTA presentation for the web beta (UE5 one-fight if shooting is the public promise).
+- Added root `COLLABORATION.md` so another agent (Manus) can pick up work without colliding this branch.
+- Consent + source-photo deletion unchanged. No founder photos or keys committed.
+
+### 2026-10-17 — Launch-readiness audit and truthful photo likeness (#195)
+
+- Added repo-root `LAUNCH_READINESS.md`: what is actually playable, ranked public-launch blockers, post-launch deferrals, launch cuts, and a short path that does not try to out-FPS Hood Warfare 2. Reconciles start-here / project log / #45 / #175 / #195 with stale Jan-2025 beta docs.
+- Photo recruit no longer swaps stock role art for a friend’s face. Flask now mounts `/api/avatar/*`. The default provider composites the uploaded face onto portrait / full-body / token cards, requires adult + permission + processing consent, and deletes the source upload. Offline, the client does the same instead of `/assets/runtime` stock. Optional OpenAI restyle stays behind `OPENAI_API_KEY` + `SLIDE_AVATAR_PROVIDER=openai` and falls back to the photo card, never a fake identity.
+- Docs: `docs/PHOTO_LIKENESS.md`. No founder photos, generated likenesses, migrations, or production secrets. Draft PR #169 still owns `visualProfile` persistence.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.

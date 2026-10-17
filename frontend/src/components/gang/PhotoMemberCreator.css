@@ -6,10 +6,13 @@
 .pmc-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: min(520px, 100%);
+  height: min(92vh, 100%);
   background: #0a0a0f;
   font-family: 'SF Mono', 'Fira Code', monospace;
   overflow: hidden;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
 }
 
 /* ── Header ── */
@@ -96,16 +99,44 @@
 }
 
 /* ── Consent ── */
+.pmc-consent-group {
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+.pmc-consent-group legend {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 0 4px;
+}
 .pmc-consent {
   display: flex;
   align-items: flex-start;
   gap: 8px;
   font-size: 10px;
-  color: #64748b;
+  color: #94a3b8;
   cursor: pointer;
   line-height: 1.4;
 }
 .pmc-consent input { margin-top: 2px; accent-color: #4ade80; }
+.pmc-consent-note {
+  margin: 0;
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.45;
+}
+.pmc-traits {
+  margin: 0;
+  font-size: 10px;
+  color: #94a3b8;
+}
 
 /* ── Role grid ── */
 .pmc-role-grid {
@@ -271,6 +302,39 @@
   color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.pmc-locked-body {
+  width: 100px;
+  height: 140px;
+  border-radius: 8px;
+  border: 1px dashed #475569;
+  background: repeating-linear-gradient(
+    -45deg,
+    #0a0a0f,
+    #0a0a0f 8px,
+    #111827 8px,
+    #111827 16px
+  );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  text-align: center;
+  color: #94a3b8;
+}
+.pmc-locked-body strong {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #e2e8f0;
+}
+.pmc-locked-body small {
+  font-size: 8px;
+  line-height: 1.35;
+  color: #64748b;
 }
 
 /* ── Result actions ── */

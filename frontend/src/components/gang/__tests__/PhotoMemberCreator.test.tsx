@@ -11,6 +11,12 @@ vi.mock('../../../services/avatarGeneration.service', () => ({
     generate: vi.fn(),
     getStatus: vi.fn(),
     approve: vi.fn(),
+    getProviderStatus: vi.fn().mockResolvedValue({
+      provider: 'photo_crop',
+      aiConfigured: false,
+      bodyLockedUntilConfigured: true,
+      requiredForAi: { env: ['OPENAI_API_KEY'], pythonPackage: 'openai>=1.40.0', notes: '' },
+    }),
   },
 }));
 
@@ -56,7 +62,9 @@ function upload(container: HTMLElement, file = photo()) {
 }
 
 function consent() {
-  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.click(screen.getByRole('checkbox', { name: /this photo is of an adult/i }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /permission from the person/i }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /consent to processing this image/i }));
 }
 
 function typeName(value: string) {
@@ -86,17 +94,87 @@ describe('PhotoMemberCreator', () => {
   });
 
   it('identifies stock offline previews without claiming the photo was generated', async () => {
-    service.generate.mockResolvedValue(asset({ id: 'mock-offline' }));
+    service.generate.mockResolvedValue(asset({ id: 'mock-offline', stockPreview: true }));
     const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
     upload(container);
     consent();
     typeName('Jay');
     await act(async () => { fireEvent.click(generateButton()); });
 
-    expect(screen.getByRole('status')).toHaveTextContent(/generation is offline/i);
     expect(screen.getByRole('status')).toHaveTextContent(/stock character art/i);
-    expect(screen.queryByText('Generated Assets')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/not your friend/i);
+    expect(screen.queryByText('Photo-based likeness')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add to roster/i })).toBeEnabled();
+  });
+
+  it('labels a photo crop and a locked body when GPT Image is not configured', async () => {
+    service.generate.mockResolvedValue(asset({
+      id: 'likeness-1',
+      provider: 'photo_crop',
+      stockPreview: false,
+      bodyLocked: true,
+      fullbodyUrl: undefined,
+      topdownUrl: undefined,
+      likenessTraits: {
+        skinTone: 'caramel',
+        hairColor: 'black',
+        facialHair: 'none_or_light',
+        clothingColors: [],
+        notes: [],
+      },
+    }));
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    upload(container);
+    consent();
+    typeName('Jay');
+    await act(async () => { fireEvent.click(generateButton()); });
+
+    expect(screen.getByText('Photo crop')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/real photo/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/body is locked/i);
+    expect(screen.getByText(/body locked/i)).toBeInTheDocument();
+    expect(screen.queryByAltText('Full Body')).not.toBeInTheDocument();
+    expect(screen.queryByText(/stock character art/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Photo-based likeness')).not.toBeInTheDocument();
+  });
+
+  it('labels a GTA-style likeness when GPT Image returns a body', async () => {
+    service.generate.mockResolvedValue(asset({
+      id: 'likeness-ai',
+      provider: 'gpt_image',
+      stockPreview: false,
+      bodyLocked: false,
+      likenessTraits: {
+        skinTone: 'caramel',
+        hairColor: 'black',
+        facialHair: 'none_or_light',
+        clothingColors: [],
+        notes: [],
+      },
+    }));
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    upload(container);
+    consent();
+    typeName('Jay');
+    await act(async () => { fireEvent.click(generateButton()); });
+
+    expect(screen.getByText('GTA-style likeness')).toBeInTheDocument();
+    expect(screen.getByAltText('Full Body')).toBeInTheDocument();
+    expect(screen.queryByText(/body locked/i)).not.toBeInTheDocument();
+  });
+
+  it('does not generate until adult, permission, and processing consents are given', async () => {
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    await act(async () => { await Promise.resolve(); });
+    upload(container);
+    typeName('Jay');
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /this photo is of an adult/i }));
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /permission from the person/i }));
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /consent to processing this image/i }));
+    expect(generateButton()).not.toBeDisabled();
   });
 
   it('starts generation when the name is typed after the photo and consent', async () => {
@@ -223,5 +301,28 @@ describe('PhotoMemberCreator', () => {
     expect(contacts[0].customAvatarUrl).toBe('/generated/asset-1-portrait.png');
     expect(onApproved).toHaveBeenCalledWith(member.id);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds a photo-crop member without inventing a vector body URL', async () => {
+    service.generate.mockResolvedValue(asset({
+      provider: 'photo_crop',
+      bodyLocked: true,
+      fullbodyUrl: undefined,
+      topdownUrl: undefined,
+    }));
+    service.approve.mockResolvedValue(approveFallback('asset-1'));
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    typeName('Jay');
+    upload(container);
+    consent();
+    await act(async () => { fireEvent.click(generateButton()); });
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: /add to roster/i }));
+    });
+    const [member] = useGangStore.getState().members;
+    expect(member.avatarUrl).toBe('/generated/asset-1-portrait.png');
+    expect(member.portraitUrl).toBe('/generated/asset-1-portrait.png');
+    expect(member.fullbodyUrl).toBeUndefined();
+    expect(member.topdownUrl).toBeUndefined();
   });
 });

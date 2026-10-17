@@ -1,38 +1,18 @@
 // ============================================================
 // avatarGeneration.service.ts
-// Frontend service for the photo-to-member generation pipeline.
-// Calls backend /api/avatar/* endpoints.
-// Falls back to mock data when backend is unavailable.
-// Sprint: morale-heat-photo-batch2
+// Photo-to-member generation. GPT Image is the likeness vendor.
+// Without a backend key the honest fallback is a photo crop + locked
+// body — never stock role art, never a vector full-body.
 // ============================================================
 
 import type {
   AvatarGenerateRequest,
+  AvatarProviderStatus,
   GeneratedMemberAsset,
 } from '../types/avatar.types';
-import { getCharacterForRole } from './assetResolver';
+import { composeLocalLikeness } from './likenessCompositor';
 
-const API_BASE: string = (typeof import.meta !== 'undefined' ? (import.meta as any).env?.VITE_API_URL : undefined) ?? 'http://localhost:5000';
-
-// Offline previews use the existing registered character kits.
-function buildMockAsset(req: AvatarGenerateRequest): GeneratedMemberAsset {
-  const role = req.role;
-  const stock = getCharacterForRole(role);
-  return {
-    id: `mock-${Date.now()}`,
-    role,
-    style: req.style,
-    outputs: req.outputs,
-    portraitUrl:  req.outputs.includes('portrait') ? stock.portrait : undefined,
-    fullbodyUrl:  req.outputs.includes('fullbody')  ? stock.fullbody  : undefined,
-    topdownUrl:   req.outputs.includes('topdown')   ? stock.topdown   : undefined,
-    promptUsed: `Mock prompt for ${role} in ${req.style} style.`,
-    status: 'ready',
-    createdAt: new Date().toISOString(),
-  };
-}
-
-// ─── Service ─────────────────────────────────────────────────
+const API_BASE: string = (typeof import.meta !== 'undefined' ? (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL : undefined) ?? 'http://localhost:5000';
 
 class AvatarGenerationService {
   private async post<T>(path: string, body: FormData | object): Promise<T> {
@@ -52,54 +32,62 @@ class AvatarGenerationService {
     return res.json();
   }
 
-  /**
-   * Submit a generation job.
-   * Falls back to mock if the backend is unreachable.
-   */
+  async getProviderStatus(): Promise<AvatarProviderStatus | null> {
+    try {
+      return await this.get<AvatarProviderStatus>('/api/avatar/provider');
+    } catch {
+      return null;
+    }
+  }
+
+  private preferInlineUrls(asset: GeneratedMemberAsset): GeneratedMemberAsset {
+    const resolve = (dataUrl: string | undefined, url: string | undefined) => {
+      if (dataUrl) return dataUrl;
+      if (url?.startsWith('/api/')) return `${API_BASE}${url}`;
+      return url;
+    };
+    return {
+      ...asset,
+      portraitUrl: resolve(asset.portraitDataUrl, asset.portraitUrl),
+      fullbodyUrl: resolve(asset.fullbodyDataUrl, asset.fullbodyUrl),
+      topdownUrl: resolve(asset.topdownDataUrl, asset.topdownUrl),
+    };
+  }
+
   async generate(req: AvatarGenerateRequest): Promise<GeneratedMemberAsset> {
+    if (!req.consentPermission || !req.consentAdult || !req.consentProcessing) {
+      throw new Error('Consent is required before generating a member from a photo.');
+    }
     try {
       const form = new FormData();
       form.append('image', req.imageFile);
       form.append('role', req.role);
       form.append('style', req.style);
+      form.append('consentPermission', req.consentPermission ? '1' : '0');
+      form.append('consentAdult', req.consentAdult ? '1' : '0');
+      form.append('consentProcessing', req.consentProcessing ? '1' : '0');
       req.outputs.forEach(o => form.append('outputs', o));
 
       const data = await this.post<{ asset: GeneratedMemberAsset }>('/api/avatar/generate', form);
-      return data.asset;
-    } catch {
-      // Backend offline — return mock immediately
-      console.warn('[AvatarService] Backend unavailable, using mock assets.');
-      return buildMockAsset(req);
+      return this.preferInlineUrls(data.asset);
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Consent is required')) {
+        throw error;
+      }
+      return composeLocalLikeness(req);
     }
   }
 
-  /**
-   * Poll generation status.
-   */
   async getStatus(jobId: string): Promise<GeneratedMemberAsset> {
-    try {
-      return await this.get<GeneratedMemberAsset>(`/api/avatar/status/${jobId}`);
-    } catch {
-      // Return a mock ready state
-      return {
-        id: jobId,
-        role: 'dealer',
-        style: 'south_florida_streetwear',
-        outputs: ['portrait'],
-        status: 'ready',
-        createdAt: new Date().toISOString(),
-      };
-    }
+    const job = await this.get<GeneratedMemberAsset>(`/api/avatar/status/${jobId}`);
+    return this.preferInlineUrls(job);
   }
 
-  /**
-   * Approve a generated asset and save it to the roster.
-   */
   async approve(assetId: string): Promise<GeneratedMemberAsset> {
     try {
-      return await this.post<GeneratedMemberAsset>('/api/avatar/approve', { assetId });
+      const approved = await this.post<GeneratedMemberAsset>('/api/avatar/approve', { assetId });
+      return this.preferInlineUrls(approved);
     } catch {
-      // Mock approval — just return the asset as-is
       return {
         id: assetId,
         role: 'dealer',

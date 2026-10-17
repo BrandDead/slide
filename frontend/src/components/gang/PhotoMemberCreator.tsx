@@ -7,9 +7,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGangStore, usePlayerStore } from '../../stores/gameStore';
-import type { AvatarGenerationStatus, GeneratedMemberAsset } from '../../types/avatar.types';
+import type { AvatarGenerationStatus, AvatarProviderStatus, GeneratedMemberAsset } from '../../types/avatar.types';
 import type { GangMember } from '../../types/game.types';
 import { avatarGenerationService } from '../../services/avatarGeneration.service';
+import { isStockPreview } from '../../services/likenessCompositor';
 import './PhotoMemberCreator.css';
 
 // ─── Constants ───────────────────────────────────────────────
@@ -138,7 +139,9 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   // Form state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [consent, setConsent] = useState(false);
+  const [consentPermission, setConsentPermission] = useState(false);
+  const [consentAdult, setConsentAdult] = useState(false);
+  const [consentProcessing, setConsentProcessing] = useState(false);
   const [memberName, setMemberName] = useState('');
   const [selectedRole, setSelectedRole] = useState<RoleId>('dealer');
   const [selectedStyle, setSelectedStyle] = useState<StyleId>('south_florida_streetwear');
@@ -149,6 +152,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   const [generatedAsset, setGeneratedAsset] = useState<GeneratedMemberAsset | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [approving, setApproving] = useState(false);
+  const [providerStatus, setProviderStatus] = useState<AvatarProviderStatus | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -164,6 +168,10 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       setError('Please upload an image file.');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('Photo must be 8 MB or smaller.');
       return;
     }
     setUploadedFile(file);
@@ -199,9 +207,17 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   // finishes / a new job starts), never by replacing the preview photo.
   useEffect(() => stopPolling, [stopPolling]);
 
+  useEffect(() => {
+    let cancelled = false;
+    avatarGenerationService.getProviderStatus().then(status => {
+      if (!cancelled) setProviderStatus(status);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   // ── Generate ──
   const handleGenerate = useCallback(async () => {
-    if (!uploadedFile || !consent || !isValidMemberName(memberName) || selectedOutputs.length === 0) return;
+    if (!uploadedFile || !consentPermission || !consentAdult || !consentProcessing || !isValidMemberName(memberName) || selectedOutputs.length === 0) return;
     stopPolling();
     setStatus('uploading');
     setError(null);
@@ -212,6 +228,9 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
         role: selectedRole,
         style: selectedStyle,
         outputs: selectedOutputs,
+        consentPermission,
+        consentAdult,
+        consentProcessing,
       });
 
       setStatus('generating');
@@ -234,7 +253,7 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
       setError(err.message ?? 'Generation failed. Try again.');
       setStatus('failed');
     }
-  }, [uploadedFile, consent, memberName, selectedRole, selectedStyle, selectedOutputs, stopPolling]);
+  }, [uploadedFile, consentPermission, consentAdult, consentProcessing, memberName, selectedRole, selectedStyle, selectedOutputs, stopPolling]);
 
   // ── Approve ──
   const handleApprove = useCallback(async () => {
@@ -273,9 +292,14 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   }, [stopPolling]);
 
   const nameIsValid = isValidMemberName(memberName);
-  const canGenerate = uploadedFile && consent && nameIsValid && selectedOutputs.length > 0 && status === 'idle';
+  const hasConsent = consentPermission && consentAdult && consentProcessing;
+  const canGenerate = Boolean(uploadedFile && hasConsent && nameIsValid && selectedOutputs.length > 0 && status === 'idle');
   const canApprove = nameIsValid && !approving;
-  const stockPreview = generatedAsset?.id.startsWith('mock-') ?? false;
+  const stockPreview = isStockPreview(generatedAsset);
+  const offlineCrop = generatedAsset?.provider === 'photo_crop_offline';
+  const photoCrop = generatedAsset?.provider === 'photo_crop' || offlineCrop;
+  const gtaLikeness = generatedAsset?.provider === 'gpt_image' && !generatedAsset.bodyLocked;
+  const bodyLocked = Boolean(generatedAsset?.bodyLocked || (photoCrop && !gtaLikeness));
 
   return (
     <div className="pmc-container">
@@ -313,14 +337,45 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
             />
           </div>
 
-          <label className="pmc-consent">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={e => setConsent(e.target.checked)}
-            />
-            <span>I have permission to use this image and consent to AI processing.</span>
-          </label>
+          <fieldset className="pmc-consent-group">
+            <legend>Consent — required</legend>
+            <label className="pmc-consent">
+              <input
+                type="checkbox"
+                checked={consentAdult}
+                onChange={e => setConsentAdult(e.target.checked)}
+              />
+              <span>I am 18 or older and this photo is of an adult (18+).</span>
+            </label>
+            <label className="pmc-consent">
+              <input
+                type="checkbox"
+                checked={consentPermission}
+                onChange={e => setConsentPermission(e.target.checked)}
+              />
+              <span>I have permission from the person in this photo to use it here.</span>
+            </label>
+            <label className="pmc-consent">
+              <input
+                type="checkbox"
+                checked={consentProcessing}
+                onChange={e => setConsentProcessing(e.target.checked)}
+              />
+              <span>I consent to processing this image to create a fictional game character.</span>
+            </label>
+            <p className="pmc-consent-note">
+              This creates a cosmetic crew avatar in a fictional game. It is not a claim
+              about the real person and is not used to target anyone. The original photo
+              is not saved to the roster — only the generated character art is.
+            </p>
+            {providerStatus && !providerStatus.aiConfigured && (
+              <p className="pmc-consent-note" role="note">
+                GPT Image is not configured. The roster will show your real photo crop.
+                The GTA-style body stays locked until OPENAI_API_KEY is set on the
+                backend. See docs/PHOTO_LIKENESS.md.
+              </p>
+            )}
+          </fieldset>
         </section>
 
         <section className="pmc-section">
@@ -431,9 +486,32 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h3 className="pmc-result-title">{stockPreview ? 'Stock Character Preview' : 'Generated Assets'}</h3>
+              <h3 className="pmc-result-title">
+                {stockPreview
+                  ? 'Stock Character Preview'
+                  : gtaLikeness
+                    ? 'GTA-style likeness'
+                    : 'Photo crop'}
+              </h3>
               {stockPreview && (
-                <p role="status">Generation is offline. This preview uses stock character art.</p>
+                <p role="status">Generation could not use this photo. This preview is stock character art, not your friend.</p>
+              )}
+              {!stockPreview && photoCrop && (
+                <p role="status">
+                  {offlineCrop
+                    ? 'Backend unavailable. Roster uses the real photo crop. The GTA-style body is locked until GPT Image is configured.'
+                    : 'Roster uses the real photo crop. The GTA-style body is locked until GPT Image is configured with OPENAI_API_KEY.'}
+                </p>
+              )}
+              {generatedAsset?.aiProviderError && !stockPreview && (
+                <p className="pmc-consent-note">GPT Image failed: {generatedAsset.aiProviderError}</p>
+              )}
+              {generatedAsset?.likenessTraits && !stockPreview && !photoCrop && (
+                <p className="pmc-traits">
+                  Read from photo: {generatedAsset.likenessTraits.skinTone} skin,
+                  {' '}{generatedAsset.likenessTraits.hairColor} hair,
+                  {' '}facial hair {generatedAsset.likenessTraits.facialHair.split('_').join(' ')}.
+                </p>
               )}
               <div className="pmc-asset-gallery">
                 {generatedAsset.portraitUrl && (
@@ -442,16 +520,25 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
                     <span>Portrait</span>
                   </div>
                 )}
-                {generatedAsset.fullbodyUrl && (
+                {gtaLikeness && generatedAsset.fullbodyUrl && (
                   <div className="pmc-asset-card">
                     <img src={generatedAsset.fullbodyUrl} alt="Full Body" />
                     <span>Full Body</span>
                   </div>
                 )}
-                {generatedAsset.topdownUrl && (
+                {gtaLikeness && generatedAsset.topdownUrl && (
                   <div className="pmc-asset-card">
                     <img src={generatedAsset.topdownUrl} alt="Top-Down" />
                     <span>Token</span>
+                  </div>
+                )}
+                {bodyLocked && !gtaLikeness && !stockPreview && (
+                  <div className="pmc-asset-card">
+                    <div className="pmc-locked-body">
+                      <strong>Body locked</strong>
+                      <small>Waiting on OPENAI_API_KEY / GPT Image</small>
+                    </div>
+                    <span>Full Body</span>
                   </div>
                 )}
               </div>

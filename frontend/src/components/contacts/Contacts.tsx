@@ -346,7 +346,7 @@ const Contacts: React.FC = () => {
               name={contact.nickname || contact.name}
               role={contact.role}
               level={(member as any)?.level ?? 1}
-              avatarUrl={contact.customAvatarUrl ?? contact.avatar}
+              avatarUrl={contact.customAvatarUrl ?? member?.portraitUrl ?? member?.customAvatarUrl ?? contact.avatar}
               stats={getRoleCardStats(member as any, contact.role)}
               statusNote={moraleInfo.warning ? `${moraleInfo.label} — ${moraleInfo.warning}` : moraleInfo.label}
               onOpen={() => setSelectedContact(contact)}
