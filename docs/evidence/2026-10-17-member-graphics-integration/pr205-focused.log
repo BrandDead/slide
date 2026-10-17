@@ -1,0 +1,14 @@
+
+> dealt-slide-mvp@1.0.0 test
+> vitest run src/components/encounter/__tests__/UnifiedEncounterScene.presentation.test.ts src/components/encounter/__tests__/UnifiedEncounterLog.test.tsx
+
+
+ RUN  v2.1.9 /home/ubuntu/projects/slide-nightfall-proof/frontend
+
+ ✓ src/components/encounter/__tests__/UnifiedEncounterScene.presentation.test.ts (5 tests) 15ms
+ ✓ src/components/encounter/__tests__/UnifiedEncounterLog.test.tsx (2 tests) 88ms
+
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+   Start at  17:51:21
+   Duration  2.53s (transform 604ms, setup 245ms, collect 868ms, tests 104ms, environment 1.89s, prepare 201ms)

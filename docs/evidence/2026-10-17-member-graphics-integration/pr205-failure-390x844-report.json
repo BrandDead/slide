@@ -1,0 +1,5251 @@
+{
+  "label": "pr205-failure",
+  "origin": "http://127.0.0.1:4173",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "imageFailure": true,
+  "checks": [
+    {
+      "name": "Named fictional opposition visible",
+      "pass": true
+    },
+    {
+      "name": "Failed actor images have named fallback markers",
+      "pass": true
+    },
+    {
+      "name": "Actual Dre cell matches rendered destination (0,2)",
+      "pass": true
+    },
+    {
+      "name": "Actual Rome cell matches rendered destination (4,4)",
+      "pass": true
+    },
+    {
+      "name": "Reload command emits real engine event",
+      "pass": true
+    },
+    {
+      "name": "DOM condition shows reloading",
+      "pass": true
+    },
+    {
+      "name": "Reload finishes through the real engine",
+      "pass": true
+    },
+    {
+      "name": "Real fire event recorded",
+      "pass": true
+    },
+    {
+      "name": "Downed opponent retains a named fallback",
+      "pass": true
+    },
+    {
+      "name": "Demo result receipt survives reload exactly once",
+      "pass": true
+    },
+    {
+      "name": "Reload preserves booked money, heat, morale, and crew health",
+      "pass": true
+    },
+    {
+      "name": "No uncaught page errors",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "pr205-failure-390x844-strategy-diorama.png",
+    "pr205-failure-390x844-encounter-entry.png",
+    "pr205-failure-390x844-reload-hud.png",
+    "pr205-failure-390x844-combat-state.png",
+    "pr205-failure-390x844-result.png",
+    "pr205-failure-390x844-consequence.png",
+    "pr205-failure-390x844-returned.png",
+    "pr205-failure-390x844-reload-return.png"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (File not found)",
+    "Failed to load resource: the server responded with a status of 404 (File not found)",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: net::ERR_FAILED",
+    "Failed to load resource: the server responded with a status of 404 (File not found)",
+    "Failed to load resource: the server responded with a status of 404 (File not found)"
+  ],
+  "failedRequests": [
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_blacktee_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_dealer_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_idle_v001.webp",
+      "error": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/runtime/generated/characters/topdown/character_shooter_male_topdown_downed_v001.webp",
+      "error": "net::ERR_FAILED"
+    }
+  ],
+  "snapshots": [
+    {
+      "name": "entry",
+      "state": {
+        "tick": 0,
+        "phase": "active",
+        "selectedCrewId": "demo-dealer-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 1,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 3
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 11,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 3,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 55,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 100 HP · 11/11 ammo"
+      }
+    },
+    {
+      "name": "dre-move",
+      "state": {
+        "tick": 8,
+        "phase": "active",
+        "selectedCrewId": "demo-dealer-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 3
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 11,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 3,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 55,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:8:0:moved",
+            "tick": 8,
+            "type": "moved",
+            "actorId": "demo-dealer-1",
+            "message": "Lil Dre moves into sidewalk cover."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 100 HP · 11/11 ammo"
+      }
+    },
+    {
+      "name": "rome-move",
+      "state": {
+        "tick": 14,
+        "phase": "active",
+        "selectedCrewId": "demo-shooter-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 4
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 11,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 3,
+            "lastSequence": 2,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 55,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:8:0:moved",
+            "tick": 8,
+            "type": "moved",
+            "actorId": "demo-dealer-1",
+            "message": "Lil Dre moves into sidewalk cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:14:1:moved",
+            "tick": 14,
+            "type": "moved",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome moves into alley cover."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 100 HP · 11/11 ammo"
+      }
+    },
+    {
+      "name": "after-fire",
+      "state": {
+        "tick": 18,
+        "phase": "active",
+        "selectedCrewId": "demo-shooter-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 4
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 10,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 23,
+            "level": 3,
+            "lastSequence": 3,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 31,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:8:0:moved",
+            "tick": 8,
+            "type": "moved",
+            "actorId": "demo-dealer-1",
+            "message": "Lil Dre moves into sidewalk cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:14:1:moved",
+            "tick": 14,
+            "type": "moved",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome moves into alley cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:2:weapon-fired",
+            "tick": 18,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:3:impact-actor",
+            "tick": 18,
+            "type": "impact-actor",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "amount": 24,
+            "message": "Nightfall 2 takes 24 damage."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 100 HP · 10/11 ammo"
+      }
+    },
+    {
+      "name": "reload-start",
+      "state": {
+        "tick": 22,
+        "phase": "active",
+        "selectedCrewId": "demo-shooter-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 4
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 10,
+            "maxAmmo": 11,
+            "reloadUntilTick": 40,
+            "nextFireTick": 23,
+            "level": 3,
+            "lastSequence": 4,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 6,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 25,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 31,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 6,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 25,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:8:0:moved",
+            "tick": 8,
+            "type": "moved",
+            "actorId": "demo-dealer-1",
+            "message": "Lil Dre moves into sidewalk cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:14:1:moved",
+            "tick": 14,
+            "type": "moved",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome moves into alley cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:2:weapon-fired",
+            "tick": 18,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:3:impact-actor",
+            "tick": 18,
+            "type": "impact-actor",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "amount": 24,
+            "message": "Nightfall 2 takes 24 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:4:weapon-fired",
+            "tick": 20,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:5:impact-cover",
+            "tick": 20,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:6:weapon-fired",
+            "tick": 20,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:7:impact-cover",
+            "tick": 20,
+            "type": "impact-cover",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:8:reload-start",
+            "tick": 20,
+            "type": "reload-start",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome starts reloading."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 100 HP · 10/11 ammo · reloading"
+      }
+    },
+    {
+      "name": "reload-complete",
+      "state": {
+        "tick": 44,
+        "phase": "active",
+        "selectedCrewId": "demo-shooter-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 4
+            },
+            "health": 95,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 11,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 23,
+            "level": 3,
+            "lastSequence": 4,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 5,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 45,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 31,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 5,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 45,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:8:0:moved",
+            "tick": 8,
+            "type": "moved",
+            "actorId": "demo-dealer-1",
+            "message": "Lil Dre moves into sidewalk cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:14:1:moved",
+            "tick": 14,
+            "type": "moved",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome moves into alley cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:2:weapon-fired",
+            "tick": 18,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:18:3:impact-actor",
+            "tick": 18,
+            "type": "impact-actor",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "amount": 24,
+            "message": "Nightfall 2 takes 24 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:4:weapon-fired",
+            "tick": 20,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:5:impact-cover",
+            "tick": 20,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:6:weapon-fired",
+            "tick": 20,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:7:impact-cover",
+            "tick": 20,
+            "type": "impact-cover",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:20:8:reload-start",
+            "tick": 20,
+            "type": "reload-start",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome starts reloading."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:40:9:reload-complete",
+            "tick": 40,
+            "type": "reload-complete",
+            "actorId": "demo-shooter-1",
+            "message": "Big Rome is ready."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:40:10:weapon-fired",
+            "tick": 40,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:40:11:impact-cover",
+            "tick": 40,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:40:12:weapon-fired",
+            "tick": 40,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:40:13:impact-actor",
+            "tick": 40,
+            "type": "impact-actor",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "amount": 5,
+            "message": "Big Rome takes 5 damage."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n2 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 95 HP · 11/11 ammo"
+      }
+    },
+    {
+      "name": "combat-state",
+      "state": {
+        "tick": 216,
+        "phase": "active",
+        "selectedCrewId": "demo-shooter-1",
+        "actors": [
+          {
+            "id": "demo-dealer-1",
+            "name": "Lil Dre",
+            "team": "crew",
+            "role": "dealer",
+            "position": {
+              "x": 0,
+              "y": 2
+            },
+            "health": 100,
+            "maxHealth": 100,
+            "armor": 0,
+            "ammo": 7,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 0,
+            "level": 2,
+            "lastSequence": 1,
+            "isDown": false
+          },
+          {
+            "id": "demo-shooter-1",
+            "name": "Big Rome",
+            "team": "crew",
+            "role": "shooter",
+            "position": {
+              "x": 4,
+              "y": 4
+            },
+            "health": 65,
+            "maxHealth": 100,
+            "armor": 1,
+            "ammo": 6,
+            "maxAmmo": 11,
+            "reloadUntilTick": null,
+            "nextFireTick": 207,
+            "level": 3,
+            "lastSequence": 9,
+            "isDown": false
+          },
+          {
+            "id": "opposition-1",
+            "name": "Nightfall lookout",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            "health": 70,
+            "maxHealth": 70,
+            "armor": 0,
+            "ammo": 5,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 205,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": false
+          },
+          {
+            "id": "opposition-2",
+            "name": "Nightfall 2",
+            "team": "opposition",
+            "role": "opposition",
+            "position": {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            "health": 0,
+            "maxHealth": 55,
+            "armor": 0,
+            "ammo": 5,
+            "maxAmmo": 7,
+            "reloadUntilTick": null,
+            "nextFireTick": 205,
+            "level": 1,
+            "lastSequence": -1,
+            "isDown": true
+          }
+        ],
+        "events": [
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:100:27:impact-cover",
+            "tick": 100,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:100:28:weapon-fired",
+            "tick": 100,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:100:29:impact-cover",
+            "tick": 100,
+            "type": "impact-cover",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:120:30:weapon-fired",
+            "tick": 120,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:120:30:impact-cover",
+            "tick": 120,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:120:30:weapon-fired",
+            "tick": 120,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:120:30:impact-cover",
+            "tick": 120,
+            "type": "impact-cover",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:134:30:weapon-fired",
+            "tick": 134,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:134:30:impact-cover",
+            "tick": 134,
+            "type": "impact-cover",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:140:30:weapon-fired",
+            "tick": 140,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:140:30:impact-actor",
+            "tick": 140,
+            "type": "impact-actor",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "amount": 5,
+            "message": "Big Rome takes 5 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:140:30:weapon-fired",
+            "tick": 140,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:140:30:impact-actor",
+            "tick": 140,
+            "type": "impact-actor",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "amount": 5,
+            "message": "Big Rome takes 5 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:160:30:reload-start",
+            "tick": 160,
+            "type": "reload-start",
+            "actorId": "opposition-1",
+            "message": "Nightfall lookout reloads."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:160:30:reload-start",
+            "tick": 160,
+            "type": "reload-start",
+            "actorId": "opposition-2",
+            "message": "Nightfall 2 reloads."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:168:30:weapon-fired",
+            "tick": 168,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:168:30:impact-cover",
+            "tick": 168,
+            "type": "impact-cover",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:reload-complete",
+            "tick": 180,
+            "type": "reload-complete",
+            "actorId": "opposition-1",
+            "message": "Nightfall lookout is ready."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:reload-complete",
+            "tick": 180,
+            "type": "reload-complete",
+            "actorId": "opposition-2",
+            "message": "Nightfall 2 is ready."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:weapon-fired",
+            "tick": 180,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:impact-cover",
+            "tick": 180,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:weapon-fired",
+            "tick": 180,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:180:30:impact-actor",
+            "tick": 180,
+            "type": "impact-actor",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "amount": 5,
+            "message": "Big Rome takes 5 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:200:30:weapon-fired",
+            "tick": 200,
+            "type": "weapon-fired",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall lookout fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:200:30:impact-cover",
+            "tick": 200,
+            "type": "impact-cover",
+            "actorId": "opposition-1",
+            "targetId": "demo-shooter-1",
+            "message": "Shot strikes cover."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:200:30:weapon-fired",
+            "tick": 200,
+            "type": "weapon-fired",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "message": "Nightfall 2 fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:200:30:impact-actor",
+            "tick": 200,
+            "type": "impact-actor",
+            "actorId": "opposition-2",
+            "targetId": "demo-shooter-1",
+            "amount": 5,
+            "message": "Big Rome takes 5 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:202:30:weapon-fired",
+            "tick": 202,
+            "type": "weapon-fired",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Big Rome fires."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:202:30:impact-actor",
+            "tick": 202,
+            "type": "impact-actor",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "amount": 24,
+            "message": "Nightfall 2 takes 24 damage."
+          },
+          {
+            "id": "encounter-demo-block-las-olas-17gayr2:202:30:actor-downed",
+            "tick": 202,
+            "type": "actor-downed",
+            "actorId": "demo-shooter-1",
+            "targetId": "opposition-2",
+            "message": "Nightfall 2 is down."
+          }
+        ],
+        "terrain": [
+          [
+            {
+              "x": 0,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 1,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 2,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 3,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 4,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 6,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            },
+            {
+              "x": 7,
+              "y": 0,
+              "zoneType": "street",
+              "passable": false,
+              "cover": 0.05,
+              "exposure": 0.95
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 1,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 2,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 1,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 2,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 3,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 4,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 5,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 6,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            },
+            {
+              "x": 7,
+              "y": 3,
+              "zoneType": "storefront",
+              "passable": true,
+              "cover": 0.6,
+              "exposure": 0.25
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 1,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 2,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 3,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 4,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 5,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 6,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            },
+            {
+              "x": 7,
+              "y": 4,
+              "zoneType": "alley",
+              "passable": true,
+              "cover": 0.8,
+              "exposure": 0.1
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 1,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 2,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 3,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 4,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 5,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 6,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            },
+            {
+              "x": 7,
+              "y": 5,
+              "zoneType": "sidewalk",
+              "passable": true,
+              "cover": 0.3,
+              "exposure": 0.5
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 1,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 2,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 3,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 4,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 5,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 6,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            },
+            {
+              "x": 7,
+              "y": 6,
+              "zoneType": "curb",
+              "passable": true,
+              "cover": 0.15,
+              "exposure": 0.8
+            }
+          ],
+          [
+            {
+              "x": 0,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 1,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 2,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 3,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 4,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 5,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 6,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            },
+            {
+              "x": 7,
+              "y": 7,
+              "zoneType": "rooftop",
+              "passable": true,
+              "cover": 0.9,
+              "exposure": 0.05
+            }
+          ]
+        ],
+        "views": [
+          {
+            "id": "demo-dealer-1",
+            "type": "Arc",
+            "label": "Lil Dre"
+          },
+          {
+            "id": "demo-shooter-1",
+            "type": "Arc",
+            "label": "Big Rome"
+          },
+          {
+            "id": "opposition-1",
+            "type": "Arc",
+            "label": "Nightfall lookout"
+          },
+          {
+            "id": "opposition-2",
+            "type": "Arc",
+            "label": "Nightfall 2 · DOWN"
+          }
+        ],
+        "canvas": {
+          "width": 960,
+          "height": 600
+        },
+        "hud": "2 crew active\n1 opposition visible\n0/1 secure exits\nLil Dre · 100 HP · 7/7 ammo\nBig Rome · 65 HP · 6/11 ammo"
+      }
+    }
+  ],
+  "httpErrors": [
+    {
+      "url": "http://127.0.0.1:4173/favicon.svg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:4173/favicon.svg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/game_logo.png",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/generated/ui/icons/icon_news_v001.png",
+      "status": 404
+    }
+  ],
+  "ledgerBeforeReload": "{\"version\":1,\"phase\":\"consequence\",\"money\":12844,\"playerHeat\":9,\"reputation\":13,\"blockHeat\":2,\"blockMorale\":66,\"pendingIncome\":52,\"productQuantity\":7,\"assignments\":{\"demo-dealer-1\":\"demo-product-river-cut\"},\"placements\":[{\"memberId\":\"demo-dealer-1\",\"memberName\":\"Lil Dre\",\"role\":\"dealer\",\"x\":1,\"y\":2,\"zoneType\":\"sidewalk\",\"incomePerTick\":67,\"exposureRisk\":50,\"level\":2,\"health\":100},{\"memberId\":\"demo-shooter-1\",\"memberName\":\"Big Rome\",\"role\":\"shooter\",\"x\":4,\"y\":3,\"zoneType\":\"storefront\",\"incomePerTick\":0,\"exposureRisk\":25,\"level\":3,\"health\":100}],\"appliedEncounterKeys\":[\"encounter-demo-block-las-olas-17gayr2:retreated\"],\"economyKeys\":[\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"encounter-demo-block-las-olas-17gayr2:retreated\"],\"dealKey\":\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"encounterKey\":\"encounter-demo-block-las-olas-17gayr2:retreated\",\"lastDeal\":{\"key\":\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"dealerId\":\"demo-dealer-1\",\"productId\":\"demo-product-river-cut\",\"productName\":\"River Cut\",\"productTier\":\"street\",\"cell\":{\"x\":1,\"y\":2,\"zoneType\":\"sidewalk\",\"exposureRisk\":50},\"moneyDelta\":844,\"productDelta\":-5,\"heatDelta\":4,\"exposureDelta\":4,\"reputationDelta\":1,\"demandBonusPct\":11,\"leftoverQuantity\":7,\"explanation\":\"Street exposure +11% → higher demand, but heat +4 and exposure +4. 5 River Cut moved for $844.\"},\"lastEncounter\":{\"idempotencyKey\":\"encounter-demo-block-las-olas-17gayr2:retreated\",\"outcome\":\"retreated\",\"crewDown\":[],\"oppositionDown\":[\"opposition-2\"],\"objectiveProgress\":0,\"heatDelta\":0,\"moraleDelta\":-4,\"pendingIncomeDelta\":-15,\"summary\":\"The crew disengaged and kept the situation from escalating.\"},\"selectedDealerId\":\"demo-dealer-1\",\"selectedShooterId\":\"demo-shooter-1\",\"briefing\":[\"Your crew backed off 1208 W Las Olas Blvd. Nightfall Crew is still circling.\",\"The crew disengaged and kept the situation from escalating.\",\"Heat +0, morale -4, pending cash -$15.\"],\"threatRoute\":\"slide\",\"threatReason\":\"Nightfall Crew is sliding on 1208 W Las Olas Blvd. The deal put your dealer at 50 street exposure — hold the strip or get the crew out.\",\"rivalIncident\":{\"receiptKey\":\"demo-city-brief-attack\",\"eventId\":\"demo-city-brief-attack\",\"crewId\":\"ghost-nightfall\",\"crewName\":\"Nightfall Crew\",\"description\":\"Nightfall is testing the edge of your Las Olas block. Review your crew positions before the next move.\",\"occurredAt\":1792259383163},\"rivalResolution\":{\"receiptKey\":\"demo-city-brief-attack\",\"crewId\":\"ghost-nightfall\",\"crewName\":\"Nightfall Crew\",\"outcome\":\"retreated\",\"line\":\"Your crew backed off 1208 W Las Olas Blvd. Nightfall Crew is still circling.\"},\"pendingHealthIds\":[],\"recovery\":null,\"shiftIndex\":1,\"stock\":[{\"id\":\"demo-product-river-cut\",\"name\":\"River Cut\",\"tier\":\"street\",\"quality\":62,\"quantity\":7,\"craftedAt\":1700000000000,\"effects\":[\"fast-ticket\"]}],\"crew\":[{\"id\":\"demo-dealer-1\",\"health\":100,\"morale\":85,\"assignment\":\"sidewalk\"},{\"id\":\"demo-shooter-1\",\"health\":100,\"morale\":80,\"assignment\":\"storefront 4,3\"}]}",
+  "ledgerAfterReload": "{\"version\":1,\"phase\":\"returned\",\"money\":12844,\"playerHeat\":9,\"reputation\":13,\"blockHeat\":2,\"blockMorale\":66,\"pendingIncome\":52,\"productQuantity\":7,\"assignments\":{\"demo-dealer-1\":\"demo-product-river-cut\"},\"placements\":[{\"memberId\":\"demo-dealer-1\",\"memberName\":\"Lil Dre\",\"role\":\"dealer\",\"x\":1,\"y\":2,\"zoneType\":\"sidewalk\",\"incomePerTick\":67,\"exposureRisk\":50,\"level\":2,\"health\":100},{\"memberId\":\"demo-shooter-1\",\"memberName\":\"Big Rome\",\"role\":\"shooter\",\"x\":4,\"y\":3,\"zoneType\":\"storefront\",\"incomePerTick\":0,\"exposureRisk\":25,\"level\":3,\"health\":100}],\"appliedEncounterKeys\":[\"encounter-demo-block-las-olas-17gayr2:retreated\"],\"economyKeys\":[\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"encounter-demo-block-las-olas-17gayr2:retreated\"],\"dealKey\":\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"encounterKey\":\"encounter-demo-block-las-olas-17gayr2:retreated\",\"lastDeal\":{\"key\":\"deal:demo-block-las-olas:demo-dealer-1:1:2:demo-product-river-cut:1\",\"dealerId\":\"demo-dealer-1\",\"productId\":\"demo-product-river-cut\",\"productName\":\"River Cut\",\"productTier\":\"street\",\"cell\":{\"x\":1,\"y\":2,\"zoneType\":\"sidewalk\",\"exposureRisk\":50},\"moneyDelta\":844,\"productDelta\":-5,\"heatDelta\":4,\"exposureDelta\":4,\"reputationDelta\":1,\"demandBonusPct\":11,\"leftoverQuantity\":7,\"explanation\":\"Street exposure +11% → higher demand, but heat +4 and exposure +4. 5 River Cut moved for $844.\"},\"lastEncounter\":{\"idempotencyKey\":\"encounter-demo-block-las-olas-17gayr2:retreated\",\"outcome\":\"retreated\",\"crewDown\":[],\"oppositionDown\":[\"opposition-2\"],\"objectiveProgress\":0,\"heatDelta\":0,\"moraleDelta\":-4,\"pendingIncomeDelta\":-15,\"summary\":\"The crew disengaged and kept the situation from escalating.\"},\"selectedDealerId\":\"demo-dealer-1\",\"selectedShooterId\":\"demo-shooter-1\",\"briefing\":[\"Your crew backed off 1208 W Las Olas Blvd. Nightfall Crew is still circling.\",\"Street cash $12844. Heat 9. Product 7.\",\"Encounter encounter-demo-block-las-olas-17gayr2:retreated stays booked.\"],\"threatRoute\":\"slide\",\"threatReason\":\"Nightfall Crew is sliding on 1208 W Las Olas Blvd. The deal put your dealer at 50 street exposure — hold the strip or get the crew out.\",\"rivalIncident\":{\"receiptKey\":\"demo-city-brief-attack\",\"eventId\":\"demo-city-brief-attack\",\"crewId\":\"ghost-nightfall\",\"crewName\":\"Nightfall Crew\",\"description\":\"Nightfall is testing the edge of your Las Olas block. Review your crew positions before the next move.\",\"occurredAt\":1792259383163},\"rivalResolution\":{\"receiptKey\":\"demo-city-brief-attack\",\"crewId\":\"ghost-nightfall\",\"crewName\":\"Nightfall Crew\",\"outcome\":\"retreated\",\"line\":\"Your crew backed off 1208 W Las Olas Blvd. Nightfall Crew is still circling.\"},\"pendingHealthIds\":[],\"recovery\":null,\"shiftIndex\":1,\"stock\":[{\"id\":\"demo-product-river-cut\",\"name\":\"River Cut\",\"tier\":\"street\",\"quality\":62,\"quantity\":7,\"craftedAt\":1700000000000,\"effects\":[\"fast-ticket\"]}],\"crew\":[{\"id\":\"demo-dealer-1\",\"health\":100,\"morale\":85,\"assignment\":\"sidewalk\"},{\"id\":\"demo-shooter-1\",\"health\":100,\"morale\":80,\"assignment\":\"storefront 4,3\"}]}"
+}
