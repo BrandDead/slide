@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-17 — Launch-readiness audit and truthful photo likeness (#195)
+
+- Added repo-root `LAUNCH_READINESS.md`: what is actually playable, ranked public-launch blockers, post-launch deferrals, launch cuts, and a short path that does not try to out-FPS Hood Warfare 2. Reconciles start-here / project log / #45 / #175 / #195 with stale Jan-2025 beta docs.
+- Photo recruit no longer swaps stock role art for a friend’s face. Flask now mounts `/api/avatar/*`. The default provider composites the uploaded face onto portrait / full-body / token cards, requires adult + permission + processing consent, and deletes the source upload. Offline, the client does the same instead of `/assets/runtime` stock. Optional OpenAI restyle stays behind `OPENAI_API_KEY` + `SLIDE_AVATAR_PROVIDER=openai` and falls back to the photo card, never a fake identity.
+- Docs: `docs/PHOTO_LIKENESS.md`. No founder photos, generated likenesses, migrations, or production secrets. Draft PR #169 still owns `visualProfile` persistence.
+
 ### 2026-10-01 — Backend timestamps are timezone-aware UTC (#170)
 
 - Replaced all 17 `datetime.utcnow()` call sites in the live backend runtime with one shared helper, `backend/python/utils/utc.py` (`utc_now`, `to_iso_utc`, `utc_now_iso`). Python 3.12 deprecates `utcnow()` and the required CI runs the full backend suite, so the debt was visible on every run: the audited baseline emitted 153 warnings, all of them this single warning. The suite now runs with 0 warnings.
