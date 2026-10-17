@@ -35,14 +35,14 @@ UE5 one-fight only if shooting is the public promise.
 ## Art direction (locked)
 
 - **World:** cinematic 2.5D tactical diorama. See `.agents/skills/slide-visual-art-direction`.
-- **Crew likeness:** GTA V loading-screen / cover-art illustrated realism.
-  Believable adult proportions and clothing. Same look across portrait,
-  full-body, and in-game states.
+- **Crew likeness:** Locked GTA V loading-screen / box-cover illustration
+  (owner-approved over cartoon). Shared STYLE + SHOT + IDENTITY + SAFETY
+  in `backend/python/config/slide_art_style.py` and `docs/STYLE_PROMPT.md`.
 - **Forbidden in player-facing views:** South Park, clip-art, vector
   characters, stick-figure bodies, stock role art presented as a friend’s face.
-- **Vendor:** OpenAI GPT Image only (`gpt-image-2` → `gpt-image-1.5` →
-  `gpt-image-1`). Enable with `OPENAI_API_KEY`. Steps:
-  `docs/PHOTO_LIKENESS.md`.
+- **Vendor:** `gpt-image-2.5-flare` via `images.edit` at `1024x1536` /
+  `medium`, falling back to `gpt-image-2`. Enable with `OPENAI_API_KEY`.
+  Steps: `docs/PHOTO_LIKENESS.md`.
 - **No key:** real photo crop on the roster; body labeled locked.
 - Fictional content only. Personal-crew photos need adult + permission +
   processing consent. Never persist the source photo on the roster.
@@ -139,8 +139,10 @@ Stay off this list until #210 merges or the integration owner reassigns it:
 
 - `backend/python/api/avatar.py`
 - `backend/python/services/likeness.py`
+- `backend/python/config/slide_art_style.py`
 - `backend/python/tests/test_avatar_likeness.py`
 - `backend/python/.env.example` (likeness block only)
+- `docs/STYLE_PROMPT.md`
 - `frontend/src/types/avatar.types.ts`
 - `frontend/src/services/avatarGeneration.service.ts`
 - `frontend/src/services/likenessCompositor.ts`

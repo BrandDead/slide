@@ -17,6 +17,12 @@ from typing import Iterable
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
 
+from config.slide_art_style import (
+    GTA_ART_DIRECTION,
+    compose_art_prompt,
+    gpt_image_models,
+)
+
 ALLOWED_MIME = {
     "image/jpeg",
     "image/jpg",
@@ -25,18 +31,6 @@ ALLOWED_MIME = {
     "image/gif",
 }
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
-
-# Latest-first GPT Image family. Never fall back to DALL·E.
-GPT_IMAGE_MODELS = ("gpt-image-2", "gpt-image-1.5", "gpt-image-1")
-
-GTA_ART_DIRECTION = (
-    "GTA V loading-screen / cover-art illustrated realism. Semi-realistic "
-    "painted character art with believable adult anatomy, real clothing "
-    "materials, and cinematic wet-night tropical-noir grade. Same look "
-    "across portrait, full-body, and in-game states. NOT South Park, NOT "
-    "clip-art, NOT vector, NOT a stick figure, NOT cel-shaded cartoon, "
-    "NOT a chibi or mascot."
-)
 
 SKIN_BANDS = (
     ("ivory", (248, 228, 212)),
@@ -296,49 +290,18 @@ def compose_member_assets(
         }
 
 
-def build_identity_prompt(traits: dict, role: str, style: str, camera: str) -> str:
+def build_identity_prompt(traits: dict, role: str, style: str, shot: str) -> str:
     clothing = STYLE_CLOTHING.get(style, STYLE_CLOTHING["south_florida_streetwear"])
     hair = traits.get("hairColor", "dark")
     skin = traits.get("skinTone", "medium")
     facial = "Keep the same facial hair." if traits.get("facialHair") == "visible" else "Do not invent heavy facial hair."
     notes = "; ".join(traits.get("notes") or [])
-    return (
-        "SCENE\n"
-        f"SLIDE custom crew card. {GTA_ART_DIRECTION} Clean silhouette, "
-        "transparent-friendly dark ground, no scenery, no HUD text.\n\n"
-        "SUBJECT\n"
-        f"A fictional playable {role} whose face is the same person as the "
-        "uploaded identity-reference photo. Cosmetic game avatar only — not "
-        "a real-world accusation.\n\n"
-        "IMPORTANT DETAILS\n"
-        f"Preserve face shape, eye spacing, nose, jaw, skin tone ({skin}), "
-        f"hair color and hairline ({hair}). {facial} Clothing: {clothing['notes']}. "
-        f"Role readable as {role}. Camera: {camera}. {notes}\n\n"
-        "USE CASE\n"
-        "Crew roster portrait / full-body card / in-game token. Same identity "
-        "and wardrobe across every generated state.\n\n"
-        "CONSTRAINTS\n"
-        "The uploaded photo is the identity reference — keep this person. "
-        "No South Park, clip-art, vector, stick-figure, emoji, or mascot look. "
-        "No real brand logos, watermarks, baked UI text, real criminal "
-        "organizations, minors, or photoreal nude content."
+    extra = (
+        f"Fictional playable {role} whose face is the identity-reference photo. "
+        f"Preserve skin tone ({skin}), hair ({hair}). {facial} "
+        f"Wardrobe: {clothing['notes']}. {notes}"
     )
-
-
-def gpt_image_models() -> list[str]:
-    """Latest-first GPT Image list. DALL·E values in env are ignored."""
-    requested = (os.environ.get("SLIDE_AVATAR_MODEL") or "").strip()
-    models: list[str] = []
-    if requested and "dall-e" not in requested.lower() and requested.lower().startswith("gpt-image"):
-        models.append(requested)
-    elif requested and "dall-e" not in requested.lower() and requested:
-        # Allow a future gpt-image name the owner pins, but never DALL·E.
-        if not requested.lower().startswith("dall"):
-            models.append(requested)
-    for name in GPT_IMAGE_MODELS:
-        if name not in models:
-            models.append(name)
-    return [name for name in models if "dall-e" not in name.lower()]
+    return compose_art_prompt(shot, extra=extra)
 
 
 def provider_status() -> dict:
@@ -351,16 +314,20 @@ def provider_status() -> dict:
         "model": models[0] if has_key else None,
         "candidateModels": list(models) if has_key else [],
         "bodyLockedUntilConfigured": not has_key,
+        "size": "1024x1536",
+        "quality": "medium",
         "requiredForAi": {
             "env": ["OPENAI_API_KEY"],
             "optionalEnv": [
-                "SLIDE_AVATAR_MODEL (optional pin; default tries gpt-image-2, then gpt-image-1.5, then gpt-image-1)"
+                "SLIDE_AVATAR_MODEL (optional pin; default tries gpt-image-2.5-flare, then gpt-image-2)"
             ],
             "pythonPackage": "openai>=1.40.0",
             "notes": (
-                "OPENAI_API_KEY alone enables GPT Image. Without it the roster "
-                "shows the real photo crop and the body stays locked. Generation "
-                "never falls back to DALL·E or a stick-figure body."
+                "OPENAI_API_KEY alone enables GPT Image. Default model is "
+                "gpt-image-2.5-flare via images.edit at 1024x1536 medium, "
+                "falling back to gpt-image-2. Without a key the roster shows "
+                "the real photo crop and the body stays locked. Never DALL·E "
+                "or a stick-figure body."
             ),
         },
     }

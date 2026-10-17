@@ -10,6 +10,16 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app import create_app
+from config.slide_art_style import (
+    GPT_IMAGE_FALLBACK,
+    GPT_IMAGE_PRIMARY,
+    IDENTITY,
+    SAFETY,
+    SHOTS,
+    STYLE,
+    compose_art_prompt,
+    gpt_image_edit_params,
+)
 from services.likeness import (
     GTA_ART_DIRECTION,
     analyze_photo,
@@ -75,11 +85,24 @@ def test_provider_endpoint_reports_photo_crop_without_key(client, monkeypatch):
 def test_provider_status_enables_gpt_image_from_key_alone(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-not-real")
     monkeypatch.delenv("SLIDE_AVATAR_PROVIDER", raising=False)
+    monkeypatch.delenv("SLIDE_AVATAR_MODEL", raising=False)
     status = provider_status()
     assert status["provider"] == "gpt_image"
     assert status["aiConfigured"] is True
     assert status["bodyLockedUntilConfigured"] is False
-    assert status["model"].startswith("gpt-image")
+    assert status["model"] == GPT_IMAGE_PRIMARY
+    assert status["size"] == "1024x1536"
+    assert status["quality"] == "medium"
+    assert status["candidateModels"][:2] == [GPT_IMAGE_PRIMARY, GPT_IMAGE_FALLBACK]
+
+
+def test_gpt_image_models_flare_then_gpt_image_2(monkeypatch):
+    monkeypatch.delenv("SLIDE_AVATAR_MODEL", raising=False)
+    models = gpt_image_models()
+    assert models[0] == "gpt-image-2.5-flare"
+    assert models[1] == "gpt-image-2"
+    assert "dall-e-2" not in models
+    assert "gpt-image-1" not in models
 
 
 def test_gpt_image_models_never_include_dalle(monkeypatch):
@@ -87,23 +110,49 @@ def test_gpt_image_models_never_include_dalle(monkeypatch):
     models = gpt_image_models()
     assert models
     assert all("dall-e" not in name.lower() for name in models)
-    assert models[0].startswith("gpt-image")
+    assert models[0] == "gpt-image-2.5-flare"
 
 
-def test_identity_prompt_locks_gta_illustrated_realism():
+def test_identity_prompt_locks_gta_cover_pieces():
     prompt = build_identity_prompt(
         {"skinTone": "bronze", "hairColor": "black", "facialHair": "visible", "notes": []},
         "shooter",
         "south_florida_streetwear",
-        "full-body standing, feet visible",
+        "fullbody",
     )
-    assert GTA_ART_DIRECTION in prompt
+    assert STYLE in prompt
+    assert SHOTS["fullbody"] in prompt
+    assert IDENTITY in prompt
+    assert SAFETY in prompt
+    assert GTA_ART_DIRECTION == STYLE
     lowered = prompt.lower()
     assert "south park" in lowered
-    assert "clip-art" in lowered or "clip art" in lowered
-    assert "vector" in lowered
-    assert "gta" in lowered
+    assert "identity lock" in lowered
+    assert "head to shoes" in lowered
     assert "dall-e" not in lowered
+
+
+def test_style_module_shares_style_across_states_and_props():
+    portrait = compose_art_prompt("portrait")
+    idle = compose_art_prompt("idle")
+    prop = compose_art_prompt("prop")
+    assert portrait.startswith(STYLE)
+    assert idle.startswith(STYLE)
+    assert prop.startswith(STYLE)
+    assert SHOTS["portrait"] in portrait
+    assert SHOTS["idle"] in idle
+    assert SHOTS["prop"] in prop
+    assert IDENTITY in idle and SAFETY in prop
+
+
+def test_edit_params_are_flare_card_size():
+    params = gpt_image_edit_params("locked prompt")
+    assert params == {
+        "prompt": "locked prompt",
+        "n": 1,
+        "size": "1024x1536",
+        "quality": "medium",
+    }
 
 
 def test_generate_requires_adult_and_permission_consent(client):
@@ -224,3 +273,37 @@ def test_gpt_image_failure_falls_back_to_photo_crop_not_vectors(client, monkeypa
     assert asset["bodyLocked"] is True
     assert asset["fullbodyUrl"] is None
     assert "gpt-image unavailable" in asset["aiProviderError"]
+
+
+def test_edit_call_uses_flare_size_and_medium_quality(tmp_path):
+    from api.avatar import OpenAIAvatarProvider
+
+    captured: dict = {}
+
+    class Payload:
+        b64_json = __import__("base64").b64encode(b"\x89PNG\r\n\x1a\nxxxx").decode("ascii")
+        url = None
+
+    class Response:
+        data = [Payload()]
+
+    class FakeImages:
+        def edit(self, **kwargs):
+            captured.update(kwargs)
+            return Response()
+
+    class FakeClient:
+        images = FakeImages()
+
+    path = tmp_path / "ref.png"
+    path.write_bytes(_portrait_png())
+    payload = OpenAIAvatarProvider()._edit_with_model(
+        FakeClient(), "gpt-image-2.5-flare", str(path), "STYLE prompt"
+    )
+    assert payload[:8] == b"\x89PNG\r\n\x1a\n"
+    assert captured["model"] == "gpt-image-2.5-flare"
+    assert captured["size"] == "1024x1536"
+    assert captured["quality"] == "medium"
+    assert captured["n"] == 1
+    assert captured["prompt"] == "STYLE prompt"
+    assert captured["image"] is not None

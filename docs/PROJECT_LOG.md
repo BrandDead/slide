@@ -69,6 +69,12 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-17 — Locked GTA cover prompt + gpt-image-2.5-flare (#210)
+
+- Owner approved the round-3 GTA V loading-screen / box-cover look over the cartoon path. Winning prompt is `docs/STYLE_PROMPT.md`. Runtime pieces live in one module, `backend/python/config/slide_art_style.py` (STYLE + SHOT + IDENTITY + SAFETY), shared by portrait, full-body, future idle/aim/fire/hit/downed sheets, and props.
+- GPT Image calls use `images.edit` with the upload as the identity reference, size `1024x1536`, quality `medium`. Primary model `gpt-image-2.5-flare`, fallback `gpt-image-2`. DALL·E still never used. No-key path is unchanged: photo crop + body locked.
+- `OPENAI_API_KEY` was not present in this environment at wiring time. Owner is adding it to Cursor cloud agent secrets.
+
 ### 2026-10-17 — GPT Image likeness, no vector bodies, Manus handoff (#210)
 
 - Owner rejected the stick-figure / clip-art full-body as unacceptable. Target is GTA V loading-screen illustrated realism, same look across portrait, body, and in-game states.

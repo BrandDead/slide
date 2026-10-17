@@ -18,12 +18,12 @@ import uuid
 from utils.utc import utc_now_iso
 from flask import Blueprint, request, jsonify, send_file
 
+from config.slide_art_style import gpt_image_edit_params, gpt_image_models
 from services.likeness import (
     ALLOWED_MIME,
     MAX_UPLOAD_BYTES,
     build_identity_prompt,
     compose_member_assets,
-    gpt_image_models,
     provider_status,
 )
 
@@ -32,12 +32,6 @@ avatar_bp = Blueprint("avatar", __name__, url_prefix="/api/avatar")
 # In-memory job store (replace with private object storage in production)
 _jobs: dict = {}
 _ASSET_ROOT = "/tmp/slide_generated"
-
-_CAMERAS = {
-    "portrait": "chest-up cover-art portrait, GTA V loading-screen framing",
-    "fullbody": "full body standing, front three-quarter, feet visible, same wardrobe and face",
-    "topdown": "slight high-oblique in-game token of the same person and outfit, readable silhouette",
-}
 
 
 def _data_url(png_bytes: bytes) -> str:
@@ -82,7 +76,7 @@ class PhotoCropProvider(AvatarGenerationProvider):
             requested = ["portrait", *requested]
         composed = compose_member_assets(source_image_path, role, style, requested)
         traits = composed["likenessTraits"]
-        prompt = build_identity_prompt(traits, role, style, _CAMERAS["portrait"])
+        prompt = build_identity_prompt(traits, role, style, "portrait")
         return {
             "files": composed["files"],
             "likenessTraits": traits,
@@ -120,9 +114,7 @@ class OpenAIAvatarProvider(AvatarGenerationProvider):
         last_prompt = crop["promptUsed"]
 
         for output in requested:
-            prompt = build_identity_prompt(
-                traits, role, style, _CAMERAS.get(output, output)
-            )
+            prompt = build_identity_prompt(traits, role, style, output)
             last_prompt = prompt
             generated = None
             for model in gpt_image_models():
@@ -155,22 +147,30 @@ class OpenAIAvatarProvider(AvatarGenerationProvider):
     def _edit_with_model(self, client, model: str, image_path: str, prompt: str) -> bytes:
         if "dall-e" in model.lower():
             raise RuntimeError(f"Refusing forbidden model {model}")
+        params = gpt_image_edit_params(prompt)
         with open(image_path, "rb") as img_file:
             try:
                 response = client.images.edit(
                     model=model,
                     image=img_file,
-                    prompt=prompt,
-                    n=1,
-                    size="1024x1024",
+                    **params,
                 )
             except TypeError:
                 img_file.seek(0)
-                response = client.images.edit(
-                    model=model,
-                    image=img_file,
-                    prompt=prompt,
-                )
+                slim = {key: value for key, value in params.items() if key != "quality"}
+                try:
+                    response = client.images.edit(
+                        model=model,
+                        image=img_file,
+                        **slim,
+                    )
+                except TypeError:
+                    img_file.seek(0)
+                    response = client.images.edit(
+                        model=model,
+                        image=img_file,
+                        prompt=prompt,
+                    )
         payload = response.data[0]
         if getattr(payload, "b64_json", None):
             return base64.b64decode(payload.b64_json)

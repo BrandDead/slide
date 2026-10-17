@@ -89,6 +89,8 @@ export interface AvatarProviderStatus {
   model?: string | null;
   candidateModels?: string[];
   bodyLockedUntilConfigured?: boolean;
+  size?: string;
+  quality?: string;
   requiredForAi: {
     env: string[];
     optionalEnv?: string[];

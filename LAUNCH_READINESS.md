@@ -196,7 +196,7 @@ Owner rejected the first likeness pass as South Park / clip-art / vector. That l
 | Backend down | Stock `/assets/runtime/` portraits | Browser photo crop. No vector body. |
 | Consent | One checkbox, then three | Adult + permission + processing; API rejects without them |
 | Source photo | Temp file deleted | Unchanged and tested. Roster never stores the upload. |
-| AI vendor | Undecided; DALL·E 2 stub if a key happened to be set | **GPT Image only.** `OPENAI_API_KEY` enables it. Model order: `gpt-image-2` → `gpt-image-1.5` → `gpt-image-1`. DALL·E is never called. Failures return the photo crop + `aiProviderError`, never a stick figure. |
+| AI vendor | Undecided; DALL·E 2 stub if a key happened to be set | **GPT Image only.** `gpt-image-2.5-flare` via `images.edit` at 1024×1536 medium, fallback `gpt-image-2`. Shared STYLE+SHOT+IDENTITY+SAFETY in `config/slide_art_style.py`. DALL·E is never called. Failures return the photo crop + `aiProviderError`, never a stick figure. |
 
 Key is **not set yet**. Enable steps: `docs/PHOTO_LIKENESS.md`.
 

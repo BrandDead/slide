@@ -1,9 +1,10 @@
 # Photo-to-member likeness (GPT Image)
 
 Players can put a friend on their crew by uploading a photo. The owner
-target is **GTA V loading-screen / cover-art illustrated realism** — the
-same person, believable proportions and clothing, one look across
-portrait, full-body, and in-game states.
+locked **GTA V loading-screen / box-cover illustration** (round 3). The
+same STYLE + IDENTITY + SAFETY string is used for portrait, full-body,
+future idle/aim/hit/downed sheets, and props. See `docs/STYLE_PROMPT.md`
+and `backend/python/config/slide_art_style.py`.
 
 Vector, South Park, clip-art, and stick-figure bodies are not a valid
 fallback. If GPT Image is not configured, the roster shows the **real
@@ -35,11 +36,11 @@ No other vendor flag is required.
 
 ```bash
 # 1. Put the key in the Flask env (backend/python/.env). Never commit it.
+#    Cursor cloud agent secrets can also inject OPENAI_API_KEY.
 OPENAI_API_KEY=sk-...
 
-# 2. Optional pin. If unset, the server tries latest-first:
-#    gpt-image-2 → gpt-image-1.5 → gpt-image-1
-# SLIDE_AVATAR_MODEL=gpt-image-2
+# 2. Optional pin. Default is gpt-image-2.5-flare, then gpt-image-2.
+# SLIDE_AVATAR_MODEL=gpt-image-2.5-flare
 
 # 3. Install the client in the backend venv.
 cd backend/python
@@ -62,7 +63,9 @@ Ready looks like:
   "provider": "gpt_image",
   "aiConfigured": true,
   "bodyLockedUntilConfigured": false,
-  "model": "gpt-image-2"
+  "model": "gpt-image-2.5-flare",
+  "size": "1024x1536",
+  "quality": "medium"
 }
 ```
 
