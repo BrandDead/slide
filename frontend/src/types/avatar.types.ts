@@ -1,6 +1,5 @@
 // ============================================================
 // avatar.types.ts — Photo-to-member generation pipeline types
-// Sprint: morale-heat-photo-batch2
 // ============================================================
 
 export type AvatarGenerationStatus =
@@ -30,6 +29,20 @@ export type AvatarStyle =
 
 export type AvatarOutput = 'portrait' | 'fullbody' | 'topdown';
 
+export type AvatarProviderId =
+  | 'local_photo_likeness'
+  | 'local_photo_likeness_offline'
+  | 'openai'
+  | 'unconfigured';
+
+export interface LikenessTraits {
+  skinTone: string;
+  hairColor: string;
+  facialHair: string;
+  clothingColors: string[];
+  notes: string[];
+}
+
 export interface GeneratedMemberAsset {
   id: string;
   sourceImageUrl?: string;
@@ -39,9 +52,17 @@ export interface GeneratedMemberAsset {
   portraitUrl?: string;
   fullbodyUrl?: string;
   topdownUrl?: string;
+  portraitDataUrl?: string;
+  fullbodyDataUrl?: string;
+  topdownDataUrl?: string;
   promptUsed?: string;
   status: AvatarGenerationStatus;
   createdAt: string;
+  provider?: AvatarProviderId;
+  likenessTraits?: LikenessTraits;
+  sourcePhotoRetained?: boolean;
+  stockPreview?: boolean;
+  aiProviderError?: string;
 }
 
 export interface AvatarGenerateRequest {
@@ -49,9 +70,25 @@ export interface AvatarGenerateRequest {
   role: AvatarRole;
   style: AvatarStyle;
   outputs: AvatarOutput[];
+  consentPermission: boolean;
+  consentAdult: boolean;
+  consentProcessing: boolean;
 }
 
 export interface AvatarGenerateResponse {
   jobId: string;
   asset: GeneratedMemberAsset;
+}
+
+export interface AvatarProviderStatus {
+  provider: AvatarProviderId;
+  aiConfigured: boolean;
+  requestedProvider?: string;
+  model?: string | null;
+  requiredForAi: {
+    env: string[];
+    optionalEnv?: string[];
+    pythonPackage: string;
+    notes: string;
+  };
 }

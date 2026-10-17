@@ -31,7 +31,10 @@ def create_app():
     app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
     
     # CORS configuration
-    cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5173').split(',')
+    cors_origins = os.getenv(
+        'CORS_ORIGINS',
+        'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000',
+    ).split(',')
     CORS(app, resources={
         r"/api/*": {
             "origins": cors_origins,
@@ -141,6 +144,14 @@ def create_app():
         logger.warning("NPC blueprint not found - will be implemented")
     except Exception as e:
         logger.error(f"✗ Failed to register npc blueprint: {e}")
+
+    # Photo-to-member likeness (local compositor; optional AI restyle)
+    try:
+        from api.avatar import avatar_bp
+        app.register_blueprint(avatar_bp)
+        logger.info("✓ Registered avatar blueprint")
+    except Exception as e:
+        logger.error(f"✗ Failed to register avatar blueprint: {e}")
 
     # Art generation blueprint
     try:

@@ -11,6 +11,11 @@ vi.mock('../../../services/avatarGeneration.service', () => ({
     generate: vi.fn(),
     getStatus: vi.fn(),
     approve: vi.fn(),
+    getProviderStatus: vi.fn().mockResolvedValue({
+      provider: 'local_photo_likeness',
+      aiConfigured: false,
+      requiredForAi: { env: ['OPENAI_API_KEY'], pythonPackage: 'openai', notes: '' },
+    }),
   },
 }));
 
@@ -56,7 +61,9 @@ function upload(container: HTMLElement, file = photo()) {
 }
 
 function consent() {
-  fireEvent.click(screen.getByRole('checkbox'));
+  fireEvent.click(screen.getByRole('checkbox', { name: /this photo is of an adult/i }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /permission from the person/i }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /consent to processing this image/i }));
 }
 
 function typeName(value: string) {
@@ -86,17 +93,56 @@ describe('PhotoMemberCreator', () => {
   });
 
   it('identifies stock offline previews without claiming the photo was generated', async () => {
-    service.generate.mockResolvedValue(asset({ id: 'mock-offline' }));
+    service.generate.mockResolvedValue(asset({ id: 'mock-offline', stockPreview: true }));
     const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
     upload(container);
     consent();
     typeName('Jay');
     await act(async () => { fireEvent.click(generateButton()); });
 
-    expect(screen.getByRole('status')).toHaveTextContent(/generation is offline/i);
     expect(screen.getByRole('status')).toHaveTextContent(/stock character art/i);
-    expect(screen.queryByText('Generated Assets')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/not your friend/i);
+    expect(screen.queryByText('Photo-based likeness')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add to roster/i })).toBeEnabled();
+  });
+
+  it('labels a photo-based likeness instead of stock art', async () => {
+    service.generate.mockResolvedValue(asset({
+      id: 'likeness-1',
+      provider: 'local_photo_likeness',
+      stockPreview: false,
+      likenessTraits: {
+        skinTone: 'caramel',
+        hairColor: 'black',
+        facialHair: 'none_or_light',
+        clothingColors: [],
+        notes: [],
+      },
+    }));
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    upload(container);
+    consent();
+    typeName('Jay');
+    await act(async () => { fireEvent.click(generateButton()); });
+
+    expect(screen.getByText('Photo-based likeness')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/keeps the face from your photo/i);
+    expect(screen.getByText(/caramel skin/i)).toBeInTheDocument();
+    expect(screen.queryByText(/stock character art/i)).not.toBeInTheDocument();
+  });
+
+  it('does not generate until adult, permission, and processing consents are given', async () => {
+    const { container } = render(<PhotoMemberCreator onClose={vi.fn()} />);
+    await act(async () => { await Promise.resolve(); });
+    upload(container);
+    typeName('Jay');
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /this photo is of an adult/i }));
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /permission from the person/i }));
+    expect(generateButton()).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /consent to processing this image/i }));
+    expect(generateButton()).not.toBeDisabled();
   });
 
   it('starts generation when the name is typed after the photo and consent', async () => {
