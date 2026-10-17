@@ -296,9 +296,10 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
   const canGenerate = Boolean(uploadedFile && hasConsent && nameIsValid && selectedOutputs.length > 0 && status === 'idle');
   const canApprove = nameIsValid && !approving;
   const stockPreview = isStockPreview(generatedAsset);
-  const offlineLikeness = generatedAsset?.provider === 'local_photo_likeness_offline';
-  const localLikeness = generatedAsset?.provider === 'local_photo_likeness' || offlineLikeness;
-  const aiLikeness = generatedAsset?.provider === 'openai';
+  const offlineCrop = generatedAsset?.provider === 'photo_crop_offline';
+  const photoCrop = generatedAsset?.provider === 'photo_crop' || offlineCrop;
+  const gtaLikeness = generatedAsset?.provider === 'gpt_image' && !generatedAsset.bodyLocked;
+  const bodyLocked = Boolean(generatedAsset?.bodyLocked || (photoCrop && !gtaLikeness));
 
   return (
     <div className="pmc-container">
@@ -369,9 +370,9 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
             </p>
             {providerStatus && !providerStatus.aiConfigured && (
               <p className="pmc-consent-note" role="note">
-                AI restyle is not configured. Generation will keep the face from your photo
-                on a SLIDE character card. To enable optional AI restyle later, set
-                OPENAI_API_KEY and SLIDE_AVATAR_PROVIDER=openai on the backend.
+                GPT Image is not configured. The roster will show your real photo crop.
+                The GTA-style body stays locked until OPENAI_API_KEY is set on the
+                backend. See docs/PHOTO_LIKENESS.md.
               </p>
             )}
           </fieldset>
@@ -488,21 +489,24 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
               <h3 className="pmc-result-title">
                 {stockPreview
                   ? 'Stock Character Preview'
-                  : aiLikeness
-                    ? 'AI-stylized likeness'
-                    : 'Photo-based likeness'}
+                  : gtaLikeness
+                    ? 'GTA-style likeness'
+                    : 'Photo crop'}
               </h3>
               {stockPreview && (
                 <p role="status">Generation could not use this photo. This preview is stock character art, not your friend.</p>
               )}
-              {!stockPreview && localLikeness && (
+              {!stockPreview && photoCrop && (
                 <p role="status">
-                  {offlineLikeness
-                    ? 'Backend unavailable. This card uses the uploaded photo as the face — not stock art.'
-                    : 'This card keeps the face from your photo. Optional AI restyle is not configured.'}
+                  {offlineCrop
+                    ? 'Backend unavailable. Roster uses the real photo crop. The GTA-style body is locked until GPT Image is configured.'
+                    : 'Roster uses the real photo crop. The GTA-style body is locked until GPT Image is configured with OPENAI_API_KEY.'}
                 </p>
               )}
-              {generatedAsset?.likenessTraits && !stockPreview && (
+              {generatedAsset?.aiProviderError && !stockPreview && (
+                <p className="pmc-consent-note">GPT Image failed: {generatedAsset.aiProviderError}</p>
+              )}
+              {generatedAsset?.likenessTraits && !stockPreview && !photoCrop && (
                 <p className="pmc-traits">
                   Read from photo: {generatedAsset.likenessTraits.skinTone} skin,
                   {' '}{generatedAsset.likenessTraits.hairColor} hair,
@@ -516,16 +520,25 @@ const PhotoMemberCreator: React.FC<PhotoMemberCreatorProps> = ({ onClose, onAppr
                     <span>Portrait</span>
                   </div>
                 )}
-                {generatedAsset.fullbodyUrl && (
+                {gtaLikeness && generatedAsset.fullbodyUrl && (
                   <div className="pmc-asset-card">
                     <img src={generatedAsset.fullbodyUrl} alt="Full Body" />
                     <span>Full Body</span>
                   </div>
                 )}
-                {generatedAsset.topdownUrl && (
+                {gtaLikeness && generatedAsset.topdownUrl && (
                   <div className="pmc-asset-card">
                     <img src={generatedAsset.topdownUrl} alt="Top-Down" />
                     <span>Token</span>
+                  </div>
+                )}
+                {bodyLocked && !gtaLikeness && !stockPreview && (
+                  <div className="pmc-asset-card">
+                    <div className="pmc-locked-body">
+                      <strong>Body locked</strong>
+                      <small>Waiting on OPENAI_API_KEY / GPT Image</small>
+                    </div>
+                    <span>Full Body</span>
                   </div>
                 )}
               </div>

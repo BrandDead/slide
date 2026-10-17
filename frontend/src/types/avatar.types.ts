@@ -30,9 +30,9 @@ export type AvatarStyle =
 export type AvatarOutput = 'portrait' | 'fullbody' | 'topdown';
 
 export type AvatarProviderId =
-  | 'local_photo_likeness'
-  | 'local_photo_likeness_offline'
-  | 'openai'
+  | 'gpt_image'
+  | 'photo_crop'
+  | 'photo_crop_offline'
   | 'unconfigured';
 
 export interface LikenessTraits {
@@ -63,6 +63,8 @@ export interface GeneratedMemberAsset {
   sourcePhotoRetained?: boolean;
   stockPreview?: boolean;
   aiProviderError?: string;
+  bodyLocked?: boolean;
+  model?: string | null;
 }
 
 export interface AvatarGenerateRequest {
@@ -85,6 +87,8 @@ export interface AvatarProviderStatus {
   aiConfigured: boolean;
   requestedProvider?: string;
   model?: string | null;
+  candidateModels?: string[];
+  bodyLockedUntilConfigured?: boolean;
   requiredForAi: {
     env: string[];
     optionalEnv?: string[];

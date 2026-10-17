@@ -1,5 +1,5 @@
-// Local photo-likeness compositor used when the backend is unreachable.
-// It never substitutes stock role art. The uploaded photo is the identity.
+// Offline photo-crop compositor used when the backend is unreachable.
+// It never substitutes stock role art and never invents a vector body.
 
 import type {
   AvatarGenerateRequest,
@@ -57,66 +57,34 @@ function portraitCard(photo: string, role: string): string {
 </svg>`);
 }
 
-function fullbodyCard(photo: string, role: string, style: string): string {
-  const accent = ROLE_COLOR[role] ?? '#4ade80';
-  return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="768" viewBox="0 0 512 768">
-  <rect width="512" height="768" fill="#0a0a0f"/>
-  <rect x="0" y="520" width="512" height="248" fill="#101218"/>
-  <rect x="178" y="268" width="156" height="210" rx="16" fill="#242428"/>
-  <rect x="188" y="470" width="52" height="170" rx="10" fill="#1a1c24"/>
-  <rect x="272" y="470" width="52" height="170" rx="10" fill="#1a1c24"/>
-  <circle cx="256" cy="196" r="92" fill="#111"/>
-  <clipPath id="head"><circle cx="256" cy="196" r="88"/></clipPath>
-  <image href="${escapeXml(photo)}" x="164" y="104" width="184" height="184" preserveAspectRatio="xMidYMin slice" clip-path="url(#head)"/>
-  <rect x="14" y="14" width="484" height="740" fill="none" stroke="${accent}" stroke-width="4"/>
-  <text x="256" y="724" text-anchor="middle" fill="${accent}" font-family="sans-serif" font-size="18">${escapeXml(role)} · ${escapeXml(style.split('_').join(' '))}</text>
-</svg>`);
-}
-
-function topdownToken(photo: string, role: string): string {
-  const accent = ROLE_COLOR[role] ?? '#4ade80';
-  return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <circle cx="128" cy="128" r="120" fill="#0a0a0f" stroke="${accent}" stroke-width="12"/>
-  <clipPath id="face"><circle cx="128" cy="128" r="104"/></clipPath>
-  <image href="${escapeXml(photo)}" x="24" y="24" width="208" height="208" preserveAspectRatio="xMidYMin slice" clip-path="url(#face)"/>
-</svg>`);
-}
-
 export async function composeLocalLikeness(
   req: AvatarGenerateRequest,
 ): Promise<GeneratedMemberAsset> {
   const photo = await readFileAsDataUrl(req.imageFile);
-  const outputs = req.outputs;
-  const asset: GeneratedMemberAsset = {
+  const outputs: AvatarOutput[] = req.outputs.includes('portrait')
+    ? req.outputs
+    : ['portrait', ...req.outputs];
+  return {
     id: `likeness-local-${Date.now()}`,
     role: req.role,
     style: req.style,
     outputs,
     status: 'ready',
     createdAt: new Date().toISOString(),
-    provider: 'local_photo_likeness_offline',
+    provider: 'photo_crop_offline',
     stockPreview: false,
     sourcePhotoRetained: false,
+    bodyLocked: true,
+    portraitUrl: portraitCard(photo, req.role),
     likenessTraits: {
       skinTone: 'from_photo',
       hairColor: 'from_photo',
       facialHair: 'from_photo',
       clothingColors: [],
-      notes: ['Offline compositor used the uploaded photo as identity.'],
+      notes: ['Offline photo crop used the uploaded photo. Body stays locked until GPT Image is configured.'],
     },
-    promptUsed: 'Local photo-based likeness. Backend unavailable; no stock role art.',
+    promptUsed: 'Offline photo crop. GPT Image unavailable; no vector body and no stock role art.',
   };
-
-  const assign = (output: AvatarOutput, url: string) => {
-    if (output === 'portrait') asset.portraitUrl = url;
-    if (output === 'fullbody') asset.fullbodyUrl = url;
-    if (output === 'topdown') asset.topdownUrl = url;
-  };
-
-  if (outputs.includes('portrait')) assign('portrait', portraitCard(photo, req.role));
-  if (outputs.includes('fullbody')) assign('fullbody', fullbodyCard(photo, req.role, req.style));
-  if (outputs.includes('topdown')) assign('topdown', topdownToken(photo, req.role));
-  return asset;
 }
 
 export function isStockPreview(asset: GeneratedMemberAsset | null | undefined): boolean {

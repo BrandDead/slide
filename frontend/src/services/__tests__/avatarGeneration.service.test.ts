@@ -13,7 +13,7 @@ const consents = {
 };
 
 describe('offline photo likeness', () => {
-  it('uses the uploaded photo instead of stock role art when the backend is down', async () => {
+  it('uses the uploaded photo crop and never invents a vector body when the backend is down', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')));
     for (const role of ['dealer', 'shooter', 'driver', 'enforcer', 'lookout', 'runner', 'chemist'] as const) {
       const asset = await avatarGenerationService.generate({
@@ -24,14 +24,15 @@ describe('offline photo likeness', () => {
         ...consents,
       });
       expect(asset.id).toMatch(/^likeness-local-/);
-      expect(asset.provider).toBe('local_photo_likeness_offline');
+      expect(asset.provider).toBe('photo_crop_offline');
       expect(asset.stockPreview).toBe(false);
+      expect(asset.bodyLocked).toBe(true);
       expect(isStockPreview(asset)).toBe(false);
-      for (const url of [asset.portraitUrl, asset.fullbodyUrl, asset.topdownUrl]) {
-        expect(url).toMatch(/^data:image\/svg\+xml/);
-        expect(url).not.toMatch(/^\/assets\/runtime\//);
-        expect(existsSync(resolve('public', `.${url ?? ''}`))).toBe(false);
-      }
+      expect(asset.portraitUrl).toMatch(/^data:image\/svg\+xml/);
+      expect(asset.portraitUrl).not.toMatch(/^\/assets\/runtime\//);
+      expect(asset.fullbodyUrl).toBeUndefined();
+      expect(asset.topdownUrl).toBeUndefined();
+      expect(existsSync(resolve('public', `.${asset.portraitUrl ?? ''}`))).toBe(false);
     }
   });
 
@@ -45,6 +46,7 @@ describe('offline photo likeness', () => {
     expect(asset.portraitUrl).toBeTruthy();
     expect(asset.fullbodyUrl).toBeUndefined();
     expect(asset.topdownUrl).toBeUndefined();
+    expect(asset.bodyLocked).toBe(true);
   });
 
   it('keeps inline portrait bytes after approve so roster cards do not 404', async () => {
@@ -59,11 +61,13 @@ describe('offline photo likeness', () => {
         createdAt: new Date(0).toISOString(),
         portraitUrl: '/api/avatar/asset/job-1/portrait',
         portraitDataUrl: 'data:image/png;base64,abc',
+        bodyLocked: true,
       }),
       text: async () => '',
     }));
     const approved = await avatarGenerationService.approve('job-1');
     expect(approved.portraitUrl).toBe('data:image/png;base64,abc');
+    expect(approved.bodyLocked).toBe(true);
   });
 
   it('refuses to generate without the three consent flags', async () => {

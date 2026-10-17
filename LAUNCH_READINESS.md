@@ -41,7 +41,7 @@ Verified in this environment unless marked otherwise.
 | Frontend unit tests (focused likeness + creator) | See PR verification | New photo-likeness contract |
 | Backend likeness tests | See PR verification | Consent, no stock swap, source deleted |
 | Avatar blueprint | Now registered on Flask | Previously written but **not mounted** — `/api/avatar/*` 404’d, so the client always fell back |
-| Photo recruit UI | Contacts + Phone | Consent, name, role, style, outputs, add-to-roster. Live demo at 390×844: Generate stays disabled without consent; result is labeled photo-based likeness; Jay appears on the CREW card with the uploaded face. |
+| Photo recruit UI | Contacts + Phone | Consent, name, role, style, outputs, add-to-roster. No key: real photo crop + body locked. GPT Image (when `OPENAI_API_KEY` is set) is the only body generator. |
 | Local API CORS | Flask default now allows :3000 and :5173 | Previously the documented Vite port 3000 was blocked, so the browser always took the offline path |
 
 ### Product surfaces that exist and are playable in demo mode
@@ -166,7 +166,7 @@ Cut means **remove from the first-run home screen and marketing**, not delete fr
    Isolated staging only. Age gate → sign up → gang → starter block → deal → defense → reload → second session. No new writer. No production migrate.
 
 3. **Ship photo friends as a real feature (#195, this PR).**  
-   Local likeness cards now keep the uploaded face. Owner still chooses an AI vendor and private asset storage. Do not advertise “AI clones your friends” until a key is configured and privately QA’d.
+   Vendor is decided: GPT Image. Until `OPENAI_API_KEY` is set, the roster shows the real photo crop and the body stays locked. Do not advertise “AI clones your friends” until the key is configured and privately QA’d.
 
 4. **First-run in five minutes.**  
    Replace the app-tour tutorial with: name crew → claim Strip → assign dealer + shooter → one deal → one defense → hospital/bail if needed. Hide Casino/Crush/etc. behind an “More” folder.
@@ -187,16 +187,48 @@ That is more GTA than Hood Warfare 2 — **if** the empire is saved. If it is no
 
 ## Photo-likeness state (this run)
 
-| | Before | After |
-|---|---|---|
-| Backend route | `api/avatar.py` existed, **not registered** in `app.py` | Registered. `GET /api/avatar/provider` reports config. |
-| No API key | `MockAvatarProvider` returned stock dealer/enforcer/lookout art | Local compositor keeps the uploaded face on portrait / full-body / token cards |
-| Backend down | Frontend catch → stock `/assets/runtime/` portraits labeled “stock” | Frontend compositor embeds the photo; labeled “photo-based likeness” |
-| Consent | One checkbox | Adult + permission + processing; API rejects without them |
-| Source photo | Temp file deleted; roster stored URLs | Unchanged contract, now tested: source deleted, roster gets cards only |
-| AI | DALL·E 2 stub if `OPENAI_API_KEY` happened to be set | Still optional. Needs key + `SLIDE_AVATAR_PROVIDER=openai` + `openai` package. Failures fall back to the photo card, not stock. |
+Owner rejected the first likeness pass as South Park / clip-art / vector. That look is now treated as a defect, not a fallback.
 
-Details: `docs/PHOTO_LIKENESS.md`.
+| | Before this PR | Now |
+|---|---|---|
+| Backend route | `api/avatar.py` existed, **not registered** | Registered. `GET /api/avatar/provider` reports config. |
+| No API key | Stock role art, then a stick-figure full-body | Real photo crop on the roster. Body labeled **locked**. |
+| Backend down | Stock `/assets/runtime/` portraits | Browser photo crop. No vector body. |
+| Consent | One checkbox, then three | Adult + permission + processing; API rejects without them |
+| Source photo | Temp file deleted | Unchanged and tested. Roster never stores the upload. |
+| AI vendor | Undecided; DALL·E 2 stub if a key happened to be set | **GPT Image only.** `OPENAI_API_KEY` enables it. Model order: `gpt-image-2` → `gpt-image-1.5` → `gpt-image-1`. DALL·E is never called. Failures return the photo crop + `aiProviderError`, never a stick figure. |
+
+Key is **not set yet**. Enable steps: `docs/PHOTO_LIKENESS.md`.
+
+---
+
+## GTA-quality characters and gunplay — honest stack assessment
+
+**Plain answer:** yes — chasing GTA V cover-art characters **and** Hood Warfare 2 gunplay on the current web stack will be a constant struggle. The stack can ship a sharp command desktop and a truthful photo-to-crew hook. It cannot, without a new combat runtime, look and shoot like a packaged UE5 FPS.
+
+### Why this stack fights the target
+
+- **Characters.** GPT Image can make a still that looks like a GTA loading screen. It cannot, by itself, produce a consistent 3D person across idle / aim / fire / hit / downed, or bind that person to a shooter skeleton. Pillow and SVG compositors already proved the failure mode: a real face glued onto a vector body. That path is closed.
+- **Gunplay.** Live combat is React + canvas + Phaser + a Babylon experiment. Hood Warfare 2 is Unreal Engine 5. Recoil, hit detection, animation, and netcode will not catch that product by polishing `DriveByEngine`.
+- **World.** The 2.5D tactical diorama is the one visual contract that already fits a web command desktop. Mixing photoreal UE characters into Phaser sprites will look like two games.
+
+### Alternative designs
+
+| Option | What it is | What it wins | What it costs |
+|---|---|---|---|
+| **A. React empire + one UE5 fight** | Keep the web command desktop (crew, blocks, cash, photo recruit). Ship **one** packaged fight from `unreal/DealtSlideShowdown` (or a new UE5 slice) for the actual shooting. | Honest HW2-class gunplay without rewriting the empire. | Two runtimes, install/store story, and a hard seam between desk and fight. |
+| **B. Babylon web fight** | Finish one first-person / over-shoulder fight in the existing Babylon route. Empire stays React. | One web URL, no store binary. | Ceiling is a good browser shooter, not HW2. Art, animation, and perf stay a grind. |
+| **C. 2D illustrated GTA presentation** | Lean into GPT Image stills + the tactical diorama. Combat stays a readable encounter, not a FPS. Market as street-war **strategy** with illustrated crew. | Matches the current stack. Photo friends and saved blocks can look premium without pretending to be GTA V the videogame. | Will lose any player who came for the shooting feel. Must not use FPS trailer language. |
+
+### Recommendation
+
+**For the invite web beta: C, with GPT Image as the only likeness vendor.** Make the desk, the photo-friends hook, and one honest defense fight feel like one illustrated GTA-style game. Do not spend more cycles on Pillow bodies or a third canvas shooter.
+
+**If the public promise is “deeper than GTA and better than Hood Warfare 2 at shooting,” switch combat to A** (React empire + one UE5 fight) before advertising. B is the fallback only if the owner refuses a native binary and still wants a web gun.
+
+Do not try to win both promises on Phaser + image composites. That is the struggle the owner is already seeing.
+
+Details and enable steps: `docs/PHOTO_LIKENESS.md`. Manus handoff: `COLLABORATION.md`.
 
 ---
 
@@ -204,7 +236,7 @@ Details: `docs/PHOTO_LIKENESS.md`.
 
 1. First launch is **invite web beta**, not Steam/iOS. Confirm.
 2. Complete #175 on `dealt-world-proof-staging` (or a new isolated target). Do not use production.
-3. Whether to buy an image API for stylized restyles. Not required for likeness.
+3. Provide `OPENAI_API_KEY` so GPT Image can unlock GTA-style bodies. Vendor is decided; billing is not. Private bucket still needed if signed-in cards must survive Flask restart.
 4. Private bucket for generated cards if you want them to survive server restart for signed-in players.
 5. Founders-access price and processor (Stripe etc.) — only after save works.
 6. Legal review of 18+ crime fiction + friend-photo consent copy before ads.

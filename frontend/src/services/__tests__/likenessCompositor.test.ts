@@ -3,7 +3,7 @@ import { composeLocalLikeness, isStockPreview } from '../likenessCompositor';
 import type { GeneratedMemberAsset } from '../../types/avatar.types';
 
 describe('likenessCompositor', () => {
-  it('embeds the uploaded photo in every requested card', async () => {
+  it('embeds the uploaded photo in the portrait and locks the body', async () => {
     const file = new File(['face-bytes'], 'friend.png', { type: 'image/png' });
     const asset = await composeLocalLikeness({
       imageFile: file,
@@ -16,8 +16,11 @@ describe('likenessCompositor', () => {
     });
     const payload = 'ZmFjZS1ieXRlcw'; // base64('face-bytes')
     expect(asset.portraitUrl).toContain(payload);
-    expect(asset.fullbodyUrl).toContain(payload);
-    expect(asset.topdownUrl).toContain(payload);
+    expect(asset.fullbodyUrl).toBeUndefined();
+    expect(asset.topdownUrl).toBeUndefined();
+    expect(asset.bodyLocked).toBe(true);
+    expect(asset.provider).toBe('photo_crop_offline');
+    expect(asset.portraitUrl).not.toMatch(/rect x="178" y="268"/);
     expect(isStockPreview(asset)).toBe(false);
   });
 

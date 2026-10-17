@@ -69,6 +69,14 @@ Payments/monetization P0s are separately listed in `docs/MVP_STATUS_AND_DEV_PLAN
 
 ## Log
 
+### 2026-10-17 — GPT Image likeness, no vector bodies, Manus handoff (#210)
+
+- Owner rejected the stick-figure / clip-art full-body as unacceptable. Target is GTA V loading-screen illustrated realism, same look across portrait, body, and in-game states.
+- Vendor decision (delegated): GPT Image only. `OPENAI_API_KEY` enables it (not set yet). Model order `gpt-image-2` → `gpt-image-1.5` → `gpt-image-1`. DALL·E is never used. No key or a failed call → real photo crop + `bodyLocked`, never a vector body.
+- `LAUNCH_READINESS.md` now states plainly that GTA-quality characters **and** HW2 gunplay will struggle on the current web stack, and recommends illustrated GTA presentation for the web beta (UE5 one-fight if shooting is the public promise).
+- Added root `COLLABORATION.md` so another agent (Manus) can pick up work without colliding this branch.
+- Consent + source-photo deletion unchanged. No founder photos or keys committed.
+
 ### 2026-10-17 — Launch-readiness audit and truthful photo likeness (#195)
 
 - Added repo-root `LAUNCH_READINESS.md`: what is actually playable, ranked public-launch blockers, post-launch deferrals, launch cuts, and a short path that does not try to out-FPS Hood Warfare 2. Reconciles start-here / project log / #45 / #175 / #195 with stale Jan-2025 beta docs.

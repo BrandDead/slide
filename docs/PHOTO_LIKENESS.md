@@ -1,50 +1,88 @@
-# Photo-to-member likeness
+# Photo-to-member likeness (GPT Image)
 
-Players can put a friend on their crew by uploading a photo. The promise is
-**the resulting character looks like that person**, not like a stock dealer.
+Players can put a friend on their crew by uploading a photo. The owner
+target is **GTA V loading-screen / cover-art illustrated realism** — the
+same person, believable proportions and clothing, one look across
+portrait, full-body, and in-game states.
+
+Vector, South Park, clip-art, and stick-figure bodies are not a valid
+fallback. If GPT Image is not configured, the roster shows the **real
+photo crop** and the body is labeled **locked**.
 
 ## What happens now
 
 1. The player uploads a photo in Contacts → Add → Create from Photo (or Phone).
 2. They must check three consents: adult photo, permission from the person, and
    processing to make a fictional game character.
-3. The backend analyzes the photo (skin tone, hair, facial hair, clothing) and
-   composites a SLIDE character card that **keeps the uploaded face**.
-4. Only generated card URLs are stored on the roster. The source photo is deleted
-   from the server after the job finishes.
+3. The backend analyzes the photo (skin, hair, facial hair) only to write the
+   GPT Image identity prompt. The source file is then deleted.
+4. Only generated asset URLs (or the photo crop) are stored on the roster.
+   The source photo is never persisted there.
 
-If the Flask API is down, the browser does the same thing locally with an SVG
-card that still embeds the uploaded photo. It will **not** silently swap in
-stock role art.
+| `OPENAI_API_KEY` | Portrait | Body / token |
+|---|---|---|
+| unset | Real photo crop | Locked — not generated |
+| set, GPT Image succeeds | GTA-style likeness of that person | Same look, generated |
+| set, GPT Image fails | Real photo crop + `aiProviderError` | Locked — never a stick figure |
 
-## Optional AI restyle (not required)
+If Flask is down, the browser still shows the photo crop and locks the body.
+It will **not** swap in stock role art or draw a vector body.
 
-The default path does not call an image model. To try a stylized 2.5D restyle
-that still asks the model to preserve the face:
+## How to enable GPT Image
 
-```
-# backend/python/.env
+The key is **not** set in this environment yet. The owner will provide it.
+No other vendor flag is required.
+
+```bash
+# 1. Put the key in the Flask env (backend/python/.env). Never commit it.
 OPENAI_API_KEY=sk-...
-SLIDE_AVATAR_PROVIDER=openai
-SLIDE_AVATAR_MODEL=gpt-image-1
-```
 
-Also install the optional client in the backend venv:
+# 2. Optional pin. If unset, the server tries latest-first:
+#    gpt-image-2 → gpt-image-1.5 → gpt-image-1
+# SLIDE_AVATAR_MODEL=gpt-image-2
 
-```
+# 3. Install the client in the backend venv.
+cd backend/python
 ./venv/bin/pip install 'openai>=1.40.0'
+
+# 4. Restart Flask so it rereads the env.
+./venv/bin/python app.py
 ```
 
-`GET /api/avatar/provider` reports whether that path is live. If the key,
-package, or model call fails, generation falls back to the local photo card
-and returns `aiProviderError`. It does not invent a different person.
+Then check:
 
-Owner decisions still needed:
+```bash
+curl -s http://127.0.0.1:5000/api/avatar/provider
+```
 
-- Which image vendor (OpenAI vs another) and who pays for it.
-- Private durable storage for generated cards (today: in-memory job + data URL
-  on the local roster). Do not put source photos or public signed URLs in git.
-- Whether AI restyle is offered at all for the first public cohort.
+Ready looks like:
+
+```json
+{
+  "provider": "gpt_image",
+  "aiConfigured": true,
+  "bodyLockedUntilConfigured": false,
+  "model": "gpt-image-2"
+}
+```
+
+Not ready (current default) looks like:
+
+```json
+{
+  "provider": "photo_crop",
+  "aiConfigured": false,
+  "bodyLockedUntilConfigured": true,
+  "requiredForAi": { "env": ["OPENAI_API_KEY"] }
+}
+```
+
+`SLIDE_AVATAR_PROVIDER` is no longer required. DALL·E 2 / DALL·E 3 are
+never used, even if someone puts those names in `SLIDE_AVATAR_MODEL`.
+
+The frontend does not need an OpenAI key. It talks to Flask at
+`VITE_API_URL` (default `http://localhost:5000`). After changing
+`frontend/.env`, restart Vite — `VITE_*` values are compile-time.
 
 ## Safety
 
@@ -52,7 +90,7 @@ Owner decisions still needed:
   processing consent.
 - Cosmetic fictional avatar only. Not a real-world claim or targeting feature.
 - Canonical world/rival art stays wholly fictional.
-- Do not commit founder photos or generated likenesses to the repository.
+- Do not commit founder photos, generated likenesses, or the API key.
 
 See issue #195 and the fictional-content contract in
 `docs/AI_CONTRIBUTOR_START_HERE.md`.

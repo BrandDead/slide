@@ -1,8 +1,8 @@
-"""Local photo-likeness analysis and character-card compositor.
+"""Photo-crop analysis and the locked GTA-style likeness prompt.
 
-This is the no-key path for custom crew members. It never invents a
-different face. The uploaded photo is the identity; role/style only
-change the fictional card around that face.
+No-key path: crop the uploaded face for the roster. Never invent a
+vector / stick-figure / clip-art body. Full-body and in-game states
+come only from GPT Image once OPENAI_API_KEY is set.
 
 Source photos are read from a temp path and must be deleted by the
 caller after generation. Generated PNGs are either returned as data
@@ -25,6 +25,18 @@ ALLOWED_MIME = {
     "image/gif",
 }
 MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+
+# Latest-first GPT Image family. Never fall back to DALL·E.
+GPT_IMAGE_MODELS = ("gpt-image-2", "gpt-image-1.5", "gpt-image-1")
+
+GTA_ART_DIRECTION = (
+    "GTA V loading-screen / cover-art illustrated realism. Semi-realistic "
+    "painted character art with believable adult anatomy, real clothing "
+    "materials, and cinematic wet-night tropical-noir grade. Same look "
+    "across portrait, full-body, and in-game states. NOT South Park, NOT "
+    "clip-art, NOT vector, NOT a stick figure, NOT cel-shaded cartoon, "
+    "NOT a chibi or mascot."
+)
 
 SKIN_BANDS = (
     ("ivory", (248, 228, 212)),
@@ -51,38 +63,23 @@ HAIR_BANDS = (
 STYLE_CLOTHING = {
     "south_florida_streetwear": {
         "label": "South Florida streetwear",
-        "top": (36, 36, 40),
-        "accent": (74, 222, 128),
-        "bottom": (28, 42, 64),
-        "notes": "oversized tee, baggy jeans, sneakers, thin chain",
+        "notes": "oversized tee, baggy jeans, sneakers, thin chain — real fabric, no logos",
     },
     "luxury_noir": {
         "label": "luxury noir",
-        "top": (18, 16, 20),
-        "accent": (212, 175, 55),
-        "bottom": (24, 22, 28),
         "notes": "dark tailored layers, gold hardware, no real logos",
     },
     "masked_tactical": {
         "label": "tactical streetwear",
-        "top": (32, 38, 34),
-        "accent": (120, 140, 90),
-        "bottom": (28, 32, 28),
-        "notes": "utility vest, muted olive, pulled collar — face stays visible",
+        "notes": "utility vest, muted olive, pulled collar — face stays fully visible",
     },
     "baggy_2000s": {
         "label": "baggy 2000s streetwear",
-        "top": (48, 28, 72),
-        "accent": (250, 204, 21),
-        "bottom": (22, 22, 28),
-        "notes": "oversized jersey, baggy jeans, work boots",
+        "notes": "oversized jersey, baggy jeans, work boots — real cloth folds",
     },
     "clean_designer": {
         "label": "clean designer streetwear",
-        "top": (232, 232, 228),
-        "accent": (96, 165, 250),
-        "bottom": (40, 40, 48),
-        "notes": "fitted knit, clean sneakers, quiet jewelry",
+        "notes": "fitted knit, clean sneakers, quiet jewelry — no brand marks",
     },
 }
 
@@ -95,10 +92,6 @@ ROLE_COLORS = {
     "runner": (250, 204, 21),
     "chemist": (45, 212, 191),
 }
-
-
-def _clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
 
 
 def _nearest_name(rgb: tuple[int, int, int], bands: Iterable[tuple[str, tuple[int, int, int]]]) -> str:
@@ -142,7 +135,6 @@ def _face_box(image: Image.Image) -> tuple[int, int, int, int]:
                 xs.append(x)
                 ys.append(y)
     if len(xs) < 12:
-        # Typical portrait fallback: upper-center.
         return (int(w * 0.18), int(h * 0.08), int(w * 0.82), int(h * 0.72))
     pad_x = int(w * 0.08)
     pad_y = int(h * 0.10)
@@ -162,7 +154,7 @@ def _face_box(image: Image.Image) -> tuple[int, int, int, int]:
 
 
 def analyze_photo(image: Image.Image) -> dict:
-    """Extract likeness traits used for prompts and the local card."""
+    """Extract likeness traits used for GPT Image prompts and the photo crop."""
     rgb = image.convert("RGB")
     face = _face_box(rgb)
     fw = face[2] - face[0]
@@ -225,7 +217,6 @@ def _grade_portrait(crop: Image.Image) -> Image.Image:
     graded = ImageEnhance.Contrast(crop).enhance(1.12)
     graded = ImageEnhance.Color(graded).enhance(1.06)
     graded = ImageEnhance.Sharpness(graded).enhance(1.15)
-    # Warm highlight / cool shadow grade without washing identity.
     overlay = Image.new("RGB", graded.size, (18, 24, 36))
     graded = Image.blend(graded, overlay, 0.10)
     return graded
@@ -243,9 +234,9 @@ def _vignette(image: Image.Image, strength: float = 0.42) -> Image.Image:
 
 
 def compose_portrait(source: Image.Image, traits: dict, role: str) -> Image.Image:
+    """Honest photo crop. Frame chrome only — no invented body."""
     rgb = source.convert("RGB")
     face = tuple(traits["faceBox"])
-    # Include hair and a bit of shoulders so the crop still looks like the person.
     w, h = rgb.size
     fw = face[2] - face[0]
     fh = face[3] - face[1]
@@ -269,102 +260,6 @@ def compose_portrait(source: Image.Image, traits: dict, role: str) -> Image.Imag
     return frame.convert("RGB")
 
 
-def _draw_body(
-    draw: ImageDraw.ImageDraw,
-    traits: dict,
-    role: str,
-    style: str,
-    origin: tuple[int, int],
-) -> None:
-    x, y = origin
-    clothing = STYLE_CLOTHING.get(style, STYLE_CLOTHING["south_florida_streetwear"])
-    skin = tuple(traits["skinRgb"])
-    top = clothing["top"]
-    bottom = clothing["bottom"]
-    accent = clothing["accent"]
-    role_color = ROLE_COLORS.get(role, (74, 222, 128))
-
-    # Neck
-    draw.rectangle((x + 86, y + 132, x + 118, y + 168), fill=skin)
-    # Torso
-    if style == "masked_tactical":
-        draw.rounded_rectangle((x + 48, y + 156, x + 156, y + 320), radius=10, fill=top)
-        draw.rounded_rectangle((x + 58, y + 170, x + 146, y + 250), radius=6, fill=(40, 46, 40))
-        draw.rectangle((x + 70, y + 186, x + 134, y + 196), fill=accent)
-    elif style == "luxury_noir":
-        draw.rounded_rectangle((x + 52, y + 156, x + 152, y + 330), radius=8, fill=top)
-        draw.polygon([(x + 102, y + 156), (x + 70, y + 250), (x + 134, y + 250)], fill=accent)
-    else:
-        draw.rounded_rectangle((x + 44, y + 156, x + 160, y + 318), radius=16, fill=top)
-        draw.rectangle((x + 44, y + 300, x + 160, y + 318), fill=accent)
-
-    # Arms
-    draw.rounded_rectangle((x + 16, y + 168, x + 50, y + 300), radius=12, fill=top)
-    draw.rounded_rectangle((x + 154, y + 168, x + 188, y + 300), radius=12, fill=top)
-    draw.ellipse((x + 14, y + 292, x + 52, y + 330), fill=skin)
-    draw.ellipse((x + 152, y + 292, x + 190, y + 330), fill=skin)
-    # Legs
-    draw.rounded_rectangle((x + 56, y + 314, x + 96, y + 470), radius=10, fill=bottom)
-    draw.rounded_rectangle((x + 108, y + 314, x + 148, y + 470), radius=10, fill=bottom)
-    # Shoes
-    draw.rounded_rectangle((x + 46, y + 462, x + 102, y + 492), radius=8, fill=role_color)
-    draw.rounded_rectangle((x + 102, y + 462, x + 158, y + 492), radius=8, fill=role_color)
-
-
-def compose_fullbody(source: Image.Image, traits: dict, role: str, style: str) -> Image.Image:
-    card = Image.new("RGB", (512, 768), (10, 10, 15))
-    draw = ImageDraw.Draw(card, "RGBA")
-    # Wet-night ground and horizon so the card matches the diorama grade.
-    draw.rectangle((0, 520, 512, 768), fill=(16, 18, 24))
-    draw.rectangle((0, 0, 512, 520), fill=(14, 16, 22))
-    for i in range(8):
-        y = 530 + i * 28
-        draw.line((0, y, 512, y), fill=(24, 28, 36), width=1)
-
-    origin = (154, 86)
-    _draw_body(draw, traits, role, style, origin)
-
-    rgb = source.convert("RGB")
-    face = tuple(traits["faceBox"])
-    w, h = rgb.size
-    fw = face[2] - face[0]
-    fh = face[3] - face[1]
-    head_box = (
-        max(0, face[0] - int(fw * 0.12)),
-        max(0, face[1] - int(fh * 0.22)),
-        min(w, face[2] + int(fw * 0.12)),
-        min(h, face[3] + int(fh * 0.08)),
-    )
-    head = ImageOps.fit(rgb.crop(head_box), (168, 176), Image.Resampling.LANCZOS, centering=(0.5, 0.35))
-    head = _grade_portrait(head)
-    mask = Image.new("L", head.size, 0)
-    ImageDraw.Draw(mask).ellipse((4, 2, 164, 174), fill=255)
-    mask = mask.filter(ImageFilter.GaussianBlur(1.4))
-    card.paste(head, (origin[0] + 18, origin[1] - 8), mask)
-
-    accent = ROLE_COLORS.get(role, (74, 222, 128))
-    draw.rectangle((16, 16, 495, 751), outline=accent, width=3)
-    draw.rectangle((24, 700, 488, 736), fill=(10, 10, 15))
-    draw.rectangle((24, 700, 488, 736), outline=accent, width=1)
-    return card.convert("RGB")
-
-
-def compose_topdown(source: Image.Image, traits: dict, role: str) -> Image.Image:
-    token = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(token, "RGBA")
-    accent = ROLE_COLORS.get(role, (74, 222, 128))
-    draw.ellipse((8, 8, 247, 247), fill=(10, 10, 15, 255), outline=accent + (255,), width=10)
-
-    rgb = source.convert("RGB")
-    face = tuple(traits["faceBox"])
-    head = ImageOps.fit(rgb.crop(face), (196, 196), Image.Resampling.LANCZOS, centering=(0.5, 0.32))
-    head = _grade_portrait(head)
-    mask = Image.new("L", head.size, 0)
-    ImageDraw.Draw(mask).ellipse((2, 2, 193, 193), fill=255)
-    token.paste(head, (30, 30), mask)
-    return token
-
-
 def encode_png(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG", optimize=True)
@@ -377,14 +272,18 @@ def compose_member_assets(
     style: str,
     outputs: list[str],
 ) -> dict:
+    """Photo-crop only. Requested full-body / token outputs stay locked."""
+    _ = style
     with Image.open(source_path) as raw:
         source = raw.convert("RGB")
-        # Bound analysis cost on huge camera rolls.
         max_edge = 1600
         if max(source.size) > max_edge:
             source.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
         traits = analyze_photo(source)
-        assets: dict = {
+        files: dict[str, bytes] = {}
+        if "portrait" in outputs or not outputs:
+            files["portrait"] = encode_png(compose_portrait(source, traits, role))
+        return {
             "likenessTraits": {
                 "skinTone": traits["skinTone"],
                 "hairColor": traits["hairColor"],
@@ -392,15 +291,9 @@ def compose_member_assets(
                 "clothingColors": [traits["skinTone"], _nearest_name(tuple(traits["clothingRgb"]), HAIR_BANDS)],
                 "notes": traits["notes"],
             },
-            "files": {},
+            "files": files,
+            "bodyLocked": True,
         }
-        if "portrait" in outputs:
-            assets["files"]["portrait"] = encode_png(compose_portrait(source, traits, role))
-        if "fullbody" in outputs:
-            assets["files"]["fullbody"] = encode_png(compose_fullbody(source, traits, role, style))
-        if "topdown" in outputs:
-            assets["files"]["topdown"] = encode_png(compose_topdown(source, traits, role))
-        return assets
 
 
 def build_identity_prompt(traits: dict, role: str, style: str, camera: str) -> str:
@@ -411,41 +304,63 @@ def build_identity_prompt(traits: dict, role: str, style: str, camera: str) -> s
     notes = "; ".join(traits.get("notes") or [])
     return (
         "SCENE\n"
-        "SLIDE custom crew card. Stylized-realistic 2.5D urban strategy character, "
-        "cinematic tropical-noir grade, clean silhouette, transparent-friendly, no scenery.\n\n"
+        f"SLIDE custom crew card. {GTA_ART_DIRECTION} Clean silhouette, "
+        "transparent-friendly dark ground, no scenery, no HUD text.\n\n"
         "SUBJECT\n"
-        f"A fictional playable {role} whose face is the same person as the reference photo. "
-        "This is a cosmetic game avatar, not a real-world accusation.\n\n"
+        f"A fictional playable {role} whose face is the same person as the "
+        "uploaded identity-reference photo. Cosmetic game avatar only — not "
+        "a real-world accusation.\n\n"
         "IMPORTANT DETAILS\n"
-        f"Preserve face shape, eye spacing, nose, jaw, skin tone ({skin}), hair color and "
-        f"hairline ({hair}). {facial} Clothing: {clothing['notes']}. Role readable as {role}. "
-        f"Camera: {camera}. {notes}\n\n"
+        f"Preserve face shape, eye spacing, nose, jaw, skin tone ({skin}), "
+        f"hair color and hairline ({hair}). {facial} Clothing: {clothing['notes']}. "
+        f"Role readable as {role}. Camera: {camera}. {notes}\n\n"
         "USE CASE\n"
-        "Crew roster portrait / full-body card / top-down token at phone and desktop sizes.\n\n"
+        "Crew roster portrait / full-body card / in-game token. Same identity "
+        "and wardrobe across every generated state.\n\n"
         "CONSTRAINTS\n"
-        "Preserve identity from the reference. No real brand logos, no watermarks, no baked UI "
-        "text, no real criminal organizations, no minors, no photoreal nude content."
+        "The uploaded photo is the identity reference — keep this person. "
+        "No South Park, clip-art, vector, stick-figure, emoji, or mascot look. "
+        "No real brand logos, watermarks, baked UI text, real criminal "
+        "organizations, minors, or photoreal nude content."
     )
 
 
+def gpt_image_models() -> list[str]:
+    """Latest-first GPT Image list. DALL·E values in env are ignored."""
+    requested = (os.environ.get("SLIDE_AVATAR_MODEL") or "").strip()
+    models: list[str] = []
+    if requested and "dall-e" not in requested.lower() and requested.lower().startswith("gpt-image"):
+        models.append(requested)
+    elif requested and "dall-e" not in requested.lower() and requested:
+        # Allow a future gpt-image name the owner pins, but never DALL·E.
+        if not requested.lower().startswith("dall"):
+            models.append(requested)
+    for name in GPT_IMAGE_MODELS:
+        if name not in models:
+            models.append(name)
+    return [name for name in models if "dall-e" not in name.lower()]
+
+
 def provider_status() -> dict:
-    requested = (os.environ.get("SLIDE_AVATAR_PROVIDER") or "local").strip().lower()
-    has_key = bool(os.environ.get("OPENAI_API_KEY"))
-    model = os.environ.get("SLIDE_AVATAR_MODEL") or "gpt-image-1"
-    ai_ready = requested == "openai" and has_key
+    has_key = bool((os.environ.get("OPENAI_API_KEY") or "").strip())
+    models = gpt_image_models()
     return {
-        "provider": "openai" if ai_ready else "local_photo_likeness",
-        "aiConfigured": ai_ready,
-        "requestedProvider": requested,
-        "model": model if ai_ready else None,
+        "provider": "gpt_image" if has_key else "photo_crop",
+        "aiConfigured": has_key,
+        "requestedProvider": "gpt_image" if has_key else "photo_crop",
+        "model": models[0] if has_key else None,
+        "candidateModels": list(models) if has_key else [],
+        "bodyLockedUntilConfigured": not has_key,
         "requiredForAi": {
-            "env": ["OPENAI_API_KEY", "SLIDE_AVATAR_PROVIDER=openai"],
-            "optionalEnv": ["SLIDE_AVATAR_MODEL (default gpt-image-1)"],
+            "env": ["OPENAI_API_KEY"],
+            "optionalEnv": [
+                "SLIDE_AVATAR_MODEL (optional pin; default tries gpt-image-2, then gpt-image-1.5, then gpt-image-1)"
+            ],
             "pythonPackage": "openai>=1.40.0",
             "notes": (
-                "Without those values the server composes a photo-based likeness card "
-                "from the upload. It will not silently swap in stock role art. "
-                "AI restyle is optional and only used when it succeeds."
+                "OPENAI_API_KEY alone enables GPT Image. Without it the roster "
+                "shows the real photo crop and the body stays locked. Generation "
+                "never falls back to DALL·E or a stick-figure body."
             ),
         },
     }

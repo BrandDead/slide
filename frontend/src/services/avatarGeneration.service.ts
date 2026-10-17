@@ -1,7 +1,8 @@
 // ============================================================
 // avatarGeneration.service.ts
-// Photo-to-member generation. Local photo likeness is the honest
-// fallback. Stock role art is never returned as a generated face.
+// Photo-to-member generation. GPT Image is the likeness vendor.
+// Without a backend key the honest fallback is a photo crop + locked
+// body — never stock role art, never a vector full-body.
 // ============================================================
 
 import type {
